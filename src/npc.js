@@ -46,6 +46,13 @@ export function makePerson(rng, { sex, ageMonths, lastName, job, traits, fatherI
 }
 
 export const ageYears = (p) => Math.floor(p.ageMonths / 12);
+// 몸 나이: 오래 사는 종족은 천천히 늙는다 (src/races/가 바꾼다). 늙음·죽음·출산은 이 값을 쓴다.
+let bodyAgeFn = (p) => ageYears(p);
+export const bodyAgeOf = (p) => bodyAgeFn(p);
+export function setBodyAge(fn) { bodyAgeFn = fn; }
+// 다른 종족끼리, 엘프끼리는 아이가 드물다 (src/races/가 바꾼다)
+let fertilityFn = () => 1;
+export function setFertility(fn) { fertilityFn = fn; }
 export const fullName = (p) => `${p.name} ${p.lastName}`;
 export const has = (p, t) => p.traits.includes(t);
 
@@ -146,17 +153,18 @@ export function simulateMonth(game, rng) {
       ev(`${fullName(p)}이(가) 성인이 되어 ${JOBS[job].name} 일을 시작했다.`, [p.id], 2);
     }
 
-    // 건강과 죽음
+    // 건강과 죽음 (몸 나이로)
+    const body = bodyAgeOf(p);
     let deathRisk = 0.0004;
-    if (age >= 50) deathRisk += (age - 50) * 0.0006;
-    if (age >= 70) deathRisk += (age - 70) * 0.003;
+    if (body >= 50) deathRisk += (body - 50) * 0.0006;
+    if (body >= 70) deathRisk += (body - 70) * 0.003;
     if (age < 3) deathRisk += 0.002; // 어린아이 사망은 이 시대에 흔하다
     if (game.world.plague) deathRisk *= 3;
     if (game.world.famine) deathRisk *= 1.8;
     if (p.job === 'adventurer') deathRisk += 0.0025;
     if (p.job === 'hunter') deathRisk += 0.0006;
     if (rng.chance(deathRisk)) {
-      kill(game, p, age >= 60 ? '노환' : p.job === 'adventurer' ? '의뢰 중 마물에게' : rng.pick(['병', '열병', '사고']));
+      kill(game, p, body >= 60 ? '노환' : p.job === 'adventurer' ? '의뢰 중 마물에게' : rng.pick(['병', '열병', '사고']));
       ev(deathText(p), [p.id], 5);
       continue;
     }
@@ -196,13 +204,13 @@ export function simulateMonth(game, rng) {
 
   // 출산
   for (const w of living(game)) {
-    if (w.isPlayer || w.sex !== 'f' || !w.spouseId || ageYears(w) < 17 || ageYears(w) > 42) continue;
+    if (w.isPlayer || w.sex !== 'f' || !w.spouseId || ageYears(w) < 17 || bodyAgeOf(w) > 42) continue;
     const h = byId(game, w.spouseId);
     if (!h || !h.alive) continue;
     const kids = w.childIds.length;
     const lastChild = kids ? byId(game, w.childIds[kids - 1]) : null;
     if (lastChild && lastChild.ageMonths < 18) continue;
-    if (!rng.chance(kids >= 4 ? 0.004 : 0.018)) continue;
+    if (!rng.chance((kids >= 4 ? 0.004 : 0.018) * fertilityFn(h, w))) continue;
     const baby = makePerson(rng, { lastName: h.lastName, fatherId: h.id, motherId: w.id });
     game.people.push(baby);
     w.childIds.push(baby.id); h.childIds.push(baby.id);

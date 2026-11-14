@@ -3,7 +3,7 @@ import { makeRng } from './rng.js';
 import { FAMILIES, START_YEAR, STATS, SKILLS, MONTHS, JOBS } from './data.js';
 import {
   generateVillage, makePerson, simulateMonth, relevance, byId, living, ageYears, fullName,
-  setNextId, getNextId, kill,
+  setNextId, getNextId, kill, bodyAgeOf,
 } from './npc.js';
 import { ACTIONS } from './actions.js';
 import { pickEvent } from './events.js';
@@ -112,7 +112,7 @@ export function slotsFor(game) {
 
 // 성장 배율: 어릴수록 빨리 큰다. 피로하면 덜 큰다.
 export function growthFactor(game) {
-  const a = playerAge(game);
+  const a = bodyAgeOf(me(game));
   const age = a < 12 ? 1.25 : a < 18 ? 1.0 : a < 30 ? 0.7 : a < 45 ? 0.45 : 0.25;
   const f = game.player.fatigue;
   const fat = f > 80 ? 0.4 : f > 60 ? 0.7 : 1;

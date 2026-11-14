@@ -13,7 +13,10 @@
 import { EVENTS } from './events.js';
 import { HOOKS } from './hooks.js';
 import { me, playerAge, gainStat, gainSkill, rngOf } from './game.js';
-import { living, byId, ageYears, fullName, has, makePerson } from './npc.js';
+import { living, byId, ageYears, fullName, has, makePerson, bodyAgeOf } from './npc.js';
+// 다른 종족(src/races/)이 끼어드는 자리: 아이가 생길 확률 배율, 처음 보는 사람이 나를 대하는 태도
+const HOOK = { fertility: () => 1, affinity: () => 0 };
+export function setRelationHooks(h) { Object.assign(HOOK, h); }
 import { JOBS } from './data.js';
 import { J, join, up, gains, splitResult, pickLine } from './narrative/text.js';
 import * as S from './narrative/talk-text.js';
@@ -153,7 +156,7 @@ export function visitPerson(g, rng, p) {
   const long = p.lastSeen != null && mi(g) - p.lastSeen > 12;
   let gain = rng.int(4, 9) + (has(p, 'kind') ? 2 : 0) - (has(p, 'cruel') ? 3 : 0) + (long ? 2 : 0);
   if (r === 'enemy') gain = Math.round(gain / 3);
-  if (!['father', 'mother', 'sibling', 'child', 'spouse'].includes(r)) gain = Math.max(r === 'enemy' ? 0 : 1, gain + reputationShift(g, p));
+  if (!['father', 'mother', 'sibling', 'child', 'spouse'].includes(r)) gain = Math.max(r === 'enemy' ? 0 : 1, gain + reputationShift(g, p) + HOOK.affinity(g, p));
   p.affection = Math.min(100, p.affection + gain);
   const c = gainStat(g, 'cha', 0.4);
   if (canRomance(g, p)) {
@@ -469,7 +472,7 @@ EVENTS.push(
       p.affection += 4;
       const meP = me(g);
       const wife = meP.sex === 'f' ? meP : p;
-      if (p.sex === meP.sex || ageYears(wife) > 42) {
+      if (p.sex === meP.sex || bodyAgeOf(wife) > 42) {
         return '둘 사이에 아이가 생기기는 어렵다는 걸 둘 다 알았다. 대신 오래 손을 맞잡고 있었다.';
       }
       relState(g).tryChild = 4;
@@ -545,14 +548,14 @@ function playerBirth(g, rng) {
   const wife = meP.sex === 'f' ? meP : sp;
   const husband = wife === meP ? sp : meP;
   const wAge = ageYears(wife);
-  if (wAge < 17 || wAge > 42) return;
+  if (wAge < 17 || bodyAgeOf(wife) > 42) return;
   const kids = wife.childIds.length;
   const last = kids ? byId(g, wife.childIds[kids - 1]) : null;
   if (last && last.ageMonths < 18) return;
   // 내가 남편이면 NPC 쪽 출산 규칙이 이미 돈다. 아이 이야기를 나눈 뒤에만 덧붙인다.
   let chance = meP.sex === 'f' ? (kids >= 4 ? 0.004 : 0.018) : 0;
   if (R.tryChild > 0) chance += 0.035;
-  if (!rng.chance(chance)) return;
+  if (!rng.chance(chance * HOOK.fertility(husband, wife))) return;
   const baby = makePerson(rng, { lastName: g.player.lastName, fatherId: husband.id, motherId: wife.id });
   g.people.push(baby);
   wife.childIds.push(baby.id); husband.childIds.push(baby.id);
