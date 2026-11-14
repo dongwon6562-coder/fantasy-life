@@ -5,10 +5,14 @@ import { me, rngOf, circleOf } from '../game.js';
 import { living, byId, fullName, kill } from '../npc.js';
 import { L, defineScene, queueScene, note, chron, stress, tired } from './core.js';
 import { FOES, skirmish, playerPower, threatWord, describeFoes, leaderName } from './combat.js';
+import { P as partyOf, ready as partyReady, compPow, addLoyalty, leave as leaveParty, ROLES } from '../party/core.js';
 
 /* ---------- 동료 ---------- */
 // 함께 싸워 줄 사람: 친한 모험가·기사 NPC (같은 곳에 있어야 한다)
 export function companionsFor(g) {
+  // 파티가 있으면 파티 동료가 함께 싸운다 (다친 동료는 빠진다)
+  const party = partyReady(g).filter((p) => (p.place ?? 'ern') === L(g).place || L(g).travel);
+  if (party.length) return party.map((p) => ({ name: p.name, pow: compPow(p), id: p.id, role: p.comp.role }));
   const here = L(g).place;
   return living(g)
     .filter((p) => !p.isPlayer && p.known && p.affection >= 35 && ['adventurer', 'guard', 'knight', 'hunter'].includes(p.job)
@@ -129,8 +133,11 @@ function fightFull(g, rng, s, tactic, extra) {
   for (const name of [...new Set(r.compHits)]) {
     const c = comps.find((x) => x.name === name);
     const p = c?.id ? byId(g, c.id) : null;
-    if (p && rng.chance(0.12)) {
+    const guard = comps.some((x) => ROLES[x.role]?.guard && x.name !== name);
+    const healer = comps.some((x) => ROLES[x.role]?.heal && x.name !== name);
+    if (p && rng.chance(0.12 * (guard ? 0.6 : 1) * (healer ? 0.5 : 1))) {
       kill(g, p, `${J(describeFoes(s.enc), '과/와')} 싸우다`);
+      if (p.comp) { partyOf(g).fallen.push({ name: `${p.name} ${p.lastName}`, year: g.date.year, role: p.comp.role, cause: describeFoes(s.enc) }); leaveParty(g, p); }
       lines.push(`${J(fullName(p), '이/가')} 쓰러져 다시 일어나지 못했다. 그 얼굴을 오래 잊지 못할 것이다.`);
       stress(g, 30);
       note(g, `${J(fullName(p), '이/가')} 나와 함께 싸우다 죽었다.`);
@@ -138,12 +145,19 @@ function fightFull(g, rng, s, tactic, extra) {
     } else if (p) {
       p.affection = Math.min(100, p.affection + 4);
       p.history.push({ y: g.date.year, m: g.date.month, text: `${J(g.player.name, '과/와')} 함께 싸우다 다쳤다.` });
-      lines.push(`${J(p.name, '이/가')} 다쳤지만 목숨은 건졌다.`);
+      if (p.comp) { p.comp.out = Math.max(p.comp.out ?? 0, rng.int(1, healer ? 1 : 3)); addLoyalty(p, p.traits.includes('timid') ? -4 : 1); }
+      lines.push(`${J(p.name, '이/가')} 다쳤지만 목숨은 건졌다.${p.comp?.out ? ` 몇 달은 쉬어야 한다.` : ''}`);
     }
   }
+  const won = r.outcome === 'win' || r.outcome === 'overwhelm';
   for (const c of comps) {
     const p = c.id ? byId(g, c.id) : null;
     if (p?.alive) { p.affection = Math.min(100, p.affection + 3); }
+    if (p?.alive && p.comp) {
+      p.comp.fights += 1;
+      if (won) { p.comp.wins += 1; addLoyalty(p, (p.traits.includes('brave') ? 3 : 2) * (p.comp.loyalty > 70 ? 0.25 : 1)); p.skill = Math.min(100, p.skill + 0.4); }
+      else if (r.outcome === 'lose') addLoyalty(p, p.traits.includes('timid') ? -7 : -3);
+    }
   }
   if (comps.length && r.outcome !== 'lose' && !extra.short) lines.splice(1, 0, `${J(comps.map((c) => c.name).join(', '), '이/가')} 등을 맡아 주었다.`);
 
@@ -187,7 +201,7 @@ function defeat(g, rng, s, comps) {
   const p = g.player;
   stress(g, 25);
   const human = FOES[s.enc.unit]?.human || FOES[s.enc.leader]?.human;
-  let mortal = (human ? 0.18 : 0.32) - comps.length * 0.08;
+  let mortal = (human ? 0.18 : 0.32) - comps.length * 0.08 - (comps.some((c) => ROLES[c.role]?.heal) ? 0.1 : 0);
   if (L(g).gear.armor >= 7) mortal -= 0.06;
   // 지니고 다니던 돈만 잃는다 (모아 둔 돈 전부를 들고 다니지는 않는다)
   const lost = Math.min(p.money, human ? rng.int(10, 40) : rng.int(0, 12));
