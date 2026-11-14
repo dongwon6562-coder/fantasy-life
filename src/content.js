@@ -6,3 +6,4 @@ import './world.js';
 import './events/index.js';
 import './tuning.js';
 import './underworld/index.js';
+import './domain/index.js';
