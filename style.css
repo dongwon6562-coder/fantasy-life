@@ -679,3 +679,43 @@ html:not(.motion) .event { animation: none; }
 .ft-kid.dead { color: var(--muted); }
 .over .lr { border-top: 1px solid var(--line); padding-top: 12px; }
 @media (max-width: 420px) { .tl li { grid-template-columns: 38px 1fr; } .tl time { display: none; } }
+
+/* ---------- 6단계: 세계의 위기 ---------- */
+.card.crisis { border-color: #6b3a2c; background: linear-gradient(180deg, rgba(120, 40, 28, .16), transparent 70%), var(--panel); display: grid; gap: 12px; }
+.card.crisis.k-plague { border-color: #4f5a3a; background: linear-gradient(180deg, rgba(90, 100, 60, .16), transparent 70%), var(--panel); }
+.card.crisis.k-war { border-color: #5a4a2c; background: linear-gradient(180deg, rgba(140, 100, 40, .14), transparent 70%), var(--panel); }
+.cr-head { display: grid; gap: 4px; }
+.cr-head h2 { margin: 0; }
+.cr-kind { justify-self: start; font-size: 11px; letter-spacing: .14em; font-weight: 600; color: var(--blood); border: 1px solid currentColor; border-radius: 3px; padding: 1px 8px; }
+.k-plague .cr-kind { color: #a7b27a; }
+.k-war .cr-kind { color: var(--brass); }
+.cr-kind.sm { font-size: 10px; padding: 0 6px; }
+.cr-steps { list-style: none; margin: 0; padding: 0; display: flex; gap: 4px; }
+.cr-steps li { flex: 1; display: grid; gap: 4px; font-size: 11px; color: var(--muted); text-align: center; }
+.cr-steps li::before { content: ''; height: 4px; border-radius: 2px; background: var(--line); }
+.cr-steps li.done::before { background: var(--brass-dim); }
+.cr-steps li.now::before { background: var(--blood); }
+.cr-steps li.now { color: var(--ink); font-weight: 600; }
+.cr-sev, .cr-stance { display: grid; grid-template-columns: 44px 1fr auto; gap: 10px; align-items: center; }
+.cr-sev .lbl, .cr-stance .lbl { font-size: 12px; color: var(--muted); }
+.cr-sev .v { font-size: 13px; }
+.cr-bar { height: 8px; background: var(--bg); border: 1px solid var(--line); border-radius: 4px; overflow: hidden; }
+.cr-bar i { display: block; height: 100%; background: #b0703a; }
+.cr-bar.low i { background: var(--blood); }
+.cr-bar.good i { background: var(--good); }
+.cr-stance strong { font-family: var(--f-display); font-size: 17px; font-weight: 400; }
+.cr-stance .st-hero { color: var(--brass); }
+.cr-stance .st-use { color: var(--blood); }
+.cr-stance .st-idle { color: var(--muted); }
+.cr-deeds { display: flex; gap: 6px; justify-content: end; font-size: 12px; color: var(--muted); }
+.cr-stance .note { grid-column: 1 / -1; margin: 0; }
+.cr-hint { margin: 0; border-top: 1px solid var(--line); padding-top: 10px; }
+.act-group.cr-acts h4 { color: var(--blood); }
+.act-group.cr-acts .act { border-color: #6b3a2c; }
+.cr-past { margin-bottom: 14px; }
+.cr-past ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.cr-past li { display: grid; grid-template-columns: auto 1fr; gap: 10px; align-items: start; }
+.cr-past li > div { display: flex; flex-wrap: wrap; gap: 4px 8px; align-items: baseline; }
+.cr-res { font-size: 13px; color: var(--brass); }
+.cr-res.good { color: var(--good); }
+.cr-res.low { color: var(--blood); }

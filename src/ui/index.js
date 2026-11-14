@@ -31,6 +31,7 @@ import { playableRaces, raceInfo } from '../races/index.js';
 import { renderParty } from './party.js';
 import { renderYouthCard, renderYouthBlock } from './youth.js';
 import { renderLegacy, renderLifeReview } from './legacy.js';
+import { renderCrisis } from './crisis.js';
 
 // 시작 화면: 종족별 집안 (인간 집안은 race가 없다)
 const familiesOf = (race) => FAMILIES.filter((f) => (f.race ?? 'human') === race);
@@ -378,7 +379,7 @@ function renderGame() {
   const p = game.player;
   const art = sceneImage({ year: game.date.year, month: game.date.month, famine: game.world?.famine, plague: game.world?.plague, place: L(game).place });
   let main = '';
-  if (ui.view === 'month') main = game.over ? renderOver() : renderNews() + renderYouthCard(game, ui) + renderWorkshop(game, ui) + renderPlan(game, ui);
+  if (ui.view === 'month') main = game.over ? renderOver() : renderCrisis(game) + renderNews() + renderYouthCard(game, ui) + renderWorkshop(game, ui) + renderPlan(game, ui);
   else if (ui.view === 'me') main = renderSheet();
   else if (ui.view === 'people') main = renderParty(game) + renderPeople(game, ui);
   else if (ui.view === 'map') main = renderMap() + renderWorldCard(); // 지도가 먼저 (폰에서 바로 보이게)

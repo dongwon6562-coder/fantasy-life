@@ -5,6 +5,7 @@ import { houseName, SEAT_NAME } from '../history/nobles.js';
 import { notableTitle } from '../history/people.js';
 import { POWERS, COMPANY_KIND, TEMPER, KIND } from '../history/state.js';
 import { esc } from './util.js';
+import { renderCrisisPast } from './crisis.js';
 
 const PLACE_NAME = { ern: '에른', harfen: '하르펜', verden: '베르덴', leocast: '왕도' };
 const bar = (v, cls = '') => `<span class="wd-bar ${cls}"><i style="width:${Math.max(0, Math.min(100, v))}%"></i></span>`;
@@ -64,8 +65,8 @@ export function renderWorld(game, ui) {
       if (!byYear.has(e.y)) byYear.set(e.y, []);
       byYear.get(e.y).push(e);
     }
-    body = log.length ? `<ol class="wd-years">${[...byYear].map(([y, es]) => `<li><h4>용사력 ${y}년</h4><ul>${es.map((e) => `<li class="${kindOf(e.text)}"><time>${e.m}월</time><span>${esc(e.text)}</span></li>`).join('')}</ul></li>`).join('')}</ol>`
-      : '<p class="note">아직 왕국에 큰일이 없었다.</p>';
+    body = renderCrisisPast(game) + (log.length ? `<ol class="wd-years">${[...byYear].map(([y, es]) => `<li><h4>용사력 ${y}년</h4><ul>${es.map((e) => `<li class="${kindOf(e.text)}"><time>${e.m}월</time><span>${esc(e.text)}</span></li>`).join('')}</ul></li>`).join('')}</ol>`
+      : '<p class="note">아직 왕국에 큰일이 없었다.</p>');
   }
 
   return `<section class="card worldview">

@@ -4,6 +4,7 @@ import { ACTIONS } from '../actions.js';
 import { actionIcon } from '../art/icons.js';
 import { portrait } from '../art/portrait.js';
 import { esc } from './util.js';
+import { crisisActDesc } from './crisis.js';
 
 const LABELS = { 4: ['첫째 주', '둘째 주', '셋째 주', '넷째 주'], 3: ['상순', '중순', '하순'], 2: ['전반', '후반'], 1: ['이번 달'] };
 
@@ -28,6 +29,7 @@ export function normalizePlan(game, ui) {
 
 // 행동 묶음: 고르기 쉽게 성격별로 나눈다. 어두운 일은 접어 둔다(고르면 펼쳐진 채로).
 const GROUPS = [
+  ['crisis', '나라의 큰일', /^crisis_/],
   ['work', '일과 벌이', /^(work|seek_job|day_labor|inn_kitchen|herbs|help_home|shop_manage|open_shop|domain_|realm_office|farmer|merchant)/],
   ['learn', '배움과 수련', /^(study|train_body|sword_|meditate|magic_)/],
   ['people', '사람과 마을', /^(visit|play|wander|rel_|faction_door|bard)/],
@@ -98,8 +100,8 @@ export function renderPlan(game, ui) {
       </div>` : ''}
     <div class="acts">
       ${groupActs(acts).map(([gid, name, list]) => {
-        const cards = list.map((a) => actCard(a, ui, counts)).join('');
-        if (gid !== 'dark') return `<div class="act-group"><h4>${name}</h4><div class="act-grid">${cards}</div></div>`;
+        const cards = list.map((a) => actCard(gid === 'crisis' ? crisisActDesc(game, a) : a, ui, counts)).join('');
+        if (gid !== 'dark') return `<div class="act-group${gid === 'crisis' ? ' cr-acts' : ''}"><h4>${name}</h4><div class="act-grid">${cards}</div></div>`;
         const open = ui.darkOpen || list.some((a) => counts[a.id]);
         return `<details class="act-group dark"${open ? ' open' : ''}><summary><h4>${name}</h4><span class="note">${list.length}가지</span></summary><div class="act-grid">${cards}</div></details>`;
       }).join('')}
