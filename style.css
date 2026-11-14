@@ -560,3 +560,13 @@ html:not(.motion) .event { animation: none; }
 .realm-box dt { color: #7a5a2a; font-size: 12px; }
 .realm-box dd { margin: 0; }
 .realm-box .border { margin: 0; font-size: 13px; color: #8a2a17; font-weight: 600; }
+.ws-shop { display: grid; gap: 8px; padding: 10px 12px; background: var(--bg); border: 1px solid var(--brass-dim); border-radius: 8px; }
+.ws-shop .top { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 4px 10px; align-items: baseline; }
+.ws-shop .top strong { font-family: var(--f-display); font-size: 17px; }
+.ws-shop .top span { font-size: 13px; color: var(--muted); }
+.ws-store dd.neg { color: #e3917f; }
+.ws-aps { display: flex; gap: 8px; flex-wrap: wrap; }
+.ws-ap { display: grid; grid-template-columns: auto 1fr; grid-template-rows: auto auto; column-gap: 8px; align-items: center; text-align: left; background: none; border: 1px solid var(--line); border-radius: 8px; padding: 6px 10px 6px 6px; min-height: 48px; }
+.ws-ap .portrait { grid-row: span 2; }
+.ws-ap .nm { font-size: 14px; }
+.ws-ap .note { font-size: 12px; }

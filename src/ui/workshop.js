@@ -2,7 +2,31 @@
 // 이번 달 화면의 소식 아래에 접는 칸으로 들어간다. 생산직이 아니면 아무것도 그리지 않는다.
 import { craftStatus } from '../craft/core.js';
 import { monthIndex } from '../world.js';
+import { apprentices } from '../craft/shop.js';
+import { PLACES } from '../places.js';
+import { ageYears } from '../npc.js';
+import { portrait } from '../art/portrait.js';
 import { esc } from './util.js';
+
+const PRICE = ['싸게', '보통으로', '비싸게'];
+const KIND = { farming: '농장', cooking: '식당', smithing: '대장간', herbs: '약방', trade: '상점' };
+const appWord = (v) => (v < 20 ? '서툶' : v < 40 ? '제법' : v < 55 ? '쓸 만함' : '한몫함');
+
+function shopBlock(game, sh) {
+  let aps = [];
+  try { aps = apprentices(game); } catch (e) { console.error(e); }
+  return `<div class="ws-shop">
+    <div class="top"><strong>${esc(sh.name)}</strong><span>${esc(PLACES[sh.place]?.name ?? '')}의 ${esc(KIND[sh.trade] ?? '가게')} · ${Math.max(0, game.date.year - sh.since)}년째</span></div>
+    <dl class="ws-store">
+      <div><dt>값</dt><dd>${esc(PRICE[(sh.price ?? 0) + 1] ?? '보통으로')}</dd></div>
+      <div><dt>지난달 남은 돈</dt><dd class="${sh.lastIncome < 0 ? 'neg' : ''}">은화 ${sh.lastIncome ?? 0}닢</dd></div>
+      ${sh.partner ? `<div><dt>거래 상단</dt><dd>${esc(sh.partner.name)}${sh.partner.owed ? ` (받을 돈 ${sh.partner.owed}닢)` : ''}</dd></div>` : ''}
+    </dl>
+    ${aps.length ? `<h4>제자</h4><div class="ws-aps">${aps.map((p) => `<button class="ws-ap" data-ws-person="${p.id}">
+      ${portrait(game, p, { size: 40 })}<span class="nm">${esc(p.name)}</span><span class="note">${ageYears(p)}살 · ${appWord(p.skill ?? 0)}</span>
+    </button>`).join('')}</div>` : ''}
+  </div>`;
+}
 
 const GRADES = ['견습', '숙련', '장인', '명장'];
 const GRADE_AT = [0, 30, 55, 80]; // core.js gradeOf와 같은 문턱
@@ -24,6 +48,7 @@ export function renderWorkshop(game, ui = {}) {
       <span class="ws-demand ${dcls}">${esc(s.season)} · ${esc(s.demandWord)}</span>
     </summary>
     <div class="ws-body">
+      ${s.shop ? shopBlock(game, s.shop) : ''}
       <div class="ws-ladder" aria-label="솜씨 단계">
         ${GRADES.map((g, i) => `<span class="${i < gi ? 'past' : i === gi ? 'now' : ''}">${g}</span>`).join('<i aria-hidden="true"></i>')}
       </div>
