@@ -476,3 +476,73 @@ html:not(.motion) .event { animation: none; }
 .audio-host.fl-audio { border-top: 1px solid var(--line); padding-top: 10px; }
 .fl-audio-btn[hidden] { display: none !important; }
 .audio-host .fl-audio-box { padding: 4px 0 0; }
+
+/* ---------- 4단계: 공방·가게 카드 ---------- */
+.workshop { gap: 0; }
+.workshop summary { cursor: pointer; list-style: none; display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 4px 12px; min-height: 40px; }
+.workshop summary::-webkit-details-marker { display: none; }
+.ws-title { display: grid; gap: 0; }
+.ws-title .lbl { font-size: 11px; letter-spacing: .14em; color: var(--brass); font-weight: 600; }
+.ws-title strong { font-family: var(--f-display); font-size: 17px; }
+.ws-demand { font-size: 13px; color: var(--muted); }
+.ws-demand.up, .ws-market.up b { color: var(--good); }
+.ws-demand.down, .ws-market.down b { color: #e3917f; }
+.workshop summary::after { content: '펼치기'; font-size: 12px; color: var(--muted); }
+.workshop[open] summary::after { content: '접기'; }
+.ws-body { display: grid; gap: 10px; padding-top: 12px; margin-top: 10px; border-top: 1px solid var(--line); }
+.ws-ladder { display: flex; align-items: center; gap: 6px; font-size: 13px; color: var(--muted); }
+.ws-ladder i { flex: 1; height: 1px; background: var(--line); min-width: 8px; }
+.ws-ladder span { padding: 2px 10px; border-radius: 12px; border: 1px solid var(--line); white-space: nowrap; }
+.ws-ladder .past { color: var(--brass-dim); border-color: var(--brass-dim); }
+.ws-ladder .now { color: #1b150e; background: var(--brass); border-color: var(--brass); font-weight: 700; }
+.ws-stat { display: grid; grid-template-columns: 52px 1fr auto; gap: 8px; align-items: center; font-size: 14px; }
+.ws-stat .v { color: var(--muted); font-variant-numeric: tabular-nums; font-size: 13px; }
+.ws-bar, .wd-bar { display: block; height: 6px; border-radius: 3px; background: var(--bg); border: 1px solid var(--line); overflow: hidden; }
+.ws-bar i, .wd-bar i { display: block; height: 100%; background: var(--brass-dim); }
+.ws-bar.fame i, .wd-bar.fame i { background: var(--brass); }
+.ws-bar.order i { background: var(--good); }
+.ws-market { font-size: 14px; display: grid; gap: 2px; padding: 8px 10px; background: var(--bg); border-radius: 6px; }
+.ws-market span { color: var(--muted); font-size: 13px; }
+.workshop h4, .worldview h4 { font-family: var(--f-body); font-size: 12px; letter-spacing: .12em; color: var(--brass); margin: 0 0 4px; font-weight: 600; }
+.ws-orders { display: grid; gap: 8px; }
+.ws-order { border-left: 2px solid var(--good); padding: 4px 0 4px 10px; display: grid; gap: 4px; }
+.ws-order .top { display: flex; justify-content: space-between; gap: 8px; font-size: 14px; }
+.ws-order .top span { color: var(--muted); font-size: 13px; }
+.ws-order .top .warn { color: #e3917f; }
+.ws-store { margin: 0; display: flex; flex-wrap: wrap; gap: 6px 18px; }
+.ws-store div { display: grid; }
+.ws-store dt { font-size: 11px; color: var(--muted); letter-spacing: .08em; }
+.ws-store dd { margin: 0; font-size: 15px; }
+.ws-master ul { margin: 0; padding-left: 18px; font-family: var(--f-display); }
+
+/* ---------- 4단계: 레오니아 연대기 ---------- */
+.chron-tabs { justify-self: start; }
+.wd-tabs { max-width: 100%; overflow-x: auto; flex-wrap: nowrap; }
+.wd-tabs button { white-space: nowrap; padding: 8px 12px; font-size: 14px; }
+.wd-row { display: grid; grid-template-columns: 84px 1fr 30px; gap: 8px; align-items: center; font-size: 14px; }
+.wd-row .v { color: var(--muted); font-variant-numeric: tabular-nums; text-align: right; font-size: 13px; }
+.wd-bar.low i { background: var(--blood); }
+.wd-bar.high i { background: var(--good); }
+.wd-powers { display: grid; gap: 8px; }
+.wd-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 8px; }
+.wd-card { background: var(--bg); border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; display: grid; gap: 4px; }
+.wd-card .top { display: flex; justify-content: space-between; gap: 8px; align-items: baseline; }
+.wd-card .top strong { font-family: var(--f-display); font-size: 16px; }
+.wd-card .top span { font-size: 12px; color: var(--muted); }
+.wd-card .wd-row { grid-template-columns: 40px 1fr 30px; }
+.wd-people { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+.wd-people li { display: grid; grid-template-columns: auto 1fr; gap: 2px 10px; align-items: baseline; }
+.wd-people .k { grid-row: span 3; width: 56px; text-align: center; font-size: 11px; letter-spacing: .1em; color: var(--brass); border: 1px solid var(--brass-dim); border-radius: 10px; padding: 1px 8px; align-self: start; margin-top: 3px; }
+.wd-people strong { font-family: var(--f-display); font-size: 16px; }
+.wd-people .wd-bar { max-width: 220px; }
+.wd-place ul { margin: 0; padding-left: 18px; display: grid; gap: 4px; font-size: 14px; }
+.wd-years { list-style: none; margin: 0; padding: 0; display: grid; gap: 14px; }
+.wd-years ul { list-style: none; margin: 0; padding: 0 0 0 14px; border-left: 1px solid var(--line); display: grid; gap: 6px; font-size: 14px; }
+.wd-years ul li { display: grid; grid-template-columns: 34px 1fr; gap: 6px; position: relative; }
+.wd-years ul li::before { content: ''; position: absolute; left: -18px; top: 8px; width: 7px; height: 7px; border-radius: 50%; background: var(--line); }
+.wd-years time { color: var(--muted); font-size: 12px; font-variant-numeric: tabular-nums; }
+.wd-years .war::before, .wd-years .death::before { background: var(--blood); }
+.wd-years .war span { color: #e3917f; }
+.wd-years .invent::before { background: var(--mana); }
+.wd-years .rise::before { background: var(--brass); }
+.wd-years .fall::before { background: var(--muted); }
