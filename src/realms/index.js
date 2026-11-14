@@ -228,7 +228,7 @@ defineScene('border', {
     const R = RS(g);
     const r = REALMS[s.to];
     const banned = bannedLeft(g, s.to) > 0 || treatmentIn(g, s.to) === 'banned';
-    const enter = (text) => { enterRealm(g, rng, s.to); return `${text}${treatLine(g, s.to)}`; };
+    const enter = (text) => { enterRealm(g, rng, s.to); return `${text}${treatLine(g, s.to)}${BORDER_EXTRA.map((fn) => fn(g, s.to) ?? '').join('')}`; };
     if (key === 'citizen') return enter(`병사가 내 말씨를 듣더니 고개를 끄덕였다. "돌아왔군." ${J(r.short, '은/는')} 그래도 내 나라다.`);
     if (key === 'guild') return enter('길드 패를 내밀자 병사의 태도가 달라졌다. 모험가 법은 어느 나라에서나 통한다. 재앙급 마물이 나오면 끌려가 싸워야 한다는 것만 빼면.');
     if (key === 'sword') return enter('병사는 내 칼자루를 한 번 보고는 비켜섰다. "성벽에 일손이 모자라. 생각 있으면 수비대로 와."');
@@ -262,6 +262,9 @@ defineScene('border', {
     return turnBack(g, rng, s, '발길을 돌렸다. 이 나라는 아직이다.');
   },
 });
+// 다른 갈래(신앙)가 국경을 넘을 때 덧붙이는 글
+const BORDER_EXTRA = [];
+export function setBorderExtra(fn) { BORDER_EXTRA.push(fn); }
 function turnBack(g, rng, s, text) {
   const life = L(g);
   const to = s.back && realmOf(s.back) !== s.to ? s.back : nearestOutside(g, s.to);

@@ -17,6 +17,10 @@ import { living, byId, ageYears, fullName, has, makePerson, bodyAgeOf } from './
 // 다른 종족(src/races/)이 끼어드는 자리: 아이가 생길 확률 배율, 처음 보는 사람이 나를 대하는 태도
 const HOOK = { fertility: () => 1, affinity: () => 0 };
 export function setRelationHooks(h) { Object.assign(HOOK, h); }
+// 다른 갈래(신앙 등)가 호감에 더하는 몫. 종족의 affinity와 합쳐진다.
+const AFFINITY = [];
+export function addAffinity(fn) { AFFINITY.push(fn); }
+const affinityOf = (g, p) => AFFINITY.reduce((a, f) => a + (f(g, p) || 0), HOOK.affinity(g, p));
 import { JOBS } from './data.js';
 import { J, join, up, gains, splitResult, pickLine } from './narrative/text.js';
 import * as S from './narrative/talk-text.js';
@@ -156,7 +160,7 @@ export function visitPerson(g, rng, p) {
   const long = p.lastSeen != null && mi(g) - p.lastSeen > 12;
   let gain = rng.int(4, 9) + (has(p, 'kind') ? 2 : 0) - (has(p, 'cruel') ? 3 : 0) + (long ? 2 : 0);
   if (r === 'enemy') gain = Math.round(gain / 3);
-  if (!['father', 'mother', 'sibling', 'child', 'spouse'].includes(r)) gain = Math.max(r === 'enemy' ? 0 : 1, gain + reputationShift(g, p) + HOOK.affinity(g, p));
+  if (!['father', 'mother', 'sibling', 'child', 'spouse'].includes(r)) gain = Math.max(r === 'enemy' ? 0 : 1, gain + reputationShift(g, p) + affinityOf(g, p));
   p.affection = Math.min(100, p.affection + gain);
   const c = gainStat(g, 'cha', 0.4);
   if (canRomance(g, p)) {
