@@ -70,10 +70,10 @@ export function renderSettings() {
     <div class="set-row"><span class="lbl">글자 크기</span>${seg('text', [['m', '보통'], ['l', '크게'], ['xl', '아주 크게']])}</div>
     <div class="set-row"><span class="lbl">화면 움직임</span>${seg('motion', [['auto', '기기 따름'], ['full', '켜기'], ['reduce', '줄이기']])}</div>
     <div class="set-row"><span class="lbl">달 넘김 카드</span>${seg('monthCard', [[true, '보기'], [false, '안 보기']])}</div>
-    <div class="set-row vols"><span class="lbl">소리</span>
-      <div class="vol-list">${slider('music', '음악')}${slider('sfx', '효과음')}</div>
+    <div class="audio-host" id="audio-host">
+      <div class="set-row vols"><span class="lbl">소리</span><div class="vol-list">${slider('music', '음악')}${slider('sfx', '효과음')}</div></div>
+      <p class="note">소리는 화면을 처음 누른 뒤부터 난다.</p>
     </div>
-    <p class="note">소리는 화면을 처음 누른 뒤부터 난다.</p>
     <div class="actions-row"><button class="ghost sm" id="guide-again">처음 안내 다시 보기</button></div>
   </section>`;
 }
