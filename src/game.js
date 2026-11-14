@@ -7,6 +7,7 @@ import {
 } from './npc.js';
 import { ACTIONS } from './actions.js';
 import { pickEvent } from './events.js';
+import { run as runHooks } from './hooks.js';
 
 export function rngOf(game) { return makeRng(game.rngState); }
 
@@ -85,6 +86,7 @@ export function newGame({ name, sex, familyId, mode, seed }) {
     injuries: [],
     alive: true,
   };
+  runHooks('newGame', game, rng);
   game.nextId = getNextId();
   game.news = [{ text: `${fullName(father)}와(과) ${mother.name}의 집에 아이가 태어났다. 이름은 ${name}.`, rel: 100 }];
   game.chronicle.push({ y: game.date.year, m: game.date.month, text: `${name}, ${fam.name}에서 태어나다.`, rel: 100 });
@@ -157,6 +159,8 @@ export function endMonth(game, choices) {
     if (text) results.push({ name: act.name, text });
   }
 
+  runHooks('afterActions', game, rng, results);
+
   const meP = me(game);
   meP.ageMonths += 1;
 
@@ -205,6 +209,7 @@ export function endMonth(game, choices) {
 
   // NPC 한 달
   const sim = simulateMonth(game, rng);
+  runHooks('afterNpc', game, rng, sim);
   // 새로 태어난 동생은 가족에 넣는다
   for (const x of game.people) {
     if (!x.isPlayer && x.ageMonths === 0 && x.alive && (x.fatherId === game.player.familyIds[0])) {
@@ -231,6 +236,8 @@ export function endMonth(game, choices) {
   game.worldNews = [];
   game.news = news;
   game.lastResults = results;
+
+  runHooks('afterMonth', game, rng);
 
   // 사건
   game.pendingEvent = pickEvent(game, rng);

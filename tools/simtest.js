@@ -1,3 +1,4 @@
+import '../src/content.js';
 // 브라우저 없이 게임을 수십 년 돌려 보는 점검 스크립트.
 import { newGame, endMonth, availableActions, slotsFor, playerAge, rngOf, circleOf } from '../src/game.js';
 import { resolveEvent } from '../src/events.js';

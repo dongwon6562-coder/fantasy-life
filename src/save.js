@@ -1,5 +1,6 @@
 // 저장과 불러오기. 한 번뿐인 삶은 자동 저장 하나뿐, 자유 모드는 칸 세 개를 더 쓴다.
 import { setNextId } from './npc.js';
+import { run as runHooks } from './hooks.js';
 
 const KEY = 'fantasy-life:';
 const safe = (fn, fallback = null) => { try { return fn(); } catch { return fallback; } };
@@ -13,7 +14,10 @@ export function saveSlot(game, slot) {
 }
 export function load(key) {
   const g = safe(() => JSON.parse(localStorage.getItem(KEY + key)));
-  if (g) setNextId(g.nextId ?? 1 + Math.max(...g.people.map((p) => p.id)));
+  if (g) {
+    setNextId(g.nextId ?? 1 + Math.max(...g.people.map((p) => p.id)));
+    runHooks('migrate', g);
+  }
   return g;
 }
 export function summary(key) {
