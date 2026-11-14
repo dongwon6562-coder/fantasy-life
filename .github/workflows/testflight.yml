@@ -34,6 +34,7 @@ jobs:
           mkdir -p ~/private_keys
           printf '%s' "$ASC_KEY_P8" > ~/private_keys/AuthKey_${ASC_KEY_ID}.p8
 
+      # 개발용 기기가 없어도 되도록 아카이브는 서명 없이 만들고, 내보낼 때 배포용으로 서명한다
       - name: 아카이브
         env:
           TEAM: ${{ secrets.APPLE_TEAM_ID }}
@@ -47,6 +48,7 @@ jobs:
             -authenticationKeyPath ~/private_keys/AuthKey_${KEY_ID}.p8 \
             -authenticationKeyID "$KEY_ID" -authenticationKeyIssuerID "$ISSUER" \
             DEVELOPMENT_TEAM="$TEAM" CODE_SIGN_STYLE=Automatic \
+            CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO CODE_SIGN_IDENTITY="" \
             CURRENT_PROJECT_VERSION=${{ github.run_number }} MARKETING_VERSION=0.1.0 \
             archive
 
