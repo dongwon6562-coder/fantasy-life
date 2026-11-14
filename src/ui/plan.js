@@ -47,7 +47,7 @@ export function renderPlan(game, ui) {
 
   return `
   <section class="card plan">
-    <h2>이번 달 계획 <small>칸을 고르고, 아래에서 할 일을 누른다</small></h2>
+    <h2>이번 달 계획 <small class="hint-wide">칸을 고르고, 아래에서 할 일을 누른다</small><small class="hint-narrow">할 일을 누르면 아래 칸에 차례로 들어간다</small></h2>
     <div class="slotbar" role="tablist" aria-label="이번 달의 칸" style="--n:${n}">
       ${ui.plan.map((c, i) => {
         const act = ACTIONS.find((a) => a.id === c.id);

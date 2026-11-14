@@ -46,7 +46,10 @@ for (let run = 0; run < N; run++) {
   out.circleMax[maxCircle] = (out.circleMax[maxCircle] ?? 0) + 1;
   out.statMax.push(Math.max(...Object.values(g.player.stats)));
   out.evPerYear.push(evs / (months / 12));
-  out.worstRepeat.push(Math.max(0, ...Object.values(evCount)));
+  // 장면 틀(life_scene, 결투 한 합)은 빼고 본다: 내용이 매번 다르다
+  const content = Object.entries(evCount).filter(([id]) => id !== 'life_scene' && !id.startsWith('duel_'));
+  out.worstRepeat.push(Math.max(0, ...content.map(([, n]) => n)));
+  const w = content.sort((a, b) => b[1] - a[1])[0]; if (w) (out.worstIds ??= {})[w[0]] = ((out.worstIds ??= {})[w[0]] ?? 0) + 1;
   out.pop.push(living(g).length);
   out.saveKB.push(JSON.stringify(g).length / 1024);
   out.gens.push(g.player.generation ?? g.lineage?.length ?? 1);
@@ -58,7 +61,7 @@ console.log('죽은 나이', rng(out.deathAge), JSON.stringify(out.causes));
 console.log('30살 내 돈', rng(out.money30), ' 집안 돈', rng(out.fam30));
 console.log('최고 서클 분포', JSON.stringify(out.circleMax));
 console.log('가장 높은 능력치', rng(out.statMax));
-console.log('1년당 사건', rng(out.evPerYear), ' 한 삶에서 같은 사건 최다', rng(out.worstRepeat));
+console.log('1년당 사건', rng(out.evPerYear), ' 한 삶에서 같은 사건 최다', rng(out.worstRepeat), JSON.stringify(out.worstIds ?? {}));
 console.log('마을 인구(끝)', rng(out.pop), ' 저장 크기 KB', rng(out.saveKB), ' 한 달 ms', rng(out.msPerMonth));
 console.log('본 사건 종류', out.eventsSeen.size, ' 오류', out.errors);
 console.log('가장 자주 나온 사건', Object.entries(evCountAll).sort((a, b) => b[1] - a[1]).slice(0, 12).map(([k, v]) => `${k}:${v}`).join(' '));

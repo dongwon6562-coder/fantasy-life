@@ -64,6 +64,7 @@ ACTIONS.push(
       const m = magicState(g);
       if (!m.study || knows(g, m.study.id) || !spellById(m.study.id) || spellById(m.study.id).circle > circleOf(g)) {
         const cands = learnable(g);
+        if (!cands.length) { m.study = null; gainSkill(g, 'magic', 0.5, 'int'); return '지금 서클로 익힐 수 있는 주문은 다 익혔다. 아는 주문을 되짚으며 마력의 결을 다듬었다.'; }
         const low = Math.min(...cands.map((s) => s.circle));
         m.study = { id: rng.pick(cands.filter((s) => s.circle === low)).id, prog: 0 };
       }
