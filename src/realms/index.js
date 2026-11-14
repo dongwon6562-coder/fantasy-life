@@ -422,10 +422,12 @@ defineScene('realm_office', {
     if (key === 'leave' || !r) return '서류 더미와 긴 줄을 보고 발길을 돌렸다.';
     if (key === 'naturalize') {
       if (naturalizeBlock(g, realm)) return '서기가 서류를 밀어냈다. 조건이 모자랐다.';
-      g.player.money -= r.naturalize.fee;
+      g.player.money -= r.naturalize.fee ?? 0;
       return naturalize(g, realm, NATURALIZE_TEXT[realm]);
     }
     if (key === 'buy') {
+      // 장면을 띄운 뒤 다른 나라로 옮겨졌으면 이 나라는 시민권을 팔지 않는다
+      if (!r.naturalize?.buy) return '서기는 그런 거래는 여기서 하지 않는다고 잘라 말했다.';
       if (g.player.money < r.naturalize.buy) return `은화 ${r.naturalize.buy}닢. 의회 서기는 돈이 모자란 사람에게 눈길도 주지 않았다.`;
       g.player.money -= r.naturalize.buy;
       return naturalize(g, realm, '의회 서기가 은화를 세어 금고에 넣고, 시민 명부에 내 이름을 적었다. 그것으로 끝이었다. 자유도시에서는 나라도 사고판다.');
