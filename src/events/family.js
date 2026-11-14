@@ -1,6 +1,7 @@
 // 집안마다 다른 사건: 자작농, 몰락한 기사 가문, 상인 집안.
 import { gainStat, gainSkill } from '../game.js';
 import { realm, lordName } from '../world.js';
+import { startDuel } from '../duel/duel.js';
 import {
   EVENTS, flag, setFlag, fam, father, mother, alive, age, findJob, peers, stat, skill, money, spend,
   spendFamily, stress, tire, like, note, injure, check, nm, byId,
@@ -100,7 +101,7 @@ EVENTS.push(
     title: '귀족의 아이',
     text: () => '하르펜에서 온 남작가 자제가 말 위에서 내려다보며 웃는다. "폰 어쩌고? 땅 한 뼘 없는 거지 귀족이 아직도 이름 앞에 폰을 붙이나?" 시종들이 따라 웃었다.',
     choices: [
-      { label: '결투를 신청한다', run: (g, rng) => { if (check(rng, skill(g, 'sword') + stat(g, 'agi') / 2, 30)) { gainSkill(g, 'sword', 2.0, 'agi'); gainStat(g, 'cha', 0.8); setFlag(g, 'won_duel'); return '귀족끼리의 결투는 법이 허락한다. 목검이 세 번 부딪히고, 상대의 목검이 흙바닥에 떨어졌다. 그는 얼굴이 새빨개진 채 떠났다. 마을 사람들이 그 이야기를 오래 했다.'; } injure(g, '목검에 맞은 쇄골', 2); stress(g, 20); return '상대는 하르펜 검술 도장에서 배운 솜씨였다. 쇄골에 목검이 박혔다. 흙바닥에 엎드린 채 웃음소리를 들었다.'; } },
+      { label: '결투를 신청한다', run: (g, rng) => { startDuel(g, rng, { kind: 'insult', title: '목검 결투', foe: { name: '남작가 자제', skill: 22 + age(g), style: 'bold' } }); return '귀족끼리의 결투는 법이 허락한다. 목검이 건네졌다. 남작가 자제가 비웃으며 자세를 잡았다.'; } },
       { label: '"이름은 팔지 않았다."', run: (g) => { gainStat(g, 'wil', 0.8); gainStat(g, 'cha', 0.4); return '조용히 말하고 등을 돌렸다. 웃음소리가 등 뒤에서 잦아들었다.'; } },
       { label: '참는다', run: (g) => { stress(g, 15); return '주먹을 쥔 채 땅만 보았다. 손톱이 손바닥을 파고들었다.'; } },
     ],

@@ -83,7 +83,7 @@ defineScene('civil_side', {
 function moveWar(g, s, amt) {
   const r = g.realm;
   if (!r) return;
-  if (s.war === 'balhart') r.balhart.front += amt * 1.5;
+  if (s.war === 'balhart') nudge(g, 'front', amt * 1.5);
   else if (s.war === 'garbes') nudge(g, 'garbes', -amt * 3);
   else if (s.war === 'civil') {
     const side = D(g)?.side ?? 'erik'; // 기사는 기사단을 쥔 에릭 쪽이다
