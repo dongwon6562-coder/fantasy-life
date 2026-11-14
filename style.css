@@ -29,7 +29,14 @@ body {
   font-size: 15px;
   line-height: 1.6;
   -webkit-tap-highlight-color: transparent;
+  /* 게임 화면에서 누르고 끌 때 글자가 파랗게 잡히거나 길게 눌러 메뉴가 뜨지 않게 */
+  -webkit-user-select: none; user-select: none;
+  -webkit-touch-callout: none;
+  overscroll-behavior: none;
 }
+html { overscroll-behavior: none; }
+img, svg, canvas, a { -webkit-user-drag: none; user-drag: none; }
+input, textarea, [contenteditable] { -webkit-user-select: text; user-select: text; -webkit-touch-callout: default; }
 button, select, input { font: inherit; color: inherit; }
 button { cursor: pointer; touch-action: manipulation; }
 :focus-visible { outline: 2px solid var(--brass); outline-offset: 2px; }
