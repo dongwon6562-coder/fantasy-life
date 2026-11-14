@@ -22,3 +22,4 @@ import './childhood/index.js';
 import './crisis/index.js';
 import './era/index.js';
 import './later/index.js';
+import './legends/index.js';
