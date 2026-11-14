@@ -30,6 +30,7 @@ import { realmStatus } from '../realms/index.js';
 import { playableRaces, raceInfo } from '../races/index.js';
 import { renderParty } from './party.js';
 import { renderYouthCard, renderYouthBlock } from './youth.js';
+import { renderLegacy, renderLifeReview } from './legacy.js';
 
 // 시작 화면: 종족별 집안 (인간 집안은 race가 없다)
 const familiesOf = (race) => FAMILIES.filter((f) => (f.race ?? 'human') === race);
@@ -284,10 +285,12 @@ function renderNews() {
 
 function renderChron() {
   const tabs = `<div class="seg chron-tabs" role="tablist">
-    <button role="tab" data-chron="me" aria-pressed="${ui.chronTab !== 'world'}">마을과 나</button>
+    <button role="tab" data-chron="me" aria-pressed="${ui.chronTab !== 'world' && ui.chronTab !== 'house'}">마을과 나</button>
     <button role="tab" data-chron="world" aria-pressed="${ui.chronTab === 'world'}">레오니아</button>
+    <button role="tab" data-chron="house" aria-pressed="${ui.chronTab === 'house'}">가문</button>
   </div>`;
   if (ui.chronTab === 'world') return tabs + renderWorld(game, ui);
+  if (ui.chronTab === 'house') { try { return tabs + renderLegacy(game, ui); } catch (e) { console.error(e); } }
   const items = game.chronicle.slice(-160).reverse();
   return tabs + `<section class="card"><h2>연대기 <small>마을과 나의 기록</small></h2>
     <ul class="chron">${items.map((c) => `<li class="${c.rel >= 100 ? 'mine' : ''}"><time>${c.y}년 ${c.m}월</time><span>${esc(c.text)}</span></li>`).join('')}</ul></section>`;
@@ -333,18 +336,30 @@ function renderEvent() {
       <span class="eyebrow">용사력 ${game.date.year}년 ${monthInfo(game).name} · 사건</span>
       <h2 id="ev-title">${esc(e.title)}</h2>
       <p class="ev-text">${esc(e.text)}</p>
+      ${heirReview()}
       <div class="opts">${e.choices.map((c, i) => `<button class="opt" data-choice="${i}" style="--i:${i}"><span class="n">${i + 1}</span><span>${esc(c)}</span></button>`).join('')}</div>
     </div>
   </div></div>`;
 }
 
+// 대 잇기 창 안에 접힌 '지나온 삶 돌아보기'
+function heirReview() {
+  const s = L(game).scene;
+  if (game.pendingEvent?.id !== 'life_scene' || s?.kind !== 'heir') return '';
+  try { return renderLifeReview(game, s.record, { compact: true }); } catch (e) { console.error(e); return ''; }
+}
+
 function renderOver() {
+  const rec = L(game).ancestors.at(-1);
+  let review = '';
+  try { review = renderLifeReview(game, rec); } catch (e) { console.error(e); }
   return `
-  <section class="card">
+  <section class="card over">
     <h2>삶이 끝났다</h2>
-    <p>${esc(game.player.name)}은(는) ${playerAge(game)}살에 세상을 떠났다. ${esc(me(game).deathCause ?? '')}</p>
-    <p class="note">${lineage(game).length > 1 ? `${L(game).gen}대에 걸친 집안의 이야기가 여기서 끝난다.` : ''} 뒤를 이을 자식이 없어 대가 끊겼다.</p>
-    <div class="actions-row"><button class="primary" id="to-title">처음 화면으로</button></div>
+    <p>${esc(game.player.name)}은(는) ${rec?.age ?? playerAge(game)}살에 세상을 떠났다. ${esc(me(game).deathCause ?? '')}</p>
+    <p class="note">${lineage(game).length > 2 ? `${L(game).gen}대에 걸친 집안의 이야기가 여기서 끝난다.` : ''} 뒤를 이을 자식이 없어 대가 끊겼다.</p>
+    ${review}
+    <div class="actions-row"><button class="ghost" id="to-house">가문 기록 보기</button><button class="primary" id="to-title">처음 화면으로</button></div>
   </section>`;
 }
 
@@ -469,6 +484,9 @@ function bindGame() {
   if (yt) yt.ontoggle = () => { ui.ytOpen = yt.open; };
   $$('[data-ws-person]').forEach((b) => b.onclick = () => { ui.view = 'people'; ui.person = +b.dataset.wsPerson; renderGame(); window.scrollTo({ top: 0 }); });
   $$('[data-chron]').forEach((b) => b.onclick = () => { ui.chronTab = b.dataset.chron; renderGame(); });
+  $$('[data-legacy]').forEach((b) => b.onclick = () => { ui.legacySel = b.dataset.legacy === 'close' ? null : +b.dataset.legacy; renderGame(); if (ui.legacySel != null) document.querySelector('.lr-detail')?.scrollIntoView({ block: 'start' }); });
+  const th = $('#to-house');
+  if (th) th.onclick = () => { ui.view = 'chron'; ui.chronTab = 'house'; renderGame(); window.scrollTo({ top: 0 }); };
   bindSettings(rerender, () => { ui.view = 'month'; renderGame(); window.scrollTo({ top: 0 }); });
   $$('[data-view]').forEach((b) => b.onclick = () => { ui.view = b.dataset.view; renderGame(); window.scrollTo({ top: 0 }); });
   $$('[data-save]').forEach((b) => b.onclick = () => { saveSlot(game, +b.dataset.save); b.textContent = `${b.dataset.save}번에 저장됨`; });

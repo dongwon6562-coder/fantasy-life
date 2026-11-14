@@ -630,3 +630,52 @@ html:not(.motion) .event { animation: none; }
 .yt-dl dt { color: var(--muted); font-size: 12px; padding-top: 2px; }
 .yt-dl dd { margin: 0; }
 .youth-block .yt-known { margin: 0; font-family: var(--f-display); font-size: 15px; }
+
+/* ---------- 6단계: 일생 돌아보기, 가문 기록 ---------- */
+.lr { display: grid; gap: 10px; margin-top: 12px; }
+.lr h3 { margin: 6px 0 0; font-size: 13px; letter-spacing: .1em; color: var(--brass); }
+.lr-head { display: grid; grid-template-columns: auto 1fr; gap: 12px; align-items: center; }
+.lr-head > div { display: grid; gap: 2px; }
+.lr-head strong { font-family: var(--f-display); font-size: 18px; }
+.lr-chips, .lg-names { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.lg-names .chip em { font-style: normal; color: var(--muted); font-size: 11px; margin-left: 6px; }
+.lr.compact { margin: 4px 0 12px; border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; background: var(--bg); }
+.lr.compact > summary { cursor: pointer; color: var(--brass); font-size: 14px; }
+.lr.compact[open] { display: grid; gap: 10px; max-height: 46vh; overflow-y: auto; }
+.tl { list-style: none; margin: 0; padding: 0 0 0 14px; border-left: 1px solid var(--brass-dim); display: grid; gap: 6px; }
+.tl li { position: relative; display: grid; grid-template-columns: 44px 1fr auto; gap: 8px; font-size: 14px; line-height: 1.45; }
+.tl li::before { content: ''; position: absolute; left: -18px; top: 7px; width: 7px; height: 7px; border-radius: 50%; background: var(--brass); }
+.tl .tl-age { color: var(--brass); font-variant-numeric: tabular-nums; font-size: 13px; }
+.tl .tl-text em { font-style: normal; color: var(--muted); font-size: 12px; }
+.tl time { color: var(--muted); font-size: 11px; white-space: nowrap; padding-top: 2px; }
+.tl-more { margin: 6px 0; }
+.tl-more > summary { cursor: pointer; color: var(--muted); font-size: 13px; padding-left: 14px; }
+.tl-more[open] > .tl { margin-top: 6px; }
+.legacy .lg-stats { display: flex; gap: 10px; flex-wrap: wrap; margin: 4px 0 12px; }
+.lg-stats > div { display: grid; padding: 8px 14px; background: var(--bg); border: 1px solid var(--line); border-radius: 8px; min-width: 64px; }
+.lg-stats b { font-family: var(--f-display); font-size: 22px; color: var(--brass); font-weight: 400; }
+.lg-stats span { font-size: 12px; color: var(--muted); }
+.lg-names .lbl { width: 100%; font-size: 11px; letter-spacing: .12em; color: var(--brass); font-weight: 600; }
+.ft { list-style: none; margin: 14px 0 6px; padding: 0; display: grid; gap: 0; }
+.ft-gen { position: relative; padding: 0 0 18px 18px; border-left: 2px solid var(--brass-dim); }
+.ft-gen:last-child { border-left-color: transparent; padding-bottom: 0; }
+.ft-gen::before { content: ''; position: absolute; left: -7px; top: 18px; width: 12px; height: 12px; border-radius: 50%; background: var(--panel); border: 2px solid var(--brass); }
+.ft-gen.now::before { background: var(--brass); }
+.ft-couple { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+.ft-who { display: grid; grid-template-columns: auto 1fr; gap: 10px; align-items: center; text-align: left; background: var(--bg); border: 1px solid var(--line); border-radius: 8px; padding: 6px 12px 6px 6px; color: inherit; font: inherit; cursor: pointer; }
+.ft-who:hover { border-color: var(--brass-dim); }
+.ft-gen.now .ft-who { border-color: var(--brass); }
+.ft-who > span { display: grid; }
+.ft-who strong { font-family: var(--f-display); font-size: 16px; }
+.ft-n { font-size: 11px; color: var(--brass); letter-spacing: .1em; }
+.ft-sp { display: flex; gap: 6px; align-items: center; cursor: pointer; }
+.ft-sp::before { content: '—'; color: var(--brass-dim); }
+.ft-sum { margin: 6px 0 0; font-size: 13px; color: var(--muted); }
+.ft-deeds { list-style: none; margin: 6px 0 0; padding: 0; display: grid; gap: 2px; font-size: 13px; }
+.ft-deeds li span { color: var(--brass); margin-right: 8px; font-variant-numeric: tabular-nums; }
+.ft-kids { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+.ft-kid { font-size: 13px; padding: 2px 10px; border: 1px solid var(--line); border-radius: 999px; cursor: pointer; }
+.ft-kid.heir { border-color: var(--brass); color: var(--brass); cursor: default; }
+.ft-kid.dead { color: var(--muted); }
+.over .lr { border-top: 1px solid var(--line); padding-top: 12px; }
+@media (max-width: 420px) { .tl li { grid-template-columns: 38px 1fr; } .tl time { display: none; } }
