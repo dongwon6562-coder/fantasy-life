@@ -5,7 +5,7 @@ import {
 } from '../game.js';
 import { resolveEvent } from '../events.js';
 import { FAMILIES, STATS, SKILLS, skillGrade, VILLAGE, REGION } from '../data.js';
-import { autosave, saveSlot, load, summary, clearAuto } from '../save.js';
+import { autosave, summary } from '../save.js';
 import { portrait } from '../art/portrait.js';
 import { sceneImage, conditionText } from '../art/scene.js';
 import { icon } from '../art/icons.js';
@@ -31,6 +31,8 @@ import { playableRaces, raceInfo } from '../races/index.js';
 import { renderParty } from './party.js';
 import { renderYouthCard, renderYouthBlock } from './youth.js';
 import { renderLegacy, renderLifeReview } from './legacy.js';
+import { renderSavesBlock, renderSlotsBlock, bindSaves } from './savesView.js';
+import { shelveAuto, newUid } from './saves.js';
 import { renderCrisis } from './crisis.js';
 import { ownedGoods } from './era.js';
 
@@ -41,6 +43,7 @@ let game = null;
 const ui = {
   view: 'month', person: null, peopleFilter: 'all', plan: [], active: 0, outcome: null,
   setup: { mode: 'once', family: null, sex: 'm', name: '' },
+  saves: {},
 };
 let unmountMap = null;
 let lastArt = null;   // 바로 전에 보인 풍경 (바뀌면 천천히 겹쳐 바꾼다)
@@ -51,13 +54,13 @@ export function start() {
   try { matchMedia('(prefers-reduced-motion: reduce)').addEventListener('change', applyPrefs); } catch { /* 옛 브라우저 */ }
   stopGuide();
   lastArt = null; lastView = null;
-  renderSetup(summary('auto'));
+  renderSetup();
 }
 
 /* ---------- 시작 화면 ---------- */
-function renderSetup(auto) {
+function renderSetup() {
   const s = ui.setup;
-  const slotSums = [1, 2, 3].map((i) => ({ i, s: summary('slot' + i) })).filter((x) => x.s);
+  const auto = summary('auto');
   const art = sceneImage({ year: 500, month: 3 });
   let races = [];
   try { races = playableRaces(); } catch (e) { console.error(e); }
@@ -76,11 +79,16 @@ function renderSetup(auto) {
       <header class="title-block">
         <p>마신이 봉인된 지 오백 년. 레오니아 왕국 남쪽 끝 작은 마을에서 한 아이가 태어난다. 어떤 집에서 태어나, 어떤 사람으로 살지는 당신이 정한다. 마을 사람들은 당신이 보지 않아도 자기 삶을 산다.</p>
       </header>
-      ${auto || slotSums.length ? `<div class="continue">
-        ${auto ? `<button class="ghost" id="cont-auto">이어 하기: ${esc(auto.name)}, ${auto.age}살 (용사력 ${auto.year}년 ${auto.month}월)${auto.over ? ' · 끝난 삶' : ''}</button>` : ''}
-        ${slotSums.map((x) => `<button class="ghost" data-slot="${x.i}">${x.i}번 저장: ${esc(x.s.name)}, ${x.s.age}살</button>`).join('')}
-      </div>` : ''}
+      ${renderSavesBlock(ui.saves)}
       <div class="setup">
+        ${auto ? `<h2 class="setup-h">새로 태어나기${auto.over ? '' : ` <small>지금 하던 삶(${esc(auto.name)})은 지워지지 않고 '다른 삶'에 보관된다</small>`}</h2>` : `<div class="first-time">
+          <h2>이렇게 흘러간다</h2>
+          <ol>
+            <li><b>한 달씩 산다.</b> 세 살부터 한 달을 몇 칸으로 나눠 할 일을 고른다.</li>
+            <li><b>세상은 혼자 굴러간다.</b> 내가 보지 않아도 마을 사람과 나라는 자기 삶을 산다.</li>
+            <li><b>삶은 이어진다.</b> 죽으면 자식 가운데 한 명으로 이어서 산다.</li>
+          </ol>
+        </div>`}
         <section>
           <h2>삶의 방식</h2>
           <div class="choice-row">
@@ -130,15 +138,15 @@ function renderSetup(auto) {
       </div>
     </div>`;
 
-  $$('[data-mode]').forEach((b) => b.onclick = () => { s.mode = b.dataset.mode; renderSetup(auto); });
-  $$('[data-family]').forEach((b) => b.onclick = () => { s.family = b.dataset.family; renderSetup(auto); });
+  $$('[data-mode]').forEach((b) => b.onclick = () => { s.mode = b.dataset.mode; renderSetup(); });
+  $$('[data-family]').forEach((b) => b.onclick = () => { s.family = b.dataset.family; renderSetup(); });
   $$('[data-race]').forEach((b) => b.onclick = () => {
     s.race = b.dataset.race;
     const fs = familiesOf(s.race);
     if (!fs.some((f) => f.id === s.family)) s.family = fs.length === 1 ? fs[0].id : null; // 집안이 하나뿐이면 바로 고른다
-    renderSetup(auto);
+    renderSetup();
   });
-  $$('[data-sex]').forEach((b) => b.onclick = () => { s.sex = b.dataset.sex; renderSetup(auto); });
+  $$('[data-sex]').forEach((b) => b.onclick = () => { s.sex = b.dataset.sex; renderSetup(); });
   const input = $('#pname');
   input.oninput = () => {
     s.name = input.value;
@@ -146,15 +154,18 @@ function renderSetup(auto) {
     $('#begin-note').textContent = `${s.family ? '' : '집안을 골라 주세요. '}${s.name.trim() ? '' : '이름을 지어 주세요.'}`;
   };
   $('#begin').onclick = () => {
-    if (s.mode === 'once') clearAuto();
+    // 하던 삶은 지우지 않고 보관한다 (예전엔 한 번뿐인 삶을 새로 시작하면 하던 삶이 사라졌다)
+    if (!shelveAuto()) { $('#begin-note').textContent = '저장 공간이 모자라 하던 삶을 보관할 수 없다. 위에서 안 쓰는 저장을 지워 주세요.'; return; }
     game = newGame({ name: s.name.trim(), sex: s.sex, familyId: s.family, mode: s.mode });
+    game.uid = newUid();
     resetUi();
     autosave(game);
     renderGame();
   };
-  const ca = $('#cont-auto');
-  if (ca) ca.onclick = () => { game = load('auto'); resetUi(); renderGame(); };
-  $$('[data-slot]').forEach((b) => b.onclick = () => { game = load('slot' + b.dataset.slot); resetUi(); renderGame(); });
+  bindSaves(ui.saves, {
+    rerender: () => renderSetup(),
+    play: (g) => { if (!g) return; game = g; resetUi(); renderGame(); },
+  });
 }
 
 function resetUi() {
@@ -300,15 +311,7 @@ function renderChron() {
 }
 
 function renderSave() {
-  if (game.mode === 'once') {
-    return `<section class="card"><h2>저장</h2><p class="note">한 번뿐인 삶: 매달 자동으로 저장된다. 예전으로 돌아갈 수는 없다.</p><div class="actions-row"><button class="ghost" id="to-title">처음 화면으로</button></div></section>${renderSettings()}`;
-  }
-  return `<section class="card"><h2>저장</h2>
-    <p class="note">자유 모드: 칸을 골라 저장하고, 처음 화면에서 불러올 수 있다. 매달 자동 저장도 따로 된다.</p>
-    <div class="actions-row">
-      ${[1, 2, 3].map((i) => { const s = summary('slot' + i); return `<button class="ghost" data-save="${i}">${i}번에 저장${s ? ` (지금: ${esc(s.name)} ${s.age}살)` : ''}</button>`; }).join('')}
-      <button class="ghost" id="to-title">처음 화면으로</button>
-    </div></section>${renderSettings()}`;
+  return `${renderSlotsBlock(game, ui.saves)}${renderSettings()}`;
 }
 
 function renderMap() {
@@ -493,8 +496,8 @@ function bindGame() {
   const th = $('#to-house');
   if (th) th.onclick = () => { ui.view = 'chron'; ui.chronTab = 'house'; renderGame(); window.scrollTo({ top: 0 }); };
   bindSettings(rerender, () => { ui.view = 'month'; renderGame(); window.scrollTo({ top: 0 }); });
-  $$('[data-view]').forEach((b) => b.onclick = () => { ui.view = b.dataset.view; renderGame(); window.scrollTo({ top: 0 }); });
-  $$('[data-save]').forEach((b) => b.onclick = () => { saveSlot(game, +b.dataset.save); b.textContent = `${b.dataset.save}번에 저장됨`; });
+  $$('[data-view]').forEach((b) => b.onclick = () => { ui.view = b.dataset.view; ui.saves = {}; renderGame(); window.scrollTo({ top: 0 }); });
+  bindSaves(ui.saves, { rerender, game });
   const tt = $('#to-title');
   if (tt) tt.onclick = () => { game = null; if (unmountMap) { unmountMap(); unmountMap = null; } document.querySelectorAll('.month-card').forEach((x) => x.remove()); start(); };
   $$('[data-choice]').forEach((b) => b.onclick = () => {
