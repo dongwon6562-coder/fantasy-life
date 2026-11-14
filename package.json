@@ -3,7 +3,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "test": "node tools/simtest.js && node tools/reltest.js",
+    "test": "node tools/simtest.js && node tools/reltest.js && node tools/lifetest.js",
     "build": "node tools/build.js",
     "start": "npx --yes serve -l 5173 ."
   },
