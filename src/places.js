@@ -36,7 +36,24 @@ export const PLACES = {
     inn: 5, rent: 7, house: 900, wage: 1.4,
     links: { harfen: 2, verden: 2 },
   },
+  // 3단계: 영지와 잊힌 땅 (src/domain/)
+  gruental: {
+    name: '그륀탈', kind: '골짜기 마을',
+    desc: '하르펜과 베르덴 사이, 개울을 따라 밀밭과 포도밭이 이어지는 골짜기. 주인 없는 낡은 영주관이 언덕 위에 서 있다. 오래전부터 영주가 자주 바뀌는 땅이다.',
+    inn: 2, rent: 2, house: 150, wage: 1.0,
+    links: { harfen: 1, verden: 1 },
+  },
+  estella: {
+    name: '에스텔라 폐허', kind: '잊힌 땅',
+    desc: '마신 전쟁 때 멸망한 북부 왕국의 수도. 무너진 성벽 안에 오백 년 묵은 거리가 그대로 남아 있고, 밤이면 언데드가 왕궁을 지킨다. 주인이 없는 땅이다.',
+    inn: 0, rent: 0, house: 0, wage: 0.8,
+    links: { verden: 4 },
+    hidden: true, // 개척단(src/domain/nation.js)으로만 갈 수 있다
+  },
 };
+PLACES.harfen.links.gruental = 1;
+PLACES.verden.links.gruental = 1;
+PLACES.verden.links.estella = 4;
 export const placeOf = (g) => PLACES[L(g).place] ?? PLACES.ern;
 export const placeName = (g) => (traveling(g) ? `${J(PLACES[L(g).travel.to].name, '으로/로')} 가는 길` : placeOf(g).name);
 export const HOME_NAMES = { family: '부모님 집', inn: '여관', rent: '셋방', own: '내 집', barracks: '숙소', street: '노숙' };
@@ -162,7 +179,7 @@ defineScene('travel', {
   },
   choices: (g) => {
     const here = L(g).place;
-    const out = Object.keys(PLACES).filter((id) => id !== here).map((id) => {
+    const out = Object.keys(PLACES).filter((id) => id !== here && (!PLACES[id].hidden || PLACES[id].open?.(g))).map((id) => {
       const m = travelMonths(here, id);
       return { label: `${J(PLACES[id].name, '으로/로')} (${m}달, 은화 ${fareOf(m)}닢)`, key: id };
     });
