@@ -7,7 +7,7 @@ import {
 } from './npc.js';
 import { ACTIONS } from './actions.js';
 import { pickEvent } from './events.js';
-import { run as runHooks } from './hooks.js';
+import { run as runHooks, HOOKS } from './hooks.js';
 
 export function rngOf(game) { return makeRng(game.rngState); }
 
@@ -244,6 +244,7 @@ export function endMonth(game, choices) {
 
   // 가족이 다 죽으면 고아
   checkPlayerState(game, rng);
+  runHooks('endOfMonth', game, rng, results);
   game.nextId = getNextId();
   return results;
 }
@@ -282,7 +283,7 @@ function checkPlayerState(game, rng) {
 }
 
 export function availableActions(game) {
-  return ACTIONS.filter((a) => a.available(game));
+  return ACTIONS.filter((a) => a.available(game) && HOOKS.actionFilter.every((f) => f(game, a) !== false));
 }
 
 export function knownPeople(game) {
