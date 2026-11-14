@@ -63,7 +63,8 @@ export function newGame({ name, sex, familyId, mode, seed }) {
   // 재능: 능력치마다 성장 배율. 마력 잠재력은 대부분 낮고 드물게 높다.
   const talents = {};
   for (const s of STATS) talents[s.id] = Math.max(0.5, Math.min(1.8, rng.normal(1, 0.25)));
-  const manaPotential = Math.min(1, Math.pow(rng.next(), 2.2) * 1.15);
+  // 마력을 느낄 만큼(0.18 이상)인 아이는 열에 넷쯤, 크게 될 재능(0.6 이상)은 스물에 하나쯤
+  const manaPotential = Math.min(1, Math.pow(rng.next(), 3.5) * 1.15);
 
   const stats = {};
   for (const s of STATS) stats[s.id] = rng.int(1, 4) + (fam.statBias[s.id] ?? 0) * 0.3;
@@ -201,7 +202,8 @@ export function endMonth(game, choices) {
   // 집안 살림: 가족의 벌이가 집안 돈이 된다
   const fam = game.player.familyIds.map((id) => byId(game, id)).filter((x) => x && x.alive && !x.away && x.job !== 'child');
   const income = fam.reduce((s, x) => s + (JOBS[x.job]?.income ?? 2), 0);
-  const upkeep = 2 + game.player.familyIds.length + (game.world.famine ? 4 : 0);
+  // 살림이 넉넉할수록 씀씀이와 세금도 커진다 (집안 돈이 끝없이 쌓이지 않게)
+  const upkeep = 2 + game.player.familyIds.length + (game.world.famine ? 4 : 0) + Math.floor(game.player.familyMoney * 0.03);
   p.familyMoney = Math.max(0, p.familyMoney + income - upkeep);
 
   // 세계 흐름

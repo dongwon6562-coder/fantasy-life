@@ -4,3 +4,4 @@ import './relations.js';
 import './adventure/index.js';
 import './world.js';
 import './events/index.js';
+import './tuning.js';
