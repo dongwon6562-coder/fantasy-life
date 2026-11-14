@@ -6,7 +6,7 @@ import { ACTIONS } from '../actions.js';
 import { HOOKS } from '../hooks.js';
 import { playerAge, gainStat, gainSkill, circleOf } from '../game.js';
 import { makePerson, byId } from '../npc.js';
-import { L, defineScene, queueScene, sceneQueued, isAdult, traveling, note, chron, tired, stress, up, gains, spend, check } from '../adventure/core.js';
+import { L, defineScene, queueScene, sceneQueued, showScene, isAdult, traveling, note, chron, tired, stress, up, gains, spend, check } from '../adventure/core.js';
 import { FOES } from '../adventure/combat.js';
 import { queueFight } from '../adventure/fight.js';
 import { PLACES, travelMonths, leaveJob } from '../places.js';
@@ -742,5 +742,23 @@ export function borderNote(g, toPlace) {
   if (bannedLeft(g, to)) return `${REALMS[to].short}에서 쫓겨난 몸이다. 몰래 넘어야 한다.`;
   if (RS(g).citizen === to) return `${REALMS[to].short} 국경 (내 나라)`;
   return `${REALMS[to].short} 국경을 넘는다 (통행세 은화 ${tollOf(g, to)}닢${atWarWith(g, to) ? ', 전쟁 중이라 세 배' : ''})`;
+}
+// 지금 있는 나라와 내 국적 (화면 위쪽 한 줄, 지도 탭 머리말용)
+export function realmStatus(g) {
+  const here = currentRealm(g);
+  const R = RS(g);
+  return {
+    here, hereName: realmName(here), citizen: R.citizen, citizenName: realmName(R.citizen),
+    foreigner: isForeigner(g), accent: accentOf(g), asylum: R.asylum, info: realmInfo(g, here),
+    line: !REALMS[here] ? '주인 없는 땅' : isForeigner(g) ? `${REALMS[here].short} (외지인, ${REALMS[R.citizen].short} 사람)` : REALMS[here].short,
+  };
+}
+// 지도에 넣을 왕국 장소: 게임에서 갈 수 있는 다른 나라 장소 (지도 P에 이미 같은 id가 있다)
+export const MAP_PLACES_EXTRA = Object.entries(REALM_PLACES).map(([id, p]) => ({ id, realm: p.realm, name: p.name }));
+// 지도에서 나라를 눌렀을 때: 그 나라 수도로 가는 길 떠나기 장면을 띄운다. 못 가면 false
+export function crossBorder(g, realmId) {
+  const r = REALMS[realmId];
+  if (!r || !isAdult(g) || traveling(g) || isJailed(g) || g.over || realmId === currentRealm(g)) return false;
+  return showScene(g, { kind: 'travel', at: L(g).place, to: r.capital, abroad: true }, { force: true });
 }
 export { FOREIGN };

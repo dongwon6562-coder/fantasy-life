@@ -5,7 +5,7 @@ import { resolveEvent } from '../src/events.js';
 import { L } from '../src/adventure/core.js';
 import { PLACES, travelMonths } from '../src/places.js';
 import { crimeState, sentenceAt, lawAt, watchName, reportCrime, reachingBounty } from '../src/crime.js';
-import { REALMS, REALM_IDS, realmOf, realmState, realmsForMap, borderNote, currentRealm, realmInfo } from '../src/realms/index.js';
+import { REALMS, REALM_IDS, realmOf, realmState, realmsForMap, borderNote, currentRealm, realmInfo, realmStatus, crossBorder, MAP_PLACES_EXTRA } from '../src/realms/index.js';
 
 let fail = 0;
 const ok = (c, m) => { if (!c) { fail++; if (fail < 20) console.log('FAIL', m); } };
@@ -119,6 +119,11 @@ for (let run = 0; run < 24; run++) {
   const R = realmState(g);
   ok(R.citizen === 'leonia' && R.cur === currentRealm(g), 'migrate defaults');
   ok(realmInfo(g, 'holy').standing === '모름', 'standing');
+  ok(realmStatus(g).line === '레오니아' && !realmStatus(g).foreigner, 'realmStatus');
+  ok(MAP_PLACES_EXTRA.length === 5, 'MAP_PLACES_EXTRA');
+  ok(crossBorder(g, 'valhart') === false, 'child cannot cross');
+  g.player.ageMonths = 20 * 12; g.people.find((p) => p.isPlayer).ageMonths = 240;
+  ok(crossBorder(g, 'valhart') === true && L(g).scene.choices[0].key === 'eisen', 'crossBorder opens travel to capital');
 }
 
 console.log('나라에 머문 달:', JSON.stringify(tally.entered));
