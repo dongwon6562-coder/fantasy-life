@@ -45,7 +45,7 @@ class Stage {
     }
     this.end = Math.max(this.end, this.t + dur);
   }
-  emit(e) { e.t0 = this.t; e.life ??= 0.3; this.fx.push(e); this.end = Math.max(this.end, this.t + e.life); }
+  emit(e) { e.t0 = this.t; e.life ??= 0.3; if (this.fx.length >= 160) this.fx.shift(); this.fx.push(e); this.end = Math.max(this.end, this.t + e.life); }
   sparks(x, y, n = 8, color) { for (let i = 0; i < n; i++) { const an = this.rnd() * 6.283, v = 70 + this.rnd() * 170; this.emit({ type: 'spark', x, y, vx: Math.cos(an) * v, vy: Math.sin(an) * v - 50, life: 0.22 + this.rnd() * 0.22, color }); } }
   blood(x, y, dir, n = 6) { for (let i = 0; i < n; i++) this.emit({ type: 'blood', x, y, vx: dir * (30 + this.rnd() * 90), vy: -40 - this.rnd() * 90, r: 0.9 + this.rnd() * 1.3, life: 0.5 + this.rnd() * 0.3 }); }
   dust(x, n = 3, color) { for (let i = 0; i < n; i++) this.emit({ type: 'dust', x: x + (this.rnd() - 0.5) * 22, y: GY - 2, vx: (this.rnd() - 0.5) * 26, r: 8 + this.rnd() * 9, life: 0.6 + this.rnd() * 0.4, color }); }
