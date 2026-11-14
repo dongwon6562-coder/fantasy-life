@@ -7,6 +7,7 @@ import './events/index.js';
 import './tuning.js';
 import './underworld/index.js';
 import './domain/index.js';
+import './realms/index.js';
 import './duel/index.js';
 import './magic/index.js';
 import './war/spellpower.js';

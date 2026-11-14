@@ -177,17 +177,24 @@ defineScene('travel', {
     const job = life.job ? ' 지금 하는 일은 그만두게 된다.' : '';
     return `${placeOf(g).name}의 ${L(g).place === 'ern' ? '마을 어귀' : '성문 앞'}에 섰다. 짐마차 삯은 한 달 길에 은화 3닢이다. 돈이 없으면 걸어서 가야 하고, 그만큼 오래 걸린다.${job}`;
   },
-  choices: (g) => {
+  choices: (g, s) => {
     const here = L(g).place;
-    const out = Object.keys(PLACES).filter((id) => id !== here && (!PLACES[id].hidden || PLACES[id].open?.(g))).map((id) => {
+    // 장면 선택지는 8개까지라, 다른 나라(src/realms/)는 '국경 너머로'에 따로 묶는다
+    const realm = (id) => PLACES[id].realm ?? 'leonia';
+    const all = Object.keys(PLACES).filter((id) => id !== here && (!PLACES[id].hidden || PLACES[id].open?.(g)));
+    const near = all.filter((id) => (realm(id) === realm(here)) !== !!s?.abroad).sort((a, b) => travelMonths(here, a) - travelMonths(here, b));
+    if (s?.to && all.includes(s.to)) { near.splice(near.indexOf(s.to), near.includes(s.to) ? 1 : 0); near.unshift(s.to); }
+    const out = near.slice(0, 6).map((id) => {
       const m = travelMonths(here, id);
       return { label: `${J(PLACES[id].name, '으로/로')} (${m}달, 은화 ${fareOf(m)}닢)`, key: id };
     });
+    if (!s?.abroad && all.some((id) => realm(id) !== realm(here))) out.push({ label: realm(here) === 'leonia' ? '국경 너머로 (다른 나라)' : '다른 나라로', key: 'abroad' });
     out.push({ label: '그만둔다', key: 'stay' });
     return out;
   },
   resolve(g, rng, s, key) {
     if (key === 'stay') return '짐을 다시 풀었다. 아직은 떠날 때가 아니다.';
+    if (key === 'abroad') { queueScene(g, 'travel', { abroad: true }, { first: true }); return '지도를 펴고 국경 너머의 길을 짚어 보았다.'; }
     const life = L(g);
     const m = travelMonths(life.place, key);
     const fare = fareOf(m);

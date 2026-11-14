@@ -33,7 +33,15 @@ const placeName = (g, id = here(g)) => PLACES[id]?.name ?? '마을';
 
 // 경비대: 장소마다 이름이 다르다
 const WATCH = { ern: '마을 경비대', harfen: '하르펜 경비대', verden: '백작령 위병', leocast: '왕도 경비대' };
-export const watchName = (g, id = here(g)) => WATCH[id] ?? '경비대';
+export const watchName = (g, id = here(g)) => WATCH[id] ?? lawAt(g, id).watch ?? '경비대';
+
+// 나라마다 다른 법 (src/realms/가 채운다). 레오니아는 영주의 성정을 따른다(lord: true).
+// { watch, sentence, fine, bribe, hangAt, hangNoto, lord, reach(fromPlace) }
+const LAW_DEFAULT = { sentence: 1, fine: 1, bribe: 0, hangAt: 2, hangNoto: 101, lord: true };
+let LAW_OF = () => LAW_DEFAULT;
+export function setRealmLaw(fn) { LAW_OF = fn; }
+export const lawAt = (g, place = here(g)) => ({ ...LAW_DEFAULT, ...(LAW_OF(g, place) ?? {}) });
+const temperAt = (g, place = here(g)) => (lawAt(g, place).lord ? g.realm?.lord?.temper : null);
 
 // 경비대·현상금 사냥꾼을 적 목록에 더한다 (combat.js의 FOES에 덧붙이기)
 Object.assign(FOES, {
@@ -102,6 +110,9 @@ export function reputationShift(g, p) {
 }
 
 export const isJailed = (g) => !!C(g).jailed;
+// 현상금은 나라 밖까지 쫓아오지 않을 수도 있다 (망명)
+const bountyReaches = (g, place) => place === here(g) || lawAt(g).reach?.(place) !== false;
+export const reachingBounty = (g) => Object.entries(C(g).bounty).filter(([pl]) => bountyReaches(g, pl)).reduce((a, [, v]) => a + v, 0);
 export const craftOf = (g) => C(g).craft;
 function growCraft(g, base) {
   const c = C(g);
@@ -128,13 +139,15 @@ export function reportCrime(g, crime, place = here(g), { mult = 1 } = {}) {
 export function sentenceAt(g, place = here(g)) {
   const c = C(g);
   let m = c.record.filter((r) => !r.paid && r.place === place).reduce((s, r) => s + CRIMES[r.c].sev, 0);
-  const t = g.realm?.lord?.temper;
+  const law = lawAt(g, place);
+  const t = temperAt(g, place);
+  m *= law.sentence;
   if (t === 'harsh') m *= 1.5;
   if (t === 'weak') m *= 0.7;
   if (c.gang && GANG_PROTECT(g, place)) m *= 0.7;
   return Math.min(60, Math.max(1, Math.round(m)));
 }
-export const fineAt = (g, place = here(g)) => sentenceAt(g, place) * 8;
+export const fineAt = (g, place = here(g)) => Math.round(sentenceAt(g, place) * 8 * lawAt(g, place).fine);
 const unpaidAt = (g, place = here(g)) => C(g).record.some((r) => !r.paid && r.place === place);
 function clearAt(g, place) {
   const c = C(g);
@@ -144,6 +157,9 @@ function clearAt(g, place) {
 }
 // 조직이 보호하는 고장인가 (gangs.js가 채운다)
 let GANG_PROTECT = () => false;
+// 체포될 때 감옥 대신 나라 밖으로 쫓겨나는 길 (src/realms/가 채운다): (g) => { label, run(g, rng, place) } | null
+let EXILE = () => null;
+export function setExileOption(fn) { EXILE = fn; }
 export function setGangProtect(fn) { GANG_PROTECT = fn; }
 
 // 목격자: 일을 벌인 그 고장 사람 중에서. exposure는 얼마나 드러난 일인가 (0~1)
@@ -217,7 +233,7 @@ function afterCrime(g, crime) {
 // 고장마다 털 것과 사람 수
 const LOOT = { ern: 1, harfen: 1.6, verden: 1.5, leocast: 2.4 };
 const CROWD = { ern: 0.42, harfen: 0.4, verden: 0.42, leocast: 0.3 }; // 사람이 많을수록 소매치기는 덜 눈에 띈다
-const lootMul = (g) => LOOT[here(g)] ?? 1;
+const lootMul = (g) => LOOT[here(g)] ?? PLACES[here(g)]?.loot ?? 1;
 const notJailed = (g) => !isJailed(g) && !L(g).travel;
 const crimeAge = (n) => (g) => playerAge(g) >= n && notJailed(g);
 const targetOk = (g, p) => p && p.alive && !p.away && !p.isPlayer && local(g, p);
@@ -242,7 +258,7 @@ ACTIONS.push(
         g.player.money += n;
         text = join(pickLine(g, rng, T.PICKPOCKET_OK), `은화 ${n}닢.`);
       } else text = pickLine(g, rng, T.PICKPOCKET_FAIL);
-      const exp = ok ? CROWD[here(g)] ?? 0.4 : 0.85;
+      const exp = ok ? CROWD[here(g)] ?? PLACES[here(g)]?.crowd ?? 0.4 : 0.85;
       afterCrime(g, 'pickpocket');
       return join(text, exposeCrime(g, rng, 'pickpocket', { exposure: exp, what: '남의 주머니를 터는' }), gains(up('수완', k), up('민첩', a)));
     },
@@ -594,6 +610,8 @@ defineScene('arrest', {
     if (g.player.money >= fine) out.push({ label: `벌금을 낸다 (은화 ${fine}닢)`, key: 'fine' });
     out.push({ label: '순순히 따라간다', key: 'go' });
     out.push({ label: `뇌물을 찔러 준다 (은화 ${bribeCost(g)}닢)`, key: 'bribe' });
+    const ex = EXILE(g);
+    if (ex) out.push({ label: ex.label, key: 'exile' });
     out.push({ label: '달아난다', key: 'flee' });
     out.push({ label: '칼을 뽑는다', key: 'fight' });
     return out;
@@ -608,10 +626,16 @@ defineScene('arrest', {
       clearAt(g, place);
       return T.ARREST_FINE(fine);
     }
+    if (key === 'exile') {
+      const ex = EXILE(g);
+      if (!ex) return resolveArrest(g, rng, 'go');
+      clearAt(g, place);
+      return ex.run(g, rng, place);
+    }
     return resolveArrest(g, rng, key);
   },
 });
-const bribeCost = (g) => Math.round(6 + sentenceAt(g) * 4 * (g.realm?.lord?.temper === 'greedy' ? 0.6 : 1) * (C(g).gang && GANG_PROTECT(g, here(g)) ? 0.5 : 1));
+const bribeCost = (g) => Math.round(6 + sentenceAt(g) * 4 * (temperAt(g) === 'greedy' ? 0.6 : 1) * (C(g).gang && GANG_PROTECT(g, here(g)) ? 0.5 : 1));
 function resolveArrest(g, rng, key) {
   const c = C(g);
   const place = here(g);
@@ -620,7 +644,7 @@ function resolveArrest(g, rng, key) {
     const cost = bribeCost(g);
     if (g.player.money < cost) { jail(g, months + 1); return T.BRIBE_BROKE(months + 1); }
     g.player.money -= cost;
-    const odds = 0.55 + (g.realm?.lord?.temper === 'greedy' ? 0.25 : 0) - (g.realm?.lord?.temper === 'harsh' ? 0.25 : 0) + (c.gang && GANG_PROTECT(g, place) ? 0.2 : 0) - (notoriety(g) > 60 ? 0.2 : 0);
+    const odds = 0.55 + lawAt(g, place).bribe + (temperAt(g) === 'greedy' ? 0.25 : 0) - (temperAt(g) === 'harsh' ? 0.25 : 0) + (c.gang && GANG_PROTECT(g, place) ? 0.2 : 0) - (notoriety(g) > 60 ? 0.2 : 0);
     if (rng.chance(clamp(odds, 0.1, 0.95))) { c.heat[place] = Math.max(0, (c.heat[place] ?? 0) - 40); return T.BRIBE_OK(cost); }
     jail(g, months + 2);
     return T.BRIBE_FAIL(cost, months + 2);
@@ -659,7 +683,8 @@ function resolveArrest(g, rng, key) {
 function shouldHang(g) {
   const c = C(g);
   const murders = c.record.filter((r) => !r.paid && r.place === here(g) && r.c === 'murder').length;
-  return murders >= 2 || (murders >= 1 && notoriety(g) >= 60 && g.realm?.lord?.temper === 'harsh');
+  const law = lawAt(g);
+  return murders >= law.hangAt || (murders >= 1 && (notoriety(g) >= law.hangNoto || (notoriety(g) >= 60 && temperAt(g) === 'harsh')));
 }
 function gallows(g) {
   L(g).pendingDeath = '교수형';
@@ -745,7 +770,7 @@ defineScene('bounty_hunters', {
     }
     if (key === 'yield') {
       // 현상금이 가장 큰 고장으로 끌려가 형을 산다
-      const [place] = Object.entries(c.bounty).sort((a, b) => b[1] - a[1])[0] ?? [here(g)];
+      const [place] = Object.entries(c.bounty).filter(([pl]) => bountyReaches(g, pl)).sort((a, b) => b[1] - a[1])[0] ?? [here(g)];
       const m = sentenceAt(g, place);
       L(g).place = place;
       L(g).travel = null;
@@ -802,7 +827,7 @@ HOOKS.afterNpc.push((g, rng, sim) => {
     return;
   }
   // 현상금 사냥꾼: 다른 고장의 현상금도 쫓아온다
-  const total = Object.values(c.bounty).reduce((a, b) => a + b, 0);
+  const total = reachingBounty(g);
   if (total >= 30 && playerAge(g) >= 15 && !sceneQueued(g, 'bounty_hunters') && rng.chance(Math.min(0.08, total / 1500))) {
     queueScene(g, 'bounty_hunters', { total });
   }
@@ -818,6 +843,8 @@ HOOKS.afterNpc.push((g, rng, sim) => {
 
 // 감옥에서는 바깥의 평범한 사건이 일어나지 않는다 (한 번뿐인 사건과 감옥 장면은 남긴다)
 const JAIL_SCENES = new Set(['arrest', 'gang_rescue', 'heir']);
+// 다른 모듈이 악명을 직접 더해도 0~100을 넘지 않게 한 달마다 맞춘다
+HOOKS.afterMonth.push((g) => { L(g).notoriety = clamp(L(g).notoriety ?? 0, 0, 100); });
 HOOKS.endOfMonth.push((g) => {
   if (!isJailed(g) || !g.pendingEvent) return;
   const pe = g.pendingEvent;
