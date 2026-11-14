@@ -9,6 +9,7 @@ import {
   seaRoutes, ghostRoutes, rivers, seaLabels, edgeLabels, mtLabels,
 } from './mapdata.js';
 import { INK, PAL, inkSetup, mountain, hill, tree, fir, deadTree, reeds, tuft, dune, crack, field, wave, ship, serpent, contour } from './mapInk.js';
+import { canvasUrl } from './sceneKit.js';
 
 export const MAP_PLACES_EXTRA = [];
 export const MAP_ACTIONS = [];
@@ -101,8 +102,7 @@ function sample(a, x, y) {
 /* ---------- terrain render ---------- */
 // 두 겹으로 그린다. 물감(땅 빛깔·그늘·얼룩)은 세계 한 칸에 한 점으로 칠해 두 배로 늘리고,
 // 그 위에 펜 선(바닷가, 물결선, 산, 나무, 국경)을 두 배 크기로 또렷하게 긋는다.
-const INKK = 2;
-function renderTerrain(prep) {
+function renderTerrain(prep, INKK = 2) {
   const contMasks = continents.map(c => { const big = /^(dragon|forest|central|demon)$/.test(c.id); return raster([[1, c.pts]], big ? 5 : 2, 3); });
   const land = new Float32Array(GW * GH);
   const contId = new Uint8Array(GW * GH);
@@ -204,6 +204,7 @@ function renderTerrain(prep) {
   const ctx = cv.getContext("2d");
   ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = "high";
   ctx.drawImage(wash, 0, 0, cv.width, cv.height);
+  wash.width = wash.height = 0;
   ctx.scale(INKK, INKK);
   inkSetup(ctx);
 
@@ -253,7 +254,7 @@ function renderTerrain(prep) {
   for (let k = 0; k < 900; k++) { const x = rnd() * cv.width, y = rnd() * cv.height, a = rnd() * 6.28, l = 6 + rnd() * 18; ctx.beginPath(); ctx.moveTo(x, y); ctx.quadraticCurveTo(x + Math.cos(a) * l * 0.5 + (rnd() - 0.5) * 6, y + Math.sin(a) * l * 0.5 + (rnd() - 0.5) * 6, x + Math.cos(a) * l, y + Math.sin(a) * l); ctx.stroke(); }
   for (let k = 0; k < 26; k++) { const x = rnd() * cv.width, y = rnd() * cv.height, r = 8 + rnd() * 26; const g = ctx.createRadialGradient(x, y, 0, x, y, r); g.addColorStop(0, "rgba(110,72,34,0.9)"); g.addColorStop(1, "rgba(110,72,34,0)"); ctx.globalAlpha = 0.05 + rnd() * 0.07; ctx.fillStyle = g; ctx.fillRect(x - r, y - r, r * 2, r * 2); }
   ctx.globalAlpha = 1;
-  return cv.toDataURL("image/jpeg", 0.86);
+  return canvasUrl(cv, "image/jpeg", 0.86);
 }
 
 function drawGlyphs(ctx, CW, CH, fieldA, elev, mxA, myA, M, excl) {
@@ -471,7 +472,8 @@ export function mountMap(container, opt = {}) {
   const go = () => {
     if (ac.signal.aborted) return;
     seed = 500;
-    if (!terrainUrl) terrainUrl = renderTerrain(prepare);
+    // 큰 그림을 못 그리는 기기(메모리 부족)에서는 절반 크기로 다시 그린다
+    if (!terrainUrl) { try { terrainUrl = renderTerrain(prepare); } catch { terrainUrl = null; } if (!terrainUrl) { seed = 500; try { terrainUrl = renderTerrain(prepare, 1) || null; } catch { terrainUrl = null; } } }
     else prepare();
     container.querySelector(".map-loading")?.remove();
     build(svg, info, here, opt, ac.signal);
@@ -525,7 +527,7 @@ function marker(p, g) {
 function build(svg, info, here, opt, signal) {
   const places = allPlaces();
   const byId = {}; places.forEach((p) => byId[p.id] = p);
-  el("image", { href: terrainUrl, x: 0, y: 0, width: WW, height: WH, preserveAspectRatio: "none" }, svg);
+  if (terrainUrl) el("image", { href: terrainUrl, x: 0, y: 0, width: WW, height: WH, preserveAspectRatio: "none" }, svg);
   const pin = (g, x, y, v) => { g.style.transform = `translate(${x}px, ${y}px) scale(var(${v}, 1))`; };
 
   // 호수
