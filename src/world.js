@@ -167,7 +167,7 @@ function tick(g, rng) {
       const old = lordName(g);
       r.lord = newLord(rng, r.lord.house, r.lord.generation + 1);
       r.lord.age = rng.int(20, 35);
-      say(`${old}이(가) 세상을 떠났다. 아들 ${r.lord.name}이(가) 작위를 이었다. 새 영주는 ${LORD_TEMPER_NAME[r.lord.temper]} 사람이라는 평이다.`, true);
+      say(`${old}이(가) 세상을 떠났다. 아들 ${r.lord.name}이(가) 작위를 이었다. 새 영주는 ${{ fair: '공정한', greedy: '탐욕스러운', harsh: '가혹한', weak: '유약한' }[r.lord.temper] ?? '알 수 없는'} 사람이라는 평이다.`, true);
       record(`영주 교체: ${lordName(g)}`);
     }
   }

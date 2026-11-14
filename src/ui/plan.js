@@ -105,7 +105,7 @@ export function renderPlan(game, ui) {
       }).join('')}
     </div>
     <div class="actions-row plan-tools">
-      <button class="ghost sm" id="fill">모든 칸을 '${esc(activeAct?.name ?? '')}'(으)로</button>
+      <button class="ghost sm" id="fill">${esc(`모든 칸을 '${activeAct?.name ?? ''}'(으)로`)}</button>
       <button class="ghost sm" id="skip3">같은 계획으로 석 달 보내기</button>
     </div>
     <div class="sticky-go"><button class="primary go-btn" id="go">이 달을 보낸다</button></div>
