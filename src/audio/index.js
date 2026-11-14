@@ -50,8 +50,21 @@ HOOKS.afterMonth.push(keep);
 (HOOKS.heir ??= []).push(keep);
 
 /* ---------- 소리 켜기 ---------- */
+// 아이폰 웹뷰는 앱이 뒤로 갔다 오면 AudioContext가 'interrupted'에 빠지거나, 'running'이라면서 소리가 안 나는 일이 있다.
+// 그래서 뒤로 갔다 온 뒤 첫 터치에서 소리 장치를 새로 만든다. 곡은 처음부터 다시 흐른다.
+let hiddenAt = 0;
+function rebuild() {
+  const old = engine;
+  engine = null; player = null; fx = null; amb = null;
+  safe(() => old?.ctx.close()?.catch?.(() => {}));
+}
 function unlock() {
   if (!hasDom) return;
+  if (engine && hiddenAt && !document.hidden) {
+    const away = Date.now() - hiddenAt;
+    hiddenAt = 0;
+    if (away > 800 || engine.ctx.state !== 'running') rebuild();
+  }
   if (!engine) {
     const AC = window.AudioContext ?? window.webkitAudioContext;
     if (!AC) return;
@@ -285,11 +298,21 @@ function init() {
   document.addEventListener('click', onClick, true);
   document.addEventListener('visibilitychange', () => {
     if (!engine) return;
-    if (document.hidden) rest();
-    else if (settings.on) wake();
+    if (document.hidden) { hiddenAt = Date.now(); rest(); return; }
+    if (!settings.on) return;
+    wake();
+    // 깨워도 살아나지 않으면 바로 새로 만들어 본다. 그래도 안 되면 다음 터치에서 다시 만든다.
+    setTimeout(() => {
+      if (!engine || document.hidden) return;
+      if (engine.ctx.state !== 'running') {
+        rebuild(); unlock();
+        if (engine?.ctx.state === 'running') hiddenAt = 0;
+      }
+    }, 400);
   });
   // 앱이 뒤로 갔다 올 때 visibilitychange가 오지 않는 경우(아이폰 웹뷰)도 챙긴다
-  window.addEventListener('pagehide', () => { if (engine) rest(); });
+  window.addEventListener('pagehide', () => { if (engine) { hiddenAt = hiddenAt || Date.now(); rest(); } });
+  window.addEventListener('blur', () => { if (engine && document.hidden) hiddenAt = hiddenAt || Date.now(); });
   window.addEventListener('pageshow', () => { if (engine && settings.on && !document.hidden) wake(); });
   const watch = () => {
     const app = document.getElementById('app');
