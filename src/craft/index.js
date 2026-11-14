@@ -3,3 +3,4 @@ import './core.js';
 import './work.js';
 import './orders.js';
 import './shop.js';
+import './company.js';

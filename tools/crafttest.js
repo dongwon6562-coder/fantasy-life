@@ -40,10 +40,10 @@ function month(g) {
     const s = L(g).scene;
     if (s) seen.scenes.add(s.kind);
     if (bad(pe.text) || pe.choices.some(bad)) { problems++; console.log('bad scene', pe.title, pe.text); }
-    const idx = s?.kind === 'open_shop' || s?.kind === 'apprentice_pick' ? 0 : s?.kind === 'shop_manage' ? (rngOf(g).chance(0.5) && pe.choices.some((c) => /제자/.test(c)) ? pe.choices.findIndex((c) => /제자/.test(c)) : pe.choices.length - 1) : s?.kind === 'craft_order' ? (rngOf(g).chance(0.8) ? 0 : 1) : s?.kind === 'heir' ? 0 : rngOf(g).int(0, pe.choices.length - 1);
+    const idx = ['open_shop', 'apprentice_pick', 'company_offer', 'found_company'].includes(s?.kind) ? 0 : s?.kind === 'shop_manage' ? (rngOf(g).chance(0.5) && pe.choices.some((c) => /제자/.test(c)) ? pe.choices.findIndex((c) => /제자/.test(c)) : pe.choices.length - 1) : s?.kind === 'craft_order' ? (rngOf(g).chance(0.8) ? 0 : 1) : s?.kind === 'heir' ? 0 : rngOf(g).int(0, pe.choices.length - 1);
     const out = resolveEvent(g, rngOf(g), idx);
     if (bad(out)) { problems++; console.log('bad scene text', pe.title, out); }
-    if (s && ['harvest', 'craft_order', 'granary', 'open_shop', 'shop_manage', 'apprentice_pick', 'apprentice_done'].includes(s.kind) && samples.length < 40) samples.push(`[${pe.title}] ${out}`);
+    if (s && ['harvest', 'craft_order', 'granary', 'open_shop', 'shop_manage', 'apprentice_pick', 'apprentice_done', 'company_offer', 'found_company'].includes(s.kind) && samples.length < 60) samples.push(`[${pe.title}] ${out}`);
   }
   if (!Number.isFinite(g.player.money) || g.player.money < 0) { problems++; console.log('bad money', g.player.money); }
 }
@@ -81,13 +81,13 @@ for (const trade of Object.keys(TRADES)) {
   }
 }
 
-console.log(`장면: ${[...seen.scenes].filter((k) => ['harvest', 'granary', 'craft_order', 'open_shop', 'shop_manage', 'apprentice_pick', 'apprentice_done'].includes(k)).join(',')}`);
+console.log(`장면: ${[...seen.scenes].filter((k) => ['harvest', 'granary', 'craft_order', 'open_shop', 'shop_manage', 'apprentice_pick', 'apprentice_done', 'company_offer', 'found_company'].includes(k)).join(',')}`);
 console.log(`의뢰(갈래별 맡음): ${JSON.stringify(seen.orders)} · 걸작 ${seen.masterworks.length}: ${seen.masterworks.slice(0, 8).join(', ')} · 이름난 장인 ${seen.famed}`);
 console.log(`가게 ${seen.shops}곳 (지난달 매상 ${seen.shopIncome.join(',')})`);
 console.log(`단계(30년 뒤): ${JSON.stringify(seen.grades)}`);
 console.log(`해마다 늘어난 돈(대략): ${JSON.stringify(seen.income)}`);
 if (verbose) for (const s of samples) console.log('·', s);
-for (const k of ['harvest', 'craft_order', 'open_shop', 'shop_manage', 'apprentice_pick', 'apprentice_done']) if (!seen.scenes.has(k)) { problems++; console.log('장면이 한 번도 나오지 않음:', k); }
+for (const k of ['harvest', 'craft_order', 'open_shop', 'shop_manage', 'apprentice_pick', 'apprentice_done', 'company_offer']) if (!seen.scenes.has(k)) { problems++; console.log('장면이 한 번도 나오지 않음:', k); }
 for (const t of Object.keys(TRADES)) if (!seen.orders[t]) { problems++; console.log('의뢰가 한 번도 없음:', t); }
 if (!seen.masterworks.length) { problems++; console.log('걸작이 한 번도 나오지 않음'); }
 console.log(problems ? `FAIL ${problems}` : 'OK');
