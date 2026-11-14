@@ -11,6 +11,10 @@ import {
 
 export const MAP_PLACES_EXTRA = [];
 export const MAP_ACTIONS = [];
+// MAP_INFO에 (game, place) => html 함수를 넣으면 설명 칸 아래에 덧붙는다 (예: 나라의 법과 나와의 관계).
+export const MAP_INFO = [];
+// 지도의 나라 이름(또는 '레오니아 왕국 남부' 같은 소속 글)에서 나라 id를 찾는다
+export const nationOf = (text) => (text ? nations.find((N) => text === N.name || text.startsWith(N.name))?.id ?? null : null);
 
 const NS = "http://www.w3.org/2000/svg";
 const WW = 1600, WH = 1000;
@@ -450,10 +454,12 @@ function build(svg, info, here, opt, signal) {
     if (current) current.classList.remove("on");
     current = g || null; if (current) current.classList.add("on");
     const isHere = place && place.id === here;
-    const acts = place && opt.game ? MAP_ACTIONS.flatMap((fn) => fn(opt.game, place) || []) : [];
+    const acts = place && opt.game ? MAP_ACTIONS.flatMap((fn) => { try { return fn(opt.game, place) || []; } catch (e) { console.error(e); return []; } }) : [];
+    const extra = place && opt.game ? MAP_INFO.map((fn) => { try { return fn(opt.game, place) || ''; } catch (e) { console.error(e); return ''; } }).join('') : '';
     info.innerHTML = `<p class="kind">${d.kind ?? ""}${isHere ? ' · <b class="here">지금 있는 곳</b>' : ""}</p>
       <h3>${d.name}</h3><p class="note">${d.realm ?? ""}</p><p class="desc">${d.desc ?? ""}</p>
       ${d.todo ? `<p class="todo"><span>할 수 있는 일</span>${d.todo}</p>` : ""}
+      ${extra}
       ${acts.length ? `<div class="actions-row">${acts.map((a, i) => `<button class="ghost" data-map-act="${i}">${a.label}</button>`).join("")}</div>` : ""}`;
     info.querySelectorAll("[data-map-act]").forEach((b) => b.addEventListener("click", () => { acts[+b.dataset.mapAct].run(); opt.onChange?.(); }));
   };
@@ -469,7 +475,9 @@ function build(svg, info, here, opt, signal) {
       fill: r.big ? "#3a2214" : "#2b241c", stroke: "#f1e5c6", "stroke-width": r.big ? 4 : 3, "paint-order": "stroke" };
     if (r.vertical) { attrs["writing-mode"] = "vertical-rl"; attrs["letter-spacing"] = 10; }
     el("text", attrs, g).textContent = r.name;
-    bind(g, () => show(r, g));
+    // 나라 이름을 누르면 그 나라 전체를 고른 것으로 친다 (id 없음, nation만)
+    const nation = nationOf(r.name);
+    bind(g, () => show(r, g, nation ? { id: null, n: r.name, region: true, nation } : null));
   };
   regions.forEach(regionLabel);
   regionLabel(Object.assign({ x: 760, y: 262, s: 22, big: true }, central));
@@ -493,6 +501,7 @@ function build(svg, info, here, opt, signal) {
     el("text", { x: lx, y: ly, "text-anchor": "middle", "font-weight": p.t === "capital" || p.id === here ? 700 : 500, "font-size": small ? 9.5 : p.t === "capital" ? 14.5 : 12.5,
       fill: "#241d16", stroke: "#efe6cd", "stroke-width": small ? 2.4 : 3, "paint-order": "stroke" }, g).textContent = p.n;
     const data = { kind: KIND[p.t] ?? "장소", name: p.n, realm: p.realm, desc: p.d, todo: p.todo };
+    if (p.nation === undefined) p.nation = nationOf(p.realm);
     p._g = g; p._data = data;
     if (p.id === here) hereP = p;
     bind(g, () => show(data, g, p));

@@ -546,3 +546,17 @@ html:not(.motion) .event { animation: none; }
 .wd-years .invent::before { background: var(--mana); }
 .wd-years .rise::before { background: var(--brass); }
 .wd-years .fall::before { background: var(--muted); }
+
+/* ---------- 4단계: 지도의 나라 정보 ---------- */
+.realm-box { display: grid; gap: 6px; border-top: 1px solid #c8b18a; padding-top: 10px; }
+.realm-top { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; flex-wrap: wrap; }
+.realm-top strong { font-family: var(--f-display); font-size: 16px; }
+.realm-box .standing { font-size: 12px; padding: 1px 8px; border-radius: 10px; border: 1px solid #a88c64; color: #5a4636; }
+.realm-box .standing.home { background: #3a6c4a; border-color: #3a6c4a; color: #f1e5c6; }
+.realm-box .standing.asylum { background: #6c5a3a; border-color: #6c5a3a; color: #f1e5c6; }
+.realm-box .standing.banned { background: #9a2a17; border-color: #9a2a17; color: #f1e5c6; }
+.realm-box dl { margin: 0; display: grid; gap: 4px; }
+.realm-box dl div { display: grid; grid-template-columns: 72px 1fr; gap: 8px; font-size: 13px; line-height: 1.5; }
+.realm-box dt { color: #7a5a2a; font-size: 12px; }
+.realm-box dd { margin: 0; }
+.realm-box .border { margin: 0; font-size: 13px; color: #8a2a17; font-weight: 600; }
