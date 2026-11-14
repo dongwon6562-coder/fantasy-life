@@ -1,0 +1,119 @@
+// 사건의 뼈대: 사건 목록, 고르기, 풀기, 그리고 사건 묶음들이 같이 쓰는 도구.
+// 사건 하나의 모양:
+// {
+//   id, once?, cooldown?(같은 사건이 다시 나오기까지 최소 달 수, 기본 24),
+//   cond(g) → bool, chance?(g) → 0~1, weight(90 이상은 '꼭 일어나야 하는 사건'으로 먼저 고른다),
+//   prepare?(g, rng) → ctx (사건에 나올 사람 등을 미리 정한다. text와 run에 넘어간다),
+//   title, text(g, ctx), choices: [{ label, show?(g, ctx), run(g, rng, ctx) → 결과 글 }]
+// }
+import { playerAge, playerAgeMonths, family, me } from '../game.js';
+import { living, byId, ageYears, fullName } from '../npc.js';
+
+export const EVENTS = [];
+
+// ---------- 공용 도구 ----------
+export const flag = (g, k) => (g.flags ??= {})[k];
+export const setFlag = (g, k, v = true) => { (g.flags ??= {})[k] = v; };
+export const fam = (g) => family(g).id;
+export const father = (g) => byId(g, g.player.familyIds[0]);
+export const mother = (g) => byId(g, g.player.familyIds[1]);
+export const alive = (p) => !!p && p.alive && !p.away;
+export const age = (g) => playerAge(g);
+export const ageM = (g) => playerAgeMonths(g);
+export const monthIndex = (g) => g.date.year * 12 + (g.date.month - 1);
+export const season = (g) => (g.date.month <= 2 || g.date.month === 12 ? 'winter' : g.date.month <= 5 ? 'spring' : g.date.month <= 8 ? 'summer' : 'autumn');
+export const isFamily = (g, p) => g.player.familyIds.includes(p.id);
+export const siblings = (g) => g.player.familyIds.slice(2).map((id) => byId(g, id)).filter(alive);
+export const findJob = (g, job) => living(g).find((p) => p.job === job && !p.isPlayer);
+export const peers = (g, span = 3) => living(g).filter((p) => !p.isPlayer && !isFamily(g, p)
+  && Math.abs(ageYears(p) - playerAge(g)) <= span);
+export const friends = (g, min = 15) => peers(g, 4).filter((p) => p.known && p.affection >= min);
+export const bestFriend = (g) => friends(g).sort((a, b) => b.affection - a.affection)[0] ?? null;
+export const stat = (g, id) => g.player.stats[id];
+export const skill = (g, id) => g.player.skills[id];
+export const money = (g) => g.player.money;
+export const spend = (g, n) => { g.player.money = Math.max(0, g.player.money - n); };
+export const spendFamily = (g, n) => { g.player.familyMoney = Math.max(0, g.player.familyMoney - n); };
+export const stress = (g, n) => { g.player.stress = Math.max(0, g.player.stress + n); };
+export const tire = (g, n) => { g.player.fatigue = Math.max(0, g.player.fatigue + n); };
+export const like = (p, n) => { if (p) { p.known = true; p.affection += n; } };
+export const note = (g, p, text) => p?.history.push({ y: g.date.year, m: g.date.month, text });
+export const injure = (g, name, months) => g.player.injuries.push({ name, months });
+// 능력 판정: 값이 높을수록 성공 확률이 높다
+export const check = (rng, value, difficulty) => rng.chance(Math.max(0.05, Math.min(0.95, 0.5 + (value - difficulty) / 40)));
+export const nm = (p, fallback = '누군가') => p?.name ?? fallback;
+export { fullName, ageYears, living, byId, me };
+
+// 받침에 맞는 조사: josa('한스', '이', '가') → '한스가'
+export function josa(word, withFinal, withoutFinal) {
+  const ch = String(word).charCodeAt(String(word).length - 1);
+  const has = ch >= 0xac00 && ch <= 0xd7a3 && (ch - 0xac00) % 28 !== 0;
+  return word + (has ? withFinal : withoutFinal);
+}
+
+// ---------- 사건 줄기(체인): 몇 달에 걸쳐 이어지는 이야기 ----------
+// g.chains[id] = { step, at(이 달 이후에 다음 단계), data }
+export const chain = (g, id) => (g.chains ??= {})[id];
+export function startChain(g, id, step, delay, data = {}) {
+  (g.chains ??= {})[id] = { step, at: monthIndex(g) + delay, data };
+}
+export function nextStep(g, id, step, delay, patch = {}) {
+  const c = chain(g, id);
+  if (!c) return;
+  c.step = step; c.at = monthIndex(g) + delay; Object.assign(c.data, patch);
+}
+export function endChain(g, id, outcome = 'done') {
+  delete (g.chains ??= {})[id];
+  setFlag(g, 'chain_' + id, outcome);
+}
+export const chainAt = (g, id, step) => { const c = chain(g, id); return !!c && c.step === step && monthIndex(g) >= c.at; };
+export const chainDone = (g, id) => flag(g, 'chain_' + id);
+
+// ---------- 고르기와 풀기 ----------
+// 한 달에 사건은 많아야 하나. 꼭 일어나야 하는 사건(weight ≥ 90)이 먼저고,
+// 나머지는 무게에 따라 무작위로 고르되 매달 일어나지는 않는다.
+export const EVENT_RATE = 0.45;
+
+export function pickEvent(game, rng) {
+  const now = monthIndex(game);
+  const last = (game.evLast ??= {});
+  const cands = EVENTS.filter((e) => {
+    if (e.once && flag(game, 'ev_' + e.id)) return false;
+    if (!e.once && last[e.id] != null && now - last[e.id] < (e.cooldown ?? 24)) return false;
+    let ok = false;
+    try { ok = !!e.cond(game); } catch { ok = false; }
+    if (!ok) return false;
+    if (e.chance && !rng.chance(e.chance(game))) return false;
+    return true;
+  });
+  if (!cands.length) return null;
+  const urgent = cands.filter((e) => e.weight >= 90).sort((a, b) => b.weight - a.weight);
+  let e = urgent[0];
+  if (!e) {
+    if (!rng.chance(EVENT_RATE)) return null;
+    e = rng.weighted(cands, (x) => x.weight);
+  }
+  const ctx = e.prepare ? e.prepare(game, rng) ?? {} : {};
+  const shown = e.choices.map((c, i) => ({ c, i })).filter(({ c }) => !c.show || c.show(game, ctx));
+  last[e.id] = now;
+  return {
+    id: e.id, title: e.title, text: e.text(game, ctx),
+    choices: shown.map(({ c }) => c.label), choiceIdx: shown.map(({ i }) => i), ctx,
+  };
+}
+
+export function resolveEvent(game, rng, index) {
+  const pe = game.pendingEvent;
+  if (!pe) return null;
+  const e = EVENTS.find((x) => x.id === pe.id);
+  if (!e) { game.pendingEvent = null; return null; }
+  const real = pe.choiceIdx ? pe.choiceIdx[index] ?? pe.choiceIdx[0] : index;
+  const c = e.choices[real] ?? e.choices[0];
+  const out = c.run(game, rng, pe.ctx ?? {}) ?? '';
+  if (e.once) setFlag(game, 'ev_' + e.id);
+  game.pendingEvent = null;
+  const record = { y: game.date.year, m: game.date.month, text: `${pe.title}: ${out}`, rel: 100 };
+  game.chronicle.push(record);
+  me(game).history.push({ y: game.date.year, m: game.date.month, text: `${pe.title}. ${out}` });
+  return out;
+}
