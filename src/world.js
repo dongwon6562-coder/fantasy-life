@@ -14,6 +14,9 @@ const LORD_NAMES = ['디트리히', '아달베르트', '고트프리트', '루�
 const LORD_TEMPERS = ['fair', 'greedy', 'harsh', 'weak'];
 export const LORD_TEMPER_NAME = { fair: '공정함', greedy: '탐욕스러움', harsh: '가혹함', weak: '유약함' };
 
+// 기술 값이 이 문턱을 넘으면 다음 시대. 한 사람의 일생에 한두 번, 몇 대를 거쳐야 마도 증기 시대에 닿는다.
+export const ERA_AT = [0, 1, 2.6, 4.6];
+
 export const monthIndex = (g) => g.date.year * 12 + (g.date.month - 1);
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 
@@ -30,7 +33,7 @@ export function makeRealm(rng) {
     king: { name: '오스발트 3세', age: 62, health: rng.int(45, 60), alive: true },
     ruler: 'oswald', // oswald | rudolf | erik | regency
     succession: 'contest', // contest(다툼) | civilwar(내전) | settled(정리됨)
-    rudolf: { alive: true, age: 34, support: rng.int(50, 60) }, // 제1왕자, 귀족파
+    rudolf: { alive: true, age: 34, support: rng.int(45, 58) }, // 제1왕자, 귀족파
     erik: { alive: true, age: 22, support: 0 },                  // 제2왕자, 기사파 (support는 100-rudolf로 계산)
     civilWarMonths: 0,
     blackGlove: 50, // 범죄 조직 "검은 장갑"의 힘
@@ -102,8 +105,8 @@ function tick(g, rng) {
       const gap = r.rudolf.support - 50;
       say(`조종이 울렸다. 국왕 ${r.king.name}께서 승하하셨다. 사람들이 일손을 놓고 왕도 쪽을 향해 고개를 숙였다.`, true);
       record(`국왕 ${r.king.name} 승하`);
-      if (!r.erik.alive || (r.rudolf.alive && gap > 18)) crown(g, rng, 'rudolf', say, record);
-      else if (!r.rudolf.alive || gap < -18) crown(g, rng, 'erik', say, record);
+      if (!r.erik.alive || (r.rudolf.alive && gap > 10)) crown(g, rng, 'rudolf', say, record);
+      else if (!r.rudolf.alive || gap < -10) crown(g, rng, 'erik', say, record);
       else {
         r.succession = 'civilwar';
         r.civilWarMonths = 0;
@@ -169,7 +172,7 @@ function tick(g, rng) {
   // ---------- 발하르트 ----------
   const b = r.balhart;
   if (!b.war) {
-    let drift = rng.normal(0.15, 1.3);
+    let drift = rng.normal(0.06, 1.3);
     if (r.succession === 'civilwar') drift += 1.5; // 틈을 노린다
     if (r.ruler === 'erik') drift -= 0.6;           // 몰래 통하는 사이
     if (r.ruler === 'rudolf') drift += 0.3;
@@ -179,7 +182,7 @@ function tick(g, rng) {
       '국경 소식: 발하르트 기병이 국경 마을 하나를 불태우고 돌아갔다. 제국은 산적의 짓이라고 한다.',
       '하르펜에 제국 첩자가 잡혔다는 소문이 돈다.',
     ]));
-    if (b.tension > 82 && rng.chance(0.07)) {
+    if (b.tension > 85 && rng.chance(0.04)) {
       b.war = true; b.warMonths = 0; b.front = 0; b.wars += 1;
       say('전쟁이다. 발하르트 제국군이 국경을 넘었다. 영주가 전시 징세와 징집령을 내렸다.', true);
       record(`발하르트 제국과 ${b.wars}번째 전쟁 시작`);
@@ -203,17 +206,17 @@ function tick(g, rng) {
     if (winter && rng.chance(0.1)) say('겨울이라 전선이 얼어붙었다. 양쪽 다 봄을 기다리고 있다.');
     // 끝나는 조건
     if (b.front <= -8) {
-      b.war = false; b.fortsLost += 1; b.tension = 45;
+      b.war = false; b.fortsLost += 1; b.tension = 40;
       say('굴욕적인 강화. 레오니아는 국경 요새 하나와 배상금을 내주었다. 세금이 오를 것이다.', true);
       record('발하르트와의 전쟁 패배, 국경 요새 상실');
       r.rudolf.support = clamp(r.rudolf.support + (r.ruler === 'oswald' ? -6 : 0), 0, 100);
     } else if (b.front >= 8) {
-      b.war = false; b.tension = 35;
+      b.war = false; b.tension = 25;
       if (b.fortsLost > 0) b.fortsLost -= 1;
       say('승전보! 제국군이 국경 너머로 물러났다. 왕도에서 개선 행진이 열렸다고 한다.', true);
       record('발하르트와의 전쟁 승리');
     } else if (b.warMonths > 14 && rng.chance(0.06)) {
-      b.war = false; b.tension = 50;
+      b.war = false; b.tension = 38;
       say('양쪽 다 지쳤다. 세레니아의 중재로 휴전이 맺어졌다. 아무것도 바뀌지 않았고, 많은 사람이 죽었다.', true);
       record('발하르트와 휴전');
     }
@@ -222,7 +225,7 @@ function tick(g, rng) {
   // ---------- 북부 전선 ----------
   const n = r.north;
   if (!n.fallen) {
-    n.garbes = clamp(n.garbes + rng.normal(0.12, 0.8), 0, 100);
+    n.garbes = clamp(n.garbes + rng.normal(0.08, 0.8), 0, 100);
     if (!n.war && n.garbes > 75 && rng.chance(0.03)) {
       n.war = true; n.warMonths = 0;
       say('북부에서 봉화가 올랐다. 붉은 마왕 가르베스의 군대가 해협을 건넜다. 북부 변경백이 중앙 왕국들에 원군을 청했다.', true);
@@ -238,7 +241,7 @@ function tick(g, rng) {
       ]));
       if (n.warMonths > 8 && rng.chance(0.05)) {
         n.war = false; n.garbes = 30;
-        if (rng.chance(0.25)) {
+        if (rng.chance(0.15)) {
           n.fallen = true; r.monsters = clamp(r.monsters + 20, 0, 100);
           say('최악의 소식: 성채도시 그라우벨이 함락되었다. 북부 변경이 무너졌고, 마물과 마족이 중앙 대륙으로 흘러들기 시작했다.', true);
           record('그라우벨 함락, 북부 변경 붕괴');
@@ -260,7 +263,7 @@ function tick(g, rng) {
     '숲속 마을 하나가 고블린 무리에게 털렸다. 살아남은 사람들이 하르펜으로 몰려들었다.',
     '밤마다 들개가 아닌 무언가가 울부짖는다. 사냥꾼들이 숲 깊이 들어가지 않는다.',
   ]));
-  if (rng.chance(0.006)) {
+  if (rng.chance(0.0025)) {
     r.noahLight = !r.noahLight;
     say(r.noahLight
       ? '북쪽에서 온 소문: 꺼졌던 노아의 감시탑에 다시 불이 켜졌다고 한다. 누가 켰는지는 아무도 모른다.'
@@ -309,7 +312,7 @@ function tick(g, rng) {
     '왕도와 하르펜 사이에 마도 전신(傳信)탑을 세운다고 한다.',
     '대장간마다 마석 화로를 들이지 못하면 망한다는 말이 돈다.',
   ]));
-  const nextEra = Math.min(3, Math.floor(r.tech));
+  const nextEra = ERA_AT.filter((t) => r.tech >= t).length - 1;
   if (nextEra > r.era) {
     r.era = nextEra;
     const e = ERAS[r.era];

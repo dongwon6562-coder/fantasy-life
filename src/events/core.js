@@ -2,7 +2,9 @@
 // 사건 하나의 모양:
 // {
 //   id, once?, cooldown?(같은 사건이 다시 나오기까지 최소 달 수, 기본 24),
-//   cond(g) → bool, chance?(g) → 0~1, weight(90 이상은 '꼭 일어나야 하는 사건'으로 먼저 고른다),
+//   cond(g) → bool, chance?(g) → 0~1,
+//   weight: 80 이상은 '꼭 일어나야 하는 사건'(사건 줄기의 다음 단계, 찾아가기 대화 등). 가장 무거운 것이 먼저 일어난다.
+//           80 미만은 무게에 비례해 무작위로 고르고, 매달 일어나지는 않는다(EVENT_RATE).
 //   prepare?(g, rng) → ctx (사건에 나올 사람 등을 미리 정한다. text와 run에 넘어간다),
 //   title, text(g, ctx), choices: [{ label, show?(g, ctx), run(g, rng, ctx) → 결과 글 }]
 // }
@@ -70,9 +72,10 @@ export const chainAt = (g, id, step) => { const c = chain(g, id); return !!c && 
 export const chainDone = (g, id) => flag(g, 'chain_' + id);
 
 // ---------- 고르기와 풀기 ----------
-// 한 달에 사건은 많아야 하나. 꼭 일어나야 하는 사건(weight ≥ 90)이 먼저고,
+// 한 달에 사건은 많아야 하나. 꼭 일어나야 하는 사건(weight ≥ URGENT)이 먼저고,
 // 나머지는 무게에 따라 무작위로 고르되 매달 일어나지는 않는다.
-export const EVENT_RATE = 0.45;
+export const EVENT_RATE = 0.6;
+export const URGENT = 80;
 
 export function pickEvent(game, rng) {
   const now = monthIndex(game);
@@ -87,7 +90,7 @@ export function pickEvent(game, rng) {
     return true;
   });
   if (!cands.length) return null;
-  const urgent = cands.filter((e) => e.weight >= 90).sort((a, b) => b.weight - a.weight);
+  const urgent = cands.filter((e) => e.weight >= URGENT).sort((a, b) => b.weight - a.weight);
   let e = urgent[0];
   if (!e) {
     if (!rng.chance(EVENT_RATE)) return null;
