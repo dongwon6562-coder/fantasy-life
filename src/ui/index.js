@@ -15,6 +15,7 @@ import { PLACES, placeName, travelMonths, fareOf, HOME_NAMES } from '../places.j
 import { jobTitle } from '../jobs.js';
 import { memberships } from '../factions.js';
 import { lineage } from '../heir.js';
+import { worldSummary } from '../world.js';
 import { splitResult } from '../narrative/text.js';
 import { $, $$, esc, root } from './util.js';
 import { renderPlan, bindPlan } from './plan.js';
@@ -202,6 +203,35 @@ function renderSheet() {
   </aside>`;
 }
 
+// 세계 정세: world.js의 '키: 값' 줄들을 표로
+function worldRows() {
+  return worldSummary(game).map((line) => {
+    const i = line.indexOf(':');
+    return i > 0 ? [line.slice(0, i).trim(), line.slice(i + 1).trim()] : ['', line];
+  });
+}
+const ALARM = /전쟁|내전|위독|붕괴|창궐|일촉즉발|집결|밀리는/;
+
+function renderWorldCard() {
+  const rows = worldRows();
+  if (!rows.length) return '';
+  return `<section class="card world">
+    <h2>레오니아 정세 <small>용사력 ${game.date.year}년 ${monthInfo(game).name}</small></h2>
+    <dl class="world-grid">${rows.map(([k, v]) => `<div class="${ALARM.test(v) ? 'alarm' : ''}"><dt>${esc(k)}</dt><dd>${esc(v)}</dd></div>`).join('')}</dl>
+  </section>`;
+}
+
+function renderWorldMini() {
+  const rows = worldRows();
+  if (!rows.length) return '';
+  const hot = rows.filter(([, v]) => ALARM.test(v));
+  const head = hot.length ? hot.map(([k, v]) => `${k} ${v}`).join(' · ') : '큰 변고는 없다';
+  return `<details class="world-mini"${hot.length ? ' open' : ''}>
+    <summary><span class="lbl">레오니아 정세</span><span class="hd ${hot.length ? 'alarm' : ''}">${esc(head)}</span></summary>
+    <dl class="world-grid">${rows.map(([k, v]) => `<div class="${ALARM.test(v) ? 'alarm' : ''}"><dt>${esc(k)}</dt><dd>${esc(v)}</dd></div>`).join('')}</dl>
+  </details>`;
+}
+
 function renderNews() {
   const mi = monthInfo(game);
   return `
@@ -210,6 +240,7 @@ function renderNews() {
     ${game.news.length
       ? `<ul class="news">${game.news.map((n) => `<li class="${n.rel >= 40 ? 'close' : ''}">${esc(n.text)}</li>`).join('')}</ul>`
       : '<p class="note">조용한 달이었다. 별다른 소문은 없다.</p>'}
+    ${renderWorldMini()}
     ${game.lastResults.length ? `<h3 class="sub">지난달 한 일</h3>
       <ul class="results">${game.lastResults.map((r) => `<li><b>${esc(r.name)}</b><span class="scene-text">${esc(r.scene ?? r.text)}</span>${r.gains ? `<small class="gains">${esc(r.gains)}</small>` : ''}</li>`).join('')}</ul>` : ''}
   </section>`;
@@ -292,7 +323,7 @@ function renderGame() {
   if (ui.view === 'month') main = game.over ? renderOver() : renderNews() + renderPlan(game, ui);
   else if (ui.view === 'me') main = renderSheet();
   else if (ui.view === 'people') main = renderPeople(game, ui);
-  else if (ui.view === 'map') main = renderMap();
+  else if (ui.view === 'map') main = renderWorldCard() + renderMap();
   else if (ui.view === 'chron') main = renderChron();
   else if (ui.view === 'save') main = renderSave();
   root().innerHTML = `

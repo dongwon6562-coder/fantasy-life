@@ -342,3 +342,33 @@ h1, h2, h3 { font-family: var(--f-display); font-weight: 700; text-wrap: balance
 .filters { justify-self: start; max-width: 100%; flex-wrap: nowrap; overflow-x: auto; }
 .filters button { white-space: nowrap; padding: 8px 12px; font-size: 14px; }
 .event .gains { color: var(--muted); font-size: 13px; }
+
+/* ---------- 세계 정세 ---------- */
+.world-grid { margin: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 6px 14px; }
+.world-grid div { display: grid; gap: 0; padding: 6px 10px; border-left: 2px solid var(--line); background: var(--bg); border-radius: 0 6px 6px 0; }
+.world-grid dt { font-size: 11px; letter-spacing: .1em; color: var(--muted); }
+.world-grid dd { margin: 0; font-size: 14px; }
+.world-grid .alarm { border-left-color: var(--blood); }
+.world-grid .alarm dd { color: #e3917f; }
+.world-mini { border-top: 1px solid var(--line); padding-top: 10px; }
+.world-mini summary { cursor: pointer; display: flex; flex-wrap: wrap; gap: 4px 10px; align-items: baseline; list-style: none; min-height: 32px; }
+.world-mini summary::-webkit-details-marker { display: none; }
+.world-mini summary::after { content: '펼치기'; margin-left: auto; font-size: 12px; color: var(--muted); }
+.world-mini[open] summary::after { content: '접기'; }
+.world-mini .lbl { font-size: 12px; letter-spacing: .12em; color: var(--brass); font-weight: 600; }
+.world-mini .hd { font-size: 13px; color: var(--muted); }
+.world-mini .hd.alarm { color: #e3917f; }
+.world-mini .world-grid { margin-top: 8px; }
+@media (max-width: 520px) { .world-grid { grid-template-columns: 1fr 1fr; } .world-grid dd { font-size: 13px; } }
+
+/* 긴 사건 글·많은 선택지: 창이 화면보다 길면 위에서부터 스크롤 */
+.overlay { display: flex; align-items: flex-start; justify-content: center; }
+.event { margin: auto 0; }
+@media (max-width: 520px) {
+  .overlay { padding-left: 10px; padding-right: 10px; }
+  .ev-art { height: 84px; }
+  .ev-body { padding: 2px 16px 16px; gap: 12px; }
+  .event h2 { font-size: 22px; }
+  .event p { line-height: 1.7; font-size: 14.5px; }
+  .event .opt { padding: 10px 12px; min-height: 46px; font-size: 14.5px; }
+}
