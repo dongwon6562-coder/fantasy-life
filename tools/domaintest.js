@@ -94,7 +94,7 @@ for (let run = 0; run < 12 && true; run++) {
 }
 
 // 2) 잊힌 땅 원정 → 나라
-for (let run = 0; run < (Number(process.env.EXP) || 10); run++) {
+for (let run = 0; run < (Number(process.env.EXP) || 24); run++) {
   const g = newGame({ name: '개척자', sex: run % 2 ? 'm' : 'f', familyId: 'fallen_knight', mode: 'free', seed: 9300 + run });
   grow(g);
   if (g.over) continue;
