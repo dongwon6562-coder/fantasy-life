@@ -27,6 +27,12 @@ import { renderWorkshop } from './workshop.js';
 import { renderWorld, bindWorld } from './world.js';
 import './mapActions.js';
 import { realmStatus } from '../realms/index.js';
+import { playableRaces, raceInfo } from '../races/index.js';
+import { renderParty } from './party.js';
+import { renderYouthCard, renderYouthBlock } from './youth.js';
+
+// 시작 화면: 종족별 집안 (인간 집안은 race가 없다)
+const familiesOf = (race) => FAMILIES.filter((f) => (f.race ?? 'human') === race);
 
 let game = null;
 const ui = {
@@ -50,6 +56,11 @@ function renderSetup(auto) {
   const s = ui.setup;
   const slotSums = [1, 2, 3].map((i) => ({ i, s: summary('slot' + i) })).filter((x) => x.s);
   const art = sceneImage({ year: 500, month: 3 });
+  let races = [];
+  try { races = playableRaces(); } catch (e) { console.error(e); }
+  const race = s.race ?? 'human';
+  const raceNow = races.find((r) => r.id === race);
+  const fams = races.length ? familiesOf(race) : FAMILIES;
   root().innerHTML = `
     <div class="title-hero">
       ${art ? `<img src="${art}" alt="${esc(VILLAGE)}의 이른 봄 풍경">` : ''}
@@ -81,9 +92,16 @@ function renderSetup(auto) {
           </div>
         </section>
         <section>
+          <h2>종족</h2>
+          <div class="seg race-seg" role="group" aria-label="종족">
+            ${races.map((r) => `<button data-race="${r.id}" aria-pressed="${race === r.id}">${esc(r.name)}</button>`).join('')}
+          </div>
+          ${raceNow ? `<p class="race-desc"><b>${esc(raceNow.name)}</b> · 수명 ${raceNow.life >= 500 ? '천 년 가까이' : `${raceNow.life}년쯤`} · ${esc(raceNow.desc)}</p>` : ''}
+        </section>
+        <section>
           <h2>태어날 집안</h2>
           <div class="choice-row">
-            ${FAMILIES.map((f) => `
+            ${fams.map((f) => `
               <button class="choice" data-family="${f.id}" aria-pressed="${s.family === f.id}">
                 <span class="tag">${esc(f.standing)} · 집안 돈 은화 ${f.money}닢</span>
                 <strong>${esc(f.name)}</strong>
@@ -111,6 +129,12 @@ function renderSetup(auto) {
 
   $$('[data-mode]').forEach((b) => b.onclick = () => { s.mode = b.dataset.mode; renderSetup(auto); });
   $$('[data-family]').forEach((b) => b.onclick = () => { s.family = b.dataset.family; renderSetup(auto); });
+  $$('[data-race]').forEach((b) => b.onclick = () => {
+    s.race = b.dataset.race;
+    const fs = familiesOf(s.race);
+    if (!fs.some((f) => f.id === s.family)) s.family = fs.length === 1 ? fs[0].id : null; // 집안이 하나뿐이면 바로 고른다
+    renderSetup(auto);
+  });
   $$('[data-sex]').forEach((b) => b.onclick = () => { s.sex = b.dataset.sex; renderSetup(auto); });
   const input = $('#pname');
   input.oninput = () => {
@@ -142,6 +166,10 @@ function lifeLines() {
   const life = L(game);
   const rows = [];
   rows.push(['사는 곳', `${placeName(game)}${traveling(game) ? '' : ` · ${HOME_NAMES[life.home] ?? ''}`}`]);
+  try {
+    const r = raceInfo(game);
+    if (r.id !== 'human' || r.beast) rows.push(['종족', `${r.beast ?? r.name}${r.bodyAge !== r.age ? ` · 몸은 ${r.bodyAge}살쯤` : ''}${r.treatment !== 'normal' ? ` · 여기서는 ${r.treatmentWord}` : ''}${r.farewells ? ` · 떠나보낸 인간 친구 ${r.farewells}명` : ''}`]);
+  } catch (e) { console.error(e); }
   const job = jobTitle(game);
   if (job) rows.push(['일', job]);
   const ms = memberships(game);
@@ -200,6 +228,7 @@ function renderSheet() {
       <h3>삶</h3>
       ${lifeLines()}
     </div>
+    ${renderYouthBlock(game)}
     <div class="block">
       <h3>몸과 마음</h3>
       ${bar('피로', p.fatigue, 100, p.fatigue > 70 ? 'warn' : '')}
@@ -334,9 +363,9 @@ function renderGame() {
   const p = game.player;
   const art = sceneImage({ year: game.date.year, month: game.date.month, famine: game.world?.famine, plague: game.world?.plague, place: L(game).place });
   let main = '';
-  if (ui.view === 'month') main = game.over ? renderOver() : renderNews() + renderWorkshop(game, ui) + renderPlan(game, ui);
+  if (ui.view === 'month') main = game.over ? renderOver() : renderNews() + renderYouthCard(game, ui) + renderWorkshop(game, ui) + renderPlan(game, ui);
   else if (ui.view === 'me') main = renderSheet();
-  else if (ui.view === 'people') main = renderPeople(game, ui);
+  else if (ui.view === 'people') main = renderParty(game) + renderPeople(game, ui);
   else if (ui.view === 'map') main = renderMap() + renderWorldCard(); // 지도가 먼저 (폰에서 바로 보이게)
   else if (ui.view === 'chron') main = renderChron();
   else if (ui.view === 'save') main = renderSave();
@@ -436,6 +465,8 @@ function bindGame() {
   bindWorld(game, ui, rerender);
   const ws = $('details.workshop');
   if (ws) ws.ontoggle = () => { ui.wsOpen = ws.open; };
+  const yt = $('details.youth');
+  if (yt) yt.ontoggle = () => { ui.ytOpen = yt.open; };
   $$('[data-ws-person]').forEach((b) => b.onclick = () => { ui.view = 'people'; ui.person = +b.dataset.wsPerson; renderGame(); window.scrollTo({ top: 0 }); });
   $$('[data-chron]').forEach((b) => b.onclick = () => { ui.chronTab = b.dataset.chron; renderGame(); });
   bindSettings(rerender, () => { ui.view = 'month'; renderGame(); window.scrollTo({ top: 0 }); });

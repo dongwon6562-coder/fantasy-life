@@ -8,6 +8,7 @@ import {
   continents, contGroup, innerSeas, TERRAIN, nations, central, regions, P, roads, oldRoads,
   seaRoutes, ghostRoutes, rivers, seaLabels, edgeLabels, mtLabels,
 } from './mapdata.js';
+import { INK, PAL, inkSetup, mountain, hill, tree, fir, deadTree, reeds, tuft, dune, crack, field, wave, ship, serpent, contour } from './mapInk.js';
 
 export const MAP_PLACES_EXTRA = [];
 export const MAP_ACTIONS = [];
@@ -98,6 +99,9 @@ function sample(a, x, y) {
 }
 
 /* ---------- terrain render ---------- */
+// 두 겹으로 그린다. 물감(땅 빛깔·그늘·얼룩)은 세계 한 칸에 한 점으로 칠해 두 배로 늘리고,
+// 그 위에 펜 선(바닷가, 물결선, 산, 나무, 국경)을 두 배 크기로 또렷하게 긋는다.
+const INKK = 2;
 function renderTerrain(prep) {
   const contMasks = continents.map(c => { const big = /^(dragon|forest|central|demon)$/.test(c.id); return raster([[1, c.pts]], big ? 5 : 2, 3); });
   const land = new Float32Array(GW * GH);
@@ -114,10 +118,10 @@ function renderTerrain(prep) {
   const M = {};
   for (const k in TERRAIN) M[k] = raster(TERRAIN[k], k === "blight" || k === "cold" || k === "tropic" ? 9 : 6, 3);
 
-  const CW = 2000, CH = 1250, SC = WW / CW;
-  const cv = document.createElement("canvas"); cv.width = CW; cv.height = CH;
-  const ctx = cv.getContext("2d");
-  const img = ctx.createImageData(CW, CH);
+  const CW = WW, CH = WH;
+  const wash = document.createElement("canvas"); wash.width = CW; wash.height = CH;
+  const wctx = wash.getContext("2d");
+  const img = wctx.createImageData(CW, CH);
   const D = img.data;
   const elev = new Float32Array(CW * CH);
   const fieldA = new Float32Array(CW * CH);
@@ -126,7 +130,7 @@ function renderTerrain(prep) {
 
   for (let py = 0; py < CH; py++) {
     for (let px = 0; px < CW; px++) {
-      const wx = px * SC, wy = py * SC, i = py * CW + px;
+      const wx = px, wy = py, i = py * CW + px;
       const qx = wx + (fbm(wx / 150, wy / 150, 4, 201) - 0.5) * 130, qy = wy + (fbm(wx / 150, wy / 150, 4, 202) - 0.5) * 130;
       const n1 = fbm(wx / 70, wy / 70, 6, 11);
       const f = sample(land, qx, qy) - 0.5 + (n1 - 0.5) * 0.95 + (fbm(wx / 20, wy / 20, 3, 13) - 0.5) * 0.32;
@@ -152,118 +156,211 @@ function renderTerrain(prep) {
 
   const mix = (c, t, k) => { c[0] += (t[0] - c[0]) * k; c[1] += (t[1] - c[1]) * k; c[2] += (t[2] - c[2]) * k; };
   const col = [0, 0, 0];
-  const edge = (wx, wy) => { const d = Math.min(wx, wy, WW - wx, WH - wy); return d < 60 ? 1 - d / 60 : 0; };
-  function parchPixel(i, o, f, wx, wy, px, py) {
-    const stain = fbm(wx / 160, wy / 160, 4, 301);
-    const grain = vnoise(wx / 2.2, wy / 2.2, 311);
-    if (f <= 0) {
-      col[0] = 172; col[1] = 180; col[2] = 168;
-      const df = -f;
-      mix(col, [196, 194, 170], Math.max(0, 1 - df / 0.05) * 0.6);
-      for (const k of [0.016, 0.034, 0.056, 0.084, 0.12]) { const a = 1 - Math.abs(df - k) / 0.0034; if (a > 0) mix(col, [70, 66, 52], a * (0.75 - k * 3.6)); }
-      const wv = vnoise(wx / 5, wy / 16, 321); if (wv > 0.78 && df > 0.16) mix(col, [150, 140, 112], (wv - 0.78) * 1.4);
-    } else {
-      col[0] = 236; col[1] = 224; col[2] = 192;
-      const mx = mxA[i], my = myA[i];
-      const fo = sample(M.forest, mx, my); if (fo > 0.02) mix(col, [214, 214, 172], fo * 0.6);
-      const bl = sample(M.blight, mx, my); if (bl > 0.02) mix(col, [226, 196, 176], bl * 0.7);
-      const ash = sample(M.ash, mx, my); if (ash > 0.02) mix(col, [210, 204, 196], ash * 0.7);
-      const cold = sample(M.cold, mx, my); if (cold > 0.02) mix(col, [232, 230, 220], cold * 0.6);
-      const sw = sample(M.swamp, mx, my); if (sw > 0.02) mix(col, [204, 210, 182], sw * 0.6);
-      const e = elev[i];
-      const xl = px > 0 ? elev[i - 1] : e, xr = px < CW - 1 ? elev[i + 1] : e, yu = py > 0 ? elev[i - CW] : e, yd = py < CH - 1 ? elev[i + CW] : e;
-      let sh = 1 + (-(xr - xl) - (yd - yu)) * 60 * 0.1; sh = Math.max(0.94, Math.min(1.04, sh));
-      col[0] *= sh; col[1] *= sh; col[2] *= sh;
-      const n = nat[i];
-      if (n >= 0) {
-        mix(col, nations[n].c, 0.07);
-        const nr = px < CW - 3 ? nat[i + 3] : n, nd = py < CH - 3 ? nat[i + 3 * CW] : n;
-        if (((nr >= 0 && nr !== n) || (nd >= 0 && nd !== n)) && (((px + py) >> 2) % 3 === 0)) mix(col, [86, 56, 40], 0.8);
-      }
-      if (f < 0.016) mix(col, [44, 32, 22], Math.min(1, (1 - f / 0.016) * 1.4));
-      else if (f < 0.03) mix(col, [120, 96, 66], (1 - (f - 0.012) / 0.018) * 0.25);
-    }
-    const k = 0.9 + stain * 0.16 + (grain - 0.5) * 0.05;
-    col[0] *= k; col[1] *= k; col[2] *= k;
-    const ed = edge(wx, wy); if (ed > 0) mix(col, [96, 64, 36], ed * ed * 0.8);
-    D[o] = col[0]; D[o + 1] = col[1]; D[o + 2] = col[2]; D[o + 3] = 255;
-  }
+  const edge = (wx, wy) => { const d = Math.min(wx, wy, WW - wx, WH - wy); return d < 70 ? 1 - d / 70 : 0; };
+  // 이웃 나라가 가까우면(국경 띠) 나라 빛깔을 진하게 올린다
+  const other = (i, n, px, py, d) => {
+    const a = px >= d ? nat[i - d] : n, b = px < CW - d ? nat[i + d] : n, c = py >= d ? nat[i - d * CW] : n, e = py < CH - d ? nat[i + d * CW] : n;
+    return (a >= 0 && a !== n) || (b >= 0 && b !== n) || (c >= 0 && c !== n) || (e >= 0 && e !== n);
+  };
   for (let py = 0; py < CH; py++) {
     for (let px = 0; px < CW; px++) {
       const i = py * CW + px, o = i * 4, f = fieldA[i];
-      const wx = px * SC, wy = py * SC;
-      parchPixel(i, o, f, wx, wy, px, py);
+      const wx = px, wy = py;
+      const stain = fbm(wx / 160, wy / 160, 4, 301);
+      const grain = vnoise(wx / 2.2, wy / 2.2, 311);
+      if (f <= 0) {
+        const df = -f;
+        col[0] = 174; col[1] = 182; col[2] = 168;
+        mix(col, [150, 164, 158], Math.min(1, df / 0.55) * 0.5);
+        mix(col, [206, 204, 178], Math.max(0, 1 - df / 0.07) * 0.7);
+      } else {
+        col[0] = 236; col[1] = 224; col[2] = 192;
+        const mx = mxA[i], my = myA[i];
+        const fo = sample(M.forest, mx, my); if (fo > 0.02) mix(col, [206, 210, 164], fo * 0.62);
+        const bl = sample(M.blight, mx, my); if (bl > 0.02) mix(col, [224, 198, 178], bl * 0.66);
+        const ash = sample(M.ash, mx, my); if (ash > 0.02) mix(col, [208, 202, 194], ash * 0.7);
+        const cold = sample(M.cold, mx, my); if (cold > 0.02) mix(col, [234, 232, 222], cold * 0.62);
+        const sw = sample(M.swamp, mx, my); if (sw > 0.02) mix(col, [196, 206, 176], sw * 0.65);
+        const dry = sample(M.dry, mx, my); if (dry > 0.02) mix(col, [238, 216, 168], dry * 0.5);
+        const sc = sample(M.scorch, mx, my); if (sc > 0.02) mix(col, [176, 160, 144], sc * 0.6);
+        const mt = sample(M.mountain, mx, my); if (mt > 0.05) mix(col, [218, 204, 176], Math.min(1, mt) * 0.28);
+        const e = elev[i];
+        const xl = px > 0 ? elev[i - 1] : e, xr = px < CW - 1 ? elev[i + 1] : e, yu = py > 0 ? elev[i - CW] : e, yd = py < CH - 1 ? elev[i + CW] : e;
+        let sh = 1 + (-(xr - xl) - (yd - yu)) * 3.6; sh = Math.max(0.93, Math.min(1.045, sh));
+        col[0] *= sh; col[1] *= sh; col[2] *= sh;
+        const n = nat[i];
+        if (n >= 0) mix(col, nations[n].c, other(i, n, px, py, 3) ? 0.2 : other(i, n, px, py, 7) ? 0.14 : other(i, n, px, py, 12) ? 0.09 : 0.05);
+        if (f < 0.05) mix(col, [150, 122, 84], (1 - f / 0.05) * 0.3);
+      }
+      const k = 0.9 + stain * 0.16 + (grain - 0.5) * 0.05;
+      col[0] *= k; col[1] *= k; col[2] *= k;
+      const ed = edge(wx, wy); if (ed > 0) mix(col, [96, 64, 36], ed * ed * 0.75);
+      D[o] = col[0]; D[o + 1] = col[1]; D[o + 2] = col[2]; D[o + 3] = 255;
     }
   }
-  ctx.putImageData(img, 0, 0);
-  drawGlyphs(ctx, CW, CH, SC, fieldA, elev, mxA, myA, M, excl);
-  // paper grain
-  ctx.globalAlpha = 0.06;
-  for (let k = 0; k < 9000; k++) { ctx.fillStyle = rnd() > 0.5 ? "#000" : "#fff"; ctx.fillRect(rnd() * CW, rnd() * CH, 1.5, 1.5); }
+  wctx.putImageData(img, 0, 0);
+
+  const cv = document.createElement("canvas"); cv.width = CW * INKK; cv.height = CH * INKK;
+  const ctx = cv.getContext("2d");
+  ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = "high";
+  ctx.drawImage(wash, 0, 0, cv.width, cv.height);
+  ctx.scale(INKK, INKK);
+  inkSetup(ctx);
+
+  // 나침반에서 뻗는 방위선 (옛 해도의 바람 장미선)
+  ctx.save(); ctx.globalAlpha = 0.085; ctx.lineWidth = 0.4; ctx.beginPath();
+  for (let a = 0; a < 16; a++) { const an = a * Math.PI / 8; ctx.moveTo(64, 100); ctx.lineTo(64 + Math.sin(an) * 2400, 100 - Math.cos(an) * 2400); }
+  ctx.stroke(); ctx.restore();
+
+  // 물결선과 바닷가 윤곽
+  ctx.save();
+  [[-0.02, 0.5, 0.42], [-0.046, 0.36, 0.34], [-0.078, 0.24, 0.3], [-0.118, 0.14, 0.28]].forEach(([lv, al, lw]) => { ctx.globalAlpha = al; ctx.lineWidth = lw; ctx.strokeStyle = "#3c4a4a"; contour(ctx, fieldA, CW, CH, lv); });
+  ctx.strokeStyle = INK;
+  ctx.globalAlpha = 0.55; ctx.lineWidth = 0.7; contour(ctx, fieldA, CW, CH, 0.006, 0.45, 0.5);
+  ctx.globalAlpha = 0.95; ctx.lineWidth = 0.8; contour(ctx, fieldA, CW, CH, 0.006);
+  ctx.restore();
+
+  // 국경: 끊어 긋는 선 (칸 모서리를 깎아 계단이 지지 않게)
+  ctx.save(); ctx.strokeStyle = "#5a3424"; ctx.globalAlpha = 0.85; ctx.lineWidth = 0.7; ctx.lineCap = "butt"; ctx.beginPath();
+  for (let py = 2; py < CH - 2; py++) for (let px = 2; px < CW - 2; px++) {
+    const i = py * CW + px, a = nat[i], b = nat[i + 1], c = nat[i + CW + 1], d = nat[i + CW];
+    if (a === b && b === c && c === d) continue;
+    if (a < 0 || b < 0 || c < 0 || d < 0) continue;
+    if ((px + py * 2) % 7 > 4) continue;
+    const m = [];
+    if (a !== b) m.push(px + 0.5, py); if (b !== c) m.push(px + 1, py + 0.5); if (d !== c) m.push(px + 0.5, py + 1); if (a !== d) m.push(px, py + 0.5);
+    if (m.length === 4) { ctx.moveTo(m[0], m[1]); ctx.lineTo(m[2], m[3]); }
+    else for (let q = 0; q < m.length; q += 2) { ctx.moveTo(m[q], m[q + 1]); ctx.lineTo(px + 0.5, py + 0.5); }
+  }
+  ctx.stroke(); ctx.restore();
+
+  drawGlyphs(ctx, CW, CH, fieldA, elev, mxA, myA, M, excl);
+
+  // 테두리: 두 줄 괘선과 눈금
+  ctx.save(); ctx.strokeStyle = "#3a2618"; ctx.fillStyle = "#3a2618";
+  ctx.lineWidth = 1.3; ctx.strokeRect(4, 4, WW - 8, WH - 8);
+  ctx.lineWidth = 0.45; ctx.strokeRect(8.5, 8.5, WW - 17, WH - 17);
+  ctx.globalAlpha = 0.85;
+  for (let x = 8.5, q = 0; x < WW - 9; x += 25, q++) if (q % 2 === 0) { const w = Math.min(25, WW - 8.5 - x); ctx.fillRect(x, 4.6, w, 3.6); ctx.fillRect(x, WH - 8.2, w, 3.6); }
+  for (let y = 8.5, q = 0; y < WH - 9; y += 25, q++) if (q % 2 === 0) { const h = Math.min(25, WH - 8.5 - y); ctx.fillRect(4.6, y, 3.6, h); ctx.fillRect(WW - 8.2, y, 3.6, h); }
+  ctx.restore();
+
+  // 종이 결과 얼룩
+  ctx.setTransform(1, 0, 0, 1, 0, 0);
+  ctx.globalAlpha = 0.05;
+  for (let k = 0; k < 26000; k++) { ctx.fillStyle = rnd() > 0.5 ? "#000" : "#fff"; ctx.fillRect(rnd() * cv.width, rnd() * cv.height, 1.6, 1.6); }
+  ctx.globalAlpha = 0.07; ctx.strokeStyle = "#5a4028"; ctx.lineWidth = 0.7;
+  for (let k = 0; k < 900; k++) { const x = rnd() * cv.width, y = rnd() * cv.height, a = rnd() * 6.28, l = 6 + rnd() * 18; ctx.beginPath(); ctx.moveTo(x, y); ctx.quadraticCurveTo(x + Math.cos(a) * l * 0.5 + (rnd() - 0.5) * 6, y + Math.sin(a) * l * 0.5 + (rnd() - 0.5) * 6, x + Math.cos(a) * l, y + Math.sin(a) * l); ctx.stroke(); }
+  for (let k = 0; k < 26; k++) { const x = rnd() * cv.width, y = rnd() * cv.height, r = 8 + rnd() * 26; const g = ctx.createRadialGradient(x, y, 0, x, y, r); g.addColorStop(0, "rgba(110,72,34,0.9)"); g.addColorStop(1, "rgba(110,72,34,0)"); ctx.globalAlpha = 0.05 + rnd() * 0.07; ctx.fillStyle = g; ctx.fillRect(x - r, y - r, r * 2, r * 2); }
   ctx.globalAlpha = 1;
-  return cv.toDataURL("image/jpeg", 0.88);
+  return cv.toDataURL("image/jpeg", 0.86);
 }
 
-function drawGlyphs(ctx, CW, CH, SC, fieldA, elev, mxA, myA, M, excl) {
-  const ink = "#3a2a1c";
-  const at = (wx, wy) => { const px = Math.round(wx / SC), py = Math.round(wy / SC); if (px < 0 || py < 0 || px >= CW || py >= CH) return -1; return py * CW + px; };
+function drawGlyphs(ctx, CW, CH, fieldA, elev, mxA, myA, M, excl) {
+  const at = (wx, wy) => { const px = Math.round(wx), py = Math.round(wy); if (px < 0 || py < 0 || px >= CW || py >= CH) return -1; return py * CW + px; };
+  const blocked = (x, y, pad, up) => { for (const b of excl) if (x + pad > b[0] && x - pad < b[2] && y + 2 > b[1] && y - up < b[3]) return true; return false; };
+  const T = (name, i) => sample(M[name], mxA[i], myA[i]);
+  const palAt = (i) => (T("blight", i) > 0.4 ? PAL.blight : T("cold", i) > 0.45 ? PAL.cold : mxA[i] < 400 && myA[i] > 250 ? PAL.elf : PAL.land);
   const items = [];
-  for (let wy = 30; wy < WH - 20; wy += 9) {
-    for (let wx = 20; wx < WW - 20; wx += 9) {
-      const jx = wx + (hash(wx, wy, 401) - 0.5) * 8, jy = wy + (hash(wx, wy, 402) - 0.5) * 8;
-      const i = at(jx, jy); if (i < 0) continue;
-      const f = fieldA[i]; if (f < 0.035) continue;
-      const mx = mxA[i], my = myA[i], e = elev[i], r = hash(wx, wy, 403);
-      const mt = sample(M.mountain, mx, my), hl = sample(M.hill, mx, my), fo = sample(M.forest, mx, my), dw = sample(M.deadwood, mx, my), sw = sample(M.swamp, mx, my), ash = sample(M.ash, mx, my), sc = sample(M.scorch, mx, my);
-      if (mt > 0.3) { if ((wx % 18 === 2) && (wy % 18 === 12)) items.push(["m", jx, jy, Math.min(14, 3.5 + mt * 4.5 + Math.max(0, e - 0.3) * 14), r]); }
-      else if (hl > 0.3 && e > 0.3 && r < 0.35) items.push(["h", jx, jy, 5]);
-      else if (dw > 0.35 && r < 0.6) items.push(["d", jx, jy, 4]);
-      else if (fo > 0.4 && r < fo * 0.9) items.push(["t", jx, jy, 3.4 + r * 1.4]);
-      else if (sw > 0.4 && r < 0.4) items.push(["s", jx, jy, 4]);
-      else if (sc > 0.4 && r < 0.3) items.push(["x", jx, jy, 3]);
-      else if (ash > 0.5 && r < 0.12) items.push(["a", jx, jy, 1]);
+  const grid = (sx, sy, jit, s, fn) => {
+    for (let gy = 22, row = 0; gy < WH - 14; gy += sy, row++) for (let gx = 16 + (row & 1) * sx * 0.5; gx < WW - 16; gx += sx) {
+      const kx = Math.round(gx * 7), ky = Math.round(gy * 7);
+      const x = gx + (hash(kx, ky, s) - 0.5) * jit, y = gy + (hash(kx, ky, s + 1) - 0.5) * jit;
+      const i = at(x, y); if (i < 0) continue;
+      fn(x, y, i, hash(kx, ky, s + 2), fieldA[i]);
     }
-  }
-  const kept = items.filter(it => {
-    const pad = it[0] === "m" ? it[3] : 4;
-    for (const b of excl) if (it[1] + pad > b[0] && it[1] - pad < b[2] && it[2] + 2 > b[1] && it[2] - pad * 1.3 < b[3]) return false;
-    return true;
+  };
+  // 산과 산기슭
+  grid(11, 8.5, 8, 401, (x, y, i, r, f) => {
+    if (f < 0.04) return;
+    const mt = T("mountain", i);
+    if (mt > 0.23) {
+      const e = elev[i];
+      if (r > 0.42 + mt * 0.3 + Math.max(0, e - 0.3) * 0.8) return;
+      const s = Math.min(15, (3.4 + mt * 3.4 + Math.max(0, e - 0.3) * 16) * (0.8 + r * 0.5));
+      if (blocked(x, y, s, s * 1.5)) return;
+      const cold = T("cold", i);
+      items.push(["m", x, y, s, r, palAt(i), s > 8.5 && (cold > 0.25 || s > 11.5)]);
+    } else if (mt > 0.1 && r < 0.3 && !blocked(x, y, 4, 5)) items.push(["h", x, y, 3 + r * 5, r, palAt(i)]);
   });
-  items.length = 0; kept.forEach(it => items.push(it));
-  items.sort((a, b) => a[2] - b[2]);
-  const k = 1 / SC;
-  ctx.lineJoin = "round"; ctx.lineCap = "round";
-  for (const [t, wx, wy, sz, rr] of items) {
-    const x = wx * k, y = wy * k, s = sz * k;
-    ctx.strokeStyle = ink; ctx.fillStyle = "#efe4c6";
-    if (t === "m") {
-      const peak = (px0, s0, lean) => {
-        const tx = px0 + s0 * lean, ty = y - s0 * (1.05 + (rr || 0) * 0.35);
-        ctx.fillStyle = "#efe4c6"; ctx.lineWidth = s0 > 9 * k ? 1.5 : 1.15;
-        ctx.beginPath(); ctx.moveTo(px0 - s0, y); ctx.lineTo(px0 - s0 * 0.55, y - s0 * 0.45); ctx.lineTo(tx, ty); ctx.lineTo(px0 + s0 * 0.5, y - s0 * 0.55); ctx.lineTo(px0 + s0, y); ctx.closePath(); ctx.fill(); ctx.stroke();
-        ctx.lineWidth = 0.8; ctx.beginPath();
-        const n = s0 > 9 * k ? 5 : 3;
-        for (let q = 1; q <= n; q++) { const fx = tx + q * s0 * 0.85 / n, fy = ty + q * (y - ty) * 0.55 / n; ctx.moveTo(fx, fy); ctx.lineTo(fx - s0 * 0.18, y - 1); }
-        ctx.stroke();
-        if (s0 > 11 * k) { ctx.fillStyle = "#fbf7ec"; ctx.beginPath(); ctx.moveTo(tx, ty); ctx.lineTo(tx - s0 * 0.28, ty + s0 * 0.32); ctx.lineTo(tx - s0 * 0.08, ty + s0 * 0.24); ctx.lineTo(tx + s0 * 0.12, ty + s0 * 0.36); ctx.lineTo(tx + s0 * 0.26, ty + s0 * 0.28); ctx.closePath(); ctx.fill(); }
-      };
-      if ((rr || 0) < 0.45 && s > 6 * k) peak(x + s * 0.85, s * 0.62, 0.1);
-      peak(x, s, -0.1 + (rr || 0) * 0.2);
-    } else if (t === "h") {
-      ctx.lineWidth = 1.1; ctx.beginPath(); ctx.arc(x, y + s * 0.4, s, Math.PI * 1.15, Math.PI * 1.85); ctx.stroke();
-    } else if (t === "t") {
-      ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x, y + s * 0.9); ctx.stroke();
-      ctx.fillStyle = "#c9cfa0"; ctx.beginPath(); ctx.arc(x, y - s * 0.3, s * 0.85, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
-    } else if (t === "d") {
-      ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(x, y + s); ctx.lineTo(x, y - s); ctx.moveTo(x, y - s * 0.2); ctx.lineTo(x - s * 0.6, y - s * 0.8); ctx.moveTo(x, y); ctx.lineTo(x + s * 0.6, y - s * 0.6); ctx.stroke();
-    } else if (t === "s") {
-      ctx.lineWidth = 0.9; ctx.beginPath(); ctx.moveTo(x - s, y); ctx.lineTo(x + s, y); ctx.moveTo(x, y); ctx.lineTo(x, y - s * 0.9); ctx.moveTo(x - s * 0.5, y); ctx.lineTo(x - s * 0.7, y - s * 0.6); ctx.moveTo(x + s * 0.5, y); ctx.lineTo(x + s * 0.7, y - s * 0.6); ctx.stroke();
-    } else if (t === "x") {
-      ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(x - s, y - s); ctx.lineTo(x + s, y + s); ctx.moveTo(x + s, y - s); ctx.lineTo(x - s, y + s); ctx.stroke();
-    } else {
-      ctx.fillStyle = ink; ctx.beginPath(); ctx.arc(x, y, 1.1, 0, Math.PI * 2); ctx.fill();
+  // 언덕
+  grid(10, 8, 8, 411, (x, y, i, r, f) => {
+    if (f < 0.045 || T("mountain", i) > 0.1) return;
+    const hl = T("hill", i);
+    if (hl > 0.28 && r < 0.2 + hl * 0.45 && !blocked(x, y, 5, 5)) items.push(["h", x, y, 3.4 + r * 4, r, palAt(i)]);
+  });
+  // 숲, 죽은 숲
+  grid(4.7, 3.9, 4.2, 421, (x, y, i, r, f) => {
+    if (f < 0.04 || T("mountain", i) > 0.3) return;
+    const dw = T("deadwood", i);
+    if (dw > 0.35) { if (r < 0.2 && !blocked(x, y, 3, 6)) items.push(["d", x, y, 2.2 + r * 4, r]); return; }
+    const fo = T("forest", i);
+    // 숲 가장자리가 성기게 풀리고, 숲 안에는 빈터가 생긴다
+    const gap = fbm(x / 26, y / 26, 3, 431);
+    if (fo < 0.34 || r > (fo - 0.28) * 4 || gap < 0.34) return;
+    if (blocked(x, y, 2.6, 5)) return;
+    const cold = T("cold", i), piney = fbm(x / 60, y / 60, 2, 433);
+    items.push([cold > 0.3 || piney > 0.6 ? "f" : "t", x, y, 1.7 + hash(Math.round(x * 3), Math.round(y * 3), 437) * 1.5, r, palAt(i)]);
+  });
+  // 들판의 외딴 나무와 풀, 늪, 메마른 땅, 재, 추운 땅
+  grid(13, 11, 12, 441, (x, y, i, r, f) => {
+    if (f < 0.05 || T("mountain", i) > 0.1) return;
+    if (blocked(x, y, 3, 5)) return;
+    const sw = T("swamp", i), sc = T("scorch", i), ash = T("ash", i), dry = T("dry", i), cold = T("cold", i), bl = T("blight", i), fo = T("forest", i), dw = T("deadwood", i);
+    if (fo > 0.36 || dw > 0.35) return;
+    if (sw > 0.35) { if (r < 0.75) items.push(["s", x, y, 2.6 + r, r]); }
+    else if (sc > 0.4) { if (r < 0.6) items.push([r < 0.25 ? "d" : "x", x, y, 2 + r * 2, r]); }
+    else if (ash > 0.5) { if (r < 0.5) items.push(["a", x, y, 2.4, r]); }
+    else if (bl > 0.4) { if (r < 0.2) items.push(["x", x, y, 2.2, r]); else if (r < 0.34) items.push(["d", x, y, 1.6 + r * 2, r]); else if (r < 0.5) items.push(["a", x, y, 2, r]); }
+    else if (dry > 0.35) { if (r < 0.55) items.push(["u", x, y, 2.6 + r * 2, r]); }
+    else if (cold > 0.45) { if (r < 0.16) items.push(["f", x, y, 2 + r * 2, r, PAL.cold]); else if (r < 0.5) items.push(["a", x, y, 2, r]); }
+    else if (r < 0.05) items.push([fbm(x / 60, y / 60, 2, 433) > 0.6 ? "f" : "t", x, y, 1.9 + r * 8, r, palAt(i)]);
+    else if (r < 0.2 && fo > 0.14) items.push(["t", x, y, 2, r, palAt(i)]);
+    else if (r < 0.46) items.push(["g", x, y, 1.5 + r, r]);
+  });
+  // 사람 사는 곳 둘레의 밭
+  const farms = [];
+  for (const p of allPlaces()) {
+    if (p.sea || !/^(capital|city|town)$/.test(p.t)) continue;
+    const n = p.t === "town" ? 6 : 10;
+    for (let q = 0; q < n * 3 && farms.filter((fm) => fm[6] === p.id).length < n; q++) {
+      const r1 = hash(p.x + q * 13, p.y, 451), r2 = hash(p.x, p.y + q * 17, 452), r3 = hash(p.x + q, p.y + q, 453);
+      const an = r1 * 6.2832, dist = 9 + r2 * (p.t === "town" ? 13 : 20);
+      const x = p.x + Math.cos(an) * dist, y = p.y + Math.sin(an) * dist * 0.8 + 2;
+      const i = at(x, y); if (i < 0 || fieldA[i] < 0.07) continue;
+      if (T("mountain", i) > 0.14 || T("forest", i) > 0.34 || T("swamp", i) > 0.3 || T("blight", i) > 0.3 || T("cold", i) > 0.5 || T("deadwood", i) > 0.3 || T("scorch", i) > 0.3) continue;
+      const w = 4 + r3 * 4, h = 2.6 + r1 * 2.4;
+      if (blocked(x, y, w * 0.7, h)) continue;
+      if (farms.some((fm) => Math.abs(fm[0] - x) < (fm[2] + w) * 0.55 && Math.abs(fm[1] - y) < (fm[3] + h) * 0.6)) continue;
+      farms.push([x, y, w, h, (r2 - 0.5) * 0.7, r3, p.id]);
     }
   }
+  for (const [x, y, w, h, an, r] of farms) field(ctx, x, y, w, h, an, r);
+  // 밭 위에 겹친 풀·외딴 나무는 뺀다
+  const onFarm = (x, y) => farms.some((fm) => Math.abs(fm[0] - x) < fm[2] * 0.7 && Math.abs(fm[1] - y) < fm[3] * 0.9 + 2);
+
+  items.sort((a, b) => a[2] - b[2]);
+  for (const [t, x, y, s, r, pal, snow] of items) {
+    ctx.strokeStyle = INK;
+    if (t === "m") mountain(ctx, x, y, s, r, { pal, snow });
+    else if (t === "h") hill(ctx, x, y, s, r, { pal });
+    else if (t === "t") { if (!onFarm(x, y)) tree(ctx, x, y, s, r, { pal }); }
+    else if (t === "f") { if (!onFarm(x, y)) fir(ctx, x, y, s, r, { pal }); }
+    else if (t === "d") deadTree(ctx, x, y, s, r);
+    else if (t === "s") reeds(ctx, x, y, s, r);
+    else if (t === "x") crack(ctx, x, y, s, r);
+    else if (t === "u") dune(ctx, x, y, s, r);
+    else if (t === "g") { if (!onFarm(x, y)) { ctx.globalAlpha = 0.7; tuft(ctx, x, y, s); ctx.globalAlpha = 1; } }
+    else { ctx.fillStyle = INK; ctx.globalAlpha = 0.7; for (let q = 0; q < 4; q++) ctx.fillRect(x + (hash(q, Math.round(x), 461) - 0.5) * 7, y + (hash(q, Math.round(y), 462) - 0.5) * 5, 0.45, 0.45); ctx.globalAlpha = 1; }
+  }
+
+  // 먼바다의 잔물결, 배, 바다뱀
+  ctx.save(); ctx.strokeStyle = "#3c4a4a"; ctx.lineWidth = 0.36; ctx.globalAlpha = 0.5;
+  grid(34, 22, 26, 471, (x, y, i, r, f) => { if (f < -0.2 && r < 0.42 && !blocked(x, y, 6, 4) && Math.min(x, y, WW - x, WH - y) > 26) wave(ctx, x, y, 1.6 + r * 2); });
+  ctx.restore();
+  ctx.strokeStyle = INK;
+  [[838, 874, 2.3, false], [1146, 704, 2.1, true], [1128, 232, 1.9, false], [392, 478, 1.7, true], [1002, 968, 2, false]].forEach(([x, y, s, fl]) => { const i = at(x, y); if (i >= 0 && fieldA[i] < -0.05 && !blocked(x, y, 8, 10)) ship(ctx, x, y, s, fl); });
+  [[96, 968, 2.6], [1554, 262, 2.2]].forEach(([x, y, s]) => { const i = at(x, y); if (i >= 0 && fieldA[i] < -0.08) serpent(ctx, x, y, s); });
 }
 
 /* ---------- svg helpers ---------- */
@@ -384,18 +481,62 @@ export function mountMap(container, opt = {}) {
   return () => ac.abort();
 }
 
+const SERIF = "Gowun Batang, serif";
+const PAPER = "#f0e6cb";
+// 가늘게 시작해 굵어지는 띠 (강)
+function ribbon(p, w0, w1) {
+  const L = [], R = [], n = p.length;
+  for (let i = 0; i < n; i++) {
+    const a = p[Math.max(0, i - 1)], b = p[Math.min(n - 1, i + 1)];
+    const dx = b[0] - a[0], dy = b[1] - a[1], len = Math.hypot(dx, dy) || 1;
+    const w = (w0 + (w1 - w0) * Math.pow(i / (n - 1), 0.8)) / 2;
+    L.push([p[i][0] - dy / len * w, p[i][1] + dx / len * w]); R.push([p[i][0] + dy / len * w, p[i][1] - dx / len * w]);
+  }
+  return "M" + L.concat(R.reverse()).map((q) => q[0].toFixed(1) + " " + q[1].toFixed(1)).join("L") + "Z";
+}
+// 장소 기호: 원점 둘레에 그린다 (묶음째로 크기가 바뀐다)
+function marker(p, g) {
+  const ink = "#2b2018";
+  const mk = (tag, a) => el(tag, Object.assign({ class: "mk", stroke: ink, "stroke-width": 1.3, fill: PAPER, "stroke-linejoin": "round" }, a), g);
+  if (p.t === "capital") {
+    mk("circle", { cx: 0, cy: 0, r: 7.2, "stroke-width": 1.5 });
+    el("circle", { cx: 0, cy: 0, r: 5.5, fill: "none", stroke: ink, "stroke-width": 0.45 }, g);
+    el("path", { d: "M-3.7 3.2V-1h1.3v1.1h1.2V-3.5h0.8v-1h0.8v1h0.8V0.1h1.2V-1h1.3V3.2Z", fill: ink }, g);
+  } else if (p.t === "city") {
+    mk("circle", { cx: 0, cy: 0, r: 5.2, "stroke-width": 1.4 });
+    el("path", { d: "M-2.6 2.4V-0.6h1.2v0.9h0.8V-2.4h1.2v2.7h0.8v-0.9h1.2V2.4Z", fill: ink }, g);
+  } else if (p.t === "town") {
+    mk("circle", { cx: 0, cy: 0, r: 3.3, "stroke-width": 1.2 });
+    el("circle", { cx: 0, cy: 0, r: 1.3, fill: ink }, g);
+  } else if (p.t === "fort") {
+    mk("path", { d: "M-5 5V-2.6h2v1.6h2V-4.8h2v3.8h2v-1.6h2V5Z", "stroke-width": 1.2 });
+    el("path", { d: "M-1 5V2.4a1 1 0 0 1 2 0V5Z", fill: ink }, g);
+  } else if (p.t === "dungeon") {
+    mk("path", { d: "M-5 5.2V-0.8a5 5 0 0 1 10 0V5.2Z", fill: "#2c1822", stroke: "#d9a84e", "stroke-width": 1.3 });
+    el("path", { d: "M-2.2 5.2V0.2a2.2 2.2 0 0 1 4.4 0V5.2Z", fill: "#d9a84e" }, g);
+  } else if (p.t === "ruin") {
+    mk("path", { d: "M-6 5.2h12v-1.6h-1.4V-3.6l-1.3 1.2-1.3-1.4V3.6h-2V-0.4l-1.2-1.1-1.4 1V3.6H-6Z", fill: "#dccfb0", stroke: "#4a3828", "stroke-width": 1.1 });
+  } else {
+    mk("path", { d: "M0 -6.6L5.2 0L0 6.6L-5.2 0Z", "stroke-width": 1.3 });
+    el("circle", { cx: 0, cy: 0, r: 1.4, fill: ink }, g);
+  }
+}
+
 function build(svg, info, here, opt, signal) {
   const places = allPlaces();
   const byId = {}; places.forEach((p) => byId[p.id] = p);
   el("image", { href: terrainUrl, x: 0, y: 0, width: WW, height: WH, preserveAspectRatio: "none" }, svg);
+  const pin = (g, x, y, v) => { g.style.transform = `translate(${x}px, ${y}px) scale(var(${v}, 1))`; };
 
   // 호수
   const lakeG = el("g", {}, svg);
   [[[676,452],[700,440],[726,448],[732,474],[712,494],[684,490],[670,470]], [[106,320],[130,314],[140,332],[120,344],[102,336]]].forEach((l) => {
     const r = roughen(l.concat([l[0]]), 3, 0.3);
-    el("path", { d: smoothPath(r) + "Z", fill: "#a9b7a6", stroke: "#3a2a1c", "stroke-width": 1.2 }, lakeG);
+    const cx = l.reduce((s, q) => s + q[0], 0) / l.length, cy = l.reduce((s, q) => s + q[1], 0) / l.length;
+    el("path", { d: smoothPath(r) + "Z", fill: "#aebbab", stroke: "#33261a", "stroke-width": 0.9 }, lakeG);
+    [0.82, 0.62].forEach((k, q) => el("path", { d: smoothPath(r.map((p) => [cx + (p[0] - cx) * k, cy + (p[1] - cy) * k])) + "Z", fill: "none", stroke: "#3c4a4a", "stroke-width": 0.4, opacity: 0.5 - q * 0.2 }, lakeG));
   });
-  // 강
+  // 강: 샘에서 가늘게 시작해 하구로 갈수록 굵어진다
   const riverG = el("g", {}, svg);
   rivers.forEach((r) => {
     let pts = roughen(r.pts, 4, 0.32);
@@ -403,9 +544,10 @@ function build(svg, info, here, opt, signal) {
     let b = a; while (b < pts.length - 1 && fieldFn(pts[b][0], pts[b][1]) > -0.01) b++;
     pts = pts.slice(a, b + 1);
     if (pts.length < 3) return;
-    el("path", { d: smoothPath(pts), fill: "none", stroke: "#2c4e58", "stroke-width": 3.4, "stroke-linecap": "round", opacity: 0.55 }, riverG);
-    el("path", { d: smoothPath(pts), fill: "none", stroke: "#5f95a3", "stroke-width": 1.9, "stroke-linecap": "round" }, riverG);
-    if (r.n) el("text", { class: "t3", x: r.lx, y: r.ly, "font-family": "Gowun Batang, serif", "font-style": "italic", "font-size": 9.5, fill: "#2c4e58", stroke: "#f1e5c6", "stroke-width": 2, "paint-order": "stroke" }, riverG).textContent = r.n;
+    for (let q = 0; q < 2; q++) { const o = [pts[0]]; for (let j = 0; j < pts.length - 1; j++) { const u = pts[j], v = pts[j + 1]; o.push([u[0] * 0.75 + v[0] * 0.25, u[1] * 0.75 + v[1] * 0.25], [u[0] * 0.25 + v[0] * 0.75, u[1] * 0.25 + v[1] * 0.75]); } o.push(pts[pts.length - 1]); pts = o; }
+    const big = !!r.n;
+    el("path", { d: ribbon(pts, 0.7, big ? 3.3 : 2.3), fill: "#7fa0a2", stroke: "#2d4348", "stroke-width": 0.55, "stroke-linejoin": "round" }, riverG);
+    if (r.n) el("text", { class: "t3", x: r.lx, y: r.ly, "font-family": SERIF, "font-style": "italic", "font-size": 9, fill: "#2d4a52", stroke: PAPER, "stroke-width": 2, "paint-order": "stroke" }, riverG).textContent = r.n;
   });
   // 길과 뱃길
   const roadG = el("g", {}, svg);
@@ -414,39 +556,48 @@ function build(svg, info, here, opt, signal) {
       const a = byId[ids[i]], b = byId[ids[i + 1]];
       if (!a || !b) continue;
       const pts = roughen([[a.x, a.y], [(a.x + b.x) / 2 + (rnd() - 0.5) * 14, (a.y + b.y) / 2 + (rnd() - 0.5) * 14], [b.x, b.y]], 3, 0.25);
-      el("path", { d: smoothPath(pts), fill: "none", stroke: old ? "#5a4636" : "#6b4f33", "stroke-width": old ? 1.3 : 1.9, "stroke-dasharray": old ? "2 5" : "6 3", "stroke-linecap": "round", opacity: old ? 0.75 : 0.9 }, roadG);
+      const d = smoothPath(pts);
+      if (!old) el("path", { d, fill: "none", stroke: PAPER, "stroke-width": 2.4, "stroke-linecap": "round", opacity: 0.5 }, roadG);
+      el("path", { d, fill: "none", stroke: old ? "#5a4636" : "#553a24", "stroke-width": old ? 0.95 : 1.15, "stroke-dasharray": old ? "1 3.4" : "4.2 2.2", "stroke-linecap": "round", opacity: old ? 0.75 : 0.88 }, roadG);
     }
   };
   roads.forEach((r) => roadLine(r, false));
   oldRoads.forEach((r) => roadLine(r, true));
-  ghostRoutes.forEach((s) => el("path", { d: smoothPath(s), fill: "none", stroke: "#4f6670", "stroke-width": 1.2, "stroke-dasharray": "1 7", "stroke-linecap": "round", opacity: 0.45 }, roadG));
-  seaRoutes.forEach((s) => el("path", { d: smoothPath(s), fill: "none", stroke: "#4f6670", "stroke-width": 1.5, "stroke-dasharray": "1 5", "stroke-linecap": "round", opacity: 0.8 }, roadG));
+  ghostRoutes.forEach((s) => el("path", { d: smoothPath(s), fill: "none", stroke: "#3f565e", "stroke-width": 1, "stroke-dasharray": "0.6 6", "stroke-linecap": "round", opacity: 0.5 }, roadG));
+  seaRoutes.forEach((s) => el("path", { d: smoothPath(s), fill: "none", stroke: "#3f565e", "stroke-width": 1.2, "stroke-dasharray": "0.6 4", "stroke-linecap": "round", opacity: 0.8 }, roadG));
 
   // 바다·산 이름, 나침반, 축척
   const decoG = el("g", {}, svg);
-  edgeLabels.forEach(([t, x, y, s]) => el("text", { x, y, "text-anchor": "middle", "font-family": "Gowun Batang, serif", "font-style": "italic", "font-size": s, "letter-spacing": 3, fill: "#4e5c58", opacity: 0.9 }, decoG).textContent = t);
-  seaLabels.forEach(([t, x, y, s]) => el("text", { x, y, "text-anchor": "middle", "font-family": "Gowun Batang, serif", "font-style": "italic", "font-size": s, "letter-spacing": 5, fill: "#4e5c58" }, decoG).textContent = t);
-  mtLabels.forEach(([t, x, y]) => el("text", { x, y, "text-anchor": "middle", "font-family": "Gowun Batang, serif", "font-style": "italic", "font-weight": 700, "font-size": 11, "letter-spacing": 3, fill: "#3a2e22", stroke: "#f1e5c6", "stroke-width": 2.2, "paint-order": "stroke", opacity: 0.85 }, decoG).textContent = t);
-  const serp = el("g", { transform: "translate(120 975)", opacity: 0.8 }, decoG);
-  el("path", { d: "M-30 6 q8 -16 16 0 q8 16 16 0 q8 -16 16 0 q6 10 14 2", fill: "none", stroke: "#4e5c58", "stroke-width": 2.4, "stroke-linecap": "round" }, serp);
+  edgeLabels.forEach(([t, x, y, s]) => el("text", { x, y: Math.max(26, Math.min(WH - 15, y)), "text-anchor": "middle", "font-family": SERIF, "font-style": "italic", "font-size": s, "letter-spacing": 3, fill: "#44524f", opacity: 0.9 }, decoG).textContent = t);
+  seaLabels.forEach(([t, x, y, s]) => el("text", { x, y, "text-anchor": "middle", "font-family": SERIF, "font-style": "italic", "font-size": s, "letter-spacing": 5, fill: "#44524f" }, decoG).textContent = t);
+  mtLabels.forEach(([t, x, y]) => el("text", { x, y, "text-anchor": "middle", "font-family": SERIF, "font-style": "italic", "font-weight": 700, "font-size": 11, "letter-spacing": 3, fill: "#3a2e22", stroke: PAPER, "stroke-width": 2.2, "paint-order": "stroke", opacity: 0.88 }, decoG).textContent = t);
+  // 나침반: 열여섯 방위의 바람 장미
   const cp = el("g", { transform: "translate(64 100)" }, decoG);
-  el("circle", { cx: 0, cy: 0, r: 36, fill: "none", stroke: "#5a4330", "stroke-width": 1 }, cp);
-  el("circle", { cx: 0, cy: 0, r: 30, fill: "none", stroke: "#5a4330", "stroke-width": 0.6, "stroke-dasharray": "2 3" }, cp);
-  for (let a = 0; a < 8; a++) {
-    const big = a % 2 === 0, r = big ? 48 : 30, ang = a * Math.PI / 4, w = big ? 7 : 5;
+  el("circle", { cx: 0, cy: 0, r: 37, fill: "#eadfc2", "fill-opacity": 0.35, stroke: "#4a3524", "stroke-width": 1 }, cp);
+  el("circle", { cx: 0, cy: 0, r: 33.5, fill: "none", stroke: "#4a3524", "stroke-width": 0.45 }, cp);
+  for (let a = 0; a < 32; a++) { const an = a * Math.PI / 16, r0 = a % 2 ? 34.6 : 33.5; el("path", { d: `M${Math.sin(an) * r0} ${-Math.cos(an) * r0}L${Math.sin(an) * 37} ${-Math.cos(an) * 37}`, stroke: "#4a3524", "stroke-width": 0.5 }, cp); }
+  const ray = (ang, r, w, dark, light) => {
     const tx = Math.sin(ang) * r, ty = -Math.cos(ang) * r, lx = Math.cos(ang) * w, ly = Math.sin(ang) * w;
-    el("path", { d: `M0 0 L${lx} ${ly} L${tx} ${ty} Z`, fill: "#5a4330" }, cp);
-    el("path", { d: `M0 0 L${-lx} ${-ly} L${tx} ${ty} Z`, fill: "#a88c64" }, cp);
-  }
-  el("text", { x: 0, y: -54, "text-anchor": "middle", fill: "#3a2214", "font-size": 14, "font-weight": 700 }, cp).textContent = "북";
-  const sb = el("g", { transform: "translate(1390 950)" }, decoG);
-  for (let k = 0; k < 5; k++) el("rect", { x: k * 36, y: 0, width: 36, height: 6, fill: k % 2 ? "#efe2c2" : "#3a2214", stroke: "#3a2214", "stroke-width": 0.8 }, sb);
-  el("text", { x: 0, y: -6, "font-size": 10.5, fill: "#3a2214" }, sb).textContent = "0";
-  el("text", { x: 180, y: -6, "text-anchor": "end", "font-size": 10.5, fill: "#3a2214" }, sb).textContent = "말 타고 5일";
+    el("path", { d: `M0 0L${lx} ${ly}L${tx} ${ty}Z`, fill: dark, stroke: "#3a2618", "stroke-width": 0.35, "stroke-linejoin": "round" }, cp);
+    el("path", { d: `M0 0L${-lx} ${-ly}L${tx} ${ty}Z`, fill: light, stroke: "#3a2618", "stroke-width": 0.35, "stroke-linejoin": "round" }, cp);
+  };
+  for (let a = 0; a < 8; a++) ray((a + 0.5) * Math.PI / 4, 21, 3, "#8a7250", "#e6d9b8");
+  for (let a = 0; a < 4; a++) ray((a + 0.5) * Math.PI / 2, 31, 4.6, "#6a5238", "#e6d9b8");
+  for (let a = 0; a < 4; a++) ray(a * Math.PI / 2, a === 0 ? 50 : 44, 6.4, a === 0 ? "#8c2a1a" : "#4a3524", "#eadfc2");
+  el("circle", { cx: 0, cy: 0, r: 2.6, fill: "#eadfc2", stroke: "#3a2618", "stroke-width": 0.7 }, cp);
+  el("text", { x: 0, y: -55, "text-anchor": "middle", fill: "#3a2214", "font-family": SERIF, "font-size": 13, "font-weight": 700 }, cp).textContent = "북";
+  // 제목과 축척
+  const sb = el("g", { transform: "translate(1392 950)" }, decoG);
+  el("text", { x: 90, y: -19, "text-anchor": "middle", "font-family": SERIF, "font-weight": 700, "font-size": 11.5, "letter-spacing": 2.5, fill: "#3a2214" }, sb).textContent = "대륙 전도 · 용사력 500년";
+  el("path", { d: "M8 -14H76M104 -14H172M84 -14l6 -2.6l6 2.6l-6 2.6Z", fill: "#3a2214", stroke: "#3a2214", "stroke-width": 0.5 }, sb);
+  for (let k = 0; k < 5; k++) el("rect", { x: k * 36, y: 0, width: 36, height: 4.6, fill: k % 2 ? "#efe2c2" : "#3a2214", stroke: "#3a2214", "stroke-width": 0.7 }, sb);
+  el("text", { x: 0, y: -3.5, "font-family": SERIF, "font-size": 9, fill: "#3a2214" }, sb).textContent = "0";
+  el("text", { x: 180, y: -3.5, "text-anchor": "end", "font-family": SERIF, "font-size": 9, fill: "#3a2214" }, sb).textContent = "말 타고 닷새";
   // 북부 전선
   const frontG = el("g", {}, svg);
-  el("path", { d: "M1082 300 Q1120 340 1192 382", fill: "none", stroke: "#a3281b", "stroke-width": 4, "stroke-dasharray": "10 6", "stroke-linecap": "round" }, frontG);
-  el("text", { x: 1166, y: 330, "text-anchor": "middle", fill: "#a3281b", stroke: "#f1e5c6", "stroke-width": 3, "paint-order": "stroke", "font-size": 13, "font-weight": 700 }, frontG).textContent = "북부 전선";
+  el("path", { d: "M1082 300 Q1120 340 1192 382", fill: "none", stroke: "#9a2618", "stroke-width": 2.6, "stroke-dasharray": "7 4", "stroke-linecap": "round" }, frontG);
+  for (let k = 0; k < 4; k++) { const t = 0.16 + k * 0.23, x = (1 - t) * (1 - t) * 1082 + 2 * (1 - t) * t * 1120 + t * t * 1192, y = (1 - t) * (1 - t) * 300 + 2 * (1 - t) * t * 340 + t * t * 382; el("path", { d: `M${x - 3.4} ${y - 3.4}L${x + 3.4} ${y + 3.4}M${x + 3.4} ${y - 3.4}L${x - 3.4} ${y + 3.4}`, stroke: "#6e1a10", "stroke-width": 1.1, "stroke-linecap": "round" }, frontG); }
+  el("text", { x: 1166, y: 328, "text-anchor": "middle", fill: "#9a2618", stroke: PAPER, "stroke-width": 3, "paint-order": "stroke", "font-family": SERIF, "font-size": 12.5, "font-weight": 700 }, frontG).textContent = "북부 전선";
 
   // 설명 칸
   let current = null;
@@ -471,8 +622,9 @@ function build(svg, info, here, opt, signal) {
   const nameG = el("g", {}, svg);
   const regionLabel = (r) => {
     const g = el("g", { class: "rlbl", tabindex: 0, role: "button", "aria-label": r.name }, nameG);
-    const attrs = { x: r.x, y: r.y, "text-anchor": "middle", "font-family": "Gowun Batang, serif", "font-weight": 700, "font-size": r.s * 1.12, "letter-spacing": r.big ? 7 : 2.5,
-      fill: r.big ? "#3a2214" : "#2b241c", stroke: "#f1e5c6", "stroke-width": r.big ? 4 : 3, "paint-order": "stroke" };
+    pin(g, Math.min(r.x, WW - 30), Math.min(r.y, WH - 17), r.big ? "--rb" : "--rs");
+    const attrs = { x: 0, y: 0, "text-anchor": "middle", "font-family": SERIF, "font-weight": 700, "font-size": r.s * 1.12, "letter-spacing": r.big ? 7 : 3,
+      fill: r.big ? "#3a2214" : "#4a2a1c", stroke: PAPER, "stroke-width": r.big ? 4 : 3, "stroke-linejoin": "round", "paint-order": "stroke" };
     if (r.vertical) { attrs["writing-mode"] = "vertical-rl"; attrs["letter-spacing"] = 10; }
     el("text", attrs, g).textContent = r.name;
     // 나라 이름을 누르면 그 나라 전체를 고른 것으로 친다 (id 없음, nation만)
@@ -485,21 +637,17 @@ function build(svg, info, here, opt, signal) {
   // 장소
   const placeG = el("g", {}, svg);
   let hereP = null;
+  const labels = [];
   places.forEach((p) => {
     const g = el("g", { class: "place" + (p.tier === 3 && p.id !== here ? " t3" : ""), tabindex: 0, role: "button", "aria-label": p.n }, placeG);
-    el("circle", { class: "hit", cx: p.x, cy: p.y, r: 14, fill: "transparent" }, g);
-    const st = { stroke: "#2b241c", "stroke-width": 1.8, class: "mk" };
+    pin(g, p.x, p.y, "--ls");
+    el("circle", { class: "hit", cx: 0, cy: 0, r: 14, fill: "transparent" }, g);
     const small = p.tier === 3;
-    if (p.t === "capital") { el("rect", Object.assign({ x: p.x - 6, y: p.y - 6, width: 12, height: 12, fill: "#ece2c8" }, st), g); el("rect", { x: p.x - 2.2, y: p.y - 2.2, width: 4.4, height: 4.4, fill: "#2b241c" }, g); }
-    else if (p.t === "city") el("circle", Object.assign({ cx: p.x, cy: p.y, r: 5.2, fill: "#ece2c8" }, st), g);
-    else if (p.t === "town") el("circle", Object.assign({ cx: p.x, cy: p.y, r: 3, fill: "#2b241c" }, st, { "stroke-width": 1, stroke: "#ece2c8" }), g);
-    else if (p.t === "fort") el("path", Object.assign({ d: `M${p.x - 6} ${p.y + 5} V${p.y - 2} L${p.x - 4} ${p.y - 5} L${p.x - 2} ${p.y - 2} L${p.x} ${p.y - 5} L${p.x + 2} ${p.y - 2} L${p.x + 4} ${p.y - 5} L${p.x + 6} ${p.y - 2} V${p.y + 5} Z`, fill: "#ece2c8" }, st, { "stroke-width": 1.4 }), g);
-    else if (p.t === "dungeon") { el("circle", Object.assign({ cx: p.x, cy: p.y, r: 5.6, fill: "#3a1f2a" }, st, { stroke: "#e3b257", "stroke-width": 1.5 }), g); el("circle", { cx: p.x, cy: p.y, r: 2, fill: "#e3b257" }, g); }
-    else if (p.t === "ruin") el("path", Object.assign({ d: `M${p.x - 7} ${p.y + 5} L${p.x - 4} ${p.y - 4} L${p.x} ${p.y} L${p.x + 3} ${p.y - 7} L${p.x + 7} ${p.y + 5} Z`, fill: "#d6c8a6" }, st, { stroke: "#5a4636", "stroke-width": 1.5 }), g);
-    else el("path", Object.assign({ d: `M${p.x} ${p.y - 7} L${p.x + 6.5} ${p.y + 5} L${p.x - 6.5} ${p.y + 5} Z`, fill: "#ece2c8" }, st), g);
-    const lx = p.x + (p.lx || 0), ly = p.y + (p.ly != null ? p.ly : (small ? 15 : 19));
-    el("text", { x: lx, y: ly, "text-anchor": "middle", "font-weight": p.t === "capital" || p.id === here ? 700 : 500, "font-size": small ? 9.5 : p.t === "capital" ? 14.5 : 12.5,
-      fill: "#241d16", stroke: "#efe6cd", "stroke-width": small ? 2.4 : 3, "paint-order": "stroke" }, g).textContent = p.n;
+    marker(p, g);
+    const lx = p.lx || 0, ly = p.ly != null ? p.ly : (small ? 15 : 19);
+    el("text", { x: lx, y: ly, "text-anchor": "middle", "font-family": SERIF, "font-weight": 700, "font-size": small ? 10 : p.t === "capital" ? 14 : 12,
+      fill: "#241a12", stroke: PAPER, "stroke-width": small ? 2.4 : 3, "stroke-linejoin": "round", "paint-order": "stroke" }, g).textContent = p.n;
+    labels.push([g.lastChild, p.id === here || p.t === "capital" ? 0 : p.t === "city" ? 1 : 2]);
     const data = { kind: KIND[p.t] ?? "장소", name: p.n, realm: p.realm, desc: p.d, todo: p.todo };
     if (p.nation === undefined) p.nation = nationOf(p.realm);
     p._g = g; p._data = data;
@@ -509,24 +657,38 @@ function build(svg, info, here, opt, signal) {
   // 지금 있는 곳 표시: 붉은 고리와 깃발
   if (hereP) {
     const hg = el("g", { class: "here-mark", "pointer-events": "none" }, svg);
-    el("circle", { cx: hereP.x, cy: hereP.y, r: 11, fill: "none", stroke: "#9a2a17", "stroke-width": 2.2 }, hg);
-    el("circle", { cx: hereP.x, cy: hereP.y, r: 16, fill: "none", stroke: "#9a2a17", "stroke-width": 1, "stroke-dasharray": "3 3" }, hg);
-    el("path", { d: `M${hereP.x} ${hereP.y - 11} V${hereP.y - 34} L${hereP.x + 14} ${hereP.y - 29} L${hereP.x} ${hereP.y - 24}`, fill: "#9a2a17", stroke: "#3a1a10", "stroke-width": 1.2 }, hg);
+    pin(hg, hereP.x, hereP.y, "--ls");
+    el("circle", { cx: 0, cy: 0, r: 10.5, fill: "none", stroke: "#9a2a17", "stroke-width": 1.8 }, hg);
+    el("circle", { cx: 0, cy: 0, r: 15, fill: "none", stroke: "#9a2a17", "stroke-width": 0.8, "stroke-dasharray": "2.4 2.4" }, hg);
+    el("path", { d: "M0 -10.5V-33", stroke: "#3a1a10", "stroke-width": 1.3, "stroke-linecap": "round" }, hg);
+    el("path", { d: "M0.6 -33Q7 -34.5 14 -30.5Q7 -28.5 0.6 -24.5Z", fill: "#9a2a17", stroke: "#3a1a10", "stroke-width": 0.9, "stroke-linejoin": "round" }, hg);
     show(hereP._data, hereP._g, hereP);
   } else show(central, null);
 
-  // 확대·이동
+  // 확대·이동. 지도 칸의 모양(가로세로 비)에 맞춰 보이는 범위를 잡아, 좁은 화면에서도 칸이 꽉 찬다.
   const vb = { x: 0, y: 0, w: WW, h: WH };
-  let moved = false;
+  let moved = false, lastFar = 0;
   const apply = () => {
-    vb.w = Math.max(240, Math.min(WW, vb.w)); vb.h = vb.w * WH / WW;
+    const r = svg.getBoundingClientRect();
+    const asp = r.width > 0 && r.height > 0 ? r.height / r.width : WH / WW;
+    const maxW = Math.min(WW, WH / asp);
+    vb.w = Math.max(Math.min(240, maxW), Math.min(maxW, vb.w)); vb.h = vb.w * asp;
     vb.x = Math.max(0, Math.min(WW - vb.w, vb.x)); vb.y = Math.max(0, Math.min(WH - vb.h, vb.y));
     svg.setAttribute("viewBox", `${vb.x} ${vb.y} ${vb.w} ${vb.h}`);
     svg.classList.toggle("zoomed", WW / vb.w >= 1.7);
+    // 글자와 기호는 화면에서 늘 비슷한 크기로 읽히게, 확대·축소에 맞춰 크기를 바꾼다
+    const ppu = r.width > 0 ? r.width / vb.w : 1, z = Math.max(0, Math.min(1, (WW / vb.w - 1) / 1.4));
+    // 멀리서 볼 때는 큰 곳 이름만 남겨 글자가 겹치지 않게 한다 (1: 수도와 도시, 2: 수도만)
+    const far = ppu < 0.37 ? 2 : ppu < 0.55 ? 1 : 0;
+    if (far !== lastFar) { lastFar = far; labels.forEach(([t, imp]) => { t.style.display = imp >= 3 - far ? "none" : ""; }); }
+    svg.style.setProperty("--ls", Math.max(0.5, Math.min(far ? 1.4 : 1.15 + 0.6 * z, 0.95 / ppu)).toFixed(3));
+    svg.style.setProperty("--rs", Math.max(0.6, Math.min(1.1 + 0.3 * z, 1 / ppu)).toFixed(3));
+    svg.style.setProperty("--rb", Math.max(0.6, Math.min(1.12, 1 / ppu)).toFixed(3));
   };
   const toWorld = (cx, cy) => { const r = svg.getBoundingClientRect(); return [vb.x + (cx - r.left) / r.width * vb.w, vb.y + (cy - r.top) / r.height * vb.h]; };
   const zoomAt = (f, wx, wy) => { const nw = Math.max(240, Math.min(WW, vb.w / f)); const k = nw / vb.w; vb.x = wx - (wx - vb.x) * k; vb.y = wy - (wy - vb.y) * k; vb.w = nw; apply(); };
-  const focusOn = (p, w = 520) => { vb.w = w; vb.x = p.x - vb.w / 2; vb.y = p.y - vb.w * WH / WW / 2; apply(); };
+  const focusOn = (p, w = 520) => { vb.w = w; apply(); vb.x = p.x - vb.w / 2; vb.y = p.y - vb.h / 2; apply(); };
+  if (typeof ResizeObserver !== "undefined") { const ro = new ResizeObserver(() => apply()); ro.observe(svg); signal.addEventListener("abort", () => ro.disconnect()); }
   const o = { signal };
   svg.addEventListener("wheel", (e) => { e.preventDefault(); const [wx, wy] = toWorld(e.clientX, e.clientY); zoomAt(Math.exp(-e.deltaY * 0.0015), wx, wy); }, { passive: false, signal });
   const ptrs = new Map(); let last = null, startPt = null, pinch = null;
@@ -563,5 +725,5 @@ function build(svg, info, here, opt, signal) {
   box.querySelector('[data-z="all"]').addEventListener("click", () => { vb.x = 0; vb.y = 0; vb.w = WW; apply(); }, o);
   box.querySelector('[data-z="here"]').addEventListener("click", () => { if (hereP) { focusOn(hereP); show(hereP._data, hereP._g, hereP); } }, o);
   // 처음엔 지금 있는 곳 둘레를 보여 준다
-  if (hereP) focusOn(hereP, 640); else apply();
+  if (hereP) focusOn(hereP, Math.max(380, Math.min(640, svg.getBoundingClientRect().width * 1.15 || 640))); else apply();
 }
