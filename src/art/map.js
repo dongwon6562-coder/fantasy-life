@@ -3,7 +3,7 @@
 // 다른 갈래가 끼어드는 곳:
 //  - MAP_PLACES_EXTRA에 장소를 넣으면 지도에 나온다 ({ id, n, x, y, t, area, realm, d, todo }).
 //  - MAP_ACTIONS에 (game, place) => [{ label, run }] 함수를 넣으면 설명 칸에 버튼이 생긴다 (예: 여행).
-//  - 지금 있는 곳은 game.location(장소 id)을 쓰고, 없으면 에른 마을.
+//  - 지금 있는 곳은 places.js의 L(g).place (지도 장소 id와 같음). 화면(ui/index.js)이 넘겨준다.
 import {
   continents, contGroup, innerSeas, TERRAIN, nations, central, regions, P, roads, oldRoads,
   seaRoutes, ghostRoutes, rivers, seaLabels, edgeLabels, mtLabels,

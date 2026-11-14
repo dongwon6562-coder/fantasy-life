@@ -114,7 +114,9 @@ export const P = [
   // 중앙 대륙
   { id: "leocast", n: "왕도 레오카스트", x: 580, y: 440, t: "capital", area: "중앙 대륙", realm: "레오니아 왕국", d: "영웅왕 레오가 세운 백색 성의 도시예요. 성 안은 화려하고, 성 밖 빈민가는 범죄 조직 \"검은 장갑\"이 쥐고 있어요.", todo: "귀족 파벌 정치, 범죄 조직, 후계 다툼" },
   { id: "milles", n: "밀레스", x: 515, y: 500, t: "town", tier: 3, area: "중앙 대륙", realm: "레오니아 왕국", d: "레오니아 곡창지대의 큰 마을이에요. 밀과 포도주가 유명하고, 수확제 때는 이웃 마을이 다 모여요.", todo: "농사, 수확제, 평범한 삶" },
-  { id: "harpen", n: "하르펜", x: 462, y: 420, t: "town", area: "중앙 대륙", realm: "레오니아 왕국", d: "대삼림과 마주한 서쪽 항구 마을이에요. 엘프의 약초와 수인의 모피가 이 마을을 거쳐 들어와요.", todo: "이종족 교역, 대삼림으로 가는 배" },
+  // 하르펜·베르덴은 게임의 장소(places.js)와 같은 id·설정을 쓴다
+  { id: "harfen", n: "하르펜", x: 546, y: 518, t: "city", area: "중앙 대륙", realm: "레오니아 왕국 남부", d: "에른에서 북쪽으로 사흘 길, 성벽을 두른 남부의 교역 도시예요. 모험가 길드 지부와 은저울 상단 본점, 성광교 성당이 있고, 남쪽 언덕에는 고블린이 들끓는 회색 굴이 있어요.", todo: "모험가 등록, 장사, 검술 도장, 회색 굴", lx: 26, ly: 4 },
+  { id: "verden", n: "베르덴 백작령", x: 598, y: 484, t: "city", area: "중앙 대륙", realm: "레오니아 왕국", d: "베르덴 백작이 다스리는 영지의 중심이에요. 언덕 위 성채 아래로 기사단 훈련장이 있고, 서쪽 골짜기에는 오래전 버려진 은광이 있어요.", todo: "기사단 입단, 버려진 은광" },
   { id: "blackwood", n: "고블린 굴", x: 510, y: 360, t: "dungeon", tier: 3, area: "중앙 대륙", realm: "레오니아 서쪽 검은 숲", d: "검은 숲 깊은 곳의 고블린 굴이에요. 초보 모험가가 처음 목숨을 거는 곳이고, 해마다 몇 명은 돌아오지 않아요.", todo: "첫 의뢰, 고블린 토벌" },
   { id: "arcana", n: "아르카나 지하 유적", x: 630, y: 530, t: "dungeon", area: "중앙 대륙", realm: "레오니아 왕국", d: "레오니아 땅 밑에서 발견된 고대 마법 왕국 아르카나의 유적이에요. 층마다 봉인이 있어서 아직 3층까지만 열렸어요.", todo: "고대 마법 발굴, 봉인 풀기" },
   { id: "riana", n: "성 리아나 수도원", x: 490, y: 640, t: "site", tier: 3, area: "중앙 대륙", realm: "성광 신성국", d: "성녀 리아나의 뜻을 따르는 성녀파 수도원이에요. 신분을 묻지 않고 병자를 치료해서, 교황청과 사이가 좋지 않아요.", todo: "치유술 수련, 성녀파의 비밀" },
@@ -214,12 +216,12 @@ export const P = [
 ];
 
 export const roads = [
-  ["ern","milles"], ["ern","rosen"],
-  ["harpen","leocast","serenia","ort","graubel"], ["leocast","milles","solaris"], ["serenia","stellen","eisen","roten","graubel"], ["graubel","kalten"],
+  ["ern","harfen"], ["harfen","verden"], ["harfen","leocast"], ["verden","leocast"], ["harfen","milles"],
+  ["leocast","serenia","ort","graubel"], ["leocast","milles","solaris"], ["serenia","stellen","eisen","roten","graubel"], ["graubel","kalten"],
   ["eisen","krossen"], ["krossen","portel"], ["solaris","barka"], ["serenia","barka"], ["barka","tower"], ["barka","maren"], ["solaris","riana"], ["solaris","cape"], ["leocast","blackwood"],
   ["leocast","arcana"], ["graubel","wall"], ["silver","iela","moon"], ["silver","roots"], ["garum","wolf"], ["garum","lion"], ["iela","garum"],
   ["irongate","grondar","abyss"], ["grondar","fang"], ["redcastle","barracks"], ["redcastle","dusk","nocturna"], ["flag","field"],
-  ["leocast","edel"], ["bern","ort"], ["leocast","bern"], ["rosen","milles"], ["klein","harpen"], ["klein","rosen"], ["heiden","serenia"], ["eisen","ostmark","stein"], ["roten","erz"], ["roten","stein"],
+  ["leocast","edel"], ["bern","ort"], ["leocast","bern"], ["rosen","milles"], ["klein","rosen"], ["klein","rosen"], ["heiden","serenia"], ["eisen","ostmark","stein"], ["roten","erz"], ["roten","stein"],
   ["kars","krossen"], ["libera","portel"], ["libera","krossen"], ["gard","libera"], ["graubel","wolffort","stein"], ["heine","kalten"], ["wolfwood","ort"], ["eisen","hagen","serenia"],
   ["abel","solaris"], ["abel","cape"], ["lumen","solaris"], ["lily","abel"], ["riana","lumen"], ["barka","salt"],
   ["silverleaf","iela"], ["border","silver"], ["border","roots"], ["fur","garum"], ["fur","border"], ["bear","garum"], ["hawk","garum"],
@@ -229,7 +231,7 @@ export const oldRoads = [["eisen","argen"], ["solaris","mist"], ["dusk","coffin"
 export const seaRoutes = [
   [[905,806],[870,840],[840,880],[780,905],[745,925]],
   [[745,925],[900,965],[1080,960],[1200,860],[1196,720],[1230,640],[1262,640]],
-  [[462,420],[400,432],[338,440]],
+  [[446,505],[400,470],[338,440]],
   [[905,806],[1000,820],[1110,740],[1180,650],[1262,640]],
   [[1000,320],[1070,240],[1150,210],[1250,224]],
   [[720,148],[700,210],[730,290],[760,370]],

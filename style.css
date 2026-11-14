@@ -149,6 +149,7 @@ h1, h2, h3 { font-family: var(--f-display); font-weight: 700; text-wrap: balance
 .stat .v { text-align: right; font-variant-numeric: tabular-nums; color: var(--muted); }
 .skill { display: flex; justify-content: space-between; font-size: 14px; }
 .skill .g { color: var(--muted); }
+.skill .lifev { text-align: right; max-width: 70%; color: var(--ink); }
 .skill .g b { color: var(--ink); font-weight: 500; }
 .note { color: var(--muted); font-size: 13px; margin: 0; }
 .chip { display: inline-block; font-size: 12px; padding: 1px 8px; border-radius: 10px; border: 1px solid var(--line); color: var(--muted); }

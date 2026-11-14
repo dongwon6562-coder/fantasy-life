@@ -108,17 +108,26 @@ function fillCurve(ctx, fn, color, bottom = H) {
 const cache = new Map();
 
 /** 풍경 그림 (data URL). 브라우저에서만 동작. */
-export function sceneImage({ year, month, famine = false, plague = false }) {
-  const key = `${year}-${month}-${famine}-${plague}`;
+export function sceneImage({ year, month, famine = false, plague = false, place = 'ern' }) {
+  const key = `${year}-${month}-${famine}-${plague}-${place}`;
   if (cache.has(key)) return cache.get(key);
   if (typeof document === 'undefined') return '';
-  const url = draw(year, month, famine, plague);
+  const url = draw(year, month, famine, plague, place);
   if (cache.size > 24) cache.clear();
   cache.set(key, url);
   return url;
 }
 
-function draw(year, month, famine, plague) {
+// 장소마다 마을 크기와 성벽·성채가 다르다 (places.js의 장소 id)
+const TOWNS = {
+  ern: { houses: 22, seed: 9133 },
+  harfen: { houses: 40, seed: 4471, wall: true },
+  verden: { houses: 30, seed: 7302, wall: true, keep: true },
+  leocast: { houses: 62, seed: 1288, wall: true, keep: true, white: true },
+};
+
+function draw(year, month, famine, plague, place) {
+  const town = TOWNS[place] ?? { houses: 28, seed: 3000 + [...String(place)].reduce((a, c) => a + c.charCodeAt(0), 0), wall: true };
   const cv = document.createElement('canvas'); cv.width = W; cv.height = H;
   const ctx = cv.getContext('2d');
   const land = document.createElement('canvas'); land.width = W; land.height = H;
@@ -280,14 +289,15 @@ function draw(year, month, famine, plague) {
 
   /* 마을 */
   const houses = [];
-  const vr = rng(9133);
-  for (let i = 0; i < 22; i++) {
+  const vr = rng(town.seed);
+  for (let i = 0; i < town.houses; i++) {
     const x = 590 + vr() * 380, yb = hill2(x) + 10 + vr() * 70;
     houses.push({ x, y: yb, w: 22 + vr() * 18, h: 12 + vr() * 8, roof: vr(), seed: i, kind: 'house' });
   }
   houses.push({ x: 785, y: hill2(785) + 22, w: 30, h: 22, kind: 'chapel', seed: 99 });
   houses.push({ x: 700, y: hill2(700) + 58, w: 46, h: 20, kind: 'inn', seed: 98, roof: 0.2 });
   houses.sort((a, b) => a.y - b.y);
+  if (town.keep) keep(L, 880, hill2(880) + 4, town.white, P);
   const lit = tod === 'night' || tod === 'dusk' || tod === 'dawn';
   const windows = [];
   // 마을 뒤 나무
@@ -309,6 +319,8 @@ function draw(year, month, famine, plague) {
       L.beginPath(); L.arc(cx + k * 4 + Math.sin(k) * 3, cy - k * 7, 2.6 + k * 1.3, 0, Math.PI * 2); L.fill();
     }
   }
+
+  if (town.wall) townWall(L, 570, 1000, (x) => hill2(x) + 86, town.white, P);
 
   /* 앞 언덕: 풀밭, 길, 울타리, 큰 나무 */
   fillCurve(L, hill3, P.grass);
@@ -530,4 +542,32 @@ function conifer(L, x, y, h, P) {
     L.beginPath(); L.moveTo(x - w, yy); L.lineTo(x, yy - h * 0.38); L.lineTo(x + w, yy); L.closePath(); L.fill();
     if (P.snow) { L.fillStyle = 'rgba(236,238,238,.85)'; L.beginPath(); L.moveTo(x - w * 0.8, yy - 1); L.lineTo(x, yy - h * 0.3); L.lineTo(x + w * 0.3, yy - h * 0.12); L.closePath(); L.fill(); }
   }
+}
+
+function townWall(L, x0, x1, yAt, white, P) {
+  const stone = white ? '#d9d4c6' : '#a59a86';
+  L.strokeStyle = '#2a1d12'; L.lineWidth = 1;
+  for (let x = x0; x < x1; x += 6) {
+    const y = yAt(x), h = 16;
+    L.fillStyle = stone; L.fillRect(x, y - h, 6, h);
+    if ((x / 6) % 2 < 1) L.fillRect(x, y - h - 4, 6, 4);
+    L.fillStyle = 'rgba(40,30,20,.18)'; L.fillRect(x, y - h, 6, 3);
+  }
+  L.beginPath(); for (let x = x0; x <= x1; x += 6) { const y = yAt(x); x === x0 ? L.moveTo(x, y) : L.lineTo(x, y); } L.stroke();
+  for (const tx of [x0, (x0 + x1) / 2, x1]) {
+    const y = yAt(tx);
+    L.fillStyle = stone; L.fillRect(tx - 9, y - 30, 18, 30); L.strokeRect(tx - 9, y - 30, 18, 30);
+    L.fillStyle = P.snow ? '#e6e8e8' : '#5a4a3e'; L.beginPath(); L.moveTo(tx - 11, y - 30); L.lineTo(tx, y - 44); L.lineTo(tx + 11, y - 30); L.closePath(); L.fill(); L.stroke();
+  }
+}
+
+function keep(L, x, y, white, P) {
+  const stone = white ? '#e2ddd0' : '#b0a590';
+  L.strokeStyle = '#2a1d12'; L.lineWidth = 1.1;
+  L.fillStyle = stone; L.fillRect(x - 40, y - 46, 80, 46); L.strokeRect(x - 40, y - 46, 80, 46);
+  for (const dx of [-46, 34]) { L.fillRect(x + dx, y - 70, 14, 70); L.strokeRect(x + dx, y - 70, 14, 70); L.fillStyle = P.snow ? '#e8eaea' : (white ? '#3e5a8a' : '#4a4a50'); L.beginPath(); L.moveTo(x + dx - 2, y - 70); L.lineTo(x + dx + 7, y - 90); L.lineTo(x + dx + 16, y - 70); L.closePath(); L.fill(); L.stroke(); L.fillStyle = stone; }
+  L.fillRect(x - 12, y - 78, 24, 32); L.strokeRect(x - 12, y - 78, 24, 32);
+  for (let k = -12; k < 12; k += 6) L.fillRect(x + k, y - 83, 4, 5);
+  L.fillStyle = '#2a2018'; L.fillRect(x - 4, y - 70, 3, 6); L.fillRect(x + 2, y - 70, 3, 6);
+  L.fillStyle = white ? '#3e5a8a' : '#8a2a1e'; L.beginPath(); L.moveTo(x, y - 83); L.lineTo(x, y - 100); L.lineTo(x + 12, y - 96); L.lineTo(x, y - 92); L.closePath(); L.fill();
 }

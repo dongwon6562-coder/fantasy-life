@@ -9,7 +9,12 @@ import { autosave, saveSlot, load, summary, clearAuto } from '../save.js';
 import { portrait } from '../art/portrait.js';
 import { sceneImage, conditionText } from '../art/scene.js';
 import { icon } from '../art/icons.js';
-import { mountMap } from '../art/map.js';
+import { mountMap, MAP_ACTIONS } from '../art/map.js';
+import { L, traveling, isAdult, showScene } from '../adventure/core.js';
+import { PLACES, placeName, travelMonths, fareOf, HOME_NAMES } from '../places.js';
+import { jobTitle } from '../jobs.js';
+import { memberships } from '../factions.js';
+import { lineage } from '../heir.js';
 import { splitResult } from '../narrative/text.js';
 import { $, $$, esc, root } from './util.js';
 import { renderPlan, bindPlan } from './plan.js';
@@ -21,6 +26,20 @@ const ui = {
   setup: { mode: 'once', family: null, sex: 'm', name: '' },
 };
 let unmountMap = null;
+
+// 지도에서 게임 장소를 누르면 '길 떠나기' 장면(places.js)을 바로 띄운다.
+MAP_ACTIONS.push((g, place) => {
+  if (!PLACES[place.id] || g.over) return [];
+  const life = L(g);
+  if (place.id === life.place) return [];
+  if (!isAdult(g)) return [{ label: '열다섯 살이 되면 떠날 수 있다', run: () => {} }];
+  if (traveling(g) || g.pendingEvent) return [];
+  const m = travelMonths(life.place, place.id);
+  return [{
+    label: `길 떠나기 (여기까지 ${m}달, 은화 ${fareOf(m)}닢)`,
+    run: () => { showScene(g, { kind: 'travel', at: life.place }); autosave(g); },
+  }];
+});
 
 export function start() {
   renderSetup(summary('auto'));
@@ -119,6 +138,23 @@ function resetUi() {
 const bar = (label, v, max = 100, cls = '') => `
   <div class="stat ${cls}"><span>${label}</span><span class="bar"><i style="width:${Math.max(0, Math.min(100, (v / max) * 100))}%"></i></span><span class="v">${Math.floor(v)}</span></div>`;
 
+function lifeLines() {
+  const life = L(game);
+  const rows = [];
+  rows.push(['사는 곳', `${placeName(game)}${traveling(game) ? '' : ` · ${HOME_NAMES[life.home] ?? ''}`}`]);
+  const job = jobTitle(game);
+  if (job) rows.push(['일', job]);
+  const ms = memberships(game);
+  if (ms.length) rows.push(['소속', ms.join(', ')]);
+  const g = life.gear;
+  if (g.weaponName || g.armorName) rows.push(['장비', [g.weaponName, g.armorName].filter(Boolean).join(', ')]);
+  if (life.renown >= 5) rows.push(['이름값', String(Math.floor(life.renown))]);
+  if (life.notoriety >= 5) rows.push(['악명', String(Math.floor(life.notoriety))]);
+  const line = lineage(game);
+  if (line.length > 1) rows.push(['가문', `${life.gen}대째 · ${line.slice(0, -1).map((a) => a.name).join(' → ')} → ${game.player.name}`]);
+  return rows.map(([k, v]) => `<div class="skill"><span>${k}</span><span class="g lifev">${esc(v)}</span></div>`).join('');
+}
+
 function renderSheet() {
   const p = game.player;
   const meP = me(game);
@@ -154,6 +190,10 @@ function renderSheet() {
         : '<p class="note">아직 배운 기술이 없다.</p>'}
     </div>
     <div class="block">
+      <h3>삶</h3>
+      ${lifeLines()}
+    </div>
+    <div class="block">
       <h3>몸과 마음</h3>
       ${bar('피로', p.fatigue, 100, p.fatigue > 70 ? 'warn' : '')}
       ${bar('스트레스', p.stress, 100, p.stress > 70 ? 'warn' : '')}
@@ -166,7 +206,7 @@ function renderNews() {
   const mi = monthInfo(game);
   return `
   <section class="card news-card">
-    <h2>이번 달 소식 <small>${esc(VILLAGE)} · ${mi.season}</small></h2>
+    <h2>이번 달 소식 <small>${esc(placeName(game))} · ${mi.season}</small></h2>
     ${game.news.length
       ? `<ul class="news">${game.news.map((n) => `<li class="${n.rel >= 40 ? 'close' : ''}">${esc(n.text)}</li>`).join('')}</ul>`
       : '<p class="note">조용한 달이었다. 별다른 소문은 없다.</p>'}
@@ -200,7 +240,7 @@ function renderMap() {
 function renderEvent() {
   const e = game.pendingEvent;
   if (!e && !ui.outcome) return '';
-  const art = sceneImage({ year: game.date.year, month: game.date.month, famine: game.world?.famine, plague: game.world?.plague });
+  const art = sceneImage({ year: game.date.year, month: game.date.month, famine: game.world?.famine, plague: game.world?.plague, place: L(game).place });
   const head = `${art ? `<div class="ev-art" style="background-image:url(${art})" aria-hidden="true"></div>` : ''}`;
   if (ui.outcome) {
     return `<div class="overlay"><div class="event" role="dialog" aria-modal="true" aria-labelledby="ev-title">
@@ -229,7 +269,7 @@ function renderOver() {
   <section class="card">
     <h2>삶이 끝났다</h2>
     <p>${esc(game.player.name)}은(는) ${playerAge(game)}살에 세상을 떠났다. ${esc(me(game).deathCause ?? '')}</p>
-    <p class="note">자식으로 이어 하기는 다음 시험판에서 들어간다.</p>
+    <p class="note">${lineage(game).length > 1 ? `${L(game).gen}대에 걸친 집안의 이야기가 여기서 끝난다.` : ''} 뒤를 이을 자식이 없어 대가 끊겼다.</p>
     <div class="actions-row"><button class="primary" id="to-title">처음 화면으로</button></div>
   </section>`;
 }
@@ -247,7 +287,7 @@ function renderGame() {
   if (unmountMap) { unmountMap(); unmountMap = null; }
   const mi = monthInfo(game);
   const p = game.player;
-  const art = sceneImage({ year: game.date.year, month: game.date.month, famine: game.world?.famine, plague: game.world?.plague });
+  const art = sceneImage({ year: game.date.year, month: game.date.month, famine: game.world?.famine, plague: game.world?.plague, place: L(game).place });
   let main = '';
   if (ui.view === 'month') main = game.over ? renderOver() : renderNews() + renderPlan(game, ui);
   else if (ui.view === 'me') main = renderSheet();
@@ -257,7 +297,7 @@ function renderGame() {
   else if (ui.view === 'save') main = renderSave();
   root().innerHTML = `
     <header class="scene">
-      ${art ? `<img src="${art}" alt="${esc(VILLAGE)} 풍경: ${mi.season}, ${esc(conditionText(game.date.year, game.date.month))}">` : ''}
+      ${art ? `<img src="${art}" alt="${esc(placeName(game))} 풍경: ${mi.season}, ${esc(conditionText(game.date.year, game.date.month))}">` : ''}
       <div class="scene-cap">
         <div class="date"><span class="yr">용사력 ${game.date.year}년</span><strong>${mi.name}</strong><span class="cond">${mi.season} · ${esc(conditionText(game.date.year, game.date.month))}</span></div>
         <div class="purse"><span>내 돈 <b>은화 ${p.money}</b></span><span>집안 돈 <b>은화 ${p.familyMoney}</b></span></div>
@@ -276,7 +316,7 @@ function renderGame() {
   bindGame();
   if (ui.view === 'map') {
     const host = $('#map-host');
-    if (host) unmountMap = mountMap(host, { here: game.location ?? 'ern', game, onChange: () => renderGame() });
+    if (host) unmountMap = mountMap(host, { here: L(game).place, game, onChange: () => renderGame() });
   }
 }
 
