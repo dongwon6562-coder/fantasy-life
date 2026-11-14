@@ -7,6 +7,8 @@ const out = process.argv[2] || 'shot';
   const errs = [];
   p.on('pageerror', (e) => errs.push(e.message));
   p.on('console', (m) => m.type() === 'error' && errs.push(m.text()));
+  // 달 넘김 카드와 처음 안내는 끄고 빠르게 돈다 (src/ui/settings.js)
+  await p.addInitScript(() => localStorage.setItem('fantasy-life:prefs', JSON.stringify({ monthCard: false, guideSeen: { all: 1 } })));
   await p.goto('file://' + process.cwd() + '/dist/play.html');
   await p.click('[data-family="merchant"]');
   await p.fill('#pname', '레나');
