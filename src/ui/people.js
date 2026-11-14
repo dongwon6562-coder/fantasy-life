@@ -95,6 +95,7 @@ function renderDetail(game, p) {
       ${p.history.length
         ? `<ol class="timeline">${p.history.slice(-12).reverse().map((h) => `<li><time>${h.y}년 ${h.m}월</time><span>${esc(h.text)}</span></li>`).join('')}</ol>`
         : '<p class="note">아직 아는 이야기가 없다.</p>'}
+      <button class="ghost close-bottom" data-person-close>닫기</button>
     </article>`;
 }
 
@@ -107,6 +108,5 @@ export function bindPeople(game, ui, rerender) {
     rerender();
     if (ui.person) document.querySelector('.detail')?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
   });
-  const c = document.querySelector('[data-person-close]');
-  if (c) c.onclick = () => { ui.person = null; rerender(); };
+  document.querySelectorAll('[data-person-close]').forEach((c) => c.onclick = () => { ui.person = null; rerender(); });
 }
