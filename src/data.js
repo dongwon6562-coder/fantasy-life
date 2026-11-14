@@ -36,6 +36,7 @@ export const SKILLS = [
   { id: 'cooking', name: '요리' },
   { id: 'trade', name: '장사' },
   { id: 'herbs', name: '약초' },
+  { id: 'smithing', name: '대장일' },
 ];
 
 // 숙련 등급 (기술 수치 0~100)
