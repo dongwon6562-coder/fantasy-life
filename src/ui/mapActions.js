@@ -1,0 +1,64 @@
+// 대륙 지도의 버튼과 덧붙는 설명: 길 떠나기, 다른 나라(src/realms)의 법·신앙·나와의 관계, 국경 넘기.
+import { MAP_ACTIONS, MAP_INFO } from '../art/map.js';
+import { L, traveling, isAdult, showScene } from '../adventure/core.js';
+import { PLACES, travelMonths, fareOf } from '../places.js';
+import { REALMS, realmInfo, realmOf, currentRealm, borderNote, crossBorder } from '../realms/index.js';
+import { autosave } from '../save.js';
+import { J } from '../narrative/text.js';
+import { esc } from './util.js';
+
+// 지도에서 고른 곳이 어느 나라인가: 게임 장소면 places 기준, 아니면 지도 글 기준
+const nationAt = (place) => (place.id && PLACES[place.id] ? realmOf(place.id) : place.nation ?? null);
+
+// 게임 장소: '길 떠나기' 장면을 그곳을 맨 앞에 두고 띄운다
+MAP_ACTIONS.push((g, place) => {
+  if (!place.id || !PLACES[place.id] || g.over) return [];
+  const life = L(g);
+  if (place.id === life.place) return [];
+  if (!isAdult(g)) return [{ label: '열다섯 살이 되면 떠날 수 있다', run: () => {} }];
+  if (traveling(g) || g.pendingEvent) return [];
+  const m = travelMonths(life.place, place.id);
+  const abroad = realmOf(place.id) !== currentRealm(g);
+  return [{
+    label: `길 떠나기 (여기까지 ${m}달, 은화 ${fareOf(m)}닢)`,
+    run: () => { showScene(g, { kind: 'travel', at: life.place, to: place.id, abroad }); autosave(g); },
+  }];
+});
+
+// 다른 나라 땅(나라 이름이나 게임에 없는 고을): 그 나라 수도로 가는 길을 짚는다
+MAP_ACTIONS.push((g, place) => {
+  if (place.id && PLACES[place.id]) return [];
+  const id = nationAt(place);
+  const r = REALMS[id];
+  if (!r || g.over || id === currentRealm(g)) return [];
+  if (!isAdult(g)) return [{ label: '열다섯 살이 되면 국경을 넘을 수 있다', run: () => {} }];
+  if (traveling(g) || g.pendingEvent) return [];
+  const cap = PLACES[r.capital];
+  return [{
+    label: `${J(r.short, '으로/로')} 떠나기 (${cap?.name ?? '수도'}까지 ${travelMonths(L(g).place, r.capital)}달)`,
+    run: () => { if (crossBorder(g, id)) autosave(g); },
+  }];
+});
+
+// 나라 정보: 다스리는 이, 법, 신앙, 물가, 나와의 관계, 국경 안내
+const STANDING_CLS = { 고향: 'home', 귀화: 'home', 망명: 'asylum', 추방됨: 'banned' };
+MAP_INFO.push((g, place) => {
+  const id = nationAt(place);
+  if (!REALMS[id]) return '';
+  const r = realmInfo(g, id);
+  if (!r) return '';
+  const note = place.id && PLACES[place.id] ? borderNote(g, place.id) : null;
+  const rows = [
+    ['다스리는 이', `${r.ruler} (${r.rule})`],
+    ['법', r.law],
+    ['신앙', r.faith],
+    ['신분', r.status],
+    ['물가', r.priceWord],
+  ];
+  if (!r.citizen) rows.push(['귀화', r.naturalizeBlock ? `${r.naturalize} (${r.naturalizeBlock})` : r.naturalize]);
+  return `<div class="realm-box">
+    <div class="realm-top"><strong>${esc(r.name)}</strong><span class="standing ${STANDING_CLS[r.standing] ?? ''}">${esc(r.standing)}${r.bannedMonths ? ` · ${Math.ceil(r.bannedMonths / 12)}해 더` : ''}${r.here ? ' · 지금 여기' : ''}</span></div>
+    <dl>${rows.map(([k, v]) => `<div><dt>${esc(k)}</dt><dd>${esc(v)}</dd></div>`).join('')}</dl>
+    ${note ? `<p class="border">${esc(note)}</p>` : ''}
+  </div>`;
+});

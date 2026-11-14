@@ -9,9 +9,9 @@ import { autosave, saveSlot, load, summary, clearAuto } from '../save.js';
 import { portrait } from '../art/portrait.js';
 import { sceneImage, conditionText } from '../art/scene.js';
 import { icon } from '../art/icons.js';
-import { mountMap, MAP_ACTIONS } from '../art/map.js';
-import { L, traveling, isAdult, showScene } from '../adventure/core.js';
-import { PLACES, placeName, travelMonths, fareOf, HOME_NAMES } from '../places.js';
+import { mountMap } from '../art/map.js';
+import { L, traveling } from '../adventure/core.js';
+import { placeName, HOME_NAMES } from '../places.js';
 import { jobTitle } from '../jobs.js';
 import { memberships } from '../factions.js';
 import { lineage } from '../heir.js';
@@ -25,6 +25,8 @@ import { runGuide, stopGuide } from './guide.js';
 import { audio } from '../audio/index.js';
 import { renderWorkshop } from './workshop.js';
 import { renderWorld, bindWorld } from './world.js';
+import './mapActions.js';
+import { realmStatus } from '../realms/index.js';
 
 let game = null;
 const ui = {
@@ -34,20 +36,6 @@ const ui = {
 let unmountMap = null;
 let lastArt = null;   // 바로 전에 보인 풍경 (바뀌면 천천히 겹쳐 바꾼다)
 let lastView = null;  // 바로 전 화면 (바뀌면 살짝 떠오르며 나타난다)
-
-// 지도에서 게임 장소를 누르면 '길 떠나기' 장면(places.js)을 바로 띄운다.
-MAP_ACTIONS.push((g, place) => {
-  if (!PLACES[place.id] || g.over) return [];
-  const life = L(g);
-  if (place.id === life.place) return [];
-  if (!isAdult(g)) return [{ label: '열다섯 살이 되면 떠날 수 있다', run: () => {} }];
-  if (traveling(g) || g.pendingEvent) return [];
-  const m = travelMonths(life.place, place.id);
-  return [{
-    label: `길 떠나기 (여기까지 ${m}달, 은화 ${fareOf(m)}닢)`,
-    run: () => { showScene(g, { kind: 'travel', at: life.place }); autosave(g); },
-  }];
-});
 
 export function start() {
   applyPrefs();
@@ -282,7 +270,9 @@ function renderSave() {
 }
 
 function renderMap() {
-  return `<section class="card mapcard"><h2>대륙 지도 <small>용사력 ${game.date.year}년</small></h2><div id="map-host" class="map-host"></div></section>`;
+  let where = '';
+  try { const r = realmStatus(game); where = `${r.line}${r.citizen !== r.here ? ` · 국적 ${r.citizenName}` : ''}`; } catch (e) { console.error(e); }
+  return `<section class="card mapcard"><h2>대륙 지도 <small>${esc(where || `용사력 ${game.date.year}년`)}</small></h2><div id="map-host" class="map-host"></div></section>`;
 }
 
 function renderEvent() {
@@ -439,6 +429,7 @@ function bindGame() {
   bindWorld(game, ui, rerender);
   const ws = $('details.workshop');
   if (ws) ws.ontoggle = () => { ui.wsOpen = ws.open; };
+  $$('[data-ws-person]').forEach((b) => b.onclick = () => { ui.view = 'people'; ui.person = +b.dataset.wsPerson; renderGame(); window.scrollTo({ top: 0 }); });
   $$('[data-chron]').forEach((b) => b.onclick = () => { ui.chronTab = b.dataset.chron; renderGame(); });
   bindSettings(rerender, () => { ui.view = 'month'; renderGame(); window.scrollTo({ top: 0 }); });
   $$('[data-view]').forEach((b) => b.onclick = () => { ui.view = b.dataset.view; renderGame(); window.scrollTo({ top: 0 }); });
