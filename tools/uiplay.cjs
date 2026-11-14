@@ -14,7 +14,7 @@ const out = process.argv[2] || 'shot';
   await p.fill('#pname', '레나');
   await p.click('#begin');
   let months = 0;
-  for (let i = 0; i < 500 && months < 360; i++) {
+  for (let i = 0; i < 4000 && months < 360; i++) {
     const all = await p.$$('[data-choice]');
     if (all.length) {
       await all[i % all.length].click();
@@ -27,7 +27,7 @@ const out = process.argv[2] || 'shot';
     const skip = await p.$('#skip');
     if (skip) { await skip.click(); months += 6; continue; }
     const go = await p.$('#go');
-    if (!go) break;
+    if (!go) { console.log("no #go at i=" + i, (await p.textContent("#app").catch(() => "")).replace(/\s+/g, " ").slice(0, 300)); break; }
     await go.click();
     months++;
     if (months === 200) await p.screenshot({ path: out + '-mid.png' });
