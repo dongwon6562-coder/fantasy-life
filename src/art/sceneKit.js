@@ -107,3 +107,24 @@ export function grain(ctx) {
   }
   ctx.drawImage(grainCv, 0, 0);
 }
+
+/**
+ * 다 그린 캔버스를 그림 주소로 바꾼다.
+ * 긴 data 주소 대신 짧은 blob 주소를 돌려준다. 화면을 다시 그릴 때마다 수백 KB 글자열을 넘기지 않아도 되고, 브라우저가 풀어 둔 그림을 다시 쓴다.
+ * 캔버스는 바로 비운다. 아이폰은 캔버스 메모리를 늦게 돌려주기 때문이다.
+ * 그리기에 실패했으면(메모리 부족 등) 빈 글자열.
+ */
+export function canvasUrl(cv, type = 'image/jpeg', q = 0.88) {
+  let data = '';
+  try { data = cv.toDataURL(type, q); } catch { /* 그릴 수 없음 */ }
+  cv.width = cv.height = 0;
+  if (data.length < 200) return '';
+  if (globalThis.FL_DATA_URLS || typeof Blob === 'undefined' || typeof URL === 'undefined' || !URL.createObjectURL) return data;
+  try {
+    const bin = atob(data.slice(data.indexOf(',') + 1)), u8 = new Uint8Array(bin.length);
+    for (let i = 0; i < bin.length; i++) u8[i] = bin.charCodeAt(i);
+    return URL.createObjectURL(new Blob([u8], { type }));
+  } catch { return data; }
+}
+/** canvasUrl로 만든 주소를 더 쓰지 않을 때 */
+export function dropUrl(url) { if (url && url.startsWith('blob:')) { try { URL.revokeObjectURL(url); } catch { /* 없음 */ } } }

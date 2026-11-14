@@ -25,6 +25,9 @@ import { prefs, setPref, onPrefs } from '../ui/settings.js';
 const KEY = 'fantasy-life:audio';
 const hasDom = typeof window !== 'undefined' && typeof document !== 'undefined';
 const safe = (fn, fb = null) => { try { return fn(); } catch { return fb; } };
+// 소리 장치를 깨우거나 재우기. 아이폰은 앱이 뒤에 있을 때 거절하기도 하는데, 그때 오류가 새어 나가지 않게 한다.
+const wake = () => safe(() => engine.ctx.resume()?.catch?.(() => {}));
+const rest = () => safe(() => engine.ctx.suspend()?.catch?.(() => {}));
 
 const settings = { on: true, music: 0.7, sfx: 0.8, ...(hasDom ? safe(() => JSON.parse(localStorage.getItem(KEY))) ?? {} : {}) };
 // 음량은 설정 화면(src/ui/settings.js)의 음악·효과음 칸과 같은 값을 쓴다. 켜기·끄기만 여기 따로 둔다.
@@ -59,8 +62,10 @@ function unlock() {
     fx = engine.group('sfx');
     amb = new Ambience(engine);
     applyVolume();
+    // 소리를 끈 채 시작했으면 장치도 재워 둔다 (배터리)
+    if (!settings.on) rest();
   }
-  if (engine.ctx.state !== 'running' && settings.on && !document.hidden) safe(() => engine.ctx.resume());
+  if (engine.ctx.state !== 'running' && settings.on && !document.hidden) wake();
   sync();
 }
 function applyVolume() {
@@ -71,8 +76,14 @@ function applyVolume() {
   engine.setVolume('amb', settings.on ? settings.sfx ** 1.6 * 0.7 : 0);
 }
 
+// 빠르게 연달아 눌러도 소리가 쌓여 찢어지지 않게: 같은 소리는 0.045초 안에 한 번, 모두 합쳐 0.25초에 여덟 번까지
+let recent = [];
 function sfx(id, when = 0) {
   if (!engine || !settings.on || settings.sfx <= 0 || engine.ctx.state !== 'running') return;
+  const now = Date.now(), at = now + when * 1000;
+  recent = recent.filter(([t]) => now - t < 250);
+  if (recent.filter(([t]) => Math.abs(at - t) < 250).length >= 8 || recent.some(([t, i]) => i === id && Math.abs(at - t) < 45)) return;
+  recent.push([at, id]);
   playSfx(fx, SFX[id] ? id : 'tap', when);
 }
 
@@ -190,8 +201,8 @@ function set(patch) {
   for (const k of ['music', 'sfx']) if (safe(() => prefs()[k]) !== settings[k]) safe(() => setPref(k, settings[k]));
   applyVolume();
   if (engine) {
-    if (!settings.on) { player.halt(0.6); amb.stop(0.6); setTimeout(() => { if (!settings.on) safe(() => engine.ctx.suspend()); }, 800); }
-    else { safe(() => engine.ctx.resume()); if (settings.music <= 0) player.halt(0.6); }
+    if (!settings.on) { player.halt(0.6); amb.stop(0.6); setTimeout(() => { if (!settings.on) rest(); }, 800); }
+    else { if (!document.hidden) wake(); if (settings.music <= 0) player.halt(0.6); }
   }
   sync();
 }
@@ -274,9 +285,12 @@ function init() {
   document.addEventListener('click', onClick, true);
   document.addEventListener('visibilitychange', () => {
     if (!engine) return;
-    if (document.hidden) safe(() => engine.ctx.suspend());
-    else if (settings.on) safe(() => engine.ctx.resume());
+    if (document.hidden) rest();
+    else if (settings.on) wake();
   });
+  // 앱이 뒤로 갔다 올 때 visibilitychange가 오지 않는 경우(아이폰 웹뷰)도 챙긴다
+  window.addEventListener('pagehide', () => { if (engine) rest(); });
+  window.addEventListener('pageshow', () => { if (engine && settings.on && !document.hidden) wake(); });
   const watch = () => {
     const app = document.getElementById('app');
     if (!app) return;

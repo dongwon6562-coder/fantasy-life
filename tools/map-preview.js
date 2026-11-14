@@ -5,6 +5,7 @@ import { readFileSync, writeFileSync, mkdirSync } from 'node:fs';
 
 mkdirSync('dist', { recursive: true });
 writeFileSync('dist/_map_entry.js', `import { mountMap } from '../src/art/map.js';
+globalThis.FL_DATA_URLS = true; // 견본 페이지는 그림을 data 주소로 넣는다
 mountMap(document.getElementById('host'), { here: 'ern' });
 `);
 execSync('npx --yes esbuild@0.24.0 dist/_map_entry.js --bundle --format=iife --minify --outfile=dist/_map_bundle.js', { stdio: 'inherit' });
