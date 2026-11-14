@@ -110,3 +110,19 @@ export const HOME_SETTING = [
   { season: '봄', t: '창문을 열자 젖은 흙냄새가 들어왔다.' },
   { season: '가을', t: '마당에 널어 둔 곡식을 거두고 나니 해가 졌다.' },
 ];
+
+// 악명·이름값을 아는 사람의 한마디
+export function reputationLine(p, noto, renown) {
+  const n = p.name;
+  const has = (t) => p.traits.includes(t);
+  if (noto >= 15 && noto >= renown) {
+    if (has('pious') || has('kind')) return noto >= 40
+      ? `${J(n, '은/는')} 잔을 든 채 한참 나를 보았다. "사람들이 너를 두고 하는 말, 다 거짓말이지?" 대답을 기다리는 얼굴이 아니었다.`
+      : `${J(n, '은/는')} 요즘 네 이야기가 돈다며 말끝을 흐렸다.`;
+    if (has('cruel') || has('greedy') || has('ambitious')) return `${J(n, '은/는')} 뒷골목에서 네 이름을 들었다며 묘하게 웃었다. "언제 나도 한몫 끼워 줘."`;
+    if (has('timid')) return `${J(n, '은/는')} 내가 다가가자 저도 모르게 한 걸음 물러섰다.`;
+    return `${J(n, '은/는')} 주위를 한 번 둘러보고 나서야 자리에 앉았다. 나와 함께 있는 걸 남들이 볼까 신경 쓰는 눈치였다.`;
+  }
+  if (renown >= 40) return `${J(n, '은/는')} 요즘 어딜 가나 네 이름이 들린다며, 아는 사이라는 게 자랑이라고 했다.`;
+  return `${J(n, '은/는')} 요즘 네 이야기를 종종 듣는다며 반가워했다.`;
+}

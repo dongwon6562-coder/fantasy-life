@@ -90,6 +90,7 @@ export const ACTIONS = [
       tired(g, 8); stress(g, 5);
       const k = gainSkill(g, 'letters', 2.0, 'int'), i = gainStat(g, 'int', 0.8), w = gainStat(g, 'wil', 0.3);
       const priest = findJob(g, 'priest');
+      if (!priest) return '예배당은 비어 있었다. 가르칠 사람이 없다.';
       priest.known = true; priest.affection += 1;
       remember(g, priest, '예배당에서 글을 배웠다', 1, { tag: 'pupil' });
       const t = priest.traits.find((x) => T.STUDY_PRIEST[x]);
@@ -133,7 +134,7 @@ export const ACTIONS = [
       if (!pay(g, 2)) { stress(g, 4); return '돈이 모자랐다. 경비대원은 빈손을 보더니 말없이 고개를 저었다.'; }
       tired(g, 16); stress(g, 5);
       const k = gainSkill(g, 'sword', 1.7, 'agi'), a = gainStat(g, 'agi', 0.5), s = gainStat(g, 'str', 0.4);
-      const gd = findJob(g, 'guard'); gd.known = true; gd.affection += 1;
+      const gd = findJob(g, 'guard'); if (!gd) return '초소는 비어 있었다.'; gd.known = true; gd.affection += 1;
       remember(g, gd, '초소에서 검을 가르쳤다', 1, { tag: 'pupil' });
       let extra = '';
       if (has(gd, 'drunkard') && rng.chance(0.25)) extra = `${J(gd.name, '은/는')} 오늘도 술이 덜 깬 얼굴이었다. 그래도 목검만 쥐면 눈빛이 달라졌다.`;
@@ -164,7 +165,7 @@ export const ACTIONS = [
       tired(g, 12); stress(g, 6);
       const before = circleOf(g);
       const k = gainSkill(g, 'magic', 2.0, 'int'), i = gainStat(g, 'int', 0.6), sn = gainStat(g, 'sen', 0.3);
-      const m = findJob(g, 'hedge_mage'); m.known = true; m.affection += 1;
+      const m = findJob(g, 'hedge_mage'); if (!m) return '오두막에는 아무도 없었다.'; m.known = true; m.affection += 1;
       remember(g, m, '오두막에서 마법을 가르쳤다', 1, { tag: 'pupil' });
       const after = circleOf(g);
       let scene;
@@ -207,7 +208,7 @@ export const ACTIONS = [
       const k = gainSkill(g, 'cooking', 1.8, 'sen'), sn = gainStat(g, 'sen', 0.3);
       const earn = 2 + Math.floor(g.player.skills.cooking / 25);
       g.player.money += earn;
-      const inn = findJob(g, 'innkeeper'); inn.known = true; inn.affection += 1;
+      const inn = findJob(g, 'innkeeper'); if (!inn) return '여관 문이 닫혀 있었다. 주인이 없는 여관은 하루아침에 조용해졌다.'; inn.known = true; inn.affection += 1;
       remember(g, inn, '부엌에서 일했다', 1, { tag: 'worker' });
       const heard = rng.chance(0.4) ? rng.pick(T.INN_HEARD) : '';
       return join(line(g, rng, T.INN, inn), heard, `품삯으로 은화 ${earn}닢을 받았다.`, moodLine(g, rng), gains(up('요리', k), up('감각', sn)));
