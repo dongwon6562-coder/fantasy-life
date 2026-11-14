@@ -14,6 +14,17 @@ const SCENARIOS = [
   (g) => { g.realm.tech = 5; g.realm.era = 3; g.realm.bread = 1.9; g.world.famine = true; g.world.plague = true; },
   (g) => { g.player.manaAwakened = true; g.player.mana = 300; g.player.skills.magic = 60; g.player.skills.sword = 50; g.player.skills.letters = 30; },
   (g) => { g.people.find((p) => p.isPlayer).ageMonths = 52 * 12; },
+  // 3단계: 검과 마법
+  (g) => {
+    const P = g.player; P.manaAwakened = true; P.mana = 300; P.skills.magic = 62; P.skills.sword = 82; P.stats.wil = 60; P.money = 200;
+    g.sword = { school: 'yusu', rank: 2, master: null, tests: 1 };
+    g.magic = { known: ['mend', 'infuse', 'cure', 'sense'], certified: 4, exam: null, study: null, works: 3 };
+    g.duelStats = { wins: 7, losses: 1 }; g.realm.era = 2; g.flags.rival = g.people.find((p) => p.alive && !p.isPlayer)?.id;
+    if (g.people.find((p) => p.isPlayer).ageMonths < 18 * 12) g.people.find((p) => p.isPlayer).ageMonths = 18 * 12;
+  },
+  (g) => { g.life.place = 'leocast'; g.player.skills.sword = 60; g.sword = { school: 'ganggeom', rank: 1, master: null, tests: 0 }; g.magic.certified = 1; g.player.manaAwakened = true; g.player.mana = 50; g.player.skills.magic = 35; },
+  (g) => { g.swordJoinQueued = true; g.player.manaAwakened = true; g.player.mana = 20; g.player.skills.magic = 20; g.magic.exam = { target: 1, stage: 0, score: 0, place: 'harfen' }; },
+  (g) => { g.duelQueued = { kind: 'spar', title: '목검 대련', foe: { name: '시험 상대', skill: 30, style: 'swift' }, ctx: {} }; },
   ...[1, 2].flatMap((step) => [
     (g) => { g.chains = { illness: { step, at: 0, data: { id: g.player.familyIds[1], care: 1 } } }; },
     (g) => { g.chains = { fatherwar: { step, at: 0, data: {} } }; },

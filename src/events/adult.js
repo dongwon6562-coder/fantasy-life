@@ -3,6 +3,7 @@
 import { gainStat, gainSkill, circleOf } from '../game.js';
 import { realm, nudge } from '../world.js';
 import { kill } from '../npc.js';
+import { startDuel } from '../duel/duel.js';
 import {
   EVENTS, flag, setFlag, fam, father, mother, alive, age, findJob, peers, stat, skill, money, spend,
   spendFamily, stress, tire, like, note, injure, check, nm, byId, living, ageYears, isFamily, siblings,
@@ -118,7 +119,7 @@ EVENTS.push(
     title: '도전',
     text: (g, c) => `${c.school} 검사라는 떠돌이가 마을에 왔다. 네 실력 소문을 들었다고 한다. "목검으로 한 판. 내가 지면 이 검을 주지." 허리의 검은 낡았지만 날이 살아 있다.`,
     choices: [
-      { label: '받아들인다', run: (g, rng, c) => { if (check(rng, skill(g, 'sword') + stat(g, 'agi') / 3, 55)) { gainSkill(g, 'sword', 3.0, 'agi'); setFlag(g, 'won_blade'); g.player.money += 8; return `세 합 만에 그의 목검이 허공을 날았다. 떠돌이는 웃으며 검을 풀었다. "${c.school}를 이긴 촌뜨기라. 언젠가 십강 명단에서 네 이름을 보겠군." 검을 팔면 은화 여덟은 받을 것이다.`; } gainSkill(g, 'sword', 2.5, 'wil'); injure(g, '목검에 맞은 손목', 1); return `완패였다. 그런데 떠돌이는 떠나지 않고 사흘을 머물며 ${c.school}의 기본을 보여 주었다. "지는 법을 아는 놈이 강해진다."`; } },
+      { label: '받아들인다', run: (g, rng, c) => { startDuel(g, rng, { kind: 'wanderer', title: '떠돌이 검사의 도전', foe: { name: `${c.school} 검사`, skill: Math.round(skill(g, 'sword') * 0.8 + 18), style: { 강검류: 'bold', 유수류: 'steady', 환영류: 'tricky' }[c.school] }, ctx: { school: c.school } }); return '목검을 받아 들었다. 마을 사람들이 둘러섰다.'; } },
       { label: '거절한다', run: () => '"겁이 많은 건 나쁜 게 아니지." 떠돌이는 다음 마을로 떠났다.' },
     ],
   },
