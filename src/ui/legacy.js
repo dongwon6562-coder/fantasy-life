@@ -107,7 +107,8 @@ export function renderLifeReview(game, rec, { compact = false } = {}) {
 
 /* ---------- 가계도 ---------- */
 
-function treeRow(game, { name, first, years, cause, person, summary, current }, nextId, idx) {
+function treeRow(game, { name, first, last, years, cause, person, summary, current }, nextId, idx, house) {
+  const shown = last && last !== house ? `${first} ${last}` : first;
   const deeds = deedsOf(game, idx, first).slice(-4);
   const sp = person?.spouseId != null ? byId(game, person.spouseId) : null;
   const kids = kidsOf(game, person);
@@ -115,7 +116,7 @@ function treeRow(game, { name, first, years, cause, person, summary, current }, 
     <div class="ft-couple">
       <button class="ft-who" data-legacy="${idx}">
         ${person ? portrait(game, person, { size: 48 }) : ''}
-        <span><span class="ft-n">${idx + 1}대</span><strong>${esc(name)}</strong><span class="note">${esc(years)}${cause ? ` · ${esc(cause)}` : ''}</span></span>
+        <span><span class="ft-n">${idx + 1}대</span><strong>${esc(shown ?? name)}</strong><span class="note">${esc(years)}${cause ? ` · ${esc(cause)}` : ''}</span></span>
       </button>
       ${sp ? `<div class="ft-sp" data-ws-person="${sp.id}" role="button" tabindex="0">${portrait(game, sp, { size: 36 })}<span class="note">${esc(sp.name)}${sp.alive ? '' : ' †'}</span></div>` : ''}
     </div>
@@ -131,8 +132,8 @@ export function renderLegacy(game, ui = {}) {
   const anc = life.ancestors;
   const meP = me(game);
   const alive = !game.over && game.player.alive !== false;
-  const gens = anc.map((a) => ({ name: `${a.name} ${a.lastName ?? ''}`.trim(), first: a.name, years: `${a.born}~${a.died}년, ${a.age}살`, cause: a.cause, person: byId(game, a.id), summary: a.summary }));
-  if (alive) gens.push({ name: `${game.player.name} ${game.player.lastName}`, first: game.player.name, years: `${game.date.year - playerAge(game)}년~ 살아 있음, ${playerAge(game)}살`, person: meP, current: true });
+  const gens = anc.map((a) => ({ name: `${a.name} ${a.lastName ?? ''}`.trim(), first: a.name, last: a.lastName, years: `${a.born}~${a.died}년, ${a.age}살`, cause: a.cause, person: byId(game, a.id), summary: a.summary }));
+  if (alive) gens.push({ name: `${game.player.name} ${game.player.lastName}`, first: game.player.name, last: game.player.lastName, years: `${game.date.year - playerAge(game)}년~ 살아 있음, ${playerAge(game)}살`, person: meP, current: true });
   const ids = [...anc.map((a) => a.id), alive ? meP.id : null];
   const first = anc[0]?.born ?? game.date.year - playerAge(game);
   const span = game.date.year - first;
@@ -160,8 +161,9 @@ export function renderLegacy(game, ui = {}) {
       <div><b>${span}</b><span>년</span></div>
       ${longest ? `<div><b>${longest.age}</b><span>가장 오래 산 ${esc(longest.name)}</span></div>` : ''}
     </div>
-    ${names.size ? `<div class="lg-names"><span class="lbl">대대로 쌓인 이름</span>${[...names.values()].map((v) => `<span class="chip">${esc(v.text)}<em>${v.gens.map((n) => `${n}대`).join('·')}</em></span>`).join('')}</div>` : `<p class="note">${anc.length ? '아직 집 밖까지 알려진 이름은 없다. 이름은 한 대에 다 쌓이지 않는다.' : '아직 대를 이은 적이 없다. 이 삶이 끝나면 여기에 이름이 남는다.'}</p>`}
-    <ol class="ft">${gens.map((g, k) => treeRow(game, g, ids[k + 1], k)).join('')}</ol>
+    ${names.size ? `<div class="lg-names"><span class="lbl">대대로 쌓인 이름</span>${[...names.values()].map((v) => `<span class="chip">${esc(v.text)}<em>${v.gens.length > 3 ? `${v.gens[0]}대부터 ${v.gens.length}번` : v.gens.map((n) => `${n}대`).join('·')}</em></span>`).join('')}</div>` : `<p class="note">${anc.length ? '아직 집 밖까지 알려진 이름은 없다. 이름은 한 대에 다 쌓이지 않는다.' : '아직 대를 이은 적이 없다. 이 삶이 끝나면 여기에 이름이 남는다.'}</p>`}
+    ${(() => { const house = game.player.lastName; const rows = gens.map((g, k) => treeRow(game, g, ids[k + 1], k, house)); const cut = rows.length > 5 && !ui.legacyAll ? rows.length - 4 : 0;
+      return `${cut ? `<button class="ghost ft-older" data-legacy-all>앞선 ${cut}대 펼치기 <small>${esc(gens[0].first)}부터</small></button>` : ''}<ol class="ft${cut ? ' cut' : ''}">${rows.slice(cut).join('')}</ol>`; })()}
     <p class="note">이름을 누르면 그 사람의 연표를 볼 수 있다.</p>
   </section>${detail}`;
 }
