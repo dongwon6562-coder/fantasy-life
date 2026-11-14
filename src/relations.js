@@ -208,7 +208,7 @@ function talkTarget(g, kind) {
   const p = byId(g, t.id);
   return p && p.alive && !p.away ? p : null;
 }
-const curTalk = (g) => byId(g, g.relations?.talk?.id);
+const curTalk = (g) => { const p = byId(g, g.relations?.talk?.id); return p?.alive ? p : null; };
 const endTalk = (g) => { relState(g).talk = null; };
 
 // 대화 장면의 첫 문단: 장소 + 상대의 기색 + (가끔) 기억 꺼내기

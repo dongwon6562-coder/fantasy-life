@@ -1,7 +1,7 @@
 // 풍경 그림: 캔버스에 붓질하듯 겹겹이 그린다.
 // 장소(땅 모양·사는 이들·마을 크기), 달(계절), 하루 중 때(새벽·낮·해 질 녘·밤), 날씨, 흉년·역병에 따라 바뀐다.
 // 한 장소의 배치는 늘 같고(장소마다 고정 씨앗), 그날의 때와 날씨만 달마다 정해진다.
-import { W, H, HZ, hash, fbm1, ridged1, rng, mixh, rgba, dark, light, clamp, sbump, lerp, fillCurve, clipBelow, poly, puff, mist, vgrad, grain, trace } from './sceneKit.js';
+import { W, H, HZ, hash, fbm1, ridged1, rng, mixh, rgba, dark, light, clamp, sbump, lerp, fillCurve, clipBelow, poly, puff, mist, vgrad, grain, trace, canvasUrl, dropUrl } from './sceneKit.js';
 import { describe } from './scenePlaces.js';
 import { skyOf, paintSky, gradeLand, paintWeather } from './sceneSky.js';
 import { paletteOf, mountains, hillBand, treeline, forestMass, fields, water, tree, conifer, palm, rock, reedClump, foreground } from './sceneLand.js';
@@ -35,8 +35,11 @@ export function sceneImage({ year, month, famine = false, plague = false, place 
   const key = `${year}-${month}-${famine}-${plague}-${place}`;
   if (cache.has(key)) return cache.get(key);
   if (typeof document === 'undefined') return '';
-  const url = draw(year, month, !!famine, !!plague, place);
-  if (cache.size > 24) cache.clear();
+  let url = '';
+  try { url = draw(year, month, !!famine, !!plague, place); } catch { /* 그림이 없어도 게임은 이어진다 */ }
+  if (!url) return '';
+  // 오래된 그림부터 버린다. 지금 화면에 나온 그림(가장 새것)은 남는다.
+  while (cache.size >= 16) { const [k, old] = cache.entries().next().value; cache.delete(k); dropUrl(old); }
   cache.set(key, url);
   return url;
 }
@@ -62,7 +65,8 @@ function draw(year, month, famine, plague, place) {
   lights(ctx, e);
   paintWeather(ctx, S, wr, { leaves: !!P.autumn && !P.blight, embers: D.culture === 'demon' });
   grain(ctx);
-  return cv.toDataURL('image/jpeg', 0.88);
+  land.width = land.height = 0;
+  return canvasUrl(cv, 'image/jpeg', 0.88);
 }
 
 /* ---------- 함께 쓰는 조각 ---------- */

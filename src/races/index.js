@@ -261,7 +261,7 @@ defineScene('farewell', {
   text: (g, s) => {
     const p = byId(g, s.id);
     const meP = me(g);
-    const lines = [`${J(fullName(p), '이/가')} ${ageYears(p)}살로 세상을 떠났다.`];
+    const lines = [p ? `${J(fullName(p), '이/가')} ${ageYears(p)}살로 세상을 떠났다.` : '오래 알던 사람이 세상을 떠났다.'];
     if (s.n === 1) lines.push(`처음 만났을 때 그는 젊었다. 장례식에서 거울처럼 맑은 물에 비친 내 얼굴은 그때와 거의 같았다. 나는 ${ageYears(meP)}살이고, 몸은 아직 ${bodyAge(meP)}살이다.`);
     else if (s.n < 6) lines.push(`벌써 ${s.n}번째다. 장례 절차를 이제는 사제보다 내가 더 잘 안다.`);
     else lines.push(`세는 것을 그만둔 지 오래다. 마을에서 내 어린 시절을 기억하는 사람은 이제 없다.`);
@@ -279,7 +279,7 @@ defineScene('farewell', {
     if (key === 'stay') { stress(g, 6); const w = gainStat(g, 'wil', 0.8); return `사흘 밤을 무덤 곁에서 보냈다. 인간의 무덤은 금방 풀에 덮인다. 그래서 더 오래 앉아 있었다.${gains([up('의지', w)])}`; }
     if (key === 'write') {
       const k = gainSkill(g, 'letters', 1.5, 'int');
-      chron(g, `${g.player.name}, 먼저 간 벗 ${fullName(p)}의 이야기를 글로 남기다.`);
+      chron(g, `${g.player.name}, 먼저 간 벗${p ? ` ${fullName(p)}` : ''}의 이야기를 글로 남기다.`);
       return `밤새 그가 했던 말과 웃던 얼굴을 적었다. 백 년 뒤에도 누군가는 읽을 것이다. 나는 그때도 살아 있을 것이고.${gains([up('글과 학문', k)])}`;
     }
     if (key === 'aloof') { R.aloof = true; stress(g, -10); return '마음 한쪽의 문을 닫았다. 덜 아플 것이다. 대신 덜 따뜻할 것이다. 엘프들이 왜 그렇게 차가운지 이제 조금 알 것 같았다.'; }

@@ -6,6 +6,7 @@ import { readFileSync, writeFileSync, mkdirSync } from 'node:fs';
 mkdirSync('dist', { recursive: true });
 writeFileSync('dist/_scene_entry.js', `import { sceneImage, conditionText } from '../src/art/scene.js';
 import { P } from '../src/art/mapdata.js';
+globalThis.FL_DATA_URLS = true; // 견본 페이지는 그림을 data 주소로 넣는다
 const $ = (s) => document.querySelector(s);
 const st = { place: 'ern', year: 505, month: 7, famine: false, plague: false };
 const sel = $('#place');

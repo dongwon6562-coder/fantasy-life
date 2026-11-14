@@ -11,6 +11,7 @@ import { FOES } from '../adventure/combat.js';
 import { queueFight } from '../adventure/fight.js';
 import { registerJob, WORK, takeJob } from '../jobs.js';
 import { remember } from '../relations.js';
+import { makeRng } from '../rng.js';
 import { isJailed, jail, addNotoriety, craftOf, reportCrime } from '../crime.js';
 import { REALMS, realmOf, realmState, realmPersonName, meetLocal, localBy, treatmentIn } from './index.js';
 import { setRace, raceOf, playerRace } from '../races/index.js';
@@ -23,6 +24,7 @@ const here = (g) => L(g).place;
 // game.realms.stories[장소] = { step, at(다음 장면이 올 수 있는 달), done, npc(사람 id), mark(갈래 표시) }
 const S = (g) => (RS(g).stories ??= {});
 function storyNpc(g, rng, place) {
+  rng ??= makeRng({ s: ((g.rngState?.s ?? 1) * 2654435761 + place.length * 977) >>> 0 }); // 화면이 글을 먼저 그릴 때도 같은 사람이 나오게
   const st = S(g)[place] ??= { step: 0, at: 0 };
   let p = st.npc != null ? byId(g, st.npc) : null;
   if (p) return p;
@@ -63,7 +65,8 @@ HOOKS.afterMonth.push((g, rng) => {
 defineScene('city_story', {
   title: (g, s) => STORIES[s.place].steps[s.step].title,
   text: (g, s) => STORIES[s.place].steps[s.step].text(g, storyNpc(g, null, s.place)),
-  choices: (g, s) => STORIES[s.place].steps[s.step].choices.filter((c) => !c.when || c.when(g, storyNpc(g, null, s.place))),
+  // 그 고장을 떠났으면 장면을 미룬다 (돌아오면 다시 온다)
+  choices: (g, s) => (here(g) !== s.place || !STORIES[s.place]?.steps[s.step] ? [] : STORIES[s.place].steps[s.step].choices).filter((c) => !c.when || c.when(g, storyNpc(g, null, s.place))),
   resolve(g, rng, s, key) {
     const st = S(g)[s.place];
     const p = storyNpc(g, rng, s.place);

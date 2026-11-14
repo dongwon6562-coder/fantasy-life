@@ -151,9 +151,8 @@ const ERN_ONLY = new Set(['play', 'help_home', 'study', 'sword_father', 'sword_g
 const ON_ROAD = new Set(['rest', 'meditate', 'train_body', 'on_road']);
 HOOKS.actionFilter.push((g, a) => {
   const life = L(g);
-  // 감옥에 갇혀 있으면 길은 이미 끝난 것이다 (갇힌 뒤에 길이 잡히는 일이 있어도 감옥 행동이 먼저)
-  if (life.travel && g.crime?.jailed) return true;
-  if (life.travel) return ON_ROAD.has(a.id);
+  // 감옥에 갇혔으면 길은 끝났다 (감옥 행동은 crime.js가 거른다)
+  if (life.travel && !g.crime?.jailed) return ON_ROAD.has(a.id);
   if (a.place && !a.place.includes(life.place)) return false;
   if (ERN_ONLY.has(a.id) && life.place !== 'ern') return false;
   if (a.id === 'help_home' && life.home !== 'family') return false;
@@ -242,7 +241,7 @@ ACTIONS.push({
 // 매달: 길 위의 진행, 도착, 노숙/집세
 HOOKS.afterActions.push((g, rng, results) => {
   const life = L(g);
-  if (life.travel && g.crime?.jailed) life.travel = null; // 갇힌 사람은 길을 갈 수 없다
+  if (life.travel && g.crime?.jailed) life.travel = null; // 길 떠나기 전에 붙잡혔다
   if (life.travel) {
     life.travel.left -= 1;
     if (life.travel.left <= 0) arrive(g, rng, results);
