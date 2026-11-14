@@ -588,3 +588,45 @@ html:not(.motion) .event { animation: none; }
 .act-group.dark summary::after { content: '펼치기'; margin-left: auto; font-size: 12px; color: var(--muted); }
 .act-group.dark[open] summary::after { content: '접기'; }
 .act-group.dark[open] .act-grid { margin-top: 6px; }
+
+/* ---------- 5단계: 종족 고르기 · 동료 · 어린 시절 ---------- */
+.race-seg { flex-wrap: wrap; }
+.race-seg button { min-height: 42px; padding: 8px 14px; }
+.race-desc { margin: 8px 0 0; color: var(--muted); font-size: 14px; line-height: 1.7; }
+.race-desc b { color: var(--ink); font-family: var(--f-display); }
+
+.party .pt-story { display: grid; gap: 2px; padding: 8px 12px; border-left: 2px solid var(--brass); background: var(--bg); border-radius: 0 6px 6px 0; }
+.pt-story .lbl, .youth .lbl, .yt-friend .lbl { font-size: 11px; letter-spacing: .12em; color: var(--brass); font-weight: 600; }
+.pt-story strong { font-family: var(--f-display); font-size: 16px; }
+.pt-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 8px; }
+.pt-mem { display: grid; grid-template-columns: auto 1fr; gap: 10px; align-items: start; text-align: left; background: var(--bg); border: 1px solid var(--line); border-radius: 8px; padding: 10px; }
+.pt-mem.hurt { border-color: #7a3a2e; }
+.pt-mem:hover { border-color: var(--brass-dim); }
+.pt-body { display: grid; gap: 3px; min-width: 0; }
+.pt-body .top { display: flex; justify-content: space-between; gap: 6px; align-items: baseline; }
+.pt-body strong { font-family: var(--f-display); font-size: 16px; }
+.pt-body .role { font-size: 12px; color: var(--brass); border: 1px solid var(--brass-dim); border-radius: 10px; padding: 0 8px; white-space: nowrap; }
+.pt-body .warn { color: #e3917f; font-weight: 600; }
+.pt-row { display: grid; grid-template-columns: 30px 1fr auto; gap: 6px; align-items: center; font-size: 13px; }
+.pt-row .v { font-size: 12px; color: var(--muted); }
+.pt-bar { display: block; height: 6px; border-radius: 3px; background: var(--panel); border: 1px solid var(--line); overflow: hidden; }
+.pt-bar i { display: block; height: 100%; background: var(--brass-dim); }
+.pt-bar.good i { background: var(--good); }
+.pt-bar.low i { background: var(--blood); }
+.pt-empty { border: 1px dashed var(--line); border-radius: 8px; display: grid; place-items: center; min-height: 64px; color: var(--muted); font-size: 13px; }
+.pt-fallen summary { cursor: pointer; color: var(--muted); font-size: 13px; min-height: 32px; }
+.pt-fallen ul { margin: 6px 0 0; padding-left: 18px; display: grid; gap: 4px; font-size: 14px; }
+
+.youth { gap: 0; }
+.youth summary { cursor: pointer; list-style: none; display: grid; gap: 2px; min-height: 40px; }
+.youth summary::-webkit-details-marker { display: none; }
+.youth summary strong { font-family: var(--f-display); font-size: 16px; }
+.yt-body { display: grid; gap: 10px; padding-top: 10px; margin-top: 10px; border-top: 1px solid var(--line); }
+.yt-friend { display: grid; grid-template-columns: auto 1fr; gap: 10px; align-items: center; cursor: pointer; }
+.yt-friend > div { display: grid; }
+.yt-friend strong { font-family: var(--f-display); font-size: 15px; }
+.yt-dl { margin: 0; display: grid; gap: 4px; }
+.yt-dl div { display: grid; grid-template-columns: 92px 1fr; gap: 8px; font-size: 14px; }
+.yt-dl dt { color: var(--muted); font-size: 12px; padding-top: 2px; }
+.yt-dl dd { margin: 0; }
+.youth-block .yt-known { margin: 0; font-family: var(--f-display); font-size: 15px; }

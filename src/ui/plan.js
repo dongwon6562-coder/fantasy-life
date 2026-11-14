@@ -31,9 +31,9 @@ const GROUPS = [
   ['work', '일과 벌이', /^(work|seek_job|day_labor|inn_kitchen|herbs|help_home|shop_manage|open_shop|domain_|realm_office|farmer|merchant)/],
   ['learn', '배움과 수련', /^(study|train_body|sword_|meditate|magic_)/],
   ['people', '사람과 마을', /^(visit|play|wander|rel_|faction_door|bard)/],
-  ['road', '길과 모험', /^(travel|on_road|housing|quest|delve|gear|pioneer|buy_title|tower_dare|wolves|goblins)/],
+  ['road', '길과 모험', /^(party_|gather_party|travel|on_road|housing|quest|delve|gear|pioneer|buy_title|tower_dare|wolves|goblins)/],
   ['dark', '어두운 일', /^(crime_|gang_)/],
-  ['rest', '쉼', /^rest$/],
+  ['rest', '쉼', /^(rest|drift_years)$/],
 ];
 function groupActs(acts) {
   const out = GROUPS.map(([id, name]) => [id, name, []]);
