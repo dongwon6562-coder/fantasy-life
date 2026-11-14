@@ -29,6 +29,8 @@ ACTIONS.push({
   },
   run(g) {
     const m = magicState(g);
+    // 같은 달에 여러 칸을 골라도 응시료는 한 번만 낸다
+    if (m.exam) return `${m.exam.target}서클 시험에는 이미 이름을 올려 두었다. 시험관이 부를 때까지 술식을 되짚었다.`;
     const n = m.certified + 1;
     spend(g, examFee(n));
     m.exam = { target: n, stage: 0, score: 0, place: here(g) };

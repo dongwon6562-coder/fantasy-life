@@ -77,7 +77,8 @@ ACTIONS.push(
   {
     id: 'sword_school_join', name: '유파에 입문하기', icon: 'sword',
     desc: '스승을 찾아가 검의 유파에 든다. 유수류·강검류·환영류 중 이곳에서 가르치는 것을 고른다. 다른 유파로 옮기면 등급은 처음부터다.',
-    available: (g) => playerAge(g) >= 8 && !g.life?.travel && mastersHere(g).some((m) => m.school !== schoolOf(g)) && !g.swordJoinQueued,
+    available: (g) => playerAge(g) >= 8 && !g.life?.travel && mastersHere(g).some((m) => m.school !== schoolOf(g)) && !g.swordJoinQueued
+      && g.date.year * 12 + g.date.month - (g.swordJoinAt ?? -99) >= 6, // 한 번 정하면(입문이든 그만두든) 반년은 다시 찾지 않는다
     run(g) {
       g.swordJoinQueued = true;
       return '검을 가르칠 사람을 찾아 나섰다.';
@@ -117,6 +118,7 @@ ACTIONS.push(
     run(g, rng) {
       const m = myMaster(g);
       if (!m) return '대련을 청하려 했지만 스승이 자리에 없었다.';
+      if (g.duelQueued) return '이번 달에는 이미 잡힌 대련이 있다. 승급 대련은 다음으로 미뤘다.';
       const r = rankOf(g) + 1;
       const foeSkill = r >= 4 ? 96 : Math.max(m.skill, RANK_NEED[r] + 8);
       queueDuel(g, {
@@ -135,6 +137,7 @@ ACTIONS.push(
     desc: '검을 쓰는 아는 사람에게 목검 대련을 청한다. 낌새를 읽고 수를 고르는 1대1 결투다.',
     available: (g) => playerAge(g) >= 10 && !g.duelQueued && !g.life?.travel && sparPartners(g).length > 0,
     run(g, rng) {
+      if (g.duelQueued) return '이번 달에는 이미 잡힌 대련이 있다. 혼자 목검을 휘두르며 몸을 풀었다.';
       const p = rng.pick(sparPartners(g));
       if (!p) return '대련할 사람을 찾았지만 아무도 시간이 없었다.';
       queueDuel(g, {
@@ -180,7 +183,7 @@ EVENTS.push({
     label: (g) => { const m = mastersHere(g).filter((x) => x.school !== schoolOf(g))[i]; return m ? `${SCHOOLS[m.school].name} (${m.who} ${m.name})` : ''; },
     show: (g) => !!mastersHere(g).filter((m) => m.school !== schoolOf(g))[i],
     run: (g) => {
-      g.swordJoinQueued = false;
+      g.swordJoinQueued = false; g.swordJoinAt = g.date.year * 12 + g.date.month;
       const m = mastersHere(g).filter((x) => x.school !== schoolOf(g))[i];
       if (!m) return '스승을 찾지 못했다.';
       const s = swordState(g);
@@ -189,7 +192,7 @@ EVENTS.push({
       if (p) { p.known = true; p.affection += 5; remember(g, p, '검을 배우겠다며 찾아왔다', 1, { tag: 'pupil' }); }
       return `${m.who} ${m.name} 앞에 무릎을 꿇었다. 그날부터 ${SCHOOLS[m.school].name}의 문하생이다. ${{ yusu: '"먼저 베지 마라. 흘리고, 받아라."', ganggeom: '"첫 칼에 모든 걸 실어라. 두 번째는 없다."', hwanyeong: '"정직한 검은 일찍 죽는다."' }[m.school]}`;
     },
-  })).concat([{ label: '그만둔다', run: (g) => { g.swordJoinQueued = false; return '아직은 때가 아니라고 생각했다.'; } }]),
+  })).concat([{ label: '그만둔다', run: (g) => { g.swordJoinQueued = false; g.swordJoinAt = g.date.year * 12 + g.date.month; return '아직은 때가 아니라고 생각했다.'; } }]),
 });
 // ---------- 결투가 끝났을 때 ----------
 registerDuelEnd('rank_test', (g, rng, won, d) => {

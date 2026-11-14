@@ -11,6 +11,8 @@ import { makePerson, kill } from '../npc.js';
 const R = (g) => realm(g) ?? {};
 const war = (g) => !!R(g).balhart?.war;
 const civil = (g) => R(g).succession === 'civilwar';
+// 사건이 뜰 때 정해 둔 사람을 다시 찾는다 (그 사이 죽었으면 null)
+const millerOf = (g, c) => { const p = c?.id != null ? byId(g, c.id) : null; return p && p.alive ? p : null; };
 
 EVENTS.push(
   // ---------- 전쟁 ----------
@@ -214,10 +216,12 @@ EVENTS.push(
     cond: (g) => age(g) >= 8 && eraOf(g) >= 2 && !!findJob(g, 'miller'),
     weight: 72,
     title: '마석 방아',
-    text: (g) => `하르펜 상단이 마을 어귀에 마석으로 돌아가는 방아를 세웠다. 물레방아의 세 배를 빻고, 값은 절반이다. ${findJob(g, 'miller').name}의 방앗간 앞이 텅 비었다.`,
+    // 방앗간 주인은 띄울 때 정해 둔다: 고르기 전에 죽거나 떠나도 깨지지 않게
+    prepare: (g) => { const m = findJob(g, 'miller'); return { id: m?.id ?? null, name: m?.name ?? '옛 방앗간 주인' }; },
+    text: (g, c) => `하르펜 상단이 마을 어귀에 마석으로 돌아가는 방아를 세웠다. 물레방아의 세 배를 빻고, 값은 절반이다. ${c.name}의 방앗간 앞이 텅 비었다.`,
     choices: [
-      { label: '새 방아로 간다', run: (g) => { g.player.familyMoney += 4; const m = findJob(g, 'miller'); m.affection -= 5; return '밀가루는 곱고 쌌다. 옛 방앗간 앞을 지날 때마다 주인이 멍하니 물레를 보고 있었다.'; } },
-      { label: '옛 방앗간을 계속 쓴다', run: (g) => { spendFamily(g, 2); like(findJob(g, 'miller'), 12); return '"고맙네." 방앗간 주인이 손을 꼭 잡았다. 하지만 그 손님이 우리 집만으로는 부족하다는 걸 둘 다 알았다.'; } },
+      { label: '새 방아로 간다', run: (g, rng, c) => { g.player.familyMoney += 4; const m = millerOf(g, c); if (m) m.affection -= 5; return '밀가루는 곱고 쌌다. 옛 방앗간 앞을 지날 때마다 주인이 멍하니 물레를 보고 있었다.'; } },
+      { label: '옛 방앗간을 계속 쓴다', run: (g, rng, c) => { spendFamily(g, 2); like(millerOf(g, c), 12); return '"고맙네." 방앗간 주인이 손을 꼭 잡았다. 하지만 그 손님이 우리 집만으로는 부족하다는 걸 둘 다 알았다.'; } },
       { label: '방아의 구조를 뜯어본다', show: (g) => stat(g, 'int') >= 25, run: (g) => { gainStat(g, 'int', 1.0); setFlag(g, 'tinkerer'); return '관리인 몰래 덮개를 열었다. 마석이 박힌 축, 술식이 새겨진 톱니. 이걸 만든 사람은 마법사가 아니라 장인이었다. 세상이 바뀌고 있다.'; } },
     ],
   },
@@ -242,8 +246,8 @@ EVENTS.push(
     text: (g) => `흰 망토에 금빛 태양 문장. 성광교 이단심문관 둘이 마을에 왔다. 떠돌이 마법사 ${findJob(g, 'hedge_mage').name}에 대해 묻고 다닌다. "금기의 술식을 쓴다는 고발이 있었다."`,
     choices: [
       { label: '"그분은 약초만 다룹니다."', run: (g, rng) => { const m = findJob(g, 'hedge_mage'); like(m, 15); if (check(rng, stat(g, 'cha') + stat(g, 'wil'), 35)) { gainStat(g, 'wil', 0.8); return '심문관이 내 눈을 오래 들여다보았다. "아이의 눈은 거짓을 못 하지." 그들은 떠났다. 그날 밤 마법사가 문 앞에 작은 꾸러미를 두고 갔다.'; } setFlag(g, 'inquisition_marked'); return '심문관이 내 이름을 받아 적었다. 마법사는 무사했지만, 내 이름은 어딘가의 장부에 남았다.'; } },
-      { label: '본 것을 말한다', run: (g) => { const m = findJob(g, 'hedge_mage'); m.affection -= 30; setFlag(g, 'informed_inquisition'); note(g, m, '이단심문관에게 끌려가 심문을 받았다.'); return '마법사는 사흘 동안 끌려갔다가 돌아왔다. 손가락 둘이 없었다. 그는 다시는 내게 말을 걸지 않았다.'; } },
-      { label: '마법사에게 몰래 알린다', run: (g) => { const m = findJob(g, 'hedge_mage'); like(m, 25); m.away = true; note(g, m, '이단심문관을 피해 한밤중에 마을을 떠났다.'); setFlag(g, 'warned_mage'); return `${m.name}은(는) 그날 밤 오두막을 비웠다. 떠나기 전 내 손에 무언가를 쥐여 주었다. 술식이 새겨진 작은 뼈 조각. "언젠가 쓸 데가 있을 거다."`; } },
+      { label: '본 것을 말한다', run: (g) => { const m = findJob(g, 'hedge_mage'); if (m) m.affection -= 30; setFlag(g, 'informed_inquisition'); note(g, m, '이단심문관에게 끌려가 심문을 받았다.'); return '마법사는 사흘 동안 끌려갔다가 돌아왔다. 손가락 둘이 없었다. 그는 다시는 내게 말을 걸지 않았다.'; } },
+      { label: '마법사에게 몰래 알린다', run: (g) => { const m = findJob(g, 'hedge_mage'); like(m, 25); if (m) m.away = true; note(g, m, '이단심문관을 피해 한밤중에 마을을 떠났다.'); setFlag(g, 'warned_mage'); return `${nm(m, '떠돌이 마법사')}은(는) 그날 밤 오두막을 비웠다. 떠나기 전 내 손에 무언가를 쥐여 주었다. 술식이 새겨진 작은 뼈 조각. "언젠가 쓸 데가 있을 거다."`; } },
     ],
   },
   {
