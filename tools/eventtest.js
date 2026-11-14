@@ -36,6 +36,15 @@ const SCENARIOS = [
     (g) => { g.chains = { friend: { step, at: 0, data: { id: peer(g)?.id } } }; },
     (g) => { g.chains = { swordsman: { step, at: 0, data: {} } }; },
   ]),
+  // 6단계: 시대 (발명이 다 나온 세계, 도시)
+  ...['harfen', 'leocast'].map((pl) => (g) => {
+    g.history.inventions = ['firestone', 'streetlamp', 'warmstone', 'manamill', 'press', 'signal', 'erngrind', 'plow', 'forge', 'healstone', 'ironcart', 'railroad'];
+    g.realm.era = 3; g.realm.tech = 5; g.life.place = pl; g.life.travel = null; g.realm.balhart.war = true;
+    g.era = { goods: { lantern: 1, warmstone: 1, firestone: 1, healband: 2 } };
+    const meP = g.people.find((p) => p.isPlayer); if (meP.ageMonths < 20 * 12) meP.ageMonths = 20 * 12;
+    g.player.skills.letters = 30;
+    const f = g.people.find((p) => p.alive && !p.isPlayer); if (f) { f.away = true; f.known = true; f.affection = 30; }
+  }),
   // 5단계: 어린 시절 줄기 (나이를 맞추고 단계마다)
   ...[[6, 1], [9, 2], [10, 3], [13, 4], [15, 5], [25, 9]].map(([yrs, stage]) => (g) => {
     const meP = g.people.find((p) => p.isPlayer); meP.ageMonths = yrs * 12 + 1;
