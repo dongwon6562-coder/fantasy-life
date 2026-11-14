@@ -23,6 +23,8 @@ import { renderPeople, bindPeople } from './people.js';
 import { applyPrefs, prefs, reducedMotion, renderSettings, bindSettings } from './settings.js';
 import { runGuide, stopGuide } from './guide.js';
 import { audio } from '../audio/index.js';
+import { renderWorkshop } from './workshop.js';
+import { renderWorld, bindWorld } from './world.js';
 
 let game = null;
 const ui = {
@@ -257,8 +259,13 @@ function renderNews() {
 }
 
 function renderChron() {
+  const tabs = `<div class="seg chron-tabs" role="tablist">
+    <button role="tab" data-chron="me" aria-pressed="${ui.chronTab !== 'world'}">마을과 나</button>
+    <button role="tab" data-chron="world" aria-pressed="${ui.chronTab === 'world'}">레오니아</button>
+  </div>`;
+  if (ui.chronTab === 'world') return tabs + renderWorld(game, ui);
   const items = game.chronicle.slice(-160).reverse();
-  return `<section class="card"><h2>연대기 <small>마을과 나의 기록</small></h2>
+  return tabs + `<section class="card"><h2>연대기 <small>마을과 나의 기록</small></h2>
     <ul class="chron">${items.map((c) => `<li class="${c.rel >= 100 ? 'mine' : ''}"><time>${c.y}년 ${c.m}월</time><span>${esc(c.text)}</span></li>`).join('')}</ul></section>`;
 }
 
@@ -330,7 +337,7 @@ function renderGame() {
   const p = game.player;
   const art = sceneImage({ year: game.date.year, month: game.date.month, famine: game.world?.famine, plague: game.world?.plague, place: L(game).place });
   let main = '';
-  if (ui.view === 'month') main = game.over ? renderOver() : renderNews() + renderPlan(game, ui);
+  if (ui.view === 'month') main = game.over ? renderOver() : renderNews() + renderWorkshop(game, ui) + renderPlan(game, ui);
   else if (ui.view === 'me') main = renderSheet();
   else if (ui.view === 'people') main = renderPeople(game, ui);
   else if (ui.view === 'map') main = renderWorldCard() + renderMap();
@@ -429,6 +436,10 @@ function bindGame() {
   if (s3) s3.onclick = () => advance(3);
   bindPlan(game, ui, rerender);
   bindPeople(game, ui, rerender);
+  bindWorld(game, ui, rerender);
+  const ws = $('details.workshop');
+  if (ws) ws.ontoggle = () => { ui.wsOpen = ws.open; };
+  $$('[data-chron]').forEach((b) => b.onclick = () => { ui.chronTab = b.dataset.chron; renderGame(); });
   bindSettings(rerender, () => { ui.view = 'month'; renderGame(); window.scrollTo({ top: 0 }); });
   $$('[data-view]').forEach((b) => b.onclick = () => { ui.view = b.dataset.view; renderGame(); window.scrollTo({ top: 0 }); });
   $$('[data-save]').forEach((b) => b.onclick = () => { saveSlot(game, +b.dataset.save); b.textContent = `${b.dataset.save}번에 저장됨`; });
