@@ -117,6 +117,7 @@ defineCrisis('horde', {
           return '"마물 몇 마리에 호들갑이군." 대부분은 듣지 않았다. 그래도 한 마을은 목책을 고쳤다.';
         }
         if (key === 'stock') { g.player.money = Math.max(0, g.player.money - 10); c.data.stocked = true; return '곳간에 밀과 소금에 절인 고기를 채웠다. 문빗장도 새로 달았다. 무슨 일이 와도 우리 식구는 버틴다.'; }
+        if (g.player.money < 30) return '주머니를 뒤져 보니 돈이 모자랐다.';
         g.player.money -= 30; c.data.land = true; L(g).notoriety += 2;
         return '겁에 질린 사람들이 땅문서를 내밀었다. 시세의 반의반 값이었다. 물결이 지나가고 나면 이 땅은 금이 될 것이다. 살아남는다면.';
       },
@@ -202,7 +203,7 @@ defineCrisis('horde', {
           if (won(r)) { deepen(g, -6); return `${r.text} 둥지 깊은 곳의 알과 새끼까지 불태웠다. 이 골짜기에서 물결이 다시 일 일은 없을 것이다.`; }
           return `${r.text} 둥지는 생각보다 깊었다.`;
         }
-        if (key === 'rebuild') { g.player.money -= 50; deepen(g, -5); L(g).renown += 3; return '목수와 석공을 사서 불탄 마을에 집 열두 채와 우물을 세웠다. 마을 어귀 돌에 내 이름이 새겨졌다.'; }
+        if (key === 'rebuild') { if (g.player.money < 50) return '주머니를 뒤져 보니 돈이 모자랐다.'; g.player.money -= 50; deepen(g, -5); L(g).renown += 3; return '목수와 석공을 사서 불탄 마을에 집 열두 채와 우물을 세웠다. 마을 어귀 돌에 내 이름이 새겨졌다.'; }
         if (key === 'home') { stress(g, -5); return '쟁기를 다시 잡았다. 밭고랑 사이에서 녹슨 화살촉이 나왔다. 그래도 봄은 왔다.'; }
         const m = Math.round(rng.int(30, 70) * wage(g)) + (c.data.land ? 60 : 0);
         g.player.money += m; L(g).notoriety += 3;
@@ -275,6 +276,7 @@ defineCrisis('plague', {
           return '"장사를 막으면 세금은 누가 내나?" 영주의 서기는 문을 닫아 버렸다.';
         }
         if (key === 'leave') { stress(g, -3); return '짐을 꾸려 시골로 갔다. 친척은 문을 열어 주었지만, 첫 사흘은 헛간에서 자게 했다. 당연한 일이었다.'; }
+        if (g.player.money < 20) return '주머니를 뒤져 보니 돈이 모자랐다.';
         g.player.money -= 20; c.data.hoard = true;
         return '약재상을 돌며 쑥과 식초, 박하 기름을 쓸어 담았다. 약재상 주인이 이상하다는 눈으로 보았다.';
       },
@@ -300,7 +302,7 @@ defineCrisis('plague', {
       resolve(g, rng, c, key) {
         if (key === 'tend') { deepen(g, -7); gainSkill(g, 'herbs', 2, 'int'); L(g).renown += 2; return `석 달 동안 구호소에서 잤다. 살린 사람보다 묻은 사람이 많았다. 그래도 살린 사람들은 내 얼굴을 잊지 않았다.${catchFever(g, rng, c, 0.15)}`; }
         if (key === 'clinic') { const h = withRole(g, 'healer'); deepen(g, -10); L(g).renown += 3; h.comp.loyalty = Math.min(100, h.comp.loyalty + 5); return `${J(h.name, '이/가')} 버려진 창고에 침상 마흔 개를 놓았다. 끓인 물, 식초, 기도. 그 창고에서 나간 사람 중 셋에 둘은 걸어서 나갔다.${catchFever(g, rng, c, 0.06)}`; }
-        if (key === 'pay') { g.player.money -= 40; deepen(g, -5); L(g).renown += 2; return '빵과 약초를 수레에 싣고 문 닫힌 집들 앞에 두고 다녔다. 문틈으로 손이 나와 수레를 비웠다.'; }
+        if (key === 'pay') { if (g.player.money < 40) return '주머니를 뒤져 보니 돈이 모자랐다.'; g.player.money -= 40; deepen(g, -5); L(g).renown += 2; return '빵과 약초를 수레에 싣고 문 닫힌 집들 앞에 두고 다녔다. 문틈으로 손이 나와 수레를 비웠다.'; }
         if (key === 'lock') { stress(g, 6); return '문을 걸어 잠갔다. 밤에 누군가 문을 두드리며 물 한 모금만 달라고 했다. 대답하지 않았다. 아침엔 조용했다.'; }
         if (key === 'cure') {
           const m = Math.round(rng.int(30, 70) * wage(g)); g.player.money += m; L(g).notoriety += 4; deepen(g, 3);
@@ -428,6 +430,7 @@ defineCrisis('war', {
           return `의용군 창병으로 첫 싸움에 나섰다. ${r.text}`;
         }
         if (key === 'dodge') { g.player.money = Math.max(0, g.player.money - 15); stress(g, 3); return '징집관의 장부에서 내 이름이 지워졌다. 대신 옆집 아들의 이름이 올라갔다.'; }
+        if (g.player.money < 30) return '주머니를 뒤져 보니 돈이 모자랐다.';
         g.player.money -= 30; c.data.grain = true;
         return '밀 창고 세 곳을 통째로 샀다. 곡물상들이 이를 갈았다. 전쟁이 길어질수록 이 밀은 금이 된다.';
       },
@@ -502,7 +505,7 @@ defineCrisis('war', {
         { label: '전사자들의 장비를 모아 판다', key: 'spoils', stance: 'use' },
       ],
       resolve(g, rng, c, key) {
-        if (key === 'veterans') { g.player.money -= 30; deepen(g, -3); L(g).renown += 2; return '외팔이 병사에게 일자리를, 과부들에게 겨울 땔감을 마련했다. 고맙다는 말 대신 오래 손을 잡았다.'; }
+        if (key === 'veterans') { if (g.player.money < 30) return '주머니를 뒤져 보니 돈이 모자랐다.'; g.player.money -= 30; deepen(g, -3); L(g).renown += 2; return '외팔이 병사에게 일자리를, 과부들에게 겨울 땔감을 마련했다. 고맙다는 말 대신 오래 손을 잡았다.'; }
         if (key === 'care') { deepen(g, -2); tired(g, 10); return '성당 마당에서 붕대를 감고 고름을 짰다. 밤에는 열에 들뜬 병사의 손을 잡아 주었다.'; }
         if (key === 'home') { stress(g, -4); return '집으로 돌아갔다. 전쟁 이야기는 하지 않기로 했다.'; }
         const m = Math.round(rng.int(30, 70) * wage(g)); g.player.money += m; L(g).notoriety += 3;

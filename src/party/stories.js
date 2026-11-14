@@ -255,6 +255,9 @@ defineScene('story_step', {
         return text;
       },
     };
+    // 고른 길이 그 사이 막혔으면(그 역할의 동료가 떠남 등) 남은 첫 길로 간다
+    const open = S.steps[st.step].choices(g, st);
+    if (!open.some((c) => c.key === key)) key = open[0]?.key;
     const out = S.steps[st.step].resolve(g, rng, ctx, key);
     return out;
   },

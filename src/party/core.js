@@ -51,7 +51,7 @@ export function compPow(p) {
 
 export const LOYAL_WORD = (v) => (v >= 80 ? '목숨을 맡길 사이' : v >= 60 ? '믿음직하다' : v >= 40 ? '그럭저럭' : v >= 20 ? '불만이 쌓였다' : '떠날 생각을 한다');
 
-export function addLoyalty(p, n) { p.comp.loyalty = Math.max(0, Math.min(100, p.comp.loyalty + n)); return p.comp.loyalty; }
+export function addLoyalty(p, n) { if (!p?.comp) return 0; p.comp.loyalty = Math.max(0, Math.min(100, p.comp.loyalty + n)); return p.comp.loyalty; }
 
 // 파티에 넣는다
 export function join(g, p, { role, hired = false, wage = 0, loyalty } = {}) {
@@ -91,3 +91,20 @@ export function partyStatus(g) {
     story: party.story ? { id: party.story.id, title: party.story.title, step: party.story.step, steps: party.story.steps } : null,
   };
 }
+
+// 대 잇기: 동료는 죽은 사람과 함께 다닌 사람들이다.
+// - 새 주인공이 동료였다면 명단에서 빠진다. 달삯을 받던 용병은 계약이 끝나 떠난다.
+// - 새 주인공이 어른이면 옛 동료 몇은 남지만 믿음은 다시 쌓아야 한다. 아이면 모두 제 길을 간다.
+// - 진행하던 긴 의뢰는 접는다.
+HOOKS.heir.push((g) => {
+  const party = P(g);
+  const adult = ageYears(byId(g, g.player.id) ?? { ageMonths: 0 }) >= 15;
+  for (const id of [...party.members]) {
+    const p = byId(g, id);
+    if (!p || !p.alive || !p.comp) { party.members = party.members.filter((x) => x !== id); continue; }
+    if (id === g.player.id || p.isPlayer) { party.members = party.members.filter((x) => x !== id); delete p.comp; continue; }
+    if (!adult || p.comp.hired) { leave(g, p, `함께 다니던 이가 세상을 떠나 제 길을 갔다.`); continue; }
+    p.comp.loyalty = Math.round(p.comp.loyalty * 0.6);
+  }
+  if (party.story) { party.stories[party.story.id] = 'failed'; party.story = null; }
+});
