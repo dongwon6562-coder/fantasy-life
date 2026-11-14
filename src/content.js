@@ -2,3 +2,5 @@
 // (각 모듈은 import될 때 ACTIONS / EVENTS / HOOKS에 스스로 등록한다)
 import './relations.js';
 import './adventure/index.js';
+import './world.js';
+import './events/index.js';
