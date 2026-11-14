@@ -134,10 +134,11 @@ export function portrait(game, p, opt = {}) {
   const ageY = Math.floor((p.ageMonths ?? 0) / 12);
   const stage = stageOf(ageY);
   const scars = opt.scars ?? [];
-  const ck = `${keyOf(p)}|${stage}|${ageY >= 40 ? Math.floor(ageY / 5) : ''}|${p.job}|${p.alive}|${scars.length}|${opt.ring ?? ''}|${p.fatherId}|${p.motherId}`;
+  const mood = opt.mood ?? moodOf(game, p, stage);
+  const ck = `${mood}|${keyOf(p)}|${stage}|${ageY >= 40 ? Math.floor(ageY / 5) : ''}|${p.job}|${p.alive}|${scars.length}|${opt.ring ?? ''}|${p.fatherId}|${p.motherId}`;
   let body = cache.get(ck);
   if (!body) {
-    body = drawFace(game, p, ageY, stage, scars, opt.ring);
+    body = drawFace(game, p, ageY, stage, scars, opt.ring, mood);
     if (cache.size > 600) cache.clear();
     cache.set(ck, body);
   }
@@ -145,12 +146,37 @@ export function portrait(game, p, opt = {}) {
   return `<svg class="portrait" width="${size}" height="${size}" viewBox="0 0 100 100" role="img" aria-label="${String(label).replace(/"/g, '')} 초상">${body}</svg>`;
 }
 
-function drawFace(game, p, ageY, stage, scars, ring) {
+/**
+ * 표정: 따로 정하지 않으면 상태에서 저절로 나온다.
+ * 나 = 피로·스트레스·다친 곳, 다른 사람 = 나를 향한 호감.
+ * warm(웃음) · cold(찡그림) · tired(지침) · stressed(근심) · sick(아픔) · '' (보통)
+ */
+export function moodOf(game, p, stage = stageOf(Math.floor((p?.ageMonths ?? 0) / 12))) {
+  if (!p || p.alive === false) return '';
+  if (p.isPlayer && game?.player) {
+    const pl = game.player;
+    const inj = pl.injuries ?? [];
+    const hurt = inj.reduce((a, i) => a + (i.months ?? 1), 0);
+    if (inj.some((i) => i.mortal) || inj.length >= 2 || hurt >= 4) return 'sick';
+    if (stage === 'baby') return '';
+    if ((pl.fatigue ?? 0) >= 70) return 'tired';
+    if ((pl.stress ?? 0) >= 55) return 'stressed';
+    if ((pl.fatigue ?? 0) < 25 && (pl.stress ?? 0) < 15) return 'warm';
+    return '';
+  }
+  if (stage === 'baby') return '';
+  const a = p.affection ?? 0;
+  if (a >= 45) return 'warm';
+  if (a <= -20) return 'cold';
+  return '';
+}
+
+function drawFace(game, p, ageY, stage, scars, ring, mood = '') {
   const g = genesOf(game, p);
   const r = rngFrom(hashStr('s' + keyOf(p)));
-  const uid = 'p' + hashStr(keyOf(p) + stage).toString(36);
+  const uid = 'p' + hashStr(keyOf(p) + stage + mood).toString(36);
   const male = p.sex === 'm';
-  const skin = SKIN[g.skin];
+  const skin = mood === 'sick' ? mixHex(SKIN[g.skin], '#b9b6a2', 0.3) : SKIN[g.skin];
   const skinShadow = shade(skin, 0.28);
   const old = Math.max(0, Math.min(1, (ageY - 38) / 40)); // 0~1 늙음 정도
   let hair = HAIR[g.hair];
@@ -234,8 +260,28 @@ function drawFace(game, p, ageY, stage, scars, ring) {
       <path d="M${f(cx - hw * 0.3)} ${f(cy + hh * 0.3)} Q${f(cx - hw * 0.42)} ${f(cy + hh * 0.5)} ${f(cx - hw * 0.34)} ${f(cy + hh * 0.66)}"/>
       <path d="M${f(cx + hw * 0.3)} ${f(cy + hh * 0.3)} Q${f(cx + hw * 0.42)} ${f(cy + hh * 0.5)} ${f(cx + hw * 0.34)} ${f(cy + hh * 0.66)}"/>
       <path d="M${f(cx - hw * 0.78)} ${f(ey - 0.5)} l-2.2 -1.2 M${f(cx - hw * 0.78)} ${f(ey + 1)} l-2.4 0.6 M${f(cx + hw * 0.78)} ${f(ey - 0.5)} l2.2 -1.2 M${f(cx + hw * 0.78)} ${f(ey + 1)} l2.4 0.6"/>
+      ${old > 0.45 ? `<path d="M${f(cx - hw * jaw - 1)} ${f(cy + hh * 0.62)} Q${f(cx - hw * jaw + 0.6)} ${f(cy + hh * 0.8)} ${f(cx - hw * 0.42)} ${f(cy + hh * 0.86)} M${f(cx + hw * jaw + 1)} ${f(cy + hh * 0.62)} Q${f(cx + hw * jaw - 0.6)} ${f(cy + hh * 0.8)} ${f(cx + hw * 0.42)} ${f(cy + hh * 0.86)}"/>` : ''}
     </g>`);
+    // 처진 볼살
+    if (old > 0.45) parts.push(`<path d="M${f(cx - hw)} ${f(cy + hh * 0.5)} Q${f(cx - hw * 0.7)} ${f(cy + hh * 0.95)} ${cx} ${f(chin + 1)} Q${f(cx + hw * 0.7)} ${f(cy + hh * 0.95)} ${f(cx + hw)} ${f(cy + hh * 0.5)} L${f(cx + hw)} ${f(chin + 4)} L${f(cx - hw)} ${f(chin + 4)}Z" fill="${skinShadow}" opacity="${f(Math.min(0.3, (old - 0.45) * 0.8))}"/>`);
+    // 검버섯
+    if (old > 0.4) {
+      const sr = rngFrom(hashStr('a' + keyOf(p)));
+      let spots = '';
+      const n = Math.round((old - 0.4) * 12);
+      for (let i = 0; i < n; i++) {
+        const s = sr() < 0.5 ? -1 : 1;
+        spots += `<ellipse cx="${f(cx + s * hw * (0.45 + sr() * 0.4))}" cy="${f(top + hh * (0.25 + sr() * 0.9))}" rx="${f(0.6 + sr() * 0.7)}" ry="${f(0.5 + sr() * 0.5)}" fill="${shade(skin, 0.38)}" opacity="0.45"/>`;
+      }
+      parts.push(spots);
+    }
   }
+  // 근심: 미간 주름
+  if (mood === 'stressed' || mood === 'cold') {
+    parts.push(`<path d="M${f(cx - 1.2)} ${f(ey - hh * 0.3)} l0.4 3 M${f(cx + 1.2)} ${f(ey - hh * 0.3)} l-0.4 3" fill="none" stroke="${shade(skin, 0.5)}" stroke-width="0.55" stroke-linecap="round" opacity="0.7"/>`);
+  }
+  // 아픔: 핏기 없는 그늘
+  if (mood === 'sick') parts.push(`<rect x="${cx - hw}" y="${top}" width="${hw * 2}" height="${hh * 2}" fill="#6f7a5e" opacity="0.08"/>`);
   parts.push('</g>');
 
   // 눈썹·눈·코·입
@@ -254,8 +300,15 @@ function drawFace(game, p, ageY, stage, scars, ring) {
     const ir = eh * 0.95;
     parts.push(`<circle cx="${f(ex + s * 0.2)}" cy="${f(ey + eh * 0.05)}" r="${f(ir)}" fill="${eyeCol}"/><circle cx="${f(ex + s * 0.2)}" cy="${f(ey + eh * 0.05)}" r="${f(ir * 0.45)}" fill="#120c08"/>`);
     parts.push(`<circle cx="${f(ex + s * 0.2 - ir * 0.35)}" cy="${f(ey - ir * 0.3)}" r="${f(ir * 0.18)}" fill="#fff" opacity="0.35"/>`);
+    // 처진 눈꺼풀 (지침·아픔·나이)
+    const droop = (mood === 'tired' ? 0.85 : mood === 'sick' ? 0.6 : 0) + (old > 0.5 ? (old - 0.5) * 0.6 : 0);
+    const lidY = ey - eh * (1.4 - Math.min(1.1, droop) * 1.6);
+    if (droop > 0) parts.push(`<path d="M${f(ex - ew * 1.05)} ${f(ey + tilt * 0.3)} Q${ex} ${f(ey - eh * 1.6)} ${f(ex + ew * 1.05)} ${f(ey - tilt * 0.3)} Q${ex} ${f(lidY + eh * 0.2)} ${f(ex - ew * 1.05)} ${f(ey + tilt * 0.3)}Z" fill="${shade(skin, 0.08)}"/>`);
     // 윗눈꺼풀 선 (굵게)
-    parts.push(`<path d="M${f(ex - ew * 1.05)} ${f(ey + tilt * 0.3 + 0.2)} Q${ex} ${f(ey - eh * 1.4)} ${f(ex + ew * 1.05)} ${f(ey - tilt * 0.3 + 0.2)}" fill="none" stroke="${INK}" stroke-width="1.15" stroke-linecap="round"/>`);
+    parts.push(`<path d="M${f(ex - ew * 1.05)} ${f(ey + tilt * 0.3 + 0.2)} Q${ex} ${f(droop > 0 ? lidY : ey - eh * 1.4)} ${f(ex + ew * 1.05)} ${f(ey - tilt * 0.3 + 0.2)}" fill="none" stroke="${INK}" stroke-width="1.15" stroke-linecap="round"/>`);
+    // 눈 밑 그늘 (지침·아픔·나이)
+    const bag = (mood === 'tired' || mood === 'sick' ? 0.7 : 0) + (old > 0.3 ? old * 0.5 : 0);
+    if (bag > 0) parts.push(`<path d="M${f(ex - ew * 0.9)} ${f(ey + eh * 1.1)} Q${ex} ${f(ey + eh * 2.6)} ${f(ex + ew * 0.95)} ${f(ey + eh * 0.95)}" fill="none" stroke="${shade(skin, 0.42)}" stroke-width="0.7" stroke-linecap="round" opacity="${f(Math.min(0.75, bag))}"/>`);
     parts.push(`<path d="M${f(ex - ew * 0.95)} ${f(ey - eh * 1.25)} Q${ex} ${f(ey - eh * 2)} ${f(ex + ew * 0.9)} ${f(ey - eh * 1.2)}" fill="none" stroke="${shade(skin, 0.45)}" stroke-width="0.5" opacity="0.7"/>`);
     // 아랫눈꺼풀
     parts.push(`<path d="M${f(ex - ew * 0.7)} ${f(ey + eh * 0.85)} Q${ex} ${f(ey + eh * 1.25)} ${f(ex + ew * 0.8)} ${f(ey + eh * 0.7)}" fill="none" stroke="${shade(skin, 0.4)}" stroke-width="0.5"/>`);
@@ -264,7 +317,10 @@ function drawFace(game, p, ageY, stage, scars, ring) {
     const bt = 0.9 + g.brow * (male ? 1.5 : 0.8) - babyish * 0.4;
     const browCol = gray > 0.5 ? mixHex(hairDark, '#d8d2c6', 0.5) : hairDark;
     if (stage !== 'baby') {
-      parts.push(`<path d="M${f(ex - s * ew * 1.15)} ${f(by + 1.2)} Q${f(ex - s * ew * 0.2)} ${f(by - 1.4 - g.brow)} ${f(ex + s * ew * 1.25)} ${f(by + 0.6 + (male ? 0 : -0.3))}" fill="none" stroke="${browCol}" stroke-width="${f(bt)}" stroke-linecap="round"/>`);
+      // 표정에 따라 안쪽 끝이 내려가거나(찡그림) 올라간다(근심)
+      const inner = mood === 'cold' ? 1.8 : mood === 'stressed' ? -1.3 : mood === 'tired' || mood === 'sick' ? -0.6 : mood === 'warm' ? -0.4 : 0;
+      const mid = mood === 'cold' ? 0.8 : mood === 'warm' ? -0.4 : 0;
+      parts.push(`<path d="M${f(ex - s * ew * 1.15)} ${f(by + 1.2 + inner)} Q${f(ex - s * ew * 0.2)} ${f(by - 1.4 - g.brow + mid)} ${f(ex + s * ew * 1.25)} ${f(by + 0.6 + (male ? 0 : -0.3))}" fill="none" stroke="${browCol}" stroke-width="${f(bt)}" stroke-linecap="round"/>`);
     } else {
       parts.push(`<path d="M${f(ex - ew)} ${f(by + 1)} Q${ex} ${f(by - 0.6)} ${f(ex + ew)} ${f(by + 1)}" fill="none" stroke="${browCol}" stroke-width="0.5" opacity="0.5"/>`);
     }
@@ -286,8 +342,12 @@ function drawFace(game, p, ageY, stage, scars, ring) {
   const my = cy + hh * (0.64 - babyish * 0.04);
   const mw = hw * (0.3 + g.mouth * 0.12) * (1 - babyish * 0.25);
   const lipCol = mixHex(skin, '#8a3f34', 0.35 + (male ? 0 : 0.12));
-  const set = (g.mouth - 0.5) * 0.8; // 입꼬리
-  parts.push(`<path d="M${f(cx - mw)} ${f(my)} Q${cx} ${f(my - 1.4 - g.lips)} ${f(cx + mw)} ${f(my)} Q${cx} ${f(my + 1.6 + g.lips * 1.2)} ${f(cx - mw)} ${f(my)}Z" fill="${lipCol}" opacity="0.75"/>`);
+  const moodSet = { warm: -1.8, cold: 1.4, stressed: 0.7, tired: 0.6, sick: 0.8 }[mood] ?? 0;
+  const set = (g.mouth - 0.5) * 0.8 + moodSet + old * 0.6; // 입꼬리 (+면 처짐)
+  const thin = 1 - old * 0.55; // 나이 들면 입술이 얇아진다
+  parts.push(`<path d="M${f(cx - mw)} ${f(my + set * 0.4)} Q${cx} ${f(my - (1.4 + g.lips) * thin)} ${f(cx + mw)} ${f(my + set * 0.4)} Q${cx} ${f(my + (1.6 + g.lips * 1.2) * thin)} ${f(cx - mw)} ${f(my + set * 0.4)}Z" fill="${lipCol}" opacity="${f(0.75 - old * 0.25)}"/>`);
+  // 웃을 때 입가 주름
+  if (mood === 'warm' && stage !== 'baby') parts.push(`<path d="M${f(cx - mw - 0.6)} ${f(my - 1.6)} q-1 1.6 0.2 2.8 M${f(cx + mw + 0.6)} ${f(my - 1.6)} q1 1.6 -0.2 2.8" fill="none" stroke="${shade(skin, 0.4)}" stroke-width="0.5" stroke-linecap="round" opacity="0.6"/>`);
   parts.push(`<path d="M${f(cx - mw)} ${f(my + set * 0.5)} Q${f(cx - mw * 0.3)} ${f(my + 0.5)} ${cx} ${f(my + 0.1)} Q${f(cx + mw * 0.3)} ${f(my + 0.5)} ${f(cx + mw)} ${f(my + set * 0.5)}" fill="none" stroke="${INK}" stroke-width="0.85" stroke-linecap="round"/>`);
   parts.push(`<path d="M${f(cx - mw * 0.5)} ${f(my + 2.6 + g.lips)} Q${cx} ${f(my + 3.4 + g.lips)} ${f(cx + mw * 0.5)} ${f(my + 2.6 + g.lips)}" fill="none" stroke="${shade(skin, 0.35)}" stroke-width="0.6" opacity="0.7"/>`);
 

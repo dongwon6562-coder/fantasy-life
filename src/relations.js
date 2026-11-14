@@ -17,6 +17,19 @@ import { living, byId, ageYears, fullName, has, makePerson } from './npc.js';
 import { JOBS } from './data.js';
 import { J, join, up, gains, splitResult, pickLine } from './narrative/text.js';
 import * as S from './narrative/talk-text.js';
+import { reputationShift } from './crime.js';
+
+// 악명과 이름값 (game.life)
+const noto = (g) => g.life?.notoriety ?? 0;
+const renownOf = (g) => g.life?.renown ?? 0;
+// 고백·청혼 때 악명이 미치는 영향: 바른 사람일수록 꺼린다. 거친 사람은 오히려 끌린다.
+function repOdds(g, p) {
+  const n = noto(g);
+  let k = -n / 200;
+  if (has(p, 'pious') || has(p, 'kind')) k *= 2;
+  if (has(p, 'cruel') || has(p, 'brave')) k = n / 400;
+  return k + renownOf(g) / 300;
+}
 
 const mi = (g) => g.date.year * 12 + g.date.month;
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
@@ -140,6 +153,7 @@ export function visitPerson(g, rng, p) {
   const long = p.lastSeen != null && mi(g) - p.lastSeen > 12;
   let gain = rng.int(4, 9) + (has(p, 'kind') ? 2 : 0) - (has(p, 'cruel') ? 3 : 0) + (long ? 2 : 0);
   if (r === 'enemy') gain = Math.round(gain / 3);
+  if (!['father', 'mother', 'sibling', 'child', 'spouse'].includes(r)) gain = Math.max(r === 'enemy' ? 0 : 1, gain + reputationShift(g, p));
   p.affection = Math.min(100, p.affection + gain);
   const c = gainStat(g, 'cha', 0.4);
   if (canRomance(g, p)) {
@@ -205,6 +219,8 @@ function opening(g, p, body) {
   if (mems.length && rng.chance(0.5)) {
     const m = rng.pick(mems);
     parts.push((m.tone > 0 ? rng.pick(S.RECALL_GOOD) : rng.pick(S.RECALL_BAD))(p.name, recallOf(m)));
+  } else if (!home && (noto(g) >= 15 || renownOf(g) >= 15) && rng.chance(0.45)) {
+    parts.push(S.reputationLine(p, noto(g), renownOf(g)));
   } else if (t.length && rng.chance(0.6)) parts.push(S.MOOD[rng.pick(t)](p.name));
   const b = Array.isArray(body) ? rng.pick(body) : body;
   parts.push(typeof b === 'function' ? b(p, g) : b);
@@ -363,7 +379,7 @@ EVENTS.push(
     (p) => `${J(n(p), '이/가')} 일어서려는 순간, 소매를 붙잡았다. 붙잡고 나서야 무슨 말을 할지 생각했다.`,
   ], [
     ['마음을 고백한다', (g, rng, p) => {
-      const chance = clamp(0.15 + (p.romance - 40) / 60 + (p.affection - 35) / 150 + g.player.stats.cha / 400, 0.05, 0.95);
+      const chance = clamp(0.15 + (p.romance - 40) / 60 + (p.affection - 35) / 150 + g.player.stats.cha / 400 + repOdds(g, p), 0.05, 0.95);
       if (rng.chance(chance)) {
         p.bond = 'lover';
         p.romance = Math.min(100, p.romance + 10);
@@ -387,7 +403,7 @@ EVENTS.push(
 
   talkEvent('propose', '청혼', (p) => `${J(n(p), '과/와')} 함께한 지 꽤 되었다. 성광 예배당 앞을 지날 때마다 둘 다 같은 생각을 하는 걸 알았다.`, [
     ['청혼한다', (g, rng, p) => {
-      let chance = 0.4 + (p.romance - 60) / 50 + (p.affection - 50) / 100;
+      let chance = 0.4 + (p.romance - 60) / 50 + (p.affection - 50) / 100 + repOdds(g, p) * 1.5;
       const poor = g.player.money + g.player.familyMoney < 40;
       if (poor && (has(p, 'greedy') || has(p, 'ambitious'))) chance -= 0.25;
       if (rng.chance(clamp(chance, 0.05, 0.95))) return marry(g, p);

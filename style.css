@@ -372,3 +372,72 @@ h1, h2, h3 { font-family: var(--f-display); font-weight: 700; text-wrap: balance
   .event p { line-height: 1.7; font-size: 14.5px; }
   .event .opt { padding: 10px 12px; min-height: 46px; font-size: 14.5px; }
 }
+
+/* ---------- 3단계 연출: 설정 · 처음 안내 · 장면 전환 ---------- */
+/* 글자 크기 (지도는 그대로 둔다) */
+html[data-text="l"] .card:not(.mapcard), html[data-text="l"] .sheet, html[data-text="l"] .ev-body, html[data-text="l"] .guide-bubble { zoom: 1.12; }
+html[data-text="xl"] .card:not(.mapcard), html[data-text="xl"] .sheet, html[data-text="xl"] .ev-body, html[data-text="xl"] .guide-bubble { zoom: 1.25; }
+.primary.sm { min-height: 36px; padding: 6px 14px; font-size: 14px; }
+
+/* 설정 */
+.settings { display: grid; gap: 12px; }
+.set-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; }
+.set-row .lbl { min-width: 96px; font-size: 14px; color: var(--muted); }
+.set-row .seg button { min-height: 38px; }
+.vol-list { display: grid; gap: 6px; flex: 1; min-width: 220px; }
+.vol { display: grid; grid-template-columns: 52px 1fr 34px; align-items: center; gap: 10px; font-size: 14px; }
+.vol input[type="range"] { width: 100%; accent-color: var(--brass); min-height: 32px; }
+.vol output { font-variant-numeric: tabular-nums; color: var(--muted); text-align: right; }
+
+/* 처음 안내 */
+.guide-ring, .guide-bubble { position: absolute; z-index: 25; }
+.guide.fixed .guide-ring, .guide.fixed .guide-bubble { position: fixed; }
+.guide-ring { pointer-events: none; border: 2px solid var(--brass); border-radius: 10px; box-shadow: 0 0 0 4px rgba(201, 162, 90, .18), 0 0 24px rgba(201, 162, 90, .35); }
+.guide-bubble {
+  background: var(--parch); color: var(--parch-ink); border-radius: 8px; padding: 12px 14px 10px; display: grid; gap: 6px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, .55); border: 1px solid #a88c64;
+}
+.guide-bubble::before {
+  content: ''; position: absolute; left: var(--arrow-x, 50%); top: -7px; width: 12px; height: 12px; margin-left: -6px;
+  background: var(--parch); border-left: 1px solid #a88c64; border-top: 1px solid #a88c64; transform: rotate(45deg);
+}
+.guide-bubble.above::before { top: auto; bottom: -7px; transform: rotate(225deg); }
+.guide-bubble strong { font-family: var(--f-display); font-size: 16px; }
+.guide-bubble p { margin: 0; font-size: 14px; line-height: 1.6; }
+.guide-btns { display: flex; justify-content: flex-end; gap: 8px; margin-top: 2px; }
+.guide-btns .ghost { color: var(--parch-ink); border-color: #a88c64; }
+
+/* 달 넘김 카드 */
+.month-card {
+  position: fixed; inset: 0; z-index: 40; display: grid; place-items: center; cursor: pointer;
+  background: radial-gradient(ellipse at center, rgba(23, 19, 15, .93), rgba(10, 8, 6, .98));
+}
+.mc-in { display: grid; justify-items: center; gap: 4px; text-align: center; padding: 24px; }
+.mc-yr { color: var(--brass); letter-spacing: .22em; font-size: 13px; }
+.mc-in strong { font-family: var(--f-display); font-size: 52px; line-height: 1.1; color: var(--ink); }
+.mc-cond { color: var(--muted); font-size: 15px; }
+.mc-line { margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--brass-dim); color: var(--ink); font-family: var(--f-display); font-size: 17px; }
+
+/* 풍경 겹쳐 바꾸기 */
+.scene img.prev { position: absolute; inset: 0 auto auto 0; }
+
+/* 움직임: html.motion일 때만 (설정 '줄이기'나 기기의 '동작 줄이기'면 없음) */
+html.motion .month-card { animation: mc-in .3s ease-out; }
+html.motion .month-card .mc-in { animation: mc-rise .5s ease-out; }
+html.motion .month-card.out { animation: mc-out .38s ease-in forwards; }
+@keyframes mc-in { from { opacity: 0; } }
+@keyframes mc-rise { from { opacity: 0; transform: translateY(10px); } }
+@keyframes mc-out { to { opacity: 0; } }
+html:not(.motion) .month-card.out { display: none; }
+html.motion .scene img.xfade { animation: xfade 1.2s ease; position: relative; }
+@keyframes xfade { from { opacity: 0; } }
+html.motion .main.enter { animation: view-in .28s ease-out; }
+@keyframes view-in { from { opacity: 0; transform: translateY(6px); } }
+.ev-art { overflow: hidden; }
+.ev-art i { position: absolute; inset: 0; background-size: cover; background-position: 55% 60%; }
+html.motion .ev-art i { animation: kenburns 24s ease-in-out infinite alternate; }
+@keyframes kenburns { from { transform: scale(1); } to { transform: scale(1.1) translate(-2%, 1%); } }
+html.motion .event .opt, html.motion .event #ev-close { animation: opt-in .35s ease-out backwards; animation-delay: calc(.12s + var(--i, 0) * .07s); }
+@keyframes opt-in { from { opacity: 0; transform: translateY(6px); } }
+html.motion .guide-bubble { animation: mc-rise .25s ease-out; }
+html:not(.motion) .event { animation: none; }
