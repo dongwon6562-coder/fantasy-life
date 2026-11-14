@@ -133,6 +133,7 @@ defineScene('party_manage', {
       ])} 불씨가 꺼질 때까지 이야기가 이어졌다.`;
     }
     if (key === 'share') {
+      if (g.player.money < ms.length * 10) return '주머니를 뒤져 보니 돈이 모자랐다.';
       g.player.money -= ms.length * 10;
       for (const p of ms) addLoyalty(p, p.traits.includes('greedy') ? 12 : 6);
       return '전리품의 몫을 넉넉히 나눴다. 욕심 많은 동료일수록 입꼬리가 오래 올라가 있었다.';

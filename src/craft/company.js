@@ -23,6 +23,7 @@ const payOf = (g, c) => Math.max(1, Math.round((2 + c.fortune / 15) * (PLACES[sh
 
 /* ---------- 상단의 거래 제의 ---------- */
 defineScene('company_offer', {
+  need: (g) => !!shop(g),
   title: (g, s) => `${s.name}의 제의`,
   text: (g, s) => {
     const c = companyById(g, s.id);
@@ -40,6 +41,7 @@ defineScene('company_offer', {
 
 /* ---------- 내 상단 세우기 ---------- */
 defineScene('found_company', {
+  need: (g) => !!shop(g),
   title: () => '내 이름을 건 상단',
   text: (g) => `'${shop(g).name}'의 이름은 이제 고장 밖까지 난다. 거래처와 창고, 짐수레를 갖춘 상단을 세우면 왕국의 큰 상단들과 어깨를 겨룰 수 있다. 은화 ${FOUND_COST}닢이 든다. 상단은 세상 형편에 따라 크게 흥하기도, 하루아침에 망하기도 한다.`,
   choices: (g) => [...(g.player.money >= FOUND_COST ? [{ label: `상단을 세운다 (은화 ${FOUND_COST}닢)`, key: 'yes' }] : []), { label: '가게 하나로 족하다', key: 'no' }],

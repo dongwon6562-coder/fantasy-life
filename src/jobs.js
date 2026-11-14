@@ -116,14 +116,15 @@ defineScene('seek_job', {
       const w = Math.round(d.wage[0] * PLACES[here].wage);
       return { label: `${d.name}${why ? ` (조건: ${why})` : ` (견습, 한 번에 은화 ${w}닢쯤)`}`, key: d.id };
     });
-    if (life.job) out.push({ label: `지금 일(${WORK[life.job.id].name})을 그만둔다`, key: 'quit' });
+    if (life.job && WORK[life.job.id]) out.push({ label: `지금 일(${WORK[life.job.id].name})을 그만둔다`, key: 'quit' });
     out.push({ label: '그냥 돌아간다', key: 'none' });
     return out;
   },
   resolve(g, rng, s, key) {
     if (key === 'none') return '지금은 마음에 드는 자리가 없었다.';
-    if (key === 'quit') { const n = WORK[L(g).job.id].name; leaveJob(g, `${n} 일을 그만두었다.`); return `${n} 일을 그만두었다. 홀가분하면서도 조금 불안했다.`; }
+    if (key === 'quit') { if (!L(g).job) return '그만둘 일이 이미 없었다.'; const n = WORK[L(g).job.id]?.name ?? '하던';  leaveJob(g, `${n} 일을 그만두었다.`); return `${n} 일을 그만두었다. 홀가분하면서도 조금 불안했다.`; }
     const d = WORK[key];
+    if (!d) return '찾던 자리는 이미 다른 사람이 채웠다.';
     const why = d.req?.(g);
     if (why) { stress(g, 4); return `${d.name} 자리는 ${why} 이상은 되어야 한다며 거절당했다.`; }
     takeJob(g, key);

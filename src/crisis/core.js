@@ -144,9 +144,13 @@ defineScene('crisis_turn', {
     const c = active(g);
     if (!c || c.start !== s.cid) return '지나간 일이다.';
     const ph = defOf(c).phases[s.phase];
-    const ch = ph.choices(g, c).find((x) => x.key === key);
-    if (ch) deed(g, ch.stance, 2);
-    return ph.resolve(g, rng, c, key);
+    // 고른 길이 그 사이 막혔으면(돈이 없어짐, 치유사 동료가 떠남 등) 같은 편의 남은 길, 없으면 첫 길로 간다
+    const open = ph.choices(g, c);
+    let ch = open.find((x) => x.key === key);
+    if (!ch) { const was = (s.choices ?? []).find((x) => x.key === key); ch = open.find((x) => x.stance === was?.stance) ?? open[0]; }
+    if (!ch) return '지나간 일이다.';
+    deed(g, ch.stance, 2);
+    return ph.resolve(g, rng, c, ch.key);
   },
 });
 
@@ -196,3 +200,9 @@ export function crisisStatus(g) {
 }
 
 export { sceneQueued };
+
+// 대 잇기: 위기는 세상의 일이라 이어진다. 다만 어느 편에 섰는지는 새 사람이 다시 정한다.
+HOOKS.heir.push((g) => {
+  const c = CR(g).active;
+  if (c) c.deeds = { hero: 0, idle: 0, use: 0 };
+});

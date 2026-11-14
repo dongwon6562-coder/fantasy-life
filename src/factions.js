@@ -66,7 +66,7 @@ registerJob('knight', {
   name: '기사단', faction: 'knights', places: ['verden', 'leocast'], skill: 'sword', stat: 'str', stat2: 'wil',
   ranks: FACTIONS.knights.ranks, wage: [1, 3, 6, 10], npcJob: 'knight', lodging: 'barracks',
   rankOf: facRank('knights'),
-  title: (g) => `${FACTIONS.knights.seats[fac(g, 'knights').order]} ${FACTIONS.knights.ranks[fac(g, 'knights').rank]}`,
+  title: (g) => `${FACTIONS.knights.seats[fac(g, 'knights')?.order] ?? '기사단'} ${FACTIONS.knights.ranks[fac(g, 'knights')?.rank ?? 0]}`,
   work(g, rng) {
     const f = fac(g, 'knights');
     f.merit += f.order === 'leocast' ? 2 : 1;
@@ -96,7 +96,7 @@ registerJob('cleric', {
   name: '성광교', faction: 'church', places: ['harfen', 'leocast'], skill: 'letters', stat: 'wil', stat2: 'cha',
   ranks: FACTIONS.church.ranks, wage: [1, 2, 4, 8], npcJob: 'priest', lodging: 'barracks',
   rankOf: facRank('church'),
-  title: (g) => `${FACTIONS.church.seats[L(g).job.place]} ${FACTIONS.church.ranks[fac(g, 'church').rank]}`,
+  title: (g) => `${FACTIONS.church.seats[L(g).job?.place] ?? '성광교'} ${FACTIONS.church.ranks[fac(g, 'church')?.rank ?? 0]}`,
   work(g, rng) {
     const f = fac(g, 'church');
     f.merit += 1;
@@ -121,7 +121,7 @@ registerJob('trader', {
   name: '은저울 상단', faction: 'merchants', places: ['harfen', 'leocast'], skill: 'trade', stat: 'cha', stat2: 'int',
   ranks: FACTIONS.merchants.ranks, wage: [2, 3, 6, 11], npcJob: 'merchant',
   rankOf: facRank('merchants'),
-  title: (g) => `은저울 상단 ${FACTIONS.merchants.ranks[fac(g, 'merchants').rank]}`,
+  title: (g) => `은저울 상단 ${FACTIONS.merchants.ranks[fac(g, 'merchants')?.rank ?? 0]}`,
   work(g, rng) {
     const f = fac(g, 'merchants');
     f.merit += 1;
@@ -208,7 +208,10 @@ defineScene('faction_door', {
   },
   resolve(g, rng, s, key) {
     if (key === 'none') return '문 앞까지 갔다가 발길을 돌렸다.';
-    return JOIN[key](g, rng);
+    // 그 사이 다른 고장으로 왔다면 그 문은 여기 없다. guild_rank 등 소속 이름이 아닌 열쇠는 그대로 둔다
+    const fk = key.replace(/_rank$/, '');
+    if (FACTIONS[fk] && !FACTIONS[fk].seats[L(g).place]) return '찾아간 곳에는 그 문이 없었다. 다른 고장의 일이었다.';
+    return JOIN[key]?.(g, rng) ?? '문은 닫혀 있었다.';
   },
 });
 
@@ -319,3 +322,13 @@ HOOKS.afterActions.push((g, rng, results) => {
 });
 
 export { placePerson, PLACES, gainStat, gainSkill, me, up, gains, tired };
+
+// 저장 맞추기: 소속 일(기사단·성광교·상단)을 하는데 소속 기록이 없으면 말단으로 되살린다 (예전 저장 등)
+HOOKS.migrate.push((g) => {
+  const life = g.life;
+  const id = life?.job?.id;
+  const fid = id && WORK[id]?.faction;
+  if (!fid) return;
+  life.fac ??= {};
+  if (!life.fac[fid]?.member) life.fac[fid] = { member: true, rank: 0, merit: 0, ...(fid === 'knights' ? { order: life.job.place === 'leocast' ? 'leocast' : 'verden' } : {}) };
+});

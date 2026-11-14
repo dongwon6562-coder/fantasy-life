@@ -75,28 +75,45 @@ export function queueScene(g, kind, data = {}, { first = false } = {}) {
 }
 export const sceneQueued = (g, kind) => L(g).queue.some((s) => s.kind === kind) || L(g).scene?.kind === kind;
 
+// 장면이 깨졌을 때(조건이 바뀌어 글이나 선택지를 못 만들 때) 멈추지 않고 그 장면을 버린다.
+// 점검 도구는 SCENE_STRICT.on = true로 켜서 깨진 장면을 오류로 본다.
+export const SCENE_STRICT = { on: false };
+// def.need(g, s)가 거짓이면 그 장면은 띄우지 않고 버린다 (예: 영지 장면인데 영지가 없어졌을 때)
+
 // 장면을 사건 창에 띄운다. force면 떠 있던 사건을 밀어낸다.
-export function showScene(g, s, { force = false } = {}) {
+export function showScene(g, s, opt = {}) { return tryShow(g, s, opt) === 'ok'; }
+
+// 'ok' 띄웠다 | 'wait' 다른 사건이 떠 있어 기다린다 | 'drop' 띄울 수 없는 장면이라 버린다
+function tryShow(g, s, { force = false } = {}) {
   const life = L(g);
   let def = SCENES[s.kind];
-  if (!def) return false;
+  if (!def) return 'drop';
   const pe = g.pendingEvent;
   if (pe && !force) {
-    if (pe.id === SCENE_ID) return false;
+    if (pe.id === SCENE_ID) return 'wait';
     // 한 번뿐인 사건(성인식 등)은 먼저 보여 준다. 되풀이되는 사건은 내가 고른 일에 자리를 내준다.
     const ev = EVENTS.find((e) => e.id === pe.id);
-    if (ev?.once) return false;
+    if (ev?.once) return 'wait';
+  }
+  let choices, title, text;
+  try {
+    if (def.need && !def.need(g, s)) return 'drop';
+    choices = def.choices(g, s);
+    // 장면이 스스로 다른 종류로 바뀔 수 있다 (예: 길 위의 일 → 싸움)
+    if (SCENES[s.kind] && SCENES[s.kind] !== def) { def = SCENES[s.kind]; choices = def.choices(g, s); }
+    choices = (choices ?? []).slice(0, 8);
+    if (!choices.length) return 'drop';
+    title = def.title(g, s);
+    text = def.text(g, s);
+  } catch (e) {
+    if (SCENE_STRICT.on) throw e;
+    return 'drop';
   }
   if (force && life.scene && life.scene !== s) life.queue.unshift(life.scene);
-  let choices = def.choices(g, s);
-  // 장면이 스스로 다른 종류로 바뀔 수 있다 (예: 길 위의 일 → 싸움)
-  if (SCENES[s.kind] && SCENES[s.kind] !== def) { def = SCENES[s.kind]; choices = def.choices(g, s); }
-  choices = (choices ?? []).slice(0, 8);
-  if (!choices.length) return false;
   s.choices = choices;
   life.scene = s;
-  g.pendingEvent = { id: SCENE_ID, title: def.title(g, s), text: def.text(g, s), choices: choices.map((c) => c.label) };
-  return true;
+  g.pendingEvent = { id: SCENE_ID, title, text, choices: choices.map((c) => c.label) };
+  return 'ok';
 }
 
 function resolveScene(g, rng, i) {
@@ -107,7 +124,14 @@ function resolveScene(g, rng, i) {
   const c = s.choices?.[i] ?? s.choices?.[0];
   const def = SCENES[s.kind];
   if (!def || !c) return '';
-  return def.resolve(g, rng, s, c.key) || '';
+  try {
+    const out = def.resolve(g, rng, s, c.key) || '';
+    if (g.player.money < 0) { if (SCENE_STRICT.on) throw new Error(`돈이 음수가 됨: ${s.kind}/${c.key} ${g.player.money}`); g.player.money = 0; }
+    return out;
+  } catch (e) {
+    if (SCENE_STRICT.on) throw e;
+    return '그 일은 흐지부지 끝났다.';
+  }
 }
 
 // resolveEvent가 찾을 수 있게 사건 목록에 자리를 하나 만든다 (조건은 늘 거짓이라 저절로 뽑히지 않는다)
@@ -132,8 +156,10 @@ HOOKS.endOfMonth.push((g) => {
     const s = life.queue[0];
     // 그 사이 다른 곳으로 떠났다면 그곳에서 고르려던 일은 없던 일이 된다
     if (!SCENES[s.kind] || (s.at && (s.at !== life.place || life.travel))) { life.queue.shift(); continue; }
-    if (showScene(g, s)) life.queue.shift();
-    break;
+    const r = tryShow(g, s);
+    if (r === 'wait') break;
+    life.queue.shift();
+    if (r === 'ok') break;
   }
 });
 
@@ -142,3 +168,4 @@ HOOKS.afterActions.push((g) => {
   const life = L(g);
   if (life.scene && g.pendingEvent?.id !== SCENE_ID) life.scene = null;
 });
+export { SCENES };

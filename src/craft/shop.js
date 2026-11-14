@@ -99,6 +99,7 @@ ACTIONS.push({
 
 const PRICE = ['싸게', '보통으로', '비싸게'];
 defineScene('shop_manage', {
+  need: (g) => !!shop(g),
   title: (g) => `'${shop(g).name}'`,
   text: (g) => {
     const sh = shop(g);
@@ -121,7 +122,7 @@ defineScene('shop_manage', {
     if (!sh) return '';
     if (key === 'down') { sh.price -= 1; return '값을 내렸다. 옆 가게 주인이 눈을 흘겼다.'; }
     if (key === 'up') { sh.price += 1; return '값을 올렸다. 단골 몇이 투덜거렸지만 발길을 끊지는 않았다.'; }
-    if (key === 'sign') { g.player.money -= 30; addFame(g, sh.trade, 3); return '새 간판에 금박을 입혔다. 지나가던 사람들이 걸음을 멈추고 안을 들여다보았다.'; }
+    if (key === 'sign') { if (g.player.money < 30) return '주머니를 뒤져 보니 돈이 모자랐다.'; g.player.money -= 30; addFame(g, sh.trade, 3); return '새 간판에 금박을 입혔다. 지나가던 사람들이 걸음을 멈추고 안을 들여다보았다.'; }
     if (key === 'apprentice') { queueScene(g, 'apprentice_pick'); return '제자를 구한다는 말을 냈다. 다음 달이면 찾아오는 아이가 있을 것이다.'; }
     if (key === 'close') {
       const back = Math.round(SHOP_COST[sh.place] * 0.4);
@@ -141,6 +142,7 @@ const skillWord = (v) => (v < 20 ? '서툶' : v < 40 ? '제법' : v < 55 ? '쓸 
 export const apprentices = (g) => (C(g).apprentices ?? []).map((id) => byId(g, id)).filter((p) => p && p.alive);
 
 defineScene('apprentice_pick', {
+  need: (g) => !!shop(g),
   title: () => '제자를 구한다',
   text: (g, s) => {
     if (!s.cands) s.cands = makeCandidates(g, s);
@@ -192,6 +194,7 @@ function releaseApprentice(g, p, why) {
 }
 
 defineScene('apprentice_done', {
+  need: (g) => !!shop(g),
   title: () => '제자의 독립',
   text: (g, s) => {
     const p = byId(g, s.id);

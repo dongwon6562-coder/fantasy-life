@@ -69,7 +69,9 @@ ACTIONS.push({
     return playerAge(g) >= 14;
   },
   run(g) {
-    const [id, d] = dungeonHere(g);
+    const dh = dungeonHere(g);
+    if (!dh) return '미궁 입구를 찾아갔지만, 이 고장에는 들어갈 만한 미궁이 없었다.';
+    const [id, d] = dh;
     queueScene(g, 'dungeon', { id });
     return `${d.name} 앞에 섰다.`;
   },

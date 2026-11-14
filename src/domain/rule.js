@@ -95,6 +95,7 @@ export function domainReport(g) {
 }
 
 defineScene('domain_rule', {
+  need: (g) => !!D(g),
   title: (g) => `${D(g).name} 다스리기`,
   text: (g) => domainReport(g),
   choices: (g) => {
@@ -147,7 +148,7 @@ defineScene('domain_rule', {
       if (d.treasury < 20) d.morale = clamp(d.morale - 2, 0, 100);
       return `금고에서 ${money(n)}을 꺼냈다. 집사가 말없이 장부에 적었다.`;
     }
-    if (key === 'give') { g.player.money -= 50; d.treasury += 50; return '내 주머니에서 은화 50닢을 금고에 넣었다.'; }
+    if (key === 'give') { if (g.player.money < 50) return '주머니를 뒤져 보니 돈이 모자랐다.'; g.player.money -= 50; d.treasury += 50; return '내 주머니에서 은화 50닢을 금고에 넣었다.'; }
     return '오늘은 장부를 덮었다.';
   },
 });
@@ -182,6 +183,7 @@ export function build(g, id) {
 }
 
 defineScene('domain_build', {
+  need: (g) => !!D(g),
   title: (g) => `${D(g).name}에 무엇을 지을까`,
   text: (g) => `금고 ${money(D(g).treasury)}, 내 돈 ${money(g.player.money)}. 금고가 모자라면 내 돈으로 메운다. ${buildable(g).map((id) => `${BUILDINGS[id].name}(${money(buildCost(g, id))}): ${BUILDINGS[id].desc}`).join(' ')}`,
   choices: (g) => [
@@ -189,7 +191,7 @@ defineScene('domain_build', {
     { label: '아직은 짓지 않는다', key: 'none' },
   ],
   resolve(g, rng, s, key) {
-    if (!BUILDINGS[key]) return '설계도를 접어 두었다.';
+    if (!BUILDINGS[key] || !D(g)) return '설계도를 접어 두었다.';
     if (!build(g, key)) return `${J(BUILDINGS[key].name, '을/를')} 지을 돈이 모자란다. 석공 우두머리가 모자를 쓰고 돌아갔다.`;
     tired(g, 8);
     return rng.pick([
@@ -343,7 +345,7 @@ ev({
   choices: (g) => [{ label: '참석해 축배를 든다', key: 'go' }, ...(g.player.money >= 10 ? [{ label: '은화 10닢을 선물로 보낸다', key: 'gift' }] : []), { label: '바쁘다고 사양한다', key: 'no' }],
   resolve(g, rng, d, key) {
     if (key === 'go') { d.morale += 4; stress(g, -8); return '밤늦도록 춤과 노래가 이어졌다. 신랑 아버지가 영주에게 술을 따르며 눈시울을 붉혔다.'; }
-    if (key === 'gift') { g.player.money -= 10; d.morale += 2; return '은화를 보냈다. 신부가 영주관 문 앞에 들꽃 한 다발을 두고 갔다.'; }
+    if (key === 'gift') { if (g.player.money < 10) return '주머니를 뒤져 보니 돈이 모자랐다.'; g.player.money -= 10; d.morale += 2; return '은화를 보냈다. 신부가 영주관 문 앞에 들꽃 한 다발을 두고 갔다.'; }
     d.morale -= 1; return '사양했다. 촌장은 이해한다고 했지만, 얼굴은 그렇지 않았다.';
   },
 });
@@ -351,12 +353,13 @@ ev({
 const evById = (id) => DOMAIN_EVENTS.find((e) => e.id === id);
 
 defineScene('domain_event', {
+  need: (g) => !!D(g),
   title: (g, s) => evById(s.ev)?.title ?? '영지의 일',
-  text: (g, s) => evById(s.ev).text(g, D(g), s),
+  text: (g, s) => evById(s.ev)?.text(g, D(g), s) ?? '영지에 작은 일이 있었다.',
   choices: (g, s) => (D(g) && evById(s.ev) ? evById(s.ev).choices(g, D(g), s) : []),
   resolve(g, rng, s, key) {
     const d = D(g);
-    if (!d) return '';
+    if (!d || !evById(s.ev)) return '영지의 일은 저절로 가라앉았다.';
     const out = evById(s.ev).resolve(g, rng, d, key, s);
     tidy(d);
     return out;
@@ -405,6 +408,7 @@ BATTLE_OUTS.revolt = {
 
 /* ---------- 작위 오르기 ---------- */
 defineScene('domain_rank', {
+  need: (g) => !!D(g),
   title: () => '작위',
   text: (g, s) => {
     const d = D(g);
