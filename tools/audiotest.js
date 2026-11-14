@@ -4,7 +4,10 @@ import '../src/content.js';
 import { TRACKS } from '../src/audio/tracks.js';
 import { compileTrack, scheduleBar, nextPos } from '../src/audio/music.js';
 import { SFX } from '../src/audio/sfx.js';
-import { pickTrack, placeTrack, eventMood, fightSfx, seasonOf } from '../src/audio/pick.js';
+import { pickTrack, pickMusic, placePool, eventMood, fightSfx, seasonOf, ambienceWhere } from '../src/audio/pick.js';
+import { AMBIENCES, pickAmbience } from '../src/audio/ambience.js';
+import { conditionText } from '../src/art/scene.js';
+import { chordLine, melodyNotes } from '../src/audio/music.js';
 import { audio } from '../src/audio/index.js';
 import { newGame, endMonth, availableActions, slotsFor, rngOf } from '../src/game.js';
 import { resolveEvent } from '../src/events.js';
@@ -43,12 +46,27 @@ expect(pickTrack(g0({ life: { place: 'verden' } })), 'castle', '베르덴');
 expect(pickTrack(g0({ life: { place: 'leocast' } })), 'capital', '왕도');
 expect(pickTrack(g0({ life: { place: 'ern', travel: { to: 'harfen' } } })), 'road', '길 위');
 expect(pickTrack(g0({ world: { famine: true } })), 'hardship', '기근');
+expect(placePool(g0({ world: { famine: true } })).join(), 'hardship,village_spring', '기근 곡 묶음');
+expect(placePool(g0()).join(), 'village_spring,ern_fields,ern_dusk', '에른 봄 곡 묶음');
+expect(placePool(g0({ life: { place: 'harfen' } })).join(), 'town,market', '하르펜 곡 묶음');
+expect(pickTrack(g0({ player: { id: 1 }, people: [{ id: 1, ageMonths: 10 }] })), 'cradle', '갓난아기');
+expect(pickMusic(g0()).cue, false, '배경 곡');
+expect(pickTrack(g0({ pendingEvent: { id: 'duel_round', title: '결투 · 1합', text: '' } })), 'duel', '결투');
 expect(pickTrack(g0({ over: true })), 'solemn', '삶의 끝');
 const scene = (kind, extra = {}) => g0({ pendingEvent: { id: 'life_scene', title: '', text: '' }, life: { place: 'harfen', scene: { kind, ...extra } } });
 expect(pickTrack(scene('fight', { enc: {} })), 'battle', '싸움');
 expect(pickTrack(scene('fight', { enc: { nemesisId: 3 } })), 'boss', '숙적');
 expect(pickTrack(scene('dungeon')), 'dungeon', '미궁');
 expect(pickTrack(scene('housing')), 'town', '집 구하기 장면');
+expect(pickTrack(scene('battle')), 'war', '전쟁');
+expect(pickTrack(scene('gang_offer')), 'underworld', '뒷골목');
+expect(pickTrack(scene('domain_rule')), 'court', '영지');
+expect(pickMusic(scene('fight', { enc: {} })).cue, true, '상황 곡');
+expect(pickAmbience(ambienceWhere(pickMusic(scene('fight', { enc: {} }))), '한낮 · 맑음'), 'none', '싸움 중 환경음');
+expect(pickAmbience(ambienceWhere(pickMusic(scene('dungeon'))), ''), 'dungeon', '미궁 환경음');
+expect(pickAmbience('village_spring', '한낮 · 비'), 'rain', '비 환경음');
+expect(pickAmbience('village_summer', '밤 · 맑음'), 'night', '밤 환경음');
+expect(pickAmbience('town', '한낮 · 흐림'), 'town', '도시 환경음');
 expect(pickTrack(g0({ pendingEvent: { id: 'x', title: '수확제', text: '' } })), 'festive', '수확제');
 expect(pickTrack(g0({ pendingEvent: { id: 'x', title: '국상', text: '' } })), 'solemn', '국상');
 expect(pickTrack(g0({ pendingEvent: { id: 'x', title: '숲가의 늑대', text: '' } })), 'tense', '늑대');
@@ -60,15 +78,19 @@ expect(fightSfx('놈들을 쓰러뜨렸다.'), 'victory', '승리 소리');
 for (let m = 1; m <= 12; m++) if (!ids.has(`village_${seasonOf(m)}`)) fail(`계절 곡 없음: ${m}월`);
 
 // 3. 실제 게임을 돌리며: 고른 곡이 늘 있는 곡인지, 행동마다 효과음이 있는지
-const used = new Map();
+const used = new Map(); const usedAmb = new Map(); const ambIds = new Set(AMBIENCES.map((a) => a.id));
 for (let run = 0; run < 12; run++) {
   const g = newGame({ name: '소리', sex: run % 2 ? 'm' : 'f', familyId: ['farmer', 'fallen_knight', 'merchant'][run % 3], mode: 'once', seed: 4200 + run });
   for (let m = 0; m < 12 * 40 && !g.over; m++) {
     const rng = rngOf(g); const acts = availableActions(g); const choices = [];
     for (let i = 0; i < slotsFor(g); i++) { const a = rng.pick(acts); const c = { id: a.id }; if (a.needsTarget) c.target = g.people.find((p) => p.known && !p.isPlayer && p.alive)?.id; choices.push(c); }
     endMonth(g, choices);
-    let id = pickTrack(g, { overlay: !!g.pendingEvent });
-    if (!ids.has(id)) fail(`없는 곡을 골랐다: ${id}`);
+    const pm = pickMusic(g, { overlay: !!g.pendingEvent });
+    for (const x of pm.pool) if (!ids.has(x)) fail(`없는 곡을 골랐다: ${x}`);
+    const am = pickAmbience(ambienceWhere(pm), conditionText(g.date.year, g.date.month));
+    if (am !== 'none' && !ambIds.has(am)) fail(`없는 환경음: ${am}`);
+    usedAmb.set(am, (usedAmb.get(am) ?? 0) + 1);
+    let id = pm.pool[0];
     used.set(id, (used.get(id) ?? 0) + 1);
     let guard = 0;
     while (g.pendingEvent && guard++ < 20) {
@@ -86,5 +108,6 @@ if (audio.tracks.length !== TRACKS.length || !audio.sounds.length) fail('audio �
 
 console.log(`곡 ${TRACKS.length}개, 효과음 ${Object.keys(SFX).length}개, 점검한 음 ${notes}개`);
 console.log('게임에서 흐른 곡:', [...used].sort((a, b) => b[1] - a[1]).map(([k, v]) => `${k} ${v}`).join(', '));
+console.log('게임에서 흐른 환경음:', [...usedAmb].sort((a, b) => b[1] - a[1]).map(([k, v]) => `${k} ${v}`).join(', '));
 console.log(bad ? `FAIL ${bad}` : 'OK');
 if (bad) process.exit(1);

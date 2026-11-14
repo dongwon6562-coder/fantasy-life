@@ -74,6 +74,11 @@ body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-a
 .padb { border: 1px solid var(--line); background: var(--panel); border-radius: 8px; padding: 10px 8px; min-height: 44px; font-size: 14px; }
 .padb:hover { border-color: var(--brass-dim); }
 .padb:active { background: var(--brass); color: var(--bg); border-color: var(--brass); }
+.padb.amb[aria-pressed="true"] { background: var(--panel-2); border-color: var(--brass); color: var(--brass); }
+.what { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 16px 18px; display: grid; gap: 10px; }
+.what h2 { font-size: 18px; }
+.what ul { margin: 0; padding-left: 1.2em; display: grid; gap: 6px; color: var(--muted); font-size: 14px; }
+.what b { color: var(--ink); font-weight: 500; }
 .foot { color: var(--muted); font-size: 13px; margin: 0; max-width: 66ch; }
 </style>
 <div class="wrap">
@@ -83,10 +88,22 @@ body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-a
     <p>전부 브라우저가 그 자리에서 만들어 내는 소리다. 곡을 누르면 흐르고, 다른 곡을 누르면 게임에서처럼 서서히 넘어간다. <span id="count"></span></p>
   </header>
 
+  <section class="what">
+    <h2>두 번째 판에서 달라진 것</h2>
+    <ul>
+      <li><b>곡을 전부 다시 썼다.</b> 곡마다 여는 부분, 주제, 다른 가락, 꽉 찬 되풀이가 있고 악기가 차례로 들어온다. 가락 아래에 화음 가락과 낮은 음이 받친다.</li>
+      <li><b>한 곡이 끝없이 돌지 않는다.</b> 장소마다 곡 묶음이 있어 한 곡이 끝나면 잠시 주변 소리만 흐르다가 다른 곡이 이어진다.</li>
+      <li><b>환경음이 생겼다.</b> 바람, 새, 비, 장터의 웅성임, 미궁의 물방울처럼 그곳의 소리가 음악 아래에 깔린다. 날씨와 밤낮을 따른다.</li>
+      <li><b>새 곡 8개.</b> 요람, 에른의 들일, 에른의 저녁, 장터, 결투, 전쟁, 뒷골목, 영주의 방.</li>
+      <li><b>효과음을 다시 만들었다.</b> 누를 때마다 높이와 크기가 조금씩 달라 같은 소리로 들리지 않는다. 화면 소리는 더 짧고 작게, 결투의 수와 주문마다 제 소리가 난다.</li>
+      <li><b>큰 소리가 날 때 음악이 잠깐 물러난다.</b> 울림도 넓은 곳과 가까운 곳 두 가지로 나눴다.</li>
+    </ul>
+  </section>
+
   <div class="deck">
     <div class="deck-top">
       <div class="now"><strong id="now-name">멈춤</strong><span id="now-where">곡을 누르면 시작한다</span></div>
-      <button type="button" id="tour" aria-pressed="false">게임처럼 이어 듣기 (1분)</button>
+      <button type="button" id="tour" aria-pressed="false">게임처럼 이어 듣기 (80초)</button>
       <button type="button" id="stop" disabled>멈추기</button>
     </div>
     <canvas id="scope" aria-hidden="true"></canvas>
@@ -98,8 +115,9 @@ body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-a
   </div>
 
   <section class="part"><h2>음악</h2><div id="tracks" class="part"></div></section>
+  <section class="part"><h2>환경음</h2><p class="foot">누르면 깔리고 다시 누르면 꺼진다. 곡과 함께 틀어 보면 게임에서의 느낌에 가깝다.</p><div id="amb"></div></section>
   <section class="part"><h2>효과음</h2><div id="sfx" class="part"></div></section>
-  <p class="foot">게임에서는 장소·계절·사건에 따라 곡이 저절로 골라진다. 폰이 무음 모드이면 소리가 나지 않을 수 있다.</p>
+  <p class="foot">게임에서는 장소·계절·사건에 따라 곡과 환경음이 저절로 골라진다. 여기서는 곡을 멈출 때까지 되풀이하지만, 게임에서는 한 번 연주하고 쉰다. 폰이 무음 모드이면 소리가 나지 않을 수 있다.</p>
 </div>
 <script>
 ${js.replace(/<\/script/gi, '<\\/script')}
