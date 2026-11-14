@@ -6,9 +6,12 @@
 //   weight: 80 이상은 '꼭 일어나야 하는 사건'(사건 줄기의 다음 단계, 찾아가기 대화 등). 가장 무거운 것이 먼저 일어난다.
 //           80 미만은 무게에 비례해 무작위로 고르고, 매달 일어나지는 않는다(EVENT_RATE).
 //   prepare?(g, rng) → ctx (사건에 나올 사람 등을 미리 정한다. text와 run에 넘어간다),
-//   title, text(g, ctx), choices: [{ label, show?(g, ctx), run(g, rng, ctx) → 결과 글 }],
+//   title, text(g, ctx), choices: [{ label(글 또는 (g, ctx) → 글), show?(g, ctx), run(g, rng, ctx) → 결과 글 }],
 //   village?: true  마을(에른)에서만 일어나는 사건 (index.js에서 표시)
 //   world?: true    세계에 묶인 한 번뿐인 사건 (국상, 시대 변화 등). 대를 이어도 다시 나오지 않는다.
+//   noFlag?: true   once여도 표시를 남기지 않는다 (조건으로 되풀이를 막는 사건. D의 장면이 밀어내지 못하게 once를 쓸 때)
+//   quiet?: true    결과를 연대기·인물 기록에 남기지 않는다
+//   선택지 run 안에서 game.pendingEvent를 새로 세우면 그 사건이 곧바로 이어서 뜬다.
 // }
 import { playerAge, playerAgeMonths, family, me } from '../game.js';
 import { living as livingAll, byId, ageYears, fullName } from '../npc.js';
@@ -117,7 +120,7 @@ export function pickEvent(game, rng) {
   last[e.id] = now;
   return {
     id: e.id, title: e.title, text: e.text(game, ctx),
-    choices: shown.map(({ c }) => c.label), choiceIdx: shown.map(({ i }) => i), ctx,
+    choices: shown.map(({ c }) => (typeof c.label === 'function' ? c.label(game, ctx) : c.label)), choiceIdx: shown.map(({ i }) => i), ctx,
   };
 }
 
@@ -129,8 +132,10 @@ export function resolveEvent(game, rng, index) {
   const real = pe.choiceIdx ? pe.choiceIdx[index] ?? pe.choiceIdx[0] : index;
   const c = e.choices[real] ?? e.choices[0];
   const out = c.run(game, rng, pe.ctx ?? {}) ?? '';
-  if (e.once) setFlag(game, onceKey(e));
-  game.pendingEvent = null;
+  if (e.once && !e.noFlag) setFlag(game, onceKey(e));
+  // 선택지가 곧바로 다음 장면을 세웠으면(결투의 다음 합, 시험의 다음 관문) 그대로 둔다
+  if (game.pendingEvent === pe) game.pendingEvent = null;
+  if (e.quiet) return out; // 결투 한 합 한 합은 기록에 남기지 않는다 (끝날 때 한 번만)
   const record = { y: game.date.year, m: game.date.month, text: `${pe.title}: ${out}`, rel: 100 };
   game.chronicle.push(record);
   me(game).history.push({ y: game.date.year, m: game.date.month, text: `${pe.title}. ${out}` });
