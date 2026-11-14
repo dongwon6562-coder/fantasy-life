@@ -5,6 +5,10 @@
 import { HOOKS } from '../hooks.js';
 import { L } from '../adventure/core.js';
 import { atWar, eraOf, priceIndex } from '../world.js';
+import { J } from '../narrative/text.js';
+
+// 작은따옴표로 감싼 이름 뒤에 조사: Q('새벽빛', '을/를') → '새벽빛'을
+export const Q = (name, pair) => `'${name}'${J(name, pair).slice(name.length)}`;
 
 // 다섯 갈래. job: jobs.js의 일 id, skill: 기술 id
 export const TRADES = {

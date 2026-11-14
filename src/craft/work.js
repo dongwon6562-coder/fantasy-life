@@ -6,15 +6,13 @@ import { WORK, doWork } from '../jobs.js';
 import { PLACES } from '../places.js';
 import { L, defineScene, queueScene, sceneQueued, note, chron } from '../adventure/core.js';
 import { priceIndex } from '../world.js';
-import { TRADES, C, season, rollQuality, QUALITY, demand, skillOf, gradeOf, addFame, fameOf } from './core.js';
+import { Q, TRADES, C, season, rollQuality, QUALITY, demand, skillOf, gradeOf, addFame, fameOf } from './core.js';
 
 // 대장간 일도 이제 기술(대장일)로 오른다
 WORK.smith.skill = 'smithing';
 WORK.shop.skill = 'trade';
 
 const pick = (rng, a) => a[Math.floor(rng.next() * a.length)];
-// 작은따옴표로 감싼 이름 뒤에 조사: Q('새벽빛', '을/를') → '새벽빛'을
-const Q = (name, pair) => `'${name}'${J(name, pair).slice(name.length)}`;
 
 /* ---------- 갈래마다 계절의 일 ---------- */
 const LINES = {
@@ -94,6 +92,7 @@ export function craftWork(g, rng, trade) {
   const q = rollQuality(g, rng, trade);
   const d = demand(g, trade);
   let mul = d.v * QMUL[q] * (1 + fameOf(g, trade) / 250);
+  if (L(g).job?.own) mul *= 1.25; // 내 가게: 주인 몫이 크다
   let extra = '';
   if (trade === 'farming') {
     // 봄·여름엔 품삯이 적은 대신 밭에 손이 쌓인다. 추수 때 돌아온다.
