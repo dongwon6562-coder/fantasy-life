@@ -155,6 +155,13 @@ function lifeLines() {
   return rows.map(([k, v]) => `<div class="skill"><span>${k}</span><span class="g lifev">${esc(v)}</span></div>`).join('');
 }
 
+// 같은 흉터가 여러 번이면 한 칩에 '×3'으로
+function scarChips(scars = []) {
+  const n = new Map();
+  for (const s of scars) n.set(s, (n.get(s) ?? 0) + 1);
+  return [...n].map(([s, k]) => `<span class="chip">흉터: ${esc(s)}${k > 1 ? ` ×${k}` : ''}</span>`).join(' ');
+}
+
 function renderSheet() {
   const p = game.player;
   const meP = me(game);
@@ -197,7 +204,7 @@ function renderSheet() {
       <h3>몸과 마음</h3>
       ${bar('피로', p.fatigue, 100, p.fatigue > 70 ? 'warn' : '')}
       ${bar('스트레스', p.stress, 100, p.stress > 70 ? 'warn' : '')}
-      ${(p.injuries.length || p.scars?.length) ? `<p class="note">${p.injuries.map((i) => `<span class="chip hurt">${esc(i.name)} (${i.months}달)</span>`).join(' ')} ${(p.scars ?? []).map((s) => `<span class="chip">흉터: ${esc(s)}</span>`).join(' ')}</p>` : ''}
+      ${(p.injuries.length || p.scars?.length) ? `<p class="note">${p.injuries.map((i) => `<span class="chip hurt">${esc(i.name)} (${i.months}달)</span>`).join(' ')} ${scarChips(p.scars)}</p>` : ''}
     </div>
   </aside>`;
 }
@@ -330,7 +337,7 @@ function renderGame() {
   if (ui.view === 'month') main = game.over ? renderOver() : renderNews() + renderWorkshop(game, ui) + renderPlan(game, ui);
   else if (ui.view === 'me') main = renderSheet();
   else if (ui.view === 'people') main = renderPeople(game, ui);
-  else if (ui.view === 'map') main = renderWorldCard() + renderMap();
+  else if (ui.view === 'map') main = renderMap() + renderWorldCard(); // 지도가 먼저 (폰에서 바로 보이게)
   else if (ui.view === 'chron') main = renderChron();
   else if (ui.view === 'save') main = renderSave();
   root().innerHTML = `

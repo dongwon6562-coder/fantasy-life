@@ -192,8 +192,8 @@ h1, h2, h3 { font-family: var(--f-display); font-weight: 700; text-wrap: balance
   content: ''; position: absolute; left: 50%; bottom: -7px; width: 12px; height: 12px; transform: translateX(-50%) rotate(45deg);
   background: var(--panel-2); border-right: 1px solid var(--brass); border-bottom: 1px solid var(--brass);
 }
-.acts { display: grid; grid-template-columns: repeat(auto-fill, minmax(168px, 1fr)); gap: 10px; }
-@media (max-width: 520px) { .acts { grid-template-columns: 1fr 1fr; gap: 8px; } }
+.act-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(168px, 1fr)); gap: 10px; }
+@media (max-width: 520px) { .act-grid { grid-template-columns: 1fr 1fr; gap: 8px; } }
 .act {
   background: linear-gradient(180deg, var(--panel-2), var(--bg)); border: 1px solid var(--line); border-radius: 10px;
   padding: 12px 12px 12px; display: grid; grid-template-columns: auto 1fr; grid-template-rows: auto 1fr; column-gap: 10px; row-gap: 4px;
@@ -570,3 +570,14 @@ html:not(.motion) .event { animation: none; }
 .ws-ap .portrait { grid-row: span 2; }
 .ws-ap .nm { font-size: 14px; }
 .ws-ap .note { font-size: 12px; }
+
+/* ---------- 5단계: 행동 묶음 ---------- */
+.acts { display: grid; gap: 14px; }
+.act-group { display: grid; gap: 6px; }
+.act-group h4 { margin: 0; font-family: var(--f-body); font-size: 12px; letter-spacing: .14em; color: var(--brass); font-weight: 600; }
+.act-group.dark summary { cursor: pointer; list-style: none; display: flex; gap: 10px; align-items: baseline; min-height: 36px; border-top: 1px dashed var(--line); padding-top: 8px; }
+.act-group.dark summary::-webkit-details-marker { display: none; }
+.act-group.dark summary h4 { color: #c08a7a; }
+.act-group.dark summary::after { content: '펼치기'; margin-left: auto; font-size: 12px; color: var(--muted); }
+.act-group.dark[open] summary::after { content: '접기'; }
+.act-group.dark[open] .act-grid { margin-top: 6px; }

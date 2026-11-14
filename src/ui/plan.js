@@ -26,6 +26,31 @@ export function normalizePlan(game, ui) {
   ui.active = Math.min(ui.active ?? 0, n - 1);
 }
 
+// 행동 묶음: 고르기 쉽게 성격별로 나눈다. 어두운 일은 접어 둔다(고르면 펼쳐진 채로).
+const GROUPS = [
+  ['work', '일과 벌이', /^(work|seek_job|day_labor|inn_kitchen|herbs|help_home|shop_manage|open_shop|domain_|realm_office|farmer|merchant)/],
+  ['learn', '배움과 수련', /^(study|train_body|sword_|meditate|magic_)/],
+  ['people', '사람과 마을', /^(visit|play|wander|rel_|faction_door|bard)/],
+  ['road', '길과 모험', /^(travel|on_road|housing|quest|delve|gear|pioneer|buy_title|tower_dare|wolves|goblins)/],
+  ['dark', '어두운 일', /^(crime_|gang_)/],
+  ['rest', '쉼', /^rest$/],
+];
+function groupActs(acts) {
+  const out = GROUPS.map(([id, name]) => [id, name, []]);
+  const etc = ['etc', '그 밖', []];
+  for (const a of acts) {
+    const i = GROUPS.findIndex(([, , re]) => re.test(a.id));
+    (i >= 0 ? out[i][2] : etc[2]).push(a);
+  }
+  return [...out, etc].filter(([, , l]) => l.length);
+}
+const actCard = (a, ui, counts) => `<button class="act" data-act="${a.id}" aria-pressed="${ui.plan[ui.active].id === a.id}">
+          <span class="ic">${actionIcon(a, 26)}</span>
+          <span class="nm">${esc(a.name)}</span>
+          <span class="ds">${esc(a.desc ?? '')}</span>
+          ${counts[a.id] ? `<span class="cnt" aria-label="${counts[a.id]}칸에 들어 있음">${counts[a.id]}</span>` : ''}
+        </button>`;
+
 export function renderPlan(game, ui) {
   const n = slotsFor(game);
   if (n === 0) {
@@ -72,14 +97,11 @@ export function renderPlan(game, ui) {
         </div>
       </div>` : ''}
     <div class="acts">
-      ${acts.map((a) => {
-        const on = ui.plan[ui.active].id === a.id;
-        return `<button class="act" data-act="${a.id}" aria-pressed="${on}">
-          <span class="ic">${actionIcon(a, 26)}</span>
-          <span class="nm">${esc(a.name)}</span>
-          <span class="ds">${esc(a.desc ?? '')}</span>
-          ${counts[a.id] ? `<span class="cnt" aria-label="${counts[a.id]}칸에 들어 있음">${counts[a.id]}</span>` : ''}
-        </button>`;
+      ${groupActs(acts).map(([gid, name, list]) => {
+        const cards = list.map((a) => actCard(a, ui, counts)).join('');
+        if (gid !== 'dark') return `<div class="act-group"><h4>${name}</h4><div class="act-grid">${cards}</div></div>`;
+        const open = ui.darkOpen || list.some((a) => counts[a.id]);
+        return `<details class="act-group dark"${open ? ' open' : ''}><summary><h4>${name}</h4><span class="note">${list.length}가지</span></summary><div class="act-grid">${cards}</div></details>`;
       }).join('')}
     </div>
     <div class="actions-row plan-tools">
@@ -109,6 +131,8 @@ export function bindPlan(game, ui, rerender) {
     if (ui.active < ui.plan.length - 1) ui.active++;
     rerender();
   });
+  const dark = document.querySelector('details.act-group.dark');
+  if (dark) dark.ontoggle = () => { ui.darkOpen = dark.open; };
   const fill = document.getElementById('fill');
   if (fill) fill.onclick = () => {
     const src = ui.plan[ui.active];
