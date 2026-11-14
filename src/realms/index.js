@@ -328,7 +328,7 @@ HOOKS.afterMonth.push((g, rng) => {
 defineScene('caught_illegal', {
   title: () => '밀입국자',
   text: (g) => `${REALMS[currentRealm(g)].law.watch ?? '경비대'}의 손이 어깨에 얹혔다. "얼굴이 낯익은데. 쫓겨난 놈이 왜 아직 여기 있지?"`,
-  choices: () => [{ label: '순순히 따라간다', key: 'go' }, { label: '달아난다', key: 'run' }],
+  choices: (g) => (REALMS[currentRealm(g)] && RS(g).illegal[currentRealm(g)] && !isJailed(g) ? [{ label: '순순히 따라간다', key: 'go' }, { label: '달아난다', key: 'run' }] : []),
   resolve(g, rng, s, key) {
     const R = RS(g);
     const realm = currentRealm(g);
@@ -408,6 +408,7 @@ defineScene('realm_office', {
     const r = REALMS[realm];
     const R = RS(g);
     const out = [];
+    if (!r || traveling(g) || isJailed(g)) return out; // 관청이 없는 땅이거나 길 위·감옥
     if (!naturalizeBlock(g, realm)) out.push({ label: `귀화를 신청한다 (은화 ${r.naturalize.fee}닢)`, key: 'naturalize' });
     if (r.naturalize.buy && !bannedLeft(g, realm)) out.push({ label: `시민권을 산다 (은화 ${r.naturalize.buy}닢)`, key: 'buy' });
     if (homeTrouble(g) && R.asylum !== realm) out.push({ label: `망명을 청한다 (${realmShort(R.citizen)}에 쫓기는 몸이다)`, key: 'asylum' });
@@ -418,7 +419,7 @@ defineScene('realm_office', {
     const realm = currentRealm(g);
     const r = REALMS[realm];
     const R = RS(g);
-    if (key === 'leave') return '서류 더미와 긴 줄을 보고 발길을 돌렸다.';
+    if (key === 'leave' || !r) return '서류 더미와 긴 줄을 보고 발길을 돌렸다.';
     if (key === 'naturalize') {
       if (naturalizeBlock(g, realm)) return '서기가 서류를 밀어냈다. 조건이 모자랐다.';
       g.player.money -= r.naturalize.fee;

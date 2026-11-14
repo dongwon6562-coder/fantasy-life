@@ -696,7 +696,7 @@ function gallows(g) {
 // ---------- 목격자의 협박, 앙갚음하는 무리 ----------
 defineScene('witness_blackmail', {
   title: () => '보았다는 사람',
-  text: (g, s) => T.WB_TEXT(byId(g, s.id), CRIMES[s.crime].name),
+  text: (g, s) => (byId(g, s.id)?.alive ? T.WB_TEXT(byId(g, s.id), CRIMES[s.crime]?.name ?? '죄') : '나를 보았다던 사람의 소식이 끊겼다.'),
   choices: (g, s) => {
     const w = byId(g, s.id);
     if (!w?.alive) return [{ label: '…', key: 'gone' }];
@@ -730,7 +730,7 @@ defineScene('witness_blackmail', {
     return T.WB_DARE(w, watchName(g));
   },
 });
-const wbCost = (g, s) => Math.round(8 + CRIMES[s.crime].sev * 6);
+const wbCost = (g, s) => Math.round(8 + (CRIMES[s.crime]?.sev ?? 1) * 6);
 
 defineScene('thugs', {
   title: () => '골목의 사내들',
