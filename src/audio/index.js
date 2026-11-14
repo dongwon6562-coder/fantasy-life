@@ -17,7 +17,9 @@ import { Engine } from './engine.js';
 import { MusicPlayer } from './music.js';
 import { TRACKS } from './tracks.js';
 import { SFX, playSfx } from './sfx.js';
-import { pickTrack, eventMood, fightSfx } from './pick.js';
+import { Ambience, pickAmbience } from './ambience.js';
+import { pickMusic, eventMood, ambienceWhere, fightSfx } from './pick.js';
+import { conditionText } from '../art/scene.js';
 import { prefs, setPref, onPrefs } from '../ui/settings.js';
 
 const KEY = 'fantasy-life:audio';
@@ -29,9 +31,12 @@ const settings = { on: true, music: 0.7, sfx: 0.8, ...(hasDom ? safe(() => JSON.
 safe(() => { settings.music = prefs().music; settings.sfx = prefs().sfx; });
 onPrefs((p, k) => { if ((k === 'music' || k === 'sfx') && p[k] !== settings[k]) set({ [k]: p[k] }); });
 let game = null;      // 지금 하고 있는 게임
-let engine = null, player = null, fx = null;
+let engine = null, player = null, fx = null, amb = null;
 let lastEventTrack = null, hadOverlay = false, wasOver = false, lastCircle = 0, lastYear = null;
-let pendingFight = false;
+let pendingFight = false, lastWhere = null;
+// 같은 마을에서 계절만 바뀐 것이면 흐르던 곡을 끊지 않는다
+const home = (w) => (/^village_|^cradle$/.test(w ?? '') ? 'ern' : w);
+const sameGround = (a, b) => a != null && home(a) === home(b);
 const listeners = new Set();
 
 /* ---------- 게임 상태 받아 두기 ---------- */
@@ -52,6 +57,7 @@ function unlock() {
     engine = new Engine(ctx);
     player = new MusicPlayer(engine, TRACKS);
     fx = engine.group('sfx');
+    amb = new Ambience(engine);
     applyVolume();
   }
   if (engine.ctx.state !== 'running' && settings.on && !document.hidden) safe(() => engine.ctx.resume());
@@ -61,6 +67,8 @@ function applyVolume() {
   if (!engine) return;
   engine.setVolume('music', settings.on ? settings.music ** 1.6 : 0);
   engine.setVolume('sfx', settings.on ? settings.sfx ** 1.6 : 0);
+  // 환경음은 효과음 크기를 따라간다 (조금 작게)
+  engine.setVolume('amb', settings.on ? settings.sfx ** 1.6 * 0.7 : 0);
 }
 
 function sfx(id, when = 0) {
@@ -77,10 +85,17 @@ function sync() {
   const overlay = !!document.querySelector('.overlay');
   const g = title ? null : game;
   // 사건 창이 새로 뜰 때
-  if (overlay && !hadOverlay && g?.pendingEvent) sfx('event');
+  if (overlay && !hadOverlay && g?.pendingEvent) {
+    const kind = g.pendingEvent.id === 'life_scene' ? g.life?.scene?.kind : null;
+    const t = String(g.pendingEvent.title ?? '');
+    if (kind === 'battle') { sfx('warhorn'); sfx('march', 1.6); }
+    else if (g.pendingEvent.id === 'duel_round' || g.pendingEvent.id === 'duel_start') sfx('sword');
+    else if (/편지|서신|소식|전갈/.test(t)) sfx('letter');
+    else sfx('event');
+  }
   if (!overlay) lastEventTrack = null;
-  const id = pickTrack(g, { title, overlay, last: lastEventTrack });
-  if (overlay && eventMood(g)) lastEventTrack = id;
+  const m = pickMusic(g, { title, overlay, last: lastEventTrack });
+  if (overlay && eventMood(g)) lastEventTrack = m.pool[0];
   hadOverlay = overlay;
   if (g) {
     if (g.over && !wasOver) sfx('death');
@@ -89,7 +104,12 @@ function sync() {
     if (lastYear != null && y === lastYear + 1 && !overlay) sfx('newyear', 0.5);
     lastYear = y;
   } else { wasOver = false; lastYear = null; }
-  if (player && settings.on && settings.music > 0) player.play(id);
+  if (player && settings.on) {
+    if (settings.music > 0) player.program(m.pool, { cue: m.cue, soft: sameGround(lastWhere, m.where) });
+    lastWhere = m.where;
+    const weather = g?.date ? safe(() => conditionText(g.date.year, g.date.month), '') : '';
+    if (settings.sfx > 0) amb.set(pickAmbience(ambienceWhere(m), weather)); else amb.stop();
+  }
   for (const f of listeners) f();
 }
 
@@ -103,21 +123,48 @@ const CLICK = [
   ['#begin', 'begin'],
   ['#cont-auto, [data-slot], #to-title', 'confirm'],
 ];
+// 그림(아이콘)만으로는 뜻이 안 드러나는 행동의 소리
+const ACT_SFX = [
+  [/pickpocket/, 'steal'], [/burgl|jail_escape/, 'lock'], [/^jail_/, 'jail'], [/^gear$/, 'smith'], [/faction_door|housing/, 'door'],
+  [/^quest$/, 'stamp'], [/^gang_/, 'door'], [/market/, 'coin'], [/^delve$/, 'dungeon'],
+];
+// 결투의 한 수: 어떤 수를 골랐는지에 맞는 소리 (duel.js의 MOVE_IDS 순서)
+const MOVE_IDS = ['heavy', 'quick', 'guard', 'feint', 'wait', 'magic', 'aura', 'yield'];
+const MOVE_SFX = { heavy: 'slash', quick: 'stab', guard: 'parry', feint: 'feint', wait: 'target', aura: 'aura', yield: 'close' };
+const SPELL_SFX = { heavy: 'fire', quick: 'bolt', guard: 'ward', feint: 'gale', wait: 'meditate', yield: 'close' };
+function spellSfx(text) {
+  return /번개|뇌/.test(text) ? 'bolt' : /얼음|서리|빙/.test(text) ? 'frost' : /바람|돌풍/.test(text) ? 'gale' : /땅|바위|흙/.test(text) ? 'quake' : /치유|회복/.test(text) ? 'heal' : /결계|방벽/.test(text) ? 'ward' : 'fire';
+}
+function duelSfx(pe, i, text) {
+  const move = MOVE_IDS[pe.choiceIdx?.[i]];
+  if (move === 'magic') { sfx(spellSfx(text)); return; }
+  const id = (game?.duel?.magicDuel ? SPELL_SFX : MOVE_SFX)[move] ?? 'clash';
+  sfx(id);
+  if (move === 'heavy' || move === 'quick') sfx(game?.duel?.magicDuel ? 'hit' : 'clash', 0.28);
+}
 function onClick(ev) {
   const el = ev.target?.closest?.('button, summary, [role="button"], a');
   if (!el || el.disabled || el.closest('.fl-audio')) return;
   if (el.matches('[data-choice]')) {
-    pendingFight = game?.pendingEvent?.id === 'life_scene' && game.life?.scene?.kind === 'fight';
+    const pe = game?.pendingEvent;
+    const kind = pe?.id === 'life_scene' ? game.life?.scene?.kind : null;
+    const duel = pe?.id === 'duel_round';
+    pendingFight = kind === 'fight' || kind === 'battle' || duel;
     const before = circle(game);
-    sfx(pendingFight ? 'clash' : 'choose');
+    if (duel) duelSfx(pe, +el.dataset.choice, el.textContent);
+    else sfx(kind === 'fight' ? 'clash' : kind === 'battle' ? 'march' : 'choose');
     // 화면이 결과를 그린 뒤에 결과에 맞는 소리를 낸다
     setTimeout(() => {
       const text = document.querySelector('.overlay .outcome')?.textContent ?? '';
-      if (pendingFight) {
+      if (duel && game?.pendingEvent?.id === 'duel_round') { /* 결투가 이어진다 */ }
+      else if (pendingFight) {
         const r = fightSfx(text);
-        if (r !== 'flee' && /부상|치명상|다쳤/.test(text) && r !== 'defeat') sfx('wound', 0.9);
+        if (kind === 'battle' && r === 'victory') sfx('cheer', 0.5);
+        if (r !== 'flee' && /부상|치명상|다쳤|상처/.test(text) && r !== 'defeat') sfx('wound', 0.9);
         sfx(r, r === 'flee' ? 0.1 : 1.1);
       } else if (circle(game) > before || /서클에 올랐|승급했|서임/.test(text)) sfx('rise', 0.3);
+      else if (/혼례를 올렸|부부가 되었/.test(text)) sfx('wedding', 0.3);
+      else if (/태어났다/.test(text)) sfx('birth', 0.3);
       else if (/은화 \d+닢을 (받|벌|얻)/.test(text)) sfx('coin', 0.3);
       pendingFight = false;
     }, 0);
@@ -126,7 +173,8 @@ function onClick(ev) {
   if (el.matches('[data-act]')) {
     const act = ACTIONS.find((a) => a.id === el.dataset.act);
     const name = act ? iconName(act) : null;
-    sfx(SFX[name] ? name : 'select');
+    const over = ACT_SFX.find(([re]) => re.test(el.dataset.act))?.[1];
+    sfx(over ?? (SFX[name] ? name : 'select'));
     return;
   }
   for (const [sel, id] of CLICK) if (el.matches(sel)) { sfx(id); return; }
@@ -142,8 +190,8 @@ function set(patch) {
   for (const k of ['music', 'sfx']) if (safe(() => prefs()[k]) !== settings[k]) safe(() => setPref(k, settings[k]));
   applyVolume();
   if (engine) {
-    if (!settings.on) { player.stop(0.6); setTimeout(() => { if (!settings.on) safe(() => engine.ctx.suspend()); }, 800); }
-    else { safe(() => engine.ctx.resume()); if (settings.music <= 0) player.stop(0.6); }
+    if (!settings.on) { player.halt(0.6); amb.stop(0.6); setTimeout(() => { if (!settings.on) safe(() => engine.ctx.suspend()); }, 800); }
+    else { safe(() => engine.ctx.resume()); if (settings.music <= 0) player.halt(0.6); }
   }
   sync();
 }
@@ -189,7 +237,7 @@ function mountSettings(host, { floating = false } = {}) {
       i.disabled = !settings.on; i.parentElement.querySelector('output').textContent = v;
     }
     const tr = TRACKS.find((t) => t.id === player?.playing);
-    q('.now').innerHTML = settings.on && tr ? `지금 흐르는 곡: <b>${tr.name}</b>` : settings.on ? '화면을 누르면 음악이 시작된다.' : '소리가 꺼져 있다.';
+    q('.now').innerHTML = settings.on && tr ? `지금 흐르는 곡: <b>${tr.name}</b>` : settings.on ? (engine ? '곡 사이. 지금은 주변 소리만 흐른다.' : '화면을 누르면 음악이 시작된다.') : '소리가 꺼져 있다.';
   };
   q('[data-a="on"]').onclick = () => { set({ on: !settings.on }); unlock(); if (settings.on) sfx('confirm'); };
   for (const k of ['music', 'sfx']) {
@@ -245,7 +293,8 @@ export const audio = {
   get settings() { return { ...settings }; },
   get playing() { return player?.playing ?? null; },
   set, sfx, unlock, mountSettings,
-  tracks: TRACKS.map((t) => ({ id: t.id, name: t.name, where: t.where })),
+  get ambience() { return amb?.playing ?? null; },
+  tracks: TRACKS.map((t) => ({ id: t.id, name: t.name, where: t.where, kind: t.kind })),
   sounds: Object.entries(SFX).map(([id, s]) => ({ id, name: s.name, kind: s.kind })),
 };
-export { pickTrack, eventMood } from './pick.js';
+export { pickTrack, pickMusic, eventMood } from './pick.js';

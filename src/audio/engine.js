@@ -2,8 +2,8 @@
 // - Engine: 음량, 울림(리버브), 마지막 압축기
 // - Group: 곡 하나(또는 효과음 묶음)가 쓰는 악기 통로. 통째로 서서히 끄고 켤 수 있다.
 // 악기: lute(류트) harp(하프) strings(현악 합주) viol(독주 현) flute(나무 피리) horn(뿔나팔)
-//       choir / choirOo(합창) bell(종) glass(유리 종) drone(지속 저음) wind(바람)
-// 타악: frame(틀북) war(큰북) tom tick(나무) shaker jingle(방울) heart(심장)
+//       choir / choirOo(합창) bell(종) glass(유리 종) drone(지속 저음) wind(바람) pipe(갈대 피리) organ(작은 오르간)
+// 타악: frame(틀북) war(큰북) tom tick(나무) shaker jingle(방울) heart(심장) snare(군악 작은북) anvil(모루)
 
 export const mtof = (m) => 440 * 2 ** ((m - 69) / 12);
 
@@ -17,24 +17,27 @@ function makeNoise(ctx) {
   return buf;
 }
 
-// 돌로 지은 큰 방의 울림. 뒤로 갈수록 어두워지는 잡음으로 만든다.
-function makeIR(ctx, secs) {
+// 돌로 지은 방의 울림. 낮은 소리는 오래, 높은 소리는 금방 사라지게 세 대역을 따로 줄인다.
+function makeIR(ctx, secs, { pre = 0.018, hi = 0.36, lo = 1.15 } = {}) {
   const sr = ctx.sampleRate;
-  const n = Math.floor(sr * secs);
+  const n = Math.floor(sr * secs * 1.2);
   const buf = ctx.createBuffer(2, n, sr);
-  const pre = Math.floor(sr * 0.018);
+  const p0 = Math.floor(sr * pre);
+  const aL = 1 - Math.exp((-2 * Math.PI * 280) / sr), aH = 1 - Math.exp((-2 * Math.PI * 2600) / sr);
   for (let ch = 0; ch < 2; ch++) {
     const d = buf.getChannelData(ch);
-    let lp = 0;
-    for (let i = pre; i < n; i++) {
-      const t = (i - pre) / sr;
-      const a = 0.05 + 0.75 * Math.exp(-t * 2.2);
-      lp += a * ((Math.random() * 2 - 1) - lp);
-      d[i] = lp * Math.exp((-6.9 * t) / secs) * Math.min(1, t / 0.012);
+    let l1 = 0, l2 = 0;
+    for (let i = p0; i < n; i++) {
+      const t = (i - p0) / sr;
+      const w = Math.random() * 2 - 1;
+      l1 += aL * (w - l1); l2 += aH * (w - l2);
+      const low = l1, mid = l2 - l1, high = w - l2;
+      const v = low * 2.2 * Math.exp((-6.9 * t) / (secs * lo)) + mid * Math.exp((-6.9 * t) / secs) + high * 0.55 * Math.exp((-6.9 * t) / (secs * hi));
+      d[i] = v * Math.min(1, t / 0.03) ** 0.7; // 울림이 서서히 차오른다
     }
-    // 이른 반사음 몇 개
-    const taps = ch ? [0.011, 0.027, 0.041, 0.063] : [0.007, 0.019, 0.037, 0.055];
-    taps.forEach((s, k) => { d[Math.floor(s * sr)] += (k % 2 ? -1 : 1) * 0.5 / (k + 1.5); });
+    // 이른 반사음: 벽에서 한두 번 튕겨 온 소리
+    const taps = ch ? [0.011, 0.023, 0.037, 0.053, 0.071] : [0.007, 0.017, 0.031, 0.047, 0.067];
+    taps.forEach((s, k) => { const i = p0 + Math.floor(s * sr * (secs > 1.5 ? 1 : 0.5)); if (i < n) d[i] += (k % 2 ? -1 : 1) * 0.7 / (k + 1.6); });
     let e = 0;
     for (let i = 0; i < n; i++) e += d[i] * d[i];
     const g = 1 / Math.sqrt(e);
@@ -93,20 +96,35 @@ export class Engine {
   constructor(ctx) {
     this.ctx = ctx;
     this.comp = ctx.createDynamicsCompressor();
-    this.comp.threshold.value = -16; this.comp.knee.value = 14; this.comp.ratio.value = 3.5;
-    this.comp.attack.value = 0.012; this.comp.release.value = 0.3;
-    this.master = ctx.createGain();
-    this.master.gain.value = 0.9;
-    this.master.connect(this.comp); this.comp.connect(ctx.destination);
-    this.reverb = ctx.createConvolver();
-    this.reverb.buffer = makeIR(ctx, 3.3);
-    this.reverbOut = ctx.createGain(); this.reverbOut.gain.value = 1.6;
-    this.reverb.connect(this.reverbOut); this.reverbOut.connect(this.master);
-    // 음량 손잡이는 울림 앞에 둔다 (음악·효과음이 울림 하나를 같이 쓴다)
+    this.comp.threshold.value = -15; this.comp.knee.value = 12; this.comp.ratio.value = 3.5;
+    this.comp.attack.value = 0.012; this.comp.release.value = 0.28;
+    this.master = ctx.createGain(); this.master.gain.value = 0.9;
+    const hp = ctx.createBiquadFilter(); hp.type = 'highpass'; hp.frequency.value = 28; hp.Q.value = 0.5;
+    // 맨 끝의 안전판: 0.7까지는 그대로, 그 위는 부드럽게 눌러 어떤 순간에도 찢어지는 소리가 나지 않게 한다
+    this.clip = ctx.createWaveShaper();
+    const curve = new Float32Array(2049);
+    for (let i = 0; i < 2049; i++) { const x = (i - 1024) / 512; const a = Math.abs(x); curve[i] = Math.sign(x) * (a < 0.7 ? a : 0.7 + 0.28 * Math.tanh((a - 0.7) / 0.28)); }
+    this.clip.curve = curve;
+    const pre = ctx.createGain(); pre.gain.value = 0.5; const post = ctx.createGain(); post.gain.value = 1;
+    this.master.connect(hp); hp.connect(this.comp); this.comp.connect(pre); pre.connect(this.clip); this.clip.connect(post); post.connect(ctx.destination);
+    this.out = post;
+    // 울림 둘: 음악·환경음은 넓은 홀, 효과음은 가까운 작은 방
+    const verb = (secs, opt, gain) => {
+      const c = ctx.createConvolver(); c.buffer = makeIR(ctx, secs, opt);
+      const g = ctx.createGain(); g.gain.value = gain; c.connect(g);
+      return { in: c, out: g };
+    };
+    this.hall = verb(3.1, {}, 1.6);
+    this.room = verb(0.7, { pre: 0.004, hi: 0.5, lo: 1 }, 1.1);
+    // 음악은 중요한 효과음이 날 때 잠깐 물러난다 (duck)
+    this.duckGain = ctx.createGain();
+    this.duckGain.connect(this.master);
+    this.hall.out.connect(this.duckGain); this.room.out.connect(this.master);
+    // 음량 손잡이는 울림 앞에 둔다. music 음악, amb 환경음, sfx 효과음
     this.vol = {};
-    for (const k of ['music', 'sfx']) {
+    for (const [k, dest, rv] of [['music', this.duckGain, this.hall], ['amb', this.master, this.hall], ['sfx', this.master, this.room]]) {
       const dry = ctx.createGain(), wet = ctx.createGain();
-      dry.connect(this.master); wet.connect(this.reverb);
+      dry.connect(dest); wet.connect(rv.in);
       this.vol[k] = { dry, wet, v: 1 };
     }
     this.noise = makeNoise(ctx);
@@ -118,6 +136,11 @@ export class Engine {
     const t = this.ctx.currentTime;
     o.dry.gain.setTargetAtTime(v, t, 0.05);
     o.wet.gain.setTargetAtTime(v, t, 0.05);
+  }
+  /** 음악을 잠깐 줄인다. depth: 줄인 크기(0~1), hold: 버티는 시간(초) */
+  duck(depth = 0.45, hold = 1.2, when = 0) {
+    const t = this.ctx.currentTime + when; const g = this.duckGain.gain;
+    g.cancelScheduledValues(t); g.setTargetAtTime(depth, t, 0.05); g.setTargetAtTime(1, t + hold, 0.5);
   }
   pluck(midi, kind) {
     const key = kind + midi;
@@ -132,10 +155,12 @@ export class Engine {
 const BUS = {
   lute: { level: 0.62, pan: -0.22, send: 0.2 },
   harp: { level: 0.7, pan: 0.2, send: 0.34 },
-  strings: { level: 0.2, pan: -0.05, send: 0.38 },
+  strings: { level: 0.17, pan: -0.05, send: 0.38 },
   viol: { level: 0.3, pan: 0.12, send: 0.3 },
   flute: { level: 0.3, pan: -0.12, send: 0.36 },
   horn: { level: 0.24, pan: 0.24, send: 0.4 },
+  pipe: { level: 0.13, pan: -0.18, send: 0.3 },
+  organ: { level: 0.16, pan: 0.08, send: 0.5 },
   choir: { level: 0.9, pan: 0.05, send: 0.5 },
   choirOo: { level: 0.95, pan: -0.05, send: 0.5 },
   bell: { level: 0.27, pan: 0.1, send: 0.55 },
@@ -144,6 +169,7 @@ const BUS = {
   wind: { level: 1.1, pan: 0, send: 0.08 },
   perc: { level: 0.85, pan: 0, send: 0.16 },
   fx: { level: 1.8, pan: 0, send: 0.14 },
+  amb: { level: 1, pan: 0, send: 0.22 },
 };
 const FORMANTS = {
   choir: [[620, 5, 1], [1080, 6, 0.55], [2500, 8, 0.2]],
@@ -190,7 +216,9 @@ export class Group {
     const biq = (type, f, q = 0.7, gain = 0) => { const n = c.createBiquadFilter(); n.type = type; n.frequency.value = f; n.Q.value = q; n.gain.value = gain; return n; };
     if (name === 'lute') { chain(biq('peaking', 210, 1.2, 4)); chain(biq('peaking', 420, 1.5, 3)); chain(biq('lowpass', 5200, 0.5)); }
     if (name === 'harp') { chain(biq('peaking', 300, 1, 2)); chain(biq('lowpass', 7500, 0.5)); }
-    if (name === 'strings') { chain(biq('lowpass', 2500, 0.4)); chain(biq('peaking', 320, 0.8, 2)); }
+    if (name === 'strings') { chain(biq('lowpass', 3600, 0.4)); chain(biq('peaking', 320, 0.8, 2)); }
+    if (name === 'pipe') { chain(biq('highpass', 380, 0.7)); chain(biq('peaking', 1500, 1.4, 5)); chain(biq('lowpass', 4600, 0.5)); }
+    if (name === 'organ') chain(biq('lowpass', 5200, 0.5));
     if (name === 'viol') { chain(biq('peaking', 290, 1.4, 3.5)); chain(biq('peaking', 1150, 1.6, 2.5)); chain(biq('lowpass', 4200, 0.5)); }
     if (name === 'flute') chain(biq('lowpass', 6000, 0.5));
     if (name === 'horn') { chain(biq('peaking', 480, 1, 3)); chain(biq('lowpass', 2900, 0.5)); }
@@ -239,6 +267,7 @@ export class Group {
 
     if (inst === 'lute' || inst === 'harp') {
       const src = c.createBufferSource(); src.buffer = this.e.pluck(midi, inst);
+      src.playbackRate.value = 2 ** (((Math.random() - 0.5) * 7) / 1200);
       const lp = c.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 700 + vel * vel * 6500; lp.Q.value = 0.3;
       const g = G(0.25 + vel * 0.85);
       if (o.damp) g.gain.setTargetAtTime(0, t + dur, 0.045);
@@ -248,25 +277,41 @@ export class Group {
     }
     if (inst === 'strings') {
       const a = Math.min(o.attack ?? 0.45, Math.max(0.015, dur * 0.4));
-      const g = G(); const end = env(g.gain, a, vel, o.release ?? 0.8);
-      const os = [osc('sawtooth', f, -7 - Math.random() * 3), osc('sawtooth', f, 7 + Math.random() * 3)];
+      const g = G(); const end = env(g.gain, a, vel * 0.8, o.release ?? 0.8);
+      const lp = c.createBiquadFilter(); lp.type = 'lowpass'; lp.Q.value = 0.5;
+      const top = Math.min(6500, f * (2.2 + vel * 3.2) + 500);
+      lp.frequency.setValueAtTime(Math.min(top, f * 1.4 + 200), t); lp.frequency.linearRampToValueAtTime(top, t + a * 1.3 + 0.02);
+      const os = [osc('sawtooth', f, -9 - Math.random() * 3), osc('sawtooth', f, (Math.random() - 0.5) * 3), osc('sawtooth', f, 8 + Math.random() * 3)];
       const vib = this.bus('strings').vib;
       let last = g;
       if (o.trem) { // 떨리는 활 (트레몰로)
         const tg = G(0.62); const l = osc('sine', 9.5 + Math.random()); const lg = G(0.38);
         l.connect(lg); lg.connect(tg.gain); g.connect(tg); last = tg; run([l], end);
       }
-      for (const x of os) { vib.connect(x.detune); x.connect(g); }
-      last.connect(out); run(os, end);
+      for (const x of os) { vib.connect(x.detune); x.connect(lp); }
+      lp.connect(g); last.connect(out); run(os, end);
       return;
     }
     if (inst === 'viol') {
       const a = Math.min(o.attack ?? 0.07, dur * 0.5);
-      const g = G(); const end = env(g.gain, a, vel, o.release ?? 0.2);
+      const g = G(); const hold = Math.max(a, dur); const r = o.release ?? 0.2;
+      g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(vel * 0.86, t + a);
+      if (dur > 0.7) { g.gain.linearRampToValueAtTime(vel, t + hold * 0.55); g.gain.linearRampToValueAtTime(vel * 0.8, t + hold); } // 활을 밀며 부풀었다 잦아든다
+      else g.gain.setValueAtTime(vel * 0.86, t + hold);
+      g.gain.setTargetAtTime(0, t + hold, r / 3.5);
+      const end = t + hold + r * 1.6;
       const lp = c.createBiquadFilter(); lp.type = 'lowpass'; lp.Q.value = 1.1;
       lp.frequency.value = Math.min(5200, f * (2.4 + vel * 1.6));
       const o1 = osc('sawtooth', f), o2 = osc('square', f, 3); const g2 = G(0.22);
+      if (o.from && o.from !== midi) { // 앞 음에서 미끄러져 온다
+        const f0 = mtof(o.from + (midi - o.from) * 0.55);
+        for (const x of [o1, o2]) { x.frequency.setValueAtTime(f0, t); x.frequency.exponentialRampToValueAtTime(f, t + 0.06); }
+      }
       const v = vibrato([o1, o2], 5.2, dur > 0.5 ? 11 : 0, 0.22);
+      // 활이 현에 닿는 순간의 거친 소리
+      const n = c.createBufferSource(); n.buffer = this.e.noise; const nb = c.createBiquadFilter(); nb.type = 'bandpass'; nb.frequency.value = Math.min(4000, f * 3); nb.Q.value = 0.8;
+      const ng = G(); ng.gain.setValueAtTime(0.12 * vel, t); ng.gain.exponentialRampToValueAtTime(0.0001, t + 0.09);
+      n.connect(nb); nb.connect(ng); ng.connect(g); n.start(t, Math.random()); n.stop(t + 0.12);
       o1.connect(lp); o2.connect(g2); g2.connect(lp); lp.connect(g); g.connect(out);
       run([o1, o2, v], end);
       return;
@@ -292,6 +337,25 @@ export class Group {
       lp.frequency.setTargetAtTime(f * (1.6 + vel), t + 0.13, 0.35);
       const os = [osc('sawtooth', f, -4), osc('sawtooth', f, 4)];
       for (const x of os) x.connect(lp); lp.connect(g); g.connect(out); run(os, end);
+      return;
+    }
+    if (inst === 'pipe') {
+      const g = G(); const end = env(g.gain, Math.min(0.03, dur * 0.4), vel, 0.09);
+      const bp = c.createBiquadFilter(); bp.type = 'bandpass'; bp.frequency.value = Math.min(3200, f * 3); bp.Q.value = 1.6;
+      const o1 = osc('sawtooth', f), o2 = osc('square', f, -4); const g2 = G(0.5); const dryg = G(0.35);
+      const v = vibrato([o1, o2], 5.6, dur > 0.7 ? 6 : 0, 0.35);
+      o1.connect(bp); o2.connect(g2); g2.connect(bp); bp.connect(g); o1.connect(dryg); dryg.connect(g); g.connect(out);
+      run([o1, o2, v], end);
+      return;
+    }
+    if (inst === 'organ') {
+      const g = G(); const end = env(g.gain, Math.min(0.05, dur * 0.4), vel, o.release ?? 0.3);
+      const stops = [[1, 1], [2, 0.5], [3, 0.26], [4, 0.2], [6, 0.07]];
+      const os = stops.filter(([m]) => f * m < 9000).map(([m, amp]) => { const x = osc('sine', f * m, (Math.random() - 0.5) * 4); const xg = G(amp); x.connect(xg); xg.connect(g); return x; });
+      const n = c.createBufferSource(); n.buffer = this.e.noise; const nb = c.createBiquadFilter(); nb.type = 'bandpass'; nb.frequency.value = f * 2; nb.Q.value = 2;
+      const ng = G(); ng.gain.setValueAtTime(0.25 * vel, t); ng.gain.exponentialRampToValueAtTime(0.0001, t + 0.07); // 바람이 관에 들어가는 소리
+      n.connect(nb); nb.connect(ng); ng.connect(out); n.start(t, Math.random()); n.stop(t + 0.1);
+      g.connect(out); run(os, end);
       return;
     }
     if (inst === 'choir' || inst === 'choirOo') {
@@ -361,5 +425,7 @@ export class Group {
     else if (type === 'shaker') burst('highpass', 6200, 0.7, 0.05, 0.6);
     else if (type === 'jingle') { burst('bandpass', 8600, 2, 0.13, 1.0); thump(6200, 6100, 0.1, 0.12, 0.03); thump(7900, 7800, 0.1, 0.1, 0.025); }
     else if (type === 'heart') thump(62, 40, 0.1, 0.2, 0.9);
+    else if (type === 'snare') { burst('bandpass', 1900, 0.7, 0.11, 0.9); burst('highpass', 4500, 0.7, 0.07, 0.3); thump(190, 150, 0.03, 0.08, 0.3); }
+    else if (type === 'anvil') { for (const [fr, am] of [[1130, 0.2], [3120, 0.1], [6100, 0.05]]) thump(fr, fr * 0.995, 0.3, 0.35, am); burst('highpass', 3000, 0.7, 0.02, 0.3); }
   }
 }
