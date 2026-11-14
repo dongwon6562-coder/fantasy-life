@@ -32,6 +32,7 @@ import { renderParty } from './party.js';
 import { renderYouthCard, renderYouthBlock } from './youth.js';
 import { renderLegacy, renderLifeReview } from './legacy.js';
 import { renderCrisis } from './crisis.js';
+import { ownedGoods } from './era.js';
 
 // 시작 화면: 종족별 집안 (인간 집안은 race가 없다)
 const familiesOf = (race) => FAMILIES.filter((f) => (f.race ?? 'human') === race);
@@ -174,6 +175,7 @@ function lifeLines() {
   } catch (e) { console.error(e); }
   const job = jobTitle(game);
   if (job) rows.push(['일', job]);
+  try { const og = ownedGoods(game); if (og.length) rows.push(['살림', og.map((x) => `${x.name}${x.n > 1 ? ` ×${x.n}` : ''}`).join(', ')]); } catch (e) { console.error(e); }
   const ms = memberships(game);
   if (ms.length) rows.push(['소속', ms.join(', ')]);
   const g = life.gear;
