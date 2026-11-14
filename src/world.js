@@ -84,6 +84,8 @@ export function nudge(g, key, amount) {
   else if (key === 'tech') r.tech += amount;
   else if (key === 'blackGlove') r.blackGlove = clamp(r.blackGlove + amount, 0, 100);
   else if (key === 'heroRite') r.heroRite = clamp(r.heroRite + amount, 0, 100);
+  // 발하르트 전선: +면 레오니아 우세, -면 밀림. 전쟁 중일 때만 움직이고, ±8에서 승패가 갈린다.
+  else if (key === 'front') { if (r.balhart.war) r.balhart.front = clamp(r.balhart.front + amount, -10, 10); }
 }
 
 // 한 달 진행. news: 이번 달 소식 후보 [{ text, big }]

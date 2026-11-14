@@ -20,6 +20,8 @@ import { splitResult } from '../narrative/text.js';
 import { $, $$, esc, root } from './util.js';
 import { renderPlan, bindPlan } from './plan.js';
 import { renderPeople, bindPeople } from './people.js';
+import { applyPrefs, prefs, reducedMotion, renderSettings, bindSettings } from './settings.js';
+import { runGuide, stopGuide } from './guide.js';
 
 let game = null;
 const ui = {
@@ -27,6 +29,8 @@ const ui = {
   setup: { mode: 'once', family: null, sex: 'm', name: '' },
 };
 let unmountMap = null;
+let lastArt = null;   // 바로 전에 보인 풍경 (바뀌면 천천히 겹쳐 바꾼다)
+let lastView = null;  // 바로 전 화면 (바뀌면 살짝 떠오르며 나타난다)
 
 // 지도에서 게임 장소를 누르면 '길 떠나기' 장면(places.js)을 바로 띄운다.
 MAP_ACTIONS.push((g, place) => {
@@ -43,6 +47,10 @@ MAP_ACTIONS.push((g, place) => {
 });
 
 export function start() {
+  applyPrefs();
+  try { matchMedia('(prefers-reduced-motion: reduce)').addEventListener('change', applyPrefs); } catch { /* 옛 브라우저 */ }
+  stopGuide();
+  lastArt = null; lastView = null;
   renderSetup(summary('auto'));
 }
 
@@ -254,14 +262,14 @@ function renderChron() {
 
 function renderSave() {
   if (game.mode === 'once') {
-    return `<section class="card"><h2>저장</h2><p class="note">한 번뿐인 삶: 매달 자동으로 저장된다. 예전으로 돌아갈 수는 없다.</p><div class="actions-row"><button class="ghost" id="to-title">처음 화면으로</button></div></section>`;
+    return `<section class="card"><h2>저장</h2><p class="note">한 번뿐인 삶: 매달 자동으로 저장된다. 예전으로 돌아갈 수는 없다.</p><div class="actions-row"><button class="ghost" id="to-title">처음 화면으로</button></div></section>${renderSettings()}`;
   }
   return `<section class="card"><h2>저장</h2>
     <p class="note">자유 모드: 칸을 골라 저장하고, 처음 화면에서 불러올 수 있다. 매달 자동 저장도 따로 된다.</p>
     <div class="actions-row">
       ${[1, 2, 3].map((i) => { const s = summary('slot' + i); return `<button class="ghost" data-save="${i}">${i}번에 저장${s ? ` (지금: ${esc(s.name)} ${s.age}살)` : ''}</button>`; }).join('')}
       <button class="ghost" id="to-title">처음 화면으로</button>
-    </div></section>`;
+    </div></section>${renderSettings()}`;
 }
 
 function renderMap() {
@@ -272,7 +280,7 @@ function renderEvent() {
   const e = game.pendingEvent;
   if (!e && !ui.outcome) return '';
   const art = sceneImage({ year: game.date.year, month: game.date.month, famine: game.world?.famine, plague: game.world?.plague, place: L(game).place });
-  const head = `${art ? `<div class="ev-art" style="background-image:url(${art})" aria-hidden="true"></div>` : ''}`;
+  const head = `${art ? `<div class="ev-art" aria-hidden="true"><i style="background-image:url(${art})"></i></div>` : ''}`;
   if (ui.outcome) {
     return `<div class="overlay"><div class="event" role="dialog" aria-modal="true" aria-labelledby="ev-title">
       ${head}
@@ -290,7 +298,7 @@ function renderEvent() {
       <span class="eyebrow">용사력 ${game.date.year}년 ${monthInfo(game).name} · 사건</span>
       <h2 id="ev-title">${esc(e.title)}</h2>
       <p class="ev-text">${esc(e.text)}</p>
-      <div class="opts">${e.choices.map((c, i) => `<button class="opt" data-choice="${i}"><span class="n">${i + 1}</span><span>${esc(c)}</span></button>`).join('')}</div>
+      <div class="opts">${e.choices.map((c, i) => `<button class="opt" data-choice="${i}" style="--i:${i}"><span class="n">${i + 1}</span><span>${esc(c)}</span></button>`).join('')}</div>
     </div>
   </div></div>`;
 }
@@ -311,7 +319,7 @@ const VIEWS = [
   ['people', '사람들', 'visit'],
   ['map', '지도', 'wander'],
   ['chron', '연대기', 'book'],
-  ['save', '저장', 'home'],
+  ['save', '설정', 'gear'],
 ];
 
 function renderGame() {
@@ -328,7 +336,8 @@ function renderGame() {
   else if (ui.view === 'save') main = renderSave();
   root().innerHTML = `
     <header class="scene">
-      ${art ? `<img src="${art}" alt="${esc(placeName(game))} 풍경: ${mi.season}, ${esc(conditionText(game.date.year, game.date.month))}">` : ''}
+      ${art && lastArt && lastArt !== art && !reducedMotion() ? `<img class="prev" src="${lastArt}" alt="" aria-hidden="true">` : ''}
+      ${art ? `<img class="${lastArt && lastArt !== art ? 'xfade' : ''}" src="${art}" alt="${esc(placeName(game))} 풍경: ${mi.season}, ${esc(conditionText(game.date.year, game.date.month))}">` : ''}
       <div class="scene-cap">
         <div class="date"><span class="yr">용사력 ${game.date.year}년</span><strong>${mi.name}</strong><span class="cond">${mi.season} · ${esc(conditionText(game.date.year, game.date.month))}</span></div>
         <div class="purse"><span>내 돈 <b>은화 ${p.money}</b></span><span>집안 돈 <b>은화 ${p.familyMoney}</b></span></div>
@@ -340,25 +349,67 @@ function renderGame() {
     <div class="wrap game">
       <div class="layout view-${ui.view}">
         ${ui.view === 'me' ? '' : renderSheet().replace('class="sheet"', 'class="sheet side"')}
-        <div class="main">${main}</div>
+        <div class="main${lastView !== ui.view ? ' enter' : ''}">${main}</div>
       </div>
     </div>
     ${game.over ? '' : renderEvent()}`;
+  lastArt = art; lastView = ui.view;
   bindGame();
   if (ui.view === 'map') {
     const host = $('#map-host');
     if (host) unmountMap = mountMap(host, { here: L(game).place, game, onChange: () => renderGame() });
   }
+  guideLater();
+}
+
+// 안내는 화면이 자리 잡은 뒤에 (달 넘김 카드가 떠 있으면 그게 걷힌 뒤에)
+function guideLater() {
+  const blocked = !!(game.over || game.pendingEvent || ui.outcome || ui.view !== 'month' || document.querySelector('.month-card'));
+  if (blocked) { stopGuide(); return; }
+  requestAnimationFrame(() => runGuide({}));
+}
+
+/* 달 넘김 카드: 한 달(또는 여러 달)이 흐른 걸 잠깐 보여 준다. 누르면 바로 걷힌다. */
+function showMonthCard(before, passed) {
+  if (!prefs().monthCard || reducedMotion() || game.over) return;
+  const mi = monthInfo(game);
+  const seasonTurn = mi.season !== before.season ? `${mi.season}이 왔다` : ''; // 봄·여름·가을·겨울 모두 받침이 있다
+  const flow = passed >= 12 ? `${Math.floor(passed / 12)}년${passed % 12 ? ` ${passed % 12}달` : ''}이 흘렀다` : passed > 1 ? `${passed}달이 흘렀다` : '';
+  const yearTurn = game.date.year !== before.year ? `용사력 ${game.date.year}년이 밝았다` : '';
+  const lines = [yearTurn, flow, seasonTurn].filter(Boolean);
+  const el = document.createElement('div');
+  el.className = 'month-card';
+  el.setAttribute('role', 'status');
+  el.innerHTML = `<div class="mc-in">
+    <span class="mc-yr">용사력 ${game.date.year}년</span>
+    <strong>${esc(mi.name)}</strong>
+    <span class="mc-cond">${esc(mi.season)} · ${esc(conditionText(game.date.year, game.date.month))}</span>
+    ${lines.length ? `<span class="mc-line">${esc(lines.join(' · '))}</span>` : ''}
+  </div>`;
+  document.body.appendChild(el);
+  let gone = false;
+  const close = () => {
+    if (gone) return; gone = true;
+    el.classList.add('out');
+    setTimeout(() => { el.remove(); if (game) guideLater(); }, 380);
+  };
+  el.onclick = close;
+  setTimeout(close, game.pendingEvent ? 900 : 1500);
 }
 
 function advance(times = 1, untilEvent = false) {
+  const before = { year: game.date.year, season: monthInfo(game).season };
+  let passed = 0;
   for (let k = 0; k < times; k++) {
+    passed++;
     endMonth(game, slotsFor(game) ? ui.plan.map((c) => ({ ...c })) : []);
     autosave(game);
     if (game.pendingEvent || game.over) break;
     if (untilEvent && slotsFor(game) > 0) break;
   }
   ui.active = 0;
+  document.querySelectorAll('.month-card').forEach((x) => x.remove());
+  showMonthCard(before, passed);
   renderGame();
   window.scrollTo({ top: 0 });
 }
@@ -373,10 +424,11 @@ function bindGame() {
   if (s3) s3.onclick = () => advance(3);
   bindPlan(game, ui, rerender);
   bindPeople(game, ui, rerender);
+  bindSettings(rerender, () => { ui.view = 'month'; renderGame(); window.scrollTo({ top: 0 }); });
   $$('[data-view]').forEach((b) => b.onclick = () => { ui.view = b.dataset.view; renderGame(); window.scrollTo({ top: 0 }); });
   $$('[data-save]').forEach((b) => b.onclick = () => { saveSlot(game, +b.dataset.save); b.textContent = `${b.dataset.save}번에 저장됨`; });
   const tt = $('#to-title');
-  if (tt) tt.onclick = () => { game = null; if (unmountMap) { unmountMap(); unmountMap = null; } start(); };
+  if (tt) tt.onclick = () => { game = null; if (unmountMap) { unmountMap(); unmountMap = null; } document.querySelectorAll('.month-card').forEach((x) => x.remove()); start(); };
   $$('[data-choice]').forEach((b) => b.onclick = () => {
     const title = game.pendingEvent.title;
     const text = resolveEvent(game, rngOf(game), +b.dataset.choice);

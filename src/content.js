@@ -5,5 +5,6 @@ import './adventure/index.js';
 import './world.js';
 import './events/index.js';
 import './tuning.js';
+import './underworld/index.js';
 import './duel/index.js';
 import './magic/index.js';
