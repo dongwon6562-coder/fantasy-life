@@ -1,7 +1,7 @@
 // 1단계 사건들 (아기~성인식). 2단계에서 묶음으로 옮겼다.
 import { playerAge, playerAgeMonths, gainStat, gainSkill } from '../game.js';
-import { living, ageYears } from '../npc.js';
-import { EVENTS, flag, setFlag, fam, father, mother, check, injure } from './core.js';
+import { ageYears } from '../npc.js';
+import { EVENTS, flag, setFlag, fam, father, mother, check, injure, living } from './core.js';
 
 const knownChildFriend = (g) => living(g).find((p) => p.known && !p.isPlayer && p.affection >= 15
   && Math.abs(ageYears(p) - playerAge(g)) <= 3 && !g.player.familyIds.includes(p.id));

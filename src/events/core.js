@@ -6,12 +6,24 @@
 //   weight: 80 이상은 '꼭 일어나야 하는 사건'(사건 줄기의 다음 단계, 찾아가기 대화 등). 가장 무거운 것이 먼저 일어난다.
 //           80 미만은 무게에 비례해 무작위로 고르고, 매달 일어나지는 않는다(EVENT_RATE).
 //   prepare?(g, rng) → ctx (사건에 나올 사람 등을 미리 정한다. text와 run에 넘어간다),
-//   title, text(g, ctx), choices: [{ label, show?(g, ctx), run(g, rng, ctx) → 결과 글 }]
+//   title, text(g, ctx), choices: [{ label, show?(g, ctx), run(g, rng, ctx) → 결과 글 }],
+//   village?: true  마을(에른)에서만 일어나는 사건 (index.js에서 표시)
+//   world?: true    세계에 묶인 한 번뿐인 사건 (국상, 시대 변화 등). 대를 이어도 다시 나오지 않는다.
 // }
 import { playerAge, playerAgeMonths, family, me } from '../game.js';
-import { living, byId, ageYears, fullName } from '../npc.js';
+import { living as livingAll, byId, ageYears, fullName } from '../npc.js';
+import { HOOKS } from '../hooks.js';
 
 export const EVENTS = [];
+
+// ---------- 장소 ----------
+// 사람마다 place가 있다(없으면 에른). 사건에 나오는 사람은 지금 내가 있는 곳의 사람이다.
+// (adventure/core.js의 L(g)와 같은 g.life를 읽는다. 서로 import하면 순환이 생겨 직접 읽음)
+export const here = (g) => g.life?.place ?? 'ern';
+export const onRoad = (g) => !!g.life?.travel;
+export const inVillage = (g) => here(g) === 'ern' && !onRoad(g);
+export const local = (g, p) => (p.place ?? 'ern') === here(g);
+export const living = (g) => livingAll(g).filter((p) => local(g, p));
 
 // ---------- 공용 도구 ----------
 export const flag = (g, k) => (g.flags ??= {})[k];
@@ -44,7 +56,7 @@ export const injure = (g, name, months) => g.player.injuries.push({ name, months
 // 능력 판정: 값이 높을수록 성공 확률이 높다
 export const check = (rng, value, difficulty) => rng.chance(Math.max(0.05, Math.min(0.95, 0.5 + (value - difficulty) / 40)));
 export const nm = (p, fallback = '누군가') => p?.name ?? fallback;
-export { fullName, ageYears, living, byId, me };
+export { fullName, ageYears, byId, me };
 
 // 받침에 맞는 조사: josa('한스', '이', '가') → '한스가'
 export function josa(word, withFinal, withoutFinal) {
@@ -74,6 +86,8 @@ export const chainDone = (g, id) => flag(g, 'chain_' + id);
 // ---------- 고르기와 풀기 ----------
 // 한 달에 사건은 많아야 하나. 꼭 일어나야 하는 사건(weight ≥ URGENT)이 먼저고,
 // 나머지는 무게에 따라 무작위로 고르되 매달 일어나지는 않는다.
+const onceKey = (e) => (e.world ? 'world_ev_' : 'ev_') + e.id;
+
 export const EVENT_RATE = 0.6;
 export const URGENT = 80;
 
@@ -81,7 +95,9 @@ export function pickEvent(game, rng) {
   const now = monthIndex(game);
   const last = (game.evLast ??= {});
   const cands = EVENTS.filter((e) => {
-    if (e.once && flag(game, 'ev_' + e.id)) return false;
+    if (e.once && flag(game, onceKey(e))) return false;
+    if (e.village && !inVillage(game)) return false;
+    if (onRoad(game) && !e.road && !e.id.startsWith('chain_')) return false;
     if (!e.once && last[e.id] != null && now - last[e.id] < (e.cooldown ?? 24)) return false;
     let ok = false;
     try { ok = !!e.cond(game); } catch { ok = false; }
@@ -113,10 +129,13 @@ export function resolveEvent(game, rng, index) {
   const real = pe.choiceIdx ? pe.choiceIdx[index] ?? pe.choiceIdx[0] : index;
   const c = e.choices[real] ?? e.choices[0];
   const out = c.run(game, rng, pe.ctx ?? {}) ?? '';
-  if (e.once) setFlag(game, 'ev_' + e.id);
+  if (e.once) setFlag(game, onceKey(e));
   game.pendingEvent = null;
   const record = { y: game.date.year, m: game.date.month, text: `${pe.title}: ${out}`, rel: 100 };
   game.chronicle.push(record);
   me(game).history.push({ y: game.date.year, m: game.date.month, text: `${pe.title}. ${out}` });
   return out;
 }
+
+// 대를 이으면 사건 줄기는 새로 시작한다 (부모의 병, 빚 같은 건 그 사람의 이야기였으니)
+HOOKS.heir?.push((g) => { g.chains = {}; });
