@@ -233,6 +233,7 @@ defineScene('gang_contract', {
     const v = byId(g, s.target);
     const c = C(g);
     if (!v || !v.alive) return '쪽지의 이름은 이미 다른 누군가가 지웠다.';
+    if (!c.gang) return '봉투를 건넨 조직과는 이미 연이 끊겼다. 쪽지는 불에 태웠다.';
     if (key === 'no') { c.gang.rep = Math.max(0, c.gang.rep - 8); return '봉투를 밀어냈다. 간부는 말없이 봉투를 거둬 갔다. 다른 누군가가 맡을 것이다. 내 신임은 조금 깎였다.'; }
     if (key === 'warn') {
       v.away = true; v.known = true;
