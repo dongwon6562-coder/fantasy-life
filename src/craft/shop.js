@@ -59,6 +59,8 @@ defineScene('open_shop', {
   text: (g) => {
     const t = canOpen(g);
     const place = L(g).place;
+    // 장면이 뜨기 전에 사정이 바뀌었으면(일을 그만둠, 길을 떠남 등) 가게를 낼 수 없다고만 알린다
+    if (!t) return `${PLACES[place]?.name ?? '이곳'}에 가게 자리를 알아보았지만, 지금 형편으로는 낼 수 없었다.`;
     return `${PLACES[place].name}에 빈 ${KIND[t]} 자리가 났다. 연장과 첫 재료까지 은화 ${SHOP_COST[place]}닢, 집세는 달마다 ${SHOP_RENT[place]}닢. 내 가게를 내면 지금 주인 밑의 일은 그만두게 된다. 간판에 무엇이라 쓸까. 내 돈은 은화 ${g.player.money}닢이다.`;
   },
   choices: (g) => {
