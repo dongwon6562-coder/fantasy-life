@@ -11,3 +11,4 @@ import './duel/index.js';
 import './magic/index.js';
 import './war/spellpower.js';
 import './audio/index.js';
+import './craft/index.js';
