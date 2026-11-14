@@ -10,6 +10,7 @@ import { portrait } from '../art/portrait.js';
 import { sceneImage, conditionText } from '../art/scene.js';
 import { icon } from '../art/icons.js';
 import { mountMap } from '../art/map.js';
+import { splitResult } from '../narrative/text.js';
 import { $, $$, esc, root } from './util.js';
 import { renderPlan, bindPlan } from './plan.js';
 import { renderPeople, bindPeople } from './people.js';
@@ -170,7 +171,7 @@ function renderNews() {
       ? `<ul class="news">${game.news.map((n) => `<li class="${n.rel >= 40 ? 'close' : ''}">${esc(n.text)}</li>`).join('')}</ul>`
       : '<p class="note">조용한 달이었다. 별다른 소문은 없다.</p>'}
     ${game.lastResults.length ? `<h3 class="sub">지난달 한 일</h3>
-      <ul class="results">${game.lastResults.map((r) => `<li><b>${esc(r.name)}</b><span>${esc(r.text)}</span></li>`).join('')}</ul>` : ''}
+      <ul class="results">${game.lastResults.map((r) => `<li><b>${esc(r.name)}</b><span class="scene-text">${esc(r.scene ?? r.text)}</span>${r.gains ? `<small class="gains">${esc(r.gains)}</small>` : ''}</li>`).join('')}</ul>` : ''}
   </section>`;
 }
 
@@ -207,7 +208,7 @@ function renderEvent() {
       <div class="ev-body">
         <span class="eyebrow">용사력 ${game.date.year}년 ${monthInfo(game).name} · 그 뒤</span>
         <h2 id="ev-title">${esc(ui.outcome.title)}</h2>
-        <p class="outcome">${esc(ui.outcome.text)}</p>
+        ${(() => { const r = splitResult(String(ui.outcome.text ?? '')); return `<p class="outcome">${esc(r.scene)}</p>${r.gains ? `<p class="gains">${esc(r.gains)}</p>` : ''}`; })()}
         <div class="opts"><button class="primary" id="ev-close">계속</button></div>
       </div>
     </div></div>`;

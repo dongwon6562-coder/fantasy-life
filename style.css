@@ -167,11 +167,17 @@ h1, h2, h3 { font-family: var(--f-display); font-weight: 700; text-wrap: balance
 .results { display: grid; gap: 10px; margin: 0; padding: 0; list-style: none; }
 .results li { display: grid; gap: 2px; }
 .results li b { color: var(--brass); font-weight: 600; font-size: 13px; }
+.results .scene-text { line-height: 1.7; }
+.results .gains { color: var(--muted); font-size: 12px; font-variant-numeric: tabular-nums; }
 .actions-row { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
 .baby { color: var(--muted); margin: 0; }
 
 /* ---------- 계획: 칸 + 행동 카드 ---------- */
-.slotbar { display: grid; grid-template-columns: repeat(var(--n), minmax(0, 1fr)); gap: 8px; }
+.slotbar {
+  display: grid; grid-template-columns: repeat(var(--n), minmax(0, 1fr)); gap: 8px;
+  position: sticky; top: 54px; z-index: 3; background: var(--panel); padding: 8px 0 10px; margin: -8px 0 -4px;
+}
+@media (max-width: 860px) { .slotbar { top: env(safe-area-inset-top, 0px); } .slotchip { min-height: 80px; } }
 .slotchip {
   background: var(--bg); border: 1px solid var(--line); border-radius: 8px; padding: 8px 6px 10px;
   display: grid; justify-items: center; gap: 2px; text-align: center; min-height: 92px; position: relative;
@@ -217,7 +223,9 @@ h1, h2, h3 { font-family: var(--f-display); font-weight: 700; text-wrap: balance
 }
 .target .nm { font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
 .target[aria-pressed="true"] { border-color: var(--brass); background: var(--panel-2); }
-.sticky-go { position: sticky; bottom: calc(var(--nav-h) + 8px); background: linear-gradient(transparent, var(--panel) 30%); padding-top: 14px; margin-top: -6px; z-index: 2; }
+.sticky-go { position: sticky; bottom: calc(var(--nav-h) + 6px); z-index: 2; display: flex; }
+.go-btn { box-shadow: 0 6px 18px rgba(0, 0, 0, .45); }
+@media (max-width: 860px) { .go-btn { width: 100%; min-height: 50px; font-size: 16px; } }
 
 /* ---------- 인물 수첩 ---------- */
 .filters { align-self: start; }
@@ -251,6 +259,13 @@ h1, h2, h3 { font-family: var(--f-display); font-weight: 700; text-wrap: balance
 @media (max-width: 420px) { .detail-head { grid-template-columns: 1fr; justify-items: start; } }
 .kin { margin: 0; display: flex; flex-wrap: wrap; gap: 4px 16px; font-size: 14px; color: var(--muted); }
 .linkish { background: none; border: 0; padding: 0; color: var(--brass); text-decoration: underline; text-underline-offset: 3px; }
+.detail h4 { font-family: var(--f-body); font-size: 12px; letter-spacing: .12em; color: var(--brass); margin: 0; font-weight: 600; }
+.memories { display: grid; gap: 6px; }
+.memories ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; font-size: 14px; }
+.memories li { padding-left: 10px; border-left: 2px solid var(--line); display: grid; }
+.memories li.good { border-left-color: var(--good); }
+.memories li.bad { border-left-color: var(--blood); }
+.memories time { color: var(--muted); font-size: 12px; }
 .timeline { list-style: none; margin: 0; padding: 0 0 0 14px; border-left: 1px solid var(--line); display: grid; gap: 8px; font-size: 14px; }
 .timeline li { display: grid; gap: 0; position: relative; }
 .timeline li::before { content: ''; position: absolute; left: -18px; top: 8px; width: 7px; height: 7px; border-radius: 50%; background: var(--brass-dim); }
@@ -321,3 +336,8 @@ h1, h2, h3 { font-family: var(--f-display); font-weight: 700; text-wrap: balance
 
 /* 아이폰 앱에서 노치·홈 바를 피한다 (웹 게시판에서는 같은 값이라 영향 없음) */
 :root { padding-top: env(safe-area-inset-top, 0px); }
+.layout.view-map { grid-template-columns: minmax(0, 1fr); }
+.layout.view-map .sheet.side { display: none; }
+.filters { justify-self: start; max-width: 100%; flex-wrap: nowrap; overflow-x: auto; }
+.filters button { white-space: nowrap; padding: 8px 12px; font-size: 14px; }
+.event .gains { color: var(--muted); font-size: 13px; }

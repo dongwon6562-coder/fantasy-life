@@ -33,10 +33,8 @@ export function renderPlan(game, ui) {
     <section class="card plan">
       <h2>아기 시절 <small>스스로 고를 수 있는 일은 아직 없다</small></h2>
       <p class="baby">하루의 대부분을 자고, 먹고, 운다. 세 살이 되면 스스로 하루를 보낼 수 있다.</p>
-      <div class="actions-row sticky-go">
-        <button class="primary" id="go">다음 달로</button>
-        <button class="ghost" id="skip">사건이 생길 때까지 넘기기</button>
-      </div>
+      <div class="actions-row plan-tools"><button class="ghost sm" id="skip">사건이 생기거나 세 살이 될 때까지 넘기기</button></div>
+      <div class="sticky-go"><button class="primary go-btn" id="go">다음 달로</button></div>
     </section>`;
   }
   normalizePlan(game, ui);
@@ -84,11 +82,11 @@ export function renderPlan(game, ui) {
         </button>`;
       }).join('')}
     </div>
-    <div class="actions-row sticky-go">
-      <button class="primary" id="go">이 달을 보낸다</button>
-      <button class="ghost" id="fill">모든 칸을 '${esc(activeAct?.name ?? '')}'(으)로</button>
-      <button class="ghost" id="skip3">같은 계획으로 석 달</button>
+    <div class="actions-row plan-tools">
+      <button class="ghost sm" id="fill">모든 칸을 '${esc(activeAct?.name ?? '')}'(으)로</button>
+      <button class="ghost sm" id="skip3">같은 계획으로 석 달 보내기</button>
     </div>
+    <div class="sticky-go"><button class="primary go-btn" id="go">이 달을 보낸다</button></div>
   </section>`;
 }
 
@@ -104,6 +102,7 @@ export function bindPlan(game, ui, rerender) {
       ui.active++; // 다음 칸으로
     }
     rerender();
+    if (act?.needsTarget) document.querySelector('.targets')?.scrollIntoView({ block: 'center', behavior: 'smooth' });
   });
   document.querySelectorAll('[data-target]').forEach((b) => b.onclick = () => {
     ui.plan[ui.active].target = +b.dataset.target;

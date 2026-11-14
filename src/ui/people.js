@@ -3,6 +3,8 @@ import { knownPeople, byId, ageYears, fullName } from '../game.js';
 import { jobName } from '../actions.js';
 import { traitName } from '../data.js';
 import { portrait, looksOf } from '../art/portrait.js';
+import { relationLabel, memoriesOf } from '../relations.js';
+import { J } from '../narrative/text.js';
 import { esc, clamp } from './util.js';
 
 const FILTERS = [['all', '모두'], ['family', '가족'], ['close', '가까운 사이'], ['gone', '떠난 사람']];
@@ -57,7 +59,7 @@ export function renderPeople(game, ui) {
           <span class="txt">
             <span class="nm">${esc(fullName(p))}</span>
             <span class="meta">${esc(personMeta(game, p))}</span>
-            <span class="rel">${affBar(p.affection)}<span class="aff ${p.affection >= 20 ? 'pos' : p.affection < 0 ? 'neg' : ''}">${relWord(p.affection)}</span></span>
+            <span class="rel">${affBar(p.affection)}<span class="aff ${p.affection >= 20 ? 'pos' : p.affection < 0 ? 'neg' : ''}">${esc(relationLabel(game, p))}</span></span>
           </span>
         </button>`).join('')}
     </div>` : '<p class="note">아직 이 칸에 적힌 사람이 없다.</p>'}
@@ -80,7 +82,7 @@ function renderDetail(game, p) {
           <p class="note">${esc(personMeta(game, p))}</p>
           <p class="note">${esc(looksOf(game, p))}</p>
           <div class="chips">${p.traits.map((t) => `<span class="chip">${esc(traitName(t))}</span>`).join('')}</div>
-          <div class="rel big">${affBar(p.affection)}<span class="aff ${p.affection >= 20 ? 'pos' : p.affection < 0 ? 'neg' : ''}">${relWord(p.affection)} · 호감 ${p.affection}</span></div>
+          <div class="rel big">${affBar(p.affection)}<span class="aff ${p.affection >= 20 ? 'pos' : p.affection < 0 ? 'neg' : ''}">${esc(relationLabel(game, p))} · ${relWord(p.affection)} (호감 ${p.affection})</span></div>
         </div>
       </div>
       ${(spouse || kids.length || parents.length) ? `<p class="kin">
@@ -88,6 +90,8 @@ function renderDetail(game, p) {
         ${spouse ? `<span>배우자 ${link(spouse)}</span>` : ''}
         ${kids.length ? `<span>자식 ${kids.map(link).join(', ')}</span>` : ''}
       </p>` : ''}
+      ${memoriesOf(p).length ? `<div class="memories"><h4>${esc(J(p.name, '이/가'))} 기억하는 나</h4><ul>${memoriesOf(p).slice(-6).reverse().map((m) => `<li class="${m.tone > 0 ? 'good' : m.tone < 0 ? 'bad' : ''}"><time>${m.y}년 ${m.m}월</time>${esc(m.text)}</li>`).join('')}</ul></div>` : ''}
+      <h4>삶의 기록</h4>
       ${p.history.length
         ? `<ol class="timeline">${p.history.slice(-12).reverse().map((h) => `<li><time>${h.y}년 ${h.m}월</time><span>${esc(h.text)}</span></li>`).join('')}</ol>`
         : '<p class="note">아직 아는 이야기가 없다.</p>'}
