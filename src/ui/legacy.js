@@ -19,10 +19,12 @@ function lifeSpan(game, i) {
 /** 한 삶의 연표 항목들 (같은 글 되풀이는 묶는다). i가 ancestors.length면 지금 사는 사람. */
 export function lifeTimeline(game, i) {
   const { from, to, born } = lifeSpan(game, i);
+  const rec0 = L(game).ancestors[i];
+  const who = `${rec0 ? rec0.name : game.player.name}, `;
   const out = [];
   const seen = new Map();
   for (const c of game.chronicle ?? []) {
-    if ((c.rel ?? 0) < 100 || c.y < from || c.y > to) continue;
+    if (((c.rel ?? 0) < 100 && !((c.rel ?? 0) >= 70 && c.text.startsWith(who))) || c.y < from || c.y > to) continue;
     // 앞 세대가 죽은 해에는 그 달 이후만 (같은 해에 일어난 앞 세대 일은 빼기 어렵지만 대를 잇는 줄부터 시작)
     const key = c.text.replace(/\d+/g, '#');
     if (seen.has(key)) { seen.get(key).n++; seen.get(key).last = c.y; continue; }
