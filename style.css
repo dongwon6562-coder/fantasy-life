@@ -441,3 +441,38 @@ html.motion .event .opt, html.motion .event #ev-close { animation: opt-in .35s e
 @keyframes opt-in { from { opacity: 0; transform: translateY(6px); } }
 html.motion .guide-bubble { animation: mc-rise .25s ease-out; }
 html:not(.motion) .event { animation: none; }
+
+/* ---------- 4단계: 폰 한 손 조작 ---------- */
+.hint-narrow { display: none; }
+.detail .close-bottom { display: none; }
+@media (max-width: 860px) {
+  .hint-wide { display: none; }
+  .hint-narrow { display: inline; }
+  /* 계획: 할 일 카드는 위, 칸과 '보낸다' 단추는 엄지가 닿는 아래에 붙는다 */
+  .card.plan { display: flex; flex-direction: column; }
+  .card.plan > h2 { order: 0; }
+  .card.plan > .acts { order: 1; }
+  .card.plan > .targets { order: 2; }
+  .card.plan > .plan-tools { order: 3; }
+  .card.plan > .baby { order: 1; }
+  .card.plan > .slotbar {
+    order: 4; position: sticky; top: auto; bottom: calc(var(--nav-h) + 62px); margin: 0 -18px; padding: 8px 18px 4px;
+    box-shadow: 0 -10px 14px -6px rgba(0, 0, 0, .55);
+  }
+  .card.plan > .sticky-go { order: 5; bottom: var(--nav-h); background: var(--panel); margin: 0 -18px -16px; padding: 4px 18px 8px; border-radius: 0 0 8px 8px; }
+  .slotchip { min-height: 62px; padding: 6px 4px 6px; gap: 0; }
+  .slotchip .ic svg { width: 18px; height: 18px; }
+  .slotchip[aria-selected="true"]::after { bottom: auto; top: -7px; transform: translateX(-50%) rotate(225deg); }
+  /* 사건 창은 화면 아래에서 올라온다: 선택지가 엄지 쪽에 */
+  .overlay { align-items: flex-end; padding-bottom: max(10px, env(safe-area-inset-bottom, 0px)); }
+  .event { margin: auto 0 0; }
+  /* 인물 기록: 아래에도 닫기 */
+  .detail .close-bottom { display: block; width: 100%; min-height: 46px; margin-top: 4px; }
+  /* 누르는 칸은 손가락 크기 이상 */
+  .ghost.sm, .primary.sm { min-height: 42px; }
+  .world-mini summary { min-height: 40px; }
+}
+/* 설정 화면 안의 소리 칸 (소리 모듈이 그린다) */
+.audio-host.fl-audio { border-top: 1px solid var(--line); padding-top: 10px; }
+.fl-audio-btn[hidden] { display: none !important; }
+.audio-host .fl-audio-box { padding: 4px 0 0; }

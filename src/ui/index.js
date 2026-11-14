@@ -22,6 +22,7 @@ import { renderPlan, bindPlan } from './plan.js';
 import { renderPeople, bindPeople } from './people.js';
 import { applyPrefs, prefs, reducedMotion, renderSettings, bindSettings } from './settings.js';
 import { runGuide, stopGuide } from './guide.js';
+import { audio } from '../audio/index.js';
 
 let game = null;
 const ui = {
@@ -234,7 +235,8 @@ function renderWorldMini() {
   if (!rows.length) return '';
   const hot = rows.filter(([, v]) => ALARM.test(v));
   const head = hot.length ? hot.map(([k, v]) => `${k} ${v}`).join(' · ') : '큰 변고는 없다';
-  return `<details class="world-mini"${hot.length ? ' open' : ''}>
+  // 접어 둔다: 큰 일은 접힌 줄에도 붉게 보인다 (폰에서 계획까지 덜 굴리게)
+  return `<details class="world-mini">
     <summary><span class="lbl">레오니아 정세</span><span class="hd ${hot.length ? 'alarm' : ''}">${esc(head)}</span></summary>
     <dl class="world-grid">${rows.map(([k, v]) => `<div class="${ALARM.test(v) ? 'alarm' : ''}"><dt>${esc(k)}</dt><dd>${esc(v)}</dd></div>`).join('')}</dl>
   </details>`;
@@ -359,6 +361,9 @@ function renderGame() {
     const host = $('#map-host');
     if (host) unmountMap = mountMap(host, { here: L(game).place, game, onChange: () => renderGame() });
   }
+  // 설정 화면: 소리 켜기·끄기와 음량은 소리 모듈이 직접 그린다 (없으면 내 음량 칸이 그대로 남는다)
+  const ah = $('#audio-host');
+  if (ah && audio?.mountSettings) { try { audio.mountSettings(ah); } catch (e) { console.error(e); } }
   guideLater();
 }
 
