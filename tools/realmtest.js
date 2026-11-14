@@ -70,6 +70,7 @@ for (let run = 0; run < 24; run++) {
       else if (!life.job && acts.some((a) => a.id === 'seek_job') && rng.chance(0.2)) pick = 'seek_job';
       else if (run % 4 === 3 && acts.some((a) => a.id === 'crime_burglary') && rng.chance(0.25)) pick = 'crime_burglary';
       const a = pick ? acts.find((x) => x.id === pick) : rng.pick(acts.filter((x) => !x.needsTarget));
+      if (!a) { console.log('NOACT', pick, life.place, JSON.stringify(life.travel), JSON.stringify(g.crime?.jailed ?? null), playerAge(g), acts.map((x)=>x.id+(x.needsTarget?'*':'')).join(',')); process.exit(2); }
       choices.push({ id: a.id });
     }
     endMonth(g, choices);
@@ -120,7 +121,7 @@ for (let run = 0; run < 24; run++) {
   ok(R.citizen === 'leonia' && R.cur === currentRealm(g), 'migrate defaults');
   ok(realmInfo(g, 'holy').standing === '모름', 'standing');
   ok(realmStatus(g).line === '레오니아' && !realmStatus(g).foreigner, 'realmStatus');
-  ok(MAP_PLACES_EXTRA.length === 5, 'MAP_PLACES_EXTRA');
+  ok(MAP_PLACES_EXTRA.length === 8, 'MAP_PLACES_EXTRA');
   ok(crossBorder(g, 'valhart') === false, 'child cannot cross');
   g.player.ageMonths = 20 * 12; g.people.find((p) => p.isPlayer).ageMonths = 240;
   ok(crossBorder(g, 'valhart') === true && L(g).scene.choices[0].key === 'eisen', 'crossBorder opens travel to capital');

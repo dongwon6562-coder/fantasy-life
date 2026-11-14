@@ -14,7 +14,7 @@ import { registerJob, WORK } from '../jobs.js';
 import { fac } from '../factions.js';
 import { setRealmLaw, setExileOption, crimeState, notoriety, addNotoriety, isJailed, jail, reportCrime, sentenceAt, craftOf } from '../crime.js';
 import { remember } from '../relations.js';
-import { REALMS, NAMES, REALM_PLACES, LEONIA_LINKS, REALM_PEOPLE, FOREIGN, REALM_IDS } from './data.js';
+import { REALMS, NAMES, REALM_PLACES, LEONIA_LINKS, EXTRA_LINKS, REALM_PEOPLE, FOREIGN, REALM_IDS } from './data.js';
 
 export { REALMS, REALM_IDS };
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
@@ -22,7 +22,8 @@ const mi = (g) => g.date.year * 12 + g.date.month;
 
 /* ---------- 장소와 길 ---------- */
 Object.assign(PLACES, REALM_PLACES);
-for (const [from, to] of Object.entries(LEONIA_LINKS)) Object.assign(PLACES[from].links, to);
+for (const [from, to] of Object.entries({ ...LEONIA_LINKS })) Object.assign(PLACES[from].links, to);
+for (const [from, to] of Object.entries(EXTRA_LINKS)) Object.assign(PLACES[from].links, to);
 // 잊힌 땅(에스텔라)은 어느 나라의 땅도 아니다
 export const realmOf = (place) => PLACES[place]?.realm ?? (place === 'estella' ? 'wild' : 'leonia');
 export const realmName = (id) => REALMS[id]?.name ?? '주인 없는 땅';
@@ -98,8 +99,8 @@ function ensureRealmPeople(g, rng, place) {
     life.placeNpcs[place].push(p.id);
   }
 }
-const localBy = (g, place, role) => (L(g).placeNpcs[place] ?? []).map((id) => byId(g, id)).find((p) => p?.alive && p.role === role) ?? null;
-function meetLocal(g, place, role) {
+export const localBy = (g, place, role) => (L(g).placeNpcs[place] ?? []).map((id) => byId(g, id)).find((p) => p?.alive && p.role === role) ?? null;
+export function meetLocal(g, place, role) {
   const p = localBy(g, place, role);
   if (p && !p.known) {
     p.known = true; p.affection = 5;
@@ -158,6 +159,7 @@ function exile(g, rng, realm, months, kind) {
   delete R.illegal[realm];
   const to = nearestOutside(g, realm);
   leaveJob(g, `${realmShort(realm)}에서 쫓겨나며 일을 잃었다.`);
+  crimeState(g).jailed = null; // 쫓겨나는 것으로 옥살이를 대신한다
   life.travel = { to, left: Math.max(1, travelMonths(life.place, to)), from: life.place, forced: true };
   if (life.home !== 'street') life.home = 'inn';
   stress(g, 15);
@@ -190,6 +192,9 @@ const BORDER_LINE = {
   holy: '성광국의 경계. 순례자 행렬 사이로 회색 옷의 이단심문관이 지나는 사람마다 성호를 그어 보라고 한다.',
   serenia: '세레니아로 드는 호숫가 다리. 다리 기둥에 새긴 마법진이 지나는 사람의 마력을 훑는다. 협회 집행관이 그 빛을 지켜본다.',
   free: '자유도시의 관세 문. 서기가 짐을 풀어 값을 매기고, 그 옆에서 용병들이 시시덕거린다. 여기서는 모든 것에 값이 있다.',
+  elf: '은빛 잎사귀가 드리운 숲길 끝에서 엘프 파수꾼이 소리 없이 나타났다. 활은 내리고 있지만 시위에는 화살이 걸려 있다. 내 발소리를 오래 들은 눈치다.',
+  dwarf: '골짜기 어귀의 돌문. 수염을 땋은 드워프 경비가 내 손을 뒤집어 보더니 굳은살을 엄지로 눌러 본다. 망치 소리가 바위를 타고 울린다.',
+  beast: '토템 기둥이 늘어선 시장 어귀. 수인 전사가 코를 킁킁거리며 다가온다. 쇠사슬 냄새가 나는 자는 여기서 더 들어가지 못한다.',
   march: '변경으로 드는 마지막 성문. 칼을 찬 병사가 내 손바닥의 굳은살을 보고는 턱짓으로 들어가라고 한다. 남쪽에서 무엇을 했는지는 묻지 않는다.',
 };
 
@@ -223,7 +228,7 @@ defineScene('border', {
     const R = RS(g);
     const r = REALMS[s.to];
     const banned = bannedLeft(g, s.to) > 0 || treatmentIn(g, s.to) === 'banned';
-    const enter = (text) => { enterRealm(g, rng, s.to); return text; };
+    const enter = (text) => { enterRealm(g, rng, s.to); return `${text}${treatLine(g, s.to)}`; };
     if (key === 'citizen') return enter(`병사가 내 말씨를 듣더니 고개를 끄덕였다. "돌아왔군." ${J(r.short, '은/는')} 그래도 내 나라다.`);
     if (key === 'guild') return enter('길드 패를 내밀자 병사의 태도가 달라졌다. 모험가 법은 어느 나라에서나 통한다. 재앙급 마물이 나오면 끌려가 싸워야 한다는 것만 빼면.');
     if (key === 'sword') return enter('병사는 내 칼자루를 한 번 보고는 비켜섰다. "성벽에 일손이 모자라. 생각 있으면 수비대로 와."');
@@ -262,6 +267,17 @@ function turnBack(g, rng, s, text) {
   const to = s.back && realmOf(s.back) !== s.to ? s.back : nearestOutside(g, s.to);
   life.travel = { to, left: Math.max(1, travelMonths(life.place, to)), from: life.place };
   return `${text} ${PLACES[to].name} 쪽으로 되돌아간다.`;
+}
+// 이 나라가 내 종족을 어떻게 대하는지 한 줄로 (보통이면 말하지 않는다)
+const RACE_WORD = { human: '인간', elf: '엘프', dwarf: '드워프', beast: '수인', half_elf: '하프엘프', demon: '마족', half_demon: '반마족' };
+export function treatLine(g, realm) {
+  const t = treatmentIn(g, realm);
+  const w = RACE_WORD[g.player.race ?? 'human'] ?? '인간';
+  if (t === 'welcome') return ` 이곳 사람들은 ${J(w, '을/를')} 반긴다. 어깨에 들어간 힘이 조금 풀렸다.`;
+  if (t === 'wary') return ` 지나가는 눈길이 오래 머문다. 이곳 사람들은 ${J(w, '을/를')} 꺼린다.`;
+  if (t === 'scorn') return ` 등 뒤에서 수군거림이 따라온다. 이곳에서 ${w}는 사람 대접을 받지 못한다.`;
+  if (t === 'banned') return ' 이 나라는 나 같은 자를 들이지 않는다. 들키면 끝이다.';
+  return '';
 }
 function enterRealm(g, rng, realm) {
   const R = RS(g);
@@ -350,6 +366,12 @@ function naturalizeBlock(g, realm) {
   const served = (id) => job?.id === id && job.months >= 12;
   const long = lived >= need || (realm === 'valhart' && served('imperial_soldier')) || (realm === 'march' && served('wall_guard'));
   if (treatmentIn(g, realm) === 'banned') return '이 나라는 나 같은 종족을 받아 주지 않는다';
+  const race = g.player.race ?? 'human';
+  if (r.naturalize.races && !r.naturalize.races.includes(race)) return '이 나라는 같은 종족만 받아 준다';
+  if (r.naturalize.blockCitizen?.includes(R.citizen)) return `${REALMS[R.citizen].short} 사람은 받아 주지 않는다`;
+  if (r.naturalize.skillReq && !(r.naturalize.skillFor === 'nonDwarf' && race === 'dwarf')) {
+    for (const [k, v] of Object.entries(r.naturalize.skillReq)) if ((g.player.skills[k] ?? 0) < v) return `손으로 증명해야 한다 (대장일 ${v})`;
+  }
   if (r.naturalize.faith && g.flags?.faith !== 'devout' && R.piety < 12) return '믿음을 보여야 한다 (대성당 미사에 꾸준히 나가기)';
   if (bannedLeft(g, realm) || R.illegal[realm]) return '이 나라에서 쫓겨난 몸이다';
   if (!long) return `이 나라에서 ${need}달을 살아야 한다 (지금 ${lived}달)`;

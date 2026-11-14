@@ -173,6 +173,10 @@ export const TREATMENT = {
   serenia: { elf: 'welcome', dwarf: 'normal', beast: 'normal', half_elf: 'normal', demon: 'wary', half_demon: 'normal' },
   free: { elf: 'normal', dwarf: 'normal', beast: 'normal', half_elf: 'normal', demon: 'wary', half_demon: 'normal' },
   march: { elf: 'normal', dwarf: 'welcome', beast: 'normal', half_elf: 'normal', demon: 'banned', half_demon: 'scorn' },
+  // 종족의 고향 땅: 여기서는 인간이 남이다
+  elf: { human: 'wary', elf: 'welcome', half_elf: 'wary', dwarf: 'wary', beast: 'normal', demon: 'banned', half_demon: 'banned' },
+  dwarf: { human: 'normal', dwarf: 'welcome', elf: 'wary', half_elf: 'normal', beast: 'normal', demon: 'banned', half_demon: 'wary' },
+  beast: { human: 'wary', beast: 'welcome', elf: 'normal', half_elf: 'normal', dwarf: 'normal', demon: 'banned', half_demon: 'normal' },
 };
 export const TREAT_WORD = { welcome: '반긴다', normal: '가리지 않는다', wary: '꺼린다', scorn: '멸시한다', banned: '들이지 않는다' };
 // 관계에 주는 영향 (호감이 오르는 폭에 더한다)
