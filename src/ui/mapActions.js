@@ -5,6 +5,7 @@ import { PLACES, travelMonths, fareOf } from '../places.js';
 import { REALMS, realmInfo, realmOf, currentRealm, borderNote, crossBorder } from '../realms/index.js';
 import { autosave } from '../save.js';
 import { J } from '../narrative/text.js';
+import { rulerName } from '../world.js';
 import { esc } from './util.js';
 
 // 지도에서 고른 곳이 어느 나라인가: 게임 장소면 places 기준, 아니면 지도 글 기준
@@ -49,7 +50,8 @@ MAP_INFO.push((g, place) => {
   if (!r) return '';
   const note = place.id && PLACES[place.id] ? borderNote(g, place.id) : null;
   const rows = [
-    ['다스리는 이', `${r.ruler} (${r.rule})`],
+    // 레오니아 왕은 세계 흐름에 따라 바뀐다 (설정 문서의 첫 왕 대신 지금 왕)
+    ['다스리는 이', `${id === 'leonia' ? ((n) => (/섭정|국왕/.test(n) ? n : `국왕 ${n}`))(rulerName(g)) : r.ruler} (${r.rule})`],
     ['법', r.law],
     ['신앙', r.faith],
     ['신분', r.status],
