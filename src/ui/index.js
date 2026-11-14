@@ -183,7 +183,7 @@ function lifeLines() {
   if (life.renown >= 5) rows.push(['이름값', String(Math.floor(life.renown))]);
   if (life.notoriety >= 5) rows.push(['악명', String(Math.floor(life.notoriety))]);
   const line = lineage(game);
-  if (line.length > 1) rows.push(['가문', `${life.gen}대째 · ${line.slice(0, -1).map((a) => a.name).join(' → ')} → ${game.player.name}`]);
+  if (line.length > 1) { const nm = line.slice(0, -1).map((a) => a.name); rows.push(['가문', `${life.gen}대째 · ${(nm.length > 3 ? [nm[0], '…', ...nm.slice(-2)] : nm).join(' → ')} → ${game.player.name}`]); }
   return rows.map(([k, v]) => `<div class="skill"><span>${k}</span><span class="g lifev">${esc(v)}</span></div>`).join('');
 }
 
@@ -488,6 +488,8 @@ function bindGame() {
   $$('[data-ws-person]').forEach((b) => b.onclick = () => { ui.view = 'people'; ui.person = +b.dataset.wsPerson; renderGame(); window.scrollTo({ top: 0 }); });
   $$('[data-chron]').forEach((b) => b.onclick = () => { ui.chronTab = b.dataset.chron; renderGame(); });
   $$('[data-legacy]').forEach((b) => b.onclick = () => { ui.legacySel = b.dataset.legacy === 'close' ? null : +b.dataset.legacy; renderGame(); if (ui.legacySel != null) document.querySelector('.lr-detail')?.scrollIntoView({ block: 'start' }); });
+  const la = $('[data-legacy-all]');
+  if (la) la.onclick = () => { ui.legacyAll = true; renderGame(); };
   const th = $('#to-house');
   if (th) th.onclick = () => { ui.view = 'chron'; ui.chronTab = 'house'; renderGame(); window.scrollTo({ top: 0 }); };
   bindSettings(rerender, () => { ui.view = 'month'; renderGame(); window.scrollTo({ top: 0 }); });
