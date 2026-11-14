@@ -208,7 +208,10 @@ defineScene('faction_door', {
   },
   resolve(g, rng, s, key) {
     if (key === 'none') return '문 앞까지 갔다가 발길을 돌렸다.';
-    return JOIN[key](g, rng);
+    // 그 사이 다른 고장으로 왔다면 그 문은 여기 없다. guild_rank 등 소속 이름이 아닌 열쇠는 그대로 둔다
+    const fk = key.replace(/_rank$/, '');
+    if (FACTIONS[fk] && !FACTIONS[fk].seats[L(g).place]) return '찾아간 곳에는 그 문이 없었다. 다른 고장의 일이었다.';
+    return JOIN[key]?.(g, rng) ?? '문은 닫혀 있었다.';
   },
 });
 
