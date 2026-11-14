@@ -4,7 +4,7 @@
 import { J } from '../narrative/text.js';
 import { circleOf } from '../game.js';
 import { L, defineScene, queueScene, note, chron, stress, tired, check } from '../adventure/core.js';
-import { playerPower } from '../adventure/combat.js';
+import { playerPower, battleSpells } from '../adventure/combat.js';
 import { addWound } from '../adventure/fight.js';
 
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
@@ -73,8 +73,17 @@ export function fightBattle(g, rng, side, enemy, planKey) {
   else log.push(pick(rng, ['북이 울리고, 대열이 앞으로 나아갔다.', `${J(E.name, '을/를')} 향해 정면으로 진격했다.`, '깃발을 앞세우고 들판을 가로질렀다.']));
 
   // 서클 마법사는 전략 무기다
-  const c = circleOf(g);
-  if (c >= 2) { const burn = Math.round(theirs * (0.03 * c)); theirs -= burn; mThem -= c * 3; log.push(`${c}서클의 화염이 적의 대열 한가운데 떨어졌다. ${burn}이 불길에 휩쓸렸다.`); }
+  // 서클 마법사는 전략 무기다. 다만 싸우는 주문을 익혀야 한다.
+  const atkSpells = battleSpells(g).filter((x) => x.use === 'combat' && x.circle >= 2).sort((a, b) => b.circle - a.circle);
+  if (atkSpells.length) {
+    const sp = atkSpells[0];
+    const c = Math.min(circleOf(g), sp.circle + 1);
+    const burn = Math.round(theirs * (0.03 * c + (sp.circle >= 5 ? 0.1 : 0)));
+    theirs -= burn; mThem -= c * 3;
+    log.push(`${J(sp.name, '이/가')} 적의 대열 한가운데 떨어졌다. ${burn}명이 휩쓸렸다.`);
+  }
+  const ward = battleSpells(g).find((x) => x.use === 'ward' && x.circle >= 2);
+  if (ward && (planKey === 'hold' || planKey === 'walls')) { mOur += 6; log.push(`${J(ward.name, '이/가')} 진지 앞을 막아섰다. 적의 화살이 허공에서 꺾였다.`); }
 
   const moments = [];
   for (let phase = 0; phase < 3; phase++) {

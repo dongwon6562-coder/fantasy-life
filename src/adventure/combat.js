@@ -35,12 +35,27 @@ export const FOES = {
 };
 
 // 내 전투력: 검술이 가장 크고, 몸과 감각, 서클 마법, 장비가 더한다. 다치고 지치면 줄어든다.
+// 익힌 전투·결계 주문을 전투력에 더한다. 주문 표는 magic/spells.js에 있고, war/spellpower.js가 이어 준다.
+let spellLookup = () => null;
+export function registerSpellLookup(f) { spellLookup = f; }
+const SPELL_POW = [0, 5, 9, 14, 20, 30, 40, 52, 66, 80];
+export function battleSpells(g) {
+  return (g.magic?.known ?? []).map((id) => spellLookup(id)).filter((sp) => sp && (sp.use === 'combat' || sp.use === 'ward'));
+}
+// 가장 센 전투 주문은 다 치고, 나머지 전투 주문은 조금씩, 결계는 막는 힘으로 조금
+export function spellPower(g) {
+  const sp = battleSpells(g);
+  const atk = sp.filter((x) => x.use === 'combat').map((x) => SPELL_POW[x.circle] ?? 0).sort((a, b) => b - a);
+  const ward = Math.max(0, ...sp.filter((x) => x.use === 'ward').map((x) => SPELL_POW[x.circle] ?? 0));
+  return (atk[0] ?? 0) + atk.slice(1).reduce((t, v) => t + v * 0.25, 0) + ward * 0.4;
+}
 export function playerPower(g) {
   const p = g.player;
   const s = p.stats, k = p.skills;
   let pow = k.sword * 0.55 + s.str * 0.2 + s.agi * 0.2 + s.sen * 0.1 + s.wil * 0.05;
   const c = circleOf(g);
   pow += c * c * 3 + c * 7; // 1서클 10, 2서클 26, 3서클 48, 5서클 110: 고서클은 전략 무기
+  pow += spellPower(g); // 서클이 같아도 싸우는 주문을 익혀야 더 세다
   const gear = L(g).gear;
   pow += (gear.weapon ?? 0) + (gear.armor ?? 0) * 0.6;
   pow *= Math.max(0.45, 1 - p.injuries.length * 0.12);
