@@ -37,7 +37,11 @@ ACTIONS.push({
   // 새 물건은 장날에나 들어온다: 한 번 보고 나면 반년은 지나야 다시 볼 거리가 있다
   available: (g) => playerAge(g) >= 12 && !traveling(g) && g.player.money >= 3 && !sceneQueued(g, 'era_shop')
     && monthNow(g) - (E(g).lastShop ?? -99) >= 6 && shopList(g).some((id) => priceOf(g, id) <= g.player.money),
-  run(g) { E(g).lastShop = monthNow(g); queueScene(g, 'era_shop'); return '장터의 새 물건 좌판 앞에 섰다.'; },
+  run(g) {
+    // 같은 달에 여러 칸을 골라도 좌판은 한 번만 연다
+    if (sceneQueued(g, 'era_shop')) return '좌판을 한 바퀴 더 돌았다. 아까 본 물건들이 그대로 놓여 있었다.';
+    E(g).lastShop = monthNow(g); queueScene(g, 'era_shop'); return '장터의 새 물건 좌판 앞에 섰다.';
+  },
 });
 defineScene('era_shop', {
   title: () => '새 물건 좌판',

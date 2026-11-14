@@ -189,7 +189,7 @@ EVENTS.push(
     choices: [
       { label: '돌을 손에 쥔다', run: (g) => { nextStep(g, 'stone', 2, 3, { held: true }); if (g.player.manaAwakened) { gainSkill(g, 'magic', 2.0, 'wil'); g.player.mana += 3; } else gainStat(g, 'wil', 0.8); stress(g, 10); return '손바닥이 타는 듯했다. 눈앞에 무너지는 탑과 불타는 하늘이 스쳤다. 정신을 차리자 새벽이었고, 돌은 다시 식어 있었다.'; } },
       { label: '천으로 싸서 묻어 버린다', run: (g) => { nextStep(g, 'stone', 2, 3, { buried: true }); return '헛간 뒤에 깊이 묻었다. 그 뒤로 빛은 보이지 않았다. 하지만 그 자리에는 풀이 자라지 않았다.'; } },
-      { label: '떠돌이 마법사에게 보인다', show: (g) => !!findJob(g, 'hedge_mage'), run: (g) => { const m = findJob(g, 'hedge_mage'); like(m, 5); gainStat(g, 'int', 0.6); nextStep(g, 'stone', 2, 2, { shown: true }); return `${m.name}의 얼굴에서 핏기가 가셨다. "아르카나 문자다. 고대 왕국의... 이런 건 시골 강바닥에 있으면 안 되는 물건이야. 누구에게도 보여 주지 마라."`; } },
+      { label: '떠돌이 마법사에게 보인다', show: (g) => !!findJob(g, 'hedge_mage'), run: (g) => { const m = findJob(g, 'hedge_mage'); like(m, 5); gainStat(g, 'int', 0.6); nextStep(g, 'stone', 2, 2, { shown: true }); return `${nm(m, '떠돌이 마법사')}의 얼굴에서 핏기가 가셨다. "아르카나 문자다. 고대 왕국의... 이런 건 시골 강바닥에 있으면 안 되는 물건이야. 누구에게도 보여 주지 마라."`; } },
     ],
   },
   {
