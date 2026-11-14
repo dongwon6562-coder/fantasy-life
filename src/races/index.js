@@ -351,3 +351,7 @@ export function raceInfo(g, p = me(g)) {
   };
 }
 export const playableRaces = () => Object.entries(RACES).filter(([, r]) => !r.npcOnly).map(([id, r]) => ({ id, name: r.name, desc: r.desc, life: r.life, family: id === 'human' ? 'farmer' : RACE_FAMILIES.find((f) => f.race === id)?.id ?? null }));
+
+// 장수 종족 초상은 몸 나이로 그린다 (페이블 스레드 portrait.js와 맞춤)
+import { setAgeLens } from '../art/portrait.js';
+setAgeLens(bodyAge);
