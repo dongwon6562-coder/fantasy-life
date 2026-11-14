@@ -8,3 +8,7 @@ export const HOOKS = {
   afterMonth: [],  // (game, rng) 날짜가 넘어가고 소식이 정해진 뒤
 };
 export const run = (name, ...args) => { for (const f of HOOKS[name]) f(...args); };
+// 아래는 2단계에서 덧붙인 확장 지점
+HOOKS.endOfMonth = [];  // (game, rng, results) 사건 고르기와 플레이어 상태 확인까지 끝난 뒤 (한 달의 맨 끝)
+HOOKS.actionFilter = []; // (game, action) => false를 돌려주면 그 행동을 이번 달 목록에서 뺀다
+HOOKS.heir = [];        // (game, rng, oldPlayer) 대를 이어 자식이 새 플레이어가 된 직후
