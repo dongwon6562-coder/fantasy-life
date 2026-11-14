@@ -68,11 +68,18 @@ function matches(e, ctx, game, extra) {
   if (e.when) { if (!e.when(ctx, game, extra)) return 0; score += 1.5; }
   return score;
 }
+// 최근에 쓴 문장은 한동안 잘 고르지 않는다 (반복 줄이기). 저장에는 넣지 않는다.
+const RECENT = new WeakMap();
+const RECENT_MAX = 90;
 export function pickLine(game, rng, pool, extra) {
   const ctx = ctxOf(game);
   const ok = pool.map((e) => ({ e, w: matches(e, ctx, game, extra) })).filter((x) => x.w > 0);
   if (!ok.length) return '';
-  const { e } = rng.weighted(ok, (x) => x.w * x.w);
+  let recent = RECENT.get(game);
+  if (!recent) RECENT.set(game, (recent = []));
+  const { e } = rng.weighted(ok, (x) => x.w * x.w * (recent.includes(x.e) ? 0.04 : 1));
+  recent.push(e);
+  if (recent.length > RECENT_MAX) recent.shift();
   const t = typeof e === 'string' ? e : e.t;
   return typeof t === 'function' ? t(ctx, game, extra) : t;
 }
