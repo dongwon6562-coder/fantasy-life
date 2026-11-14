@@ -64,6 +64,15 @@ export function accentOf(g) {
   return REALMS[RS(g).citizen]?.speech ?? null;
 }
 
+/* ---------- 다른 종족(src/races/)이 끼어드는 자리 ---------- */
+// 그 나라가 내 종족을 어떻게 대하나: 'welcome' | 'normal' | 'wary' | 'scorn' | 'banned'
+let raceRule = () => 'normal';
+export function setRaceRule(fn) { raceRule = fn; }
+export const treatmentIn = (g, realm) => raceRule(g, realm);
+// 다른 나라 수도 사람을 만들 때 종족을 정한다
+let localPersonHook = () => {};
+export function setLocalPersonHook(fn) { localPersonHook = fn; }
+
 /* ---------- 이름: 그 나라 사람은 그 나라 이름을 쓴다 ---------- */
 export function realmPersonName(rng, realm, sex) {
   const n = NAMES[realm];
@@ -83,6 +92,7 @@ function ensureRealmPeople(g, rng, place) {
     p.role = r.role;
     p.realm = realm;
     if (r.title) p.title = r.title;
+    localPersonHook(p, rng, place, r);
     p.wealth = rng.int(30, 200);
     g.people.push(p);
     life.placeNpcs[place].push(p.id);
@@ -171,6 +181,9 @@ const atWarWith = (g, realm) => realm === 'valhart' && RS(g).citizen === 'leonia
   || realm === 'leonia' && RS(g).citizen === 'valhart' && !!g.realm?.balhart?.war;
 const sneakPower = (g) => craftOf(g) * 0.5 + g.player.stats.agi * 0.3 + g.player.stats.sen * 0.3;
 
+const RACE_BAN_LINE = {
+  holy: '이단심문관이 내 얼굴을 한참 보더니 손을 들었다. "빛의 자식이 아닌 것은 허가된 노예로만 이 땅을 밟는다." 병사들이 쇠사슬을 만지작거렸다.',
+};
 const BORDER_LINE = {
   leonia: '레오니아 국경 초소. 낡은 사자 깃발 아래에서 병사들이 하품을 하며 짐마차를 세운다.',
   valhart: '제국의 국경 관문. 돌로 쌓은 검문소에 반듯한 제복의 헌병들이 서 있고, 통행자의 이름과 생김새를 장부에 하나하나 적는다.',
@@ -187,6 +200,7 @@ defineScene('border', {
     const r = REALMS[s.to];
     const lines = [BORDER_LINE[s.to] ?? ''];
     if (bannedLeft(g, s.to)) lines.push(`나는 이 나라에서 쫓겨난 몸이다. 앞으로 ${Math.ceil(bannedLeft(g, s.to) / 12)}해는 들어올 수 없다. 얼굴을 알아보면 끝이다.`);
+    else if (treatmentIn(g, s.to) === 'banned') lines.push(RACE_BAN_LINE[s.to] ?? '병사가 내 얼굴을 보더니 창을 가로질렀다. 이 나라는 나 같은 종족을 들이지 않는다.');
     else if (atWarWith(g, s.to)) lines.push(`지금은 전쟁 중이다. ${realmShort(R.citizen)} 사람은 모두 첩자로 의심받는다.`);
     if (s.to === 'holy' && g.flags?.faith !== 'devout') lines.push('믿음이 얕은 외지인은 이곳에서 오래 붙잡혀 있곤 한다.');
     lines.push(`통행세는 은화 ${tollOf(g, s.to)}닢. ${r.law.sum}`);
@@ -194,7 +208,7 @@ defineScene('border', {
   },
   choices: (g, s) => {
     const R = RS(g);
-    const banned = bannedLeft(g, s.to) > 0;
+    const banned = bannedLeft(g, s.to) > 0 || treatmentIn(g, s.to) === 'banned';
     const out = [];
     if (!banned && R.citizen === s.to) out.push({ label: `${realmShort(s.to)} 사람임을 밝힌다`, key: 'citizen' });
     if (!banned && fac(g, 'guild')?.member) out.push({ label: '모험가 길드 패를 보인다 (길드 모험가는 국경을 자유롭게 넘는다)', key: 'guild' });
@@ -208,7 +222,7 @@ defineScene('border', {
   resolve(g, rng, s, key) {
     const R = RS(g);
     const r = REALMS[s.to];
-    const banned = bannedLeft(g, s.to) > 0;
+    const banned = bannedLeft(g, s.to) > 0 || treatmentIn(g, s.to) === 'banned';
     const enter = (text) => { enterRealm(g, rng, s.to); return text; };
     if (key === 'citizen') return enter(`병사가 내 말씨를 듣더니 고개를 끄덕였다. "돌아왔군." ${J(r.short, '은/는')} 그래도 내 나라다.`);
     if (key === 'guild') return enter('길드 패를 내밀자 병사의 태도가 달라졌다. 모험가 법은 어느 나라에서나 통한다. 재앙급 마물이 나오면 끌려가 싸워야 한다는 것만 빼면.');
@@ -335,6 +349,7 @@ function naturalizeBlock(g, realm) {
   const need = naturalMonths(g, realm);
   const served = (id) => job?.id === id && job.months >= 12;
   const long = lived >= need || (realm === 'valhart' && served('imperial_soldier')) || (realm === 'march' && served('wall_guard'));
+  if (treatmentIn(g, realm) === 'banned') return '이 나라는 나 같은 종족을 받아 주지 않는다';
   if (r.naturalize.faith && g.flags?.faith !== 'devout' && R.piety < 12) return '믿음을 보여야 한다 (대성당 미사에 꾸준히 나가기)';
   if (bannedLeft(g, realm) || R.illegal[realm]) return '이 나라에서 쫓겨난 몸이다';
   if (!long) return `이 나라에서 ${need}달을 살아야 한다 (지금 ${lived}달)`;
@@ -729,7 +744,7 @@ export function realmInfo(g, id) {
     faith: r.faith.name, faithDesc: r.faith.desc, status: r.status, law: r.law.sum, speech: r.speech,
     price: r.price, priceWord: r.price >= 1.25 ? '비쌈' : r.price >= 1.1 ? '조금 비쌈' : '보통',
     capital: r.capital, places: realmPlaces(id),
-    standing, citizen: R.citizen === id, here: currentRealm(g) === id,
+    standing, citizen: R.citizen === id, here: currentRealm(g) === id, treatment: treatmentIn(g, id),
     lived: R.lived[id] ?? 0, bannedMonths: banned, illegal: !!R.illegal[id],
     naturalize: r.naturalize.how, naturalizeBlock: R.citizen === id ? null : naturalizeBlock(g, id),
   };

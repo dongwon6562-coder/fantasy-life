@@ -4,7 +4,7 @@ import { J } from './narrative/text.js';
 import { HOOKS, run as runHooks } from './hooks.js';
 import { STATS, SKILLS, JOBS } from './data.js';
 import { me, playerAge, family } from './game.js';
-import { byId, ageYears, fullName, kill } from './npc.js';
+import { byId, ageYears, fullName, kill, bodyAgeOf } from './npc.js';
 import { L, defineScene, showScene, chron, note, SCENE_ID } from './adventure/core.js';
 import { PLACES } from './places.js';
 import { WORK, takeJob } from './jobs.js';
@@ -13,7 +13,7 @@ import { WORK, takeJob } from './jobs.js';
 // 48살부터 조금씩, 60살이 넘으면 눈에 띄게. 피로와 깊은 상처도 수명을 깎는다.
 HOOKS.endOfMonth.push((g, rng) => {
   if (g.over || L(g).pendingDeath) return;
-  const age = playerAge(g);
+  const age = bodyAgeOf(me(g)); // 몸 나이 (오래 사는 종족은 천천히 늙는다)
   if (age < 48) return;
   let risk = (age - 48) * 0.0003 + (age >= 60 ? (age - 60) * 0.001 : 0) + (age >= 72 ? (age - 72) * 0.004 : 0);
   if (g.player.fatigue > 80) risk *= 1.4;
