@@ -88,11 +88,16 @@ export function nudge(g, key, amount) {
   else if (key === 'front') { if (r.balhart.war) r.balhart.front = clamp(r.balhart.front + amount, -10, 10); }
 }
 
-// 한 달 진행. news: 이번 달 소식 후보 [{ text, big }]
+// 다른 모듈(src/history/)이 세계의 한 달에 끼어드는 자리. fn(g, rng, say, record)
+export const WORLD_TICKS = [];
+// 세계 연대기(큰일 기록)는 이 길이까지만 남긴다. 저장 크기를 지키려고.
+export const LOG_MAX = 400;
+
+// 한 달 진행. news: 이번 달 소식 후보 [{ text, big, rel }]
 function tick(g, rng) {
   const r = g.realm;
   const news = [];
-  const say = (text, big = false) => news.push({ text, big });
+  const say = (text, big = false, rel = null) => news.push({ text, big, rel });
   const record = (text) => r.log.push({ y: g.date.year, m: g.date.month, text });
   const newYear = g.date.month === 12; // 날짜가 넘어가기 직전이 12월이면 곧 새해
 
@@ -322,6 +327,8 @@ function tick(g, rng) {
     record(`${e.name}의 시작`);
   }
 
+  for (const fn of WORLD_TICKS) fn(g, rng, say, record);
+  if (r.log.length > LOG_MAX) r.log.splice(0, r.log.length - LOG_MAX);
   return news;
 }
 
@@ -376,12 +383,16 @@ HOOKS.afterNpc.push((g, rng) => {
   g.worldNews = g.worldNews ?? [];
   // 큰 소식은 모두, 작은 소식은 한 달에 하나만
   const big = news.filter((x) => x.big);
-  const small = news.filter((x) => !x.big);
+  // 작은 소식은 아는 사람 이야기를 먼저
+  const small = news.filter((x) => !x.big).sort((a, b) => (b.rel ?? 0) - (a.rel ?? 0));
   for (const x of big) {
     g.worldNews.push(x.text);
-    g.chronicle.push({ y: g.date.year, m: g.date.month, text: x.text, rel: 70 });
+    g.chronicle.push({ y: g.date.year, m: g.date.month, text: x.text, rel: x.rel ?? 70 });
   }
-  if (small.length) g.worldNews.push(small[0].text);
+  if (small.length) {
+    g.worldNews.push(small[0].text);
+    if ((small[0].rel ?? 0) >= 40) g.chronicle.push({ y: g.date.year, m: g.date.month, text: small[0].text, rel: small[0].rel });
+  }
 });
 // 물가와 세금이 집안 살림을 누른다
 HOOKS.afterMonth.push((g) => {
