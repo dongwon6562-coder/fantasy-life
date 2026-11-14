@@ -16,3 +16,4 @@ import './audio/index.js';
 import './craft/index.js';
 import './history/index.js';
 import './party/index.js';
+import './childhood/index.js';

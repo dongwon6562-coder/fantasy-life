@@ -36,6 +36,20 @@ const SCENARIOS = [
     (g) => { g.chains = { friend: { step, at: 0, data: { id: peer(g)?.id } } }; },
     (g) => { g.chains = { swordsman: { step, at: 0, data: {} } }; },
   ]),
+  // 5단계: 어린 시절 줄기 (나이를 맞추고 단계마다)
+  ...[[6, 1], [9, 2], [10, 3], [13, 4], [15, 5], [25, 9]].map(([yrs, stage]) => (g) => {
+    const meP = g.people.find((p) => p.isPlayer); meP.ageMonths = yrs * 12 + 1;
+    g.life.place = 'ern'; g.life.travel = null;
+    const f = g.people.find((p) => p.alive && !p.isPlayer && !p.away && (p.place ?? 'ern') === 'ern' && !g.player.familyIds.includes(p.id));
+    const c = g.childhood;
+    c.friend = f?.id ?? null;
+    Object.assign(c.bestie, { stage, at: 0, den: 'willow', quarrel: stage === 3 ? 'fought' : 'mended', promise: stage >= 5 ? ['leave', 'stay', 'wedding'][yrs % 3] : null, parted: null });
+    c.counts = { study: 20, play: 30 }; c.school.stage = yrs <= 9 ? 0 : yrs <= 12 ? 1 : 2;
+    g.player.skills.letters = 35; c.pendingDeath = g.player.familyIds[1] ?? null;
+    c.firstDeath = yrs >= 25 ? { id: g.player.familyIds[0], name: '아버지', grief: 'stone', y: g.date.year - 10 } : null;
+    c.knownAs = yrs >= 25 ? 'blade' : null; if (yrs === 15) g.flags.adult = true;
+    if (yrs >= 25) { g.flags.child_recommend = true; g.life.place = 'harfen'; g.date.month = 11; }
+  }),
 ];
 
 let fail = 0;
