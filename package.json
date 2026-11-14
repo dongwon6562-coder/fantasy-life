@@ -1,0 +1,10 @@
+{
+  "name": "fantasy-life",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node tools/simtest.js",
+    "build": "node tools/build.js",
+    "start": "npx --yes serve -l 5173 ."
+  }
+}
