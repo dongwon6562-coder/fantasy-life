@@ -9,6 +9,7 @@ import './underworld/index.js';
 import './domain/index.js';
 import './realms/index.js';
 import './races/index.js';
+import './realms/life.js';
 import './duel/index.js';
 import './magic/index.js';
 import './war/spellpower.js';

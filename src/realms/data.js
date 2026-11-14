@@ -101,6 +101,55 @@ export const REALMS = {
     naturalize: { months: 36, fee: 0, how: '세 해를 살거나 장성에서 한 해를 서면 변경 사람이 된다.' },
     extradites: [],
   },
+  // 6단계: 종족의 고향 땅 (사람이 들어갈 수 있는 어귀 마을까지만)
+  elf: {
+    name: '엘프 왕국', short: '엘프 왕국', capital: 'silverleaf',
+    rule: '여왕과 장로회',
+    ruler: '여왕 아이리스',
+    desc: '세계수를 지키는 폐쇄적인 숲의 나라. 수가 줄고 있고, 마신 전쟁의 공을 인간이 가져갔다고 여긴다. 외지인이 닿을 수 있는 곳은 교역 마을 은잎까지다. 그 너머 세계수의 도시 이엘라는 초대받은 자만 들어간다.',
+    faith: { name: '세계수 신앙', desc: '신이 아니라 세계수 자체를 섬긴다. 성광교 사제와 말은 섞지만 개종은 하지 않는다.' },
+    status: '나이가 곧 신분이다. 삼백 살 아래의 엘프는 아직 아이 취급을 받는다. 인간은 손님이고, 하프엘프는 반쪽 손님이다.',
+    speech: '숲의 말씨',
+    price: 1.3,
+    law: {
+      sum: '숲의 법. 나무를 함부로 베거나 엘프를 해친 자를 숲이 기억한다. 외지인의 죄는 추방으로 끝내고, 다시는 들이지 않는다.',
+      watch: '숲의 파수꾼', sentence: 1.2, fine: 2, bribe: -0.4, hangAt: 1, hangNoto: 101, lord: false, deport: true,
+    },
+    naturalize: { months: 120, fee: 0, races: ['elf', 'half_elf'], how: '엘프와 하프엘프만 받아 준다. 열 해를 숲에서 살아야 한다.' },
+    extradites: [],
+  },
+  dwarf: {
+    name: '드워프 산악 왕국', short: '산악 왕국', capital: 'hammer',
+    rule: '왕과 장인 길드',
+    ruler: '드워프 왕과 장인 길드',
+    desc: '산 전체를 파고 들어간 드워프의 나라. 마검과 마도구의 나라이고, 돈만 받으면 누구에게나 판다. 인간이 들어갈 수 있는 곳은 쇠망치 골과 철문 관문까지다. 깊은 광산에서 미궁이 생겨나고 있다.',
+    faith: { name: '조상 숭배', desc: '대장간 불에 조상이 깃든다고 믿는다. 불을 꺼뜨리는 것은 조상을 버리는 일이다.' },
+    status: '손이 곧 신분이다. 명장의 이름은 왕의 이름만큼 무겁다. 인간이라도 쇠를 잘 다루면 존중받는다.',
+    speech: '산의 말씨',
+    price: 1.1,
+    law: {
+      sum: '장인 길드의 법. 계약을 어기거나 물건을 속인 자는 빚을 갚을 때까지 갱도에서 일한다. 뇌물은 모욕이다.',
+      watch: '길드 경비대', sentence: 1, fine: 1.5, bribe: -0.25, hangAt: 2, hangNoto: 101, lord: false,
+    },
+    naturalize: { months: 60, fee: 30, skillReq: { smithing: 40 }, skillFor: 'nonDwarf', how: '다섯 해를 살고 장인 길드에 이름을 올리면 산의 사람이 된다. 드워프가 아니면 손으로 증명해야 한다 (대장일 40).' },
+    extradites: [],
+  },
+  beast: {
+    name: '수인 부족 연합', short: '부족 연합', capital: 'fur',
+    rule: '대족장 회의',
+    ruler: '대족장 가룸',
+    desc: '늑대·사자·곰·매 같은 여러 수인 부족의 연합. 가장 강한 자가 대족장이 된다. 성광국과의 전쟁을 바라는 강경파가 힘을 얻고 있다. 인간 상인이 오가는 곳은 털가죽 시장이다.',
+    faith: { name: '조상 숭배', desc: '죽은 전사의 이름을 토템 기둥에 새긴다. 이름이 지워지는 것이 죽음보다 무섭다.' },
+    status: '힘이 곧 신분이다. 다툼은 결투로 가린다. 인간은 손님이지만, 노예 사냥꾼과 발하르트 사람은 원수다.',
+    speech: '부족의 말씨',
+    price: 0.9,
+    law: {
+      sum: '강한 자의 법. 경비대 대신 부족 전사가 나서고, 죄는 결투나 배상으로 갚는다. 살인자와 노예 사냥꾼은 그 자리에서 죽인다.',
+      watch: '부족 전사', sentence: 0.7, fine: 0.8, bribe: 0.05, hangAt: 1, hangNoto: 101, lord: false,
+    },
+    naturalize: { months: 36, fee: 0, blockCitizen: ['valhart'], how: '세 해를 살면 부족이 받아 준다. 발하르트 신민은 받지 않는다.' },
+    extradites: [],
+  },
 };
 
 export const REALM_IDS = Object.keys(REALMS);
@@ -167,9 +216,29 @@ export const REALM_PLACES = {
     inn: 4, rent: 5, house: 600, wage: 1.3, loot: 1.3, crowd: 0.45,
     links: { eisen: 2, verden: 3 },
   },
+  silverleaf: {
+    name: '은잎 마을', kind: '엘프 교역 마을', realm: 'elf',
+    desc: '외부인과 교역하는 유일한 엘프 마을. 나무 위에 지은 집들이 은빛 잎사귀 사이로 숨어 있다. 발소리를 내는 것은 인간뿐이다. 숲 안쪽으로 난 길에는 엘프 파수꾼이 말없이 서 있다.',
+    inn: 6, rent: 8, house: 1100, wage: 1.3, loot: 2.0, crowd: 0.55,
+    links: { leocast: 3, fur: 2 },
+  },
+  hammer: {
+    name: '쇠망치 골', kind: '드워프 마을', realm: 'dwarf',
+    desc: '인간 대장장이도 받아 주는 드워프 마을. 골짜기 전체가 대장간이라 밤에도 불빛과 망치 소리가 그치지 않는다. 골짜기 끝 철문 너머가 진짜 드워프의 나라다.',
+    inn: 4, rent: 5, house: 700, wage: 1.35, loot: 1.6, crowd: 0.45,
+    links: { graubel: 2, leocast: 4 },
+  },
+  fur: {
+    name: '털가죽 시장', kind: '부족 교역장', realm: 'beast',
+    desc: '수인 부족들과 인간 상인이 모피와 소금을 바꾸는 교역장. 토템 기둥 사이로 천막이 늘어서 있고, 곳곳에서 힘 겨루기가 벌어진다. 인간 상인들은 늘 둘씩 다닌다.',
+    inn: 2, rent: 3, house: 300, wage: 1.05, loot: 1.2, crowd: 0.45,
+    links: { ern: 2, silverleaf: 2, solaris: 2 },
+  },
 };
 // 레오니아 쪽에서 이어지는 길
-export const LEONIA_LINKS = { leocast: { eisen: 3, serenia: 1 }, harfen: { solaris: 2 }, verden: { graubel: 3 } };
+export const LEONIA_LINKS = { leocast: { eisen: 3, serenia: 1, silverleaf: 3, hammer: 4 }, harfen: { solaris: 2 }, verden: { graubel: 3 }, ern: { fur: 2 } };
+// 다른 나라끼리 새로 이어지는 길
+export const EXTRA_LINKS = { graubel: { hammer: 2 }, solaris: { fur: 2 } };
 
 // 그 나라 수도에서 만나는 사람들
 export const REALM_PEOPLE = {
@@ -196,6 +265,24 @@ export const REALM_PEOPLE = {
     { role: 'broker', job: 'trade_master', age: [35, 55], traits: ['greedy', 'ambitious'], title: '마석 중개상' },
     { role: 'neighbor', job: 'adventurer', age: [18, 30], traits: ['brave', 'gossip'] },
     { role: 'merchant', job: 'innkeeper', age: [35, 55], traits: ['kind', 'greedy'] },
+  ],
+  silverleaf: [
+    { role: 'official', job: 'herbalist', age: [25, 40], traits: ['reserved', 'diligent'], title: '교역 장로', race: 'elf' },
+    { role: 'warden', job: 'hunter', age: [25, 40], traits: ['brave', 'reserved'], title: '숲의 파수꾼', race: 'elf', skill: [60, 80] },
+    { role: 'neighbor', job: 'herbalist', age: [18, 30], traits: ['kind', 'gossip'], race: 'half_elf' },
+    { role: 'merchant', job: 'merchant', age: [30, 50], traits: ['greedy', 'gossip'], title: '인간 상인' },
+  ],
+  hammer: [
+    { role: 'official', job: 'smith', age: [40, 60], sex: 'm', traits: ['diligent', 'reserved'], title: '장인 길드장', race: 'dwarf', skill: [80, 95] },
+    { role: 'master', job: 'smith', age: [35, 55], traits: ['diligent', 'cruel'], title: '공방 명장', race: 'dwarf', skill: [70, 88] },
+    { role: 'neighbor', job: 'laborer', age: [20, 35], traits: ['brave', 'kind'], race: 'dwarf' },
+    { role: 'merchant', job: 'smith', age: [25, 40], traits: ['ambitious', 'diligent'], title: '인간 견습 대장장이' },
+  ],
+  fur: [
+    { role: 'official', job: 'hunter', age: [30, 45], traits: ['brave', 'reserved'], title: '시장 감독관', race: 'beast', skill: [60, 80] },
+    { role: 'warrior', job: 'adventurer', age: [20, 30], traits: ['brave', 'cruel'], title: '사자 부족 전사', race: 'beast', beast: 'lion', skill: [55, 75] },
+    { role: 'neighbor', job: 'weaver', age: [18, 35], traits: ['kind', 'gossip'], race: 'beast' },
+    { role: 'merchant', job: 'merchant', age: [30, 50], traits: ['greedy', 'brave'], title: '소금 상인' },
   ],
   graubel: [
     { role: 'official', job: 'knight_captain', age: [40, 55], sex: 'm', traits: ['brave', 'reserved'], skill: [65, 80], title: '장성 대장' },

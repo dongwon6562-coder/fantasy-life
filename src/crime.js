@@ -520,6 +520,7 @@ export function jail(g, months) {
   const place = here(g);
   months = Math.max(1, Math.round(months));
   c.jailed = { place, months, total: months };
+  if (L(g).travel) { L(g).place = L(g).travel.from ?? L(g).place; L(g).travel = null; } // 붙잡히면 길도 끝난다
   clearAt(g, place);
   leaveJob(g, `${placeName(g)} 감옥에 갇히며 일을 잃었다.`);
   note(g, `${placeName(g)} 감옥에 ${months}달 갇혔다.`);

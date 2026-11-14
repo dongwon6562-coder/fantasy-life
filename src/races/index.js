@@ -41,7 +41,7 @@ function nameFor(rng, p, race, { last = false } = {}) {
   p.name = rng.pick(p.sex === 'm' ? n.m : n.f);
   if (last) p.lastName = race === 'beast' ? n.last[p.beast] ?? '회색 갈기' : rng.pick(n.last);
 }
-function setRace(p, race, rng, { rename = false, last = false, beast = null } = {}) {
+export function setRace(p, race, rng, { rename = false, last = false, beast = null } = {}) {
   p.race = race;
   if (race === 'beast') p.beast = beast ?? p.beast ?? rng.pick(Object.keys(BEASTS));
   if (rename) nameFor(rng, p, race, { last });
@@ -145,16 +145,23 @@ const PLACE_RACES = {
   eisen: [['dwarf', 0.08]], solaris: [],
 };
 setLocalPersonHook((p, rng, place, r) => {
-  let race = /드워프/.test(r.title ?? '') ? 'dwarf' : null;
+  let race = r.race ?? (/드워프/.test(r.title ?? '') ? 'dwarf' : null);
   for (const [id, odds] of PLACE_RACES[place] ?? []) if (!race && rng.chance(odds)) race = id;
   if (!race) return;
-  setRace(p, race, rng, { rename: true, last: true });
+  setRace(p, race, rng, { rename: true, last: true, beast: r.beast });
   if (race === 'elf') p.ageMonths = rng.int(60, 500) * 12;
   if (race === 'dwarf') p.ageMonths = Math.max(p.ageMonths, rng.int(40, 160) * 12);
 });
 
 /* ---------- 나라와 사람들의 대우 ---------- */
-export const treatment = (g, realm, race = playerRace(g)) => (race === 'human' ? 'normal' : TREATMENT[realm]?.[race] ?? 'normal');
+export const treatment = (g, realm, race = playerRace(g)) => {
+  let t = TREATMENT[realm]?.[race] ?? 'normal';
+  // 수인 부족은 발하르트 신민을 원수로 본다
+  if (realm === 'beast' && g.realms?.citizen === 'valhart' && race !== 'beast') t = 'scorn';
+  // 엘프 친구가 있으면 숲이 조금 너그럽다
+  if (realm === 'elf' && t === 'wary' && g.people.some((p) => p.alive && p.known && raceOf(p) === 'elf' && p.affection >= 50)) t = 'normal';
+  return t;
+};
 setRaceRule((g, realm) => treatment(g, realm));
 // 처음 사귀는 사람이 나를 대하는 태도: 동족은 반기고, 그 고장이 꺼리는 종족은 덜 반긴다
 setRelationHooks({
@@ -162,7 +169,8 @@ setRelationHooks({
   affinity: (g, p) => {
     const mine = playerRace(g);
     if (raceOf(p) === mine) return mine === 'human' ? 0 : 2;
-    if (mine === 'human') return raceOf(p) === 'human' ? 0 : -1;
+    // 상대의 고장이 나를 꺼리면 덜 반긴다 (고향 땅의 엘프·수인이 인간을 대할 때도)
+    if (mine === 'human') return raceOf(p) === 'human' ? 0 : Math.min(0, TREAT_SHIFT[treatment(g, realmOf(p.place ?? 'ern'))] ?? 0);
     if (raceOf(p) !== 'human') return 0;
     return TREAT_SHIFT[treatment(g, realmOf(p.place ?? 'ern'))] ?? 0;
   },
@@ -184,14 +192,19 @@ const SLIGHTS = {
     '혼삿말이 오가던 집에서 소식이 끊겼다. 그 집 어머니가 "아이들이 귀가 뾰족하면 어쩌려고"라고 했다고 한다.',
   ],
   dwarf: ['인간 대장장이 조합이 내 물건을 장터에 내지 못하게 막았다. "산에서 내려온 놈들 때문에 우리가 굶는다."'],
+  human: [
+    '엘프 아이들이 내 발소리가 시끄럽다며 나무 위로 달아났다. 어른 엘프는 그 아이들을 나무라지 않았다.',
+    '수인 전사가 내 냄새를 오래 맡더니 "노예 사냥꾼 냄새는 안 나는군" 하고 지나갔다. 칭찬인지 경고인지 알 수 없었다.',
+    '시장 상인이 내게만 값을 두 배로 불렀다. "인간은 돈이 많잖아." 옆의 수인 손님은 웃었다.',
+  ],
 };
 HOOKS.afterMonth.push((g, rng) => {
   const R = RS(g);
   const race = playerRace(g);
-  if (race === 'human' || g.over || traveling(g) || isJailed(g) || playerAge(g) < 8 || L(g).queue.length) return;
+  if (g.over || traveling(g) || isJailed(g) || playerAge(g) < 8 || L(g).queue.length) return;
   if (mi(g) - R.slightAt < 8) return;
   const t = treatment(g, realmOf(L(g).place));
-  const p = { welcome: 0, normal: 0.02, wary: 0.08, scorn: 0.16, banned: 0.2 }[t] ?? 0;
+  const p = { welcome: 0, normal: race === 'human' ? 0 : 0.02, wary: 0.08, scorn: 0.16, banned: 0.2 }[t] ?? 0;
   if (!SLIGHTS[race] || !rng.chance(p)) return;
   R.slightAt = mi(g);
   queueScene(g, 'race_slight', { line: rng.int(0, SLIGHTS[race].length - 1), hunter: race === 'elf' && isAdult(g) && rng.chance(0.35) });
