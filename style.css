@@ -164,3 +164,6 @@ h1, h2, h3 { font-family: var(--f-display); font-weight: 700; text-wrap: balance
   .event { animation: rise .25s ease-out; }
   @keyframes rise { from { transform: translateY(8px); opacity: .6; } to { transform: none; opacity: 1; } }
 }
+
+/* 아이폰 앱에서 노치·홈 바를 피한다 (웹 게시판에서는 같은 값이라 영향 없음) */
+:root { padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px); }

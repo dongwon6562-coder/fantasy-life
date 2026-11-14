@@ -1,0 +1,73 @@
+# 아이폰 앱을 빌드해서 TestFlight에 올린다. GitHub의 Actions 탭에서 "Run workflow"로 실행.
+# 필요한 저장소 Secrets:
+#   APPLE_TEAM_ID      Apple 개발자 팀 ID (10자리)
+#   ASC_KEY_ID         App Store Connect API 키 ID
+#   ASC_ISSUER_ID      App Store Connect Issuer ID
+#   ASC_KEY_P8         API 키 파일(.p8)의 내용 전체
+name: TestFlight
+
+on:
+  workflow_dispatch:
+
+jobs:
+  ios:
+    runs-on: macos-15
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: 웹 게임 빌드
+        run: |
+          npm ci
+          npm run build
+          npx cap sync ios
+
+      - name: API 키 준비
+        env:
+          ASC_KEY_P8: ${{ secrets.ASC_KEY_P8 }}
+          ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
+        run: |
+          mkdir -p ~/private_keys
+          printf '%s' "$ASC_KEY_P8" > ~/private_keys/AuthKey_${ASC_KEY_ID}.p8
+
+      - name: 아카이브
+        env:
+          TEAM: ${{ secrets.APPLE_TEAM_ID }}
+          KEY_ID: ${{ secrets.ASC_KEY_ID }}
+          ISSUER: ${{ secrets.ASC_ISSUER_ID }}
+        run: |
+          cd ios/App
+          xcodebuild -workspace App.xcworkspace -scheme App -configuration Release \
+            -destination 'generic/platform=iOS' -archivePath $RUNNER_TEMP/App.xcarchive \
+            -allowProvisioningUpdates \
+            -authenticationKeyPath ~/private_keys/AuthKey_${KEY_ID}.p8 \
+            -authenticationKeyID "$KEY_ID" -authenticationKeyIssuerID "$ISSUER" \
+            DEVELOPMENT_TEAM="$TEAM" CODE_SIGN_STYLE=Automatic \
+            CURRENT_PROJECT_VERSION=${{ github.run_number }} MARKETING_VERSION=0.1.0 \
+            archive
+
+      - name: TestFlight 업로드
+        env:
+          TEAM: ${{ secrets.APPLE_TEAM_ID }}
+          KEY_ID: ${{ secrets.ASC_KEY_ID }}
+          ISSUER: ${{ secrets.ASC_ISSUER_ID }}
+        run: |
+          cat > $RUNNER_TEMP/ExportOptions.plist <<PLIST
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0"><dict>
+            <key>method</key><string>app-store-connect</string>
+            <key>destination</key><string>upload</string>
+            <key>teamID</key><string>${TEAM}</string>
+            <key>signingStyle</key><string>automatic</string>
+          </dict></plist>
+          PLIST
+          xcodebuild -exportArchive -archivePath $RUNNER_TEMP/App.xcarchive \
+            -exportOptionsPlist $RUNNER_TEMP/ExportOptions.plist -exportPath $RUNNER_TEMP/export \
+            -allowProvisioningUpdates \
+            -authenticationKeyPath ~/private_keys/AuthKey_${KEY_ID}.p8 \
+            -authenticationKeyID "$KEY_ID" -authenticationKeyIssuerID "$ISSUER"

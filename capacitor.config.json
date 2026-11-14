@@ -1,0 +1,6 @@
+{
+  "appId": "com.dongwon.fantasylife",
+  "appName": "에른 마을",
+  "webDir": "dist/www",
+  "ios": { "contentInset": "never", "backgroundColor": "#17130f" }
+}
