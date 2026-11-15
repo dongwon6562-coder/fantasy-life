@@ -18,7 +18,7 @@ const free = (g) => !onRoad(g) && !g.crime?.jailed;
 EVENTS.push(
   {
     id: 'later_first_grey', once: true,
-    cond: (g) => free(g) && bage(g) >= 36 && bage(g) < 50,
+    cond: (g) => free(g) && bage(g) >= 36 && bage(g) < 50 && !flag(g, 'ev_adult_first_gray'), // 같은 이야기를 두 번 겪지 않게
     chance: () => 0.06, weight: 40,
     title: '흰 머리카락',
     text: () => '우물물에 얼굴을 비추다 손을 멈췄다. 관자놀이에 흰 머리카락이 몇 가닥 섞여 있다. 언제부터였는지 모르겠다.',

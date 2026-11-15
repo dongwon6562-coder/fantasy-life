@@ -75,7 +75,7 @@ EVENTS.push(
     chance: () => 0.1, weight: W,
     title: '첫 심부름',
     text: (g) => (fam(g) === 'merchant' ? '"이 소금 자루를 대장간 아저씨한테 갖다 드리고 오너라. 돈은 받지 말고." 처음 혼자 하는 심부름이다.'
-      : fam(g) === 'fallen_knight' ? '"우물에서 물 한 동이만 길어 오너라." 아버지 말씀이다. 동이는 내 몸통만 하다.'
+      : fam(g) === 'fallen_knight' ? '"마구간에 가서 말에게 귀리 한 바가지를 주고 오너라." 아버지 말씀이다. 집에 남은 말은 늙은 회색말 한 마리뿐이다.'
       : '"닭장에 가서 알을 걷어 오너라. 깨뜨리지 말고." 처음 혼자 하는 심부름이다.'),
     choices: [
       { label: '조심조심 해낸다', run: (g) => { gainStat(g, 'wil', 0.4); like(parent(g), 4); setFlag(g, 'early_errand'); return '해냈다. 별것 아니라는 듯이 말했지만, 그날 저녁 밥을 두 그릇 먹었다.'; } },

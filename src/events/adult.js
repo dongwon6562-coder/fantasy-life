@@ -137,7 +137,7 @@ EVENTS.push(
   },
   {
     id: 'adult_first_gray', once: true,
-    cond: (g) => age(g) >= 35,
+    cond: (g) => age(g) >= 35 && !flag(g, 'ev_later_first_grey'),
     chance: () => 0.05, weight: 30,
     title: '첫 흰머리',
     text: () => '물에 비친 얼굴에서 흰 머리카락 한 올을 찾았다. 뽑아서 손가락 사이에 비춰 본다. 어릴 적 꿈꾸던 서른다섯은 이런 얼굴이 아니었다.',
