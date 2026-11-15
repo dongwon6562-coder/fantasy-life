@@ -42,3 +42,4 @@ import './tower/index.js'; // 마탑과 금지된 마법: 탑 안의 삶, 마도
 import './army/index.js';
 import './explore/index.js';
 import './peoples/index.js'; // 다른 종족의 땅에서 살기: 풍습·의식·받아들여짐, 종족끼리의 편견과 우정, 섞인 혈통 자식
+import './beasts/index.js';

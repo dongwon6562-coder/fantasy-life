@@ -196,6 +196,8 @@ for (let attempt = 0; attempt < 4; attempt++) {
     homeOf(g, 'harfen').cond = 20;
     for (let m = 0; m < 12 * 10 && !g.over; m++) {
       g.player.money = Math.max(g.player.money, 600);
+      // 불에 타 여관으로 나앉았으면 다시 집을 지어 들어간다 (도둑을 시험하려면 내 집에 살아야 한다)
+      if (L(g).home !== 'own' && !L(g).travel) { placeAt(g, 'harfen'); if (!L(g).houses.includes('harfen')) L(g).houses.push('harfen'); L(g).home = 'own'; }
       month(g, ['rest']);
     }
     const notes = JSON.stringify(g.people.find((p) => p.id === g.player.id)?.history ?? []);

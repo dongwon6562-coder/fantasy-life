@@ -196,8 +196,8 @@ function soldier(seed, family = 'farmer', place = 'harfen') {
   // 병영을 석 달 비우면 탈영
   const h = soldier(44100);
   placeAt(h, 'ern');
-  for (let m = 0; m < 4; m++) month(h, ['rest']);
-  if (A(h).service || !A(h).deserted) fail('awol should become desertion');
+  for (let m = 0; m < 8 && A(h).service; m++) { peace(h); A(h).campaign = null; if (L(h).place === A(h).service.place) placeAt(h, 'ern'); month(h, ['rest']); }
+  if (A(h).service || !A(h).deserted) fail('awol should become desertion', JSON.stringify(A(h).service), L(h).place, L(h).job?.id, isJailed(h), JSON.stringify(A(h).deserted));
   // 옥에 갇히면 쫓겨난다(탈영 아님)
   const j = soldier(44200);
   const { jail } = await import('../src/crime.js');

@@ -201,8 +201,9 @@ function expedition(g, rid, opt = {}) {
     startExpedition(g, rngOf(g), 'mist', true);
     if (g.player.money !== 300 - (6 + 2) * 3 - 8 - 30) fail('charter cost not paid', g.player.money);
     E(g).exp.lost = 1;
-    for (let m = 0; m < 4 && E(g).exp?.lost; m++) month(g, ['rest'], (k, labels) => (k === 'explore_leg' ? idxOf(labels, /앞으로 걷는다/) : -1));
-    if (E(g).exp?.lost) fail('lost forever');
+    let found = false;
+    for (let m = 0; m < 4 && !found; m++) { month(g, ['rest'], (k, labels) => (k === 'explore_leg' ? idxOf(labels, /앞으로 걷는다/) : -1)); if (!E(g).exp?.lost || E(g).exp?.lostRun === 0) found = true; }
+    if (!found) fail('lost forever', JSON.stringify(E(g).exp));
     if (!E(g).lostMonths) fail('lost months not counted');
   }
   // 돌아서기: 행동으로

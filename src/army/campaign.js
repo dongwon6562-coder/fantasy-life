@@ -16,7 +16,7 @@ import { isJailed } from '../crime.js';
 import { nudge } from '../world.js';
 import { J } from '../narrative/text.js';
 import { A, enlisted, onCampaign, captive, rankOf, addMerit, logArmy, addScar, pickOf } from './core.js';
-import { desert } from './service.js';
+import { desert, cavalry } from './service.js';
 
 Object.assign(FOES, {
   army_mp: { name: '왕국군 헌병', pow: 18, human: true, weapon: '곤봉과 짧은 칼' },
@@ -182,7 +182,7 @@ defineScene('army_clash', {
     } else {
       // 전장 전체의 승패는 사기와 운이 정한다. 내 행동은 나와 내 곁의 몇 명을 바꾼다.
       const myPow = playerPower(g);
-      let p = 0.52 + (c.morale - 55) / 150 - (E.q - 45) / 200;
+      let p = 0.52 + (c.morale - 55) / 150 - (E.q - 45) / 200 + (cavalry(g) ? 0.06 : 0);
       if (key === 'front') {
         const ok = check(rng, myPow, E.champ * 0.5);
         if (ok) { p += 0.08; lines.push(pickOf(rng, ['적의 첫 줄을 뚫고 들어갔다. 내 뒤로 동료들이 쏟아져 들어왔다.', `${E.champName}의 호위병 둘을 쓰러뜨렸다. 적의 대열이 흔들렸다.`])); heroic(g, rng, lines, c); }
