@@ -7,7 +7,19 @@ import { relationLabel, memoriesOf } from '../relations.js';
 import { J } from '../narrative/text.js';
 import { esc, clamp } from './util.js';
 
-const FILTERS = [['all', '모두'], ['family', '가족'], ['close', '가까운 사이'], ['gone', '떠난 사람']];
+const FILTERS = [['all', '모두'], ['family', '가족'], ['close', '가까운 사이'], ['foe', '껄끄러운 사이'], ['gone', '떠난 사람']];
+const SORTS = [['close', '가까운 순'], ['recent', '최근 만난 순'], ['name', '이름 순'], ['age', '나이 순']];
+const isHere = (p) => p.alive && !p.away;
+const FILTER_FN = {
+  all: () => true,
+  family: (p, game) => isFamily(game, p),
+  close: (p) => isHere(p) && p.affection >= 30,
+  foe: (p) => isHere(p) && (p.affection < 0 || (p.rivalry ?? 0) >= 40),
+  gone: (p) => !isHere(p),
+};
+// 찾기 글: 이름, 성, 하는 일, 관계 말
+const searchText = (game, p) => `${fullName(p)} ${p.name} ${personMeta(game, p)} ${relationLabel(game, p)}`.toLowerCase();
+const matchQ = (text, q) => q.split(/\s+/).filter(Boolean).every((w) => text.includes(w));
 
 function isFamily(game, p) { return game.player.familyIds.includes(p.id); }
 
@@ -32,18 +44,21 @@ function affBar(a) {
 }
 
 export function renderPeople(game, ui) {
-  const f = ui.peopleFilter ?? 'all';
+  const f = FILTER_FN[ui.peopleFilter] ? ui.peopleFilter : 'all';
+  const sort = SORTS.some(([id]) => id === ui.peopleSort) ? ui.peopleSort : 'close';
+  const q = (ui.peopleQ ?? '').trim().toLowerCase();
   let list = knownPeople(game).filter((p) => !p.isPlayer);
-  const counts = {
-    all: list.length,
-    family: list.filter((p) => isFamily(game, p)).length,
-    close: list.filter((p) => p.alive && !p.away && p.affection >= 30).length,
-    gone: list.filter((p) => !p.alive || p.away).length,
+  const counts = Object.fromEntries(Object.entries(FILTER_FN).map(([id, fn]) => [id, list.filter((p) => fn(p, game)).length]));
+  list = list.filter((p) => FILTER_FN[f](p, game));
+  const seen = (p) => p.lastSeen ?? -1;
+  const SORT_FN = {
+    close: (a, b) => (isHere(b) - isHere(a)) || (isFamily(game, b) - isFamily(game, a)) || b.affection - a.affection,
+    recent: (a, b) => (isHere(b) - isHere(a)) || seen(b) - seen(a) || b.affection - a.affection,
+    name: (a, b) => fullName(a).localeCompare(fullName(b), 'ko'),
+    age: (a, b) => (isHere(b) - isHere(a)) || (b.ageMonths ?? 0) - (a.ageMonths ?? 0),
   };
-  if (f === 'family') list = list.filter((p) => isFamily(game, p));
-  if (f === 'close') list = list.filter((p) => p.alive && !p.away && p.affection >= 30);
-  if (f === 'gone') list = list.filter((p) => !p.alive || p.away);
-  list.sort((a, b) => ((b.alive && !b.away) - (a.alive && !a.away)) || (isFamily(game, b) - isFamily(game, a)) || b.affection - a.affection);
+  list.sort(SORT_FN[sort]);
+  const shown = list.filter((p) => !q || matchQ(searchText(game, p), q)).length;
   const sel = ui.person && byId(game, ui.person);
   return `
   <section class="card notebook">
@@ -52,9 +67,14 @@ export function renderPeople(game, ui) {
     <div class="seg filters" role="group" aria-label="보기">
       ${FILTERS.map(([id, name]) => `<button data-pfilter="${id}" aria-pressed="${f === id}">${name} <small>${counts[id]}</small></button>`).join('')}
     </div>
+    ${counts.all > 6 ? `<div class="p-find">
+      <label class="p-q"><span class="sr">사람 찾기</span><input type="search" id="people-q" placeholder="이름, 하는 일로 찾기" value="${esc(ui.peopleQ ?? '')}" autocomplete="off"></label>
+      <label class="p-sort"><span class="sr">늘어놓기</span><select id="people-sort">${SORTS.map(([id, name]) => `<option value="${id}"${sort === id ? ' selected' : ''}>${name}</option>`).join('')}</select></label>
+    </div>
+    <p class="note p-count" aria-live="polite">${q ? (shown ? `찾은 사람 ${shown}명` : '그런 사람은 이 칸에 없다.') : ''}</p>` : ''}
     ${list.length ? `<div class="people">
       ${list.map((p) => `
-        <button class="person ${p.alive && !p.away ? '' : 'dead'}" data-person="${p.id}" aria-pressed="${ui.person === p.id}">
+        <button class="person ${p.alive && !p.away ? '' : 'dead'}" data-person="${p.id}" data-q="${esc(searchText(game, p))}" aria-pressed="${ui.person === p.id}"${q && !matchQ(searchText(game, p), q) ? ' hidden' : ''}>
           ${portrait(game, p, { size: 52 })}
           <span class="txt">
             <span class="nm">${esc(fullName(p))}</span>
@@ -101,6 +121,18 @@ function renderDetail(game, p) {
 
 export function bindPeople(game, ui, rerender) {
   document.querySelectorAll('[data-pfilter]').forEach((b) => b.onclick = () => { ui.peopleFilter = b.dataset.pfilter; rerender(); });
+  // 찾기는 다시 그리지 않고 숨기기만 한다 (글자 칸의 커서가 그대로 남게)
+  const qIn = document.getElementById('people-q');
+  if (qIn) qIn.oninput = () => {
+    ui.peopleQ = qIn.value;
+    const q = qIn.value.trim().toLowerCase();
+    let n = 0;
+    document.querySelectorAll('.people .person').forEach((el) => { const hit = !q || matchQ(el.dataset.q ?? '', q); el.hidden = !hit; if (hit) n++; });
+    const c = document.querySelector('.p-count');
+    if (c) c.textContent = q ? (n ? `찾은 사람 ${n}명` : '그런 사람은 이 칸에 없다.') : '';
+  };
+  const sortSel = document.getElementById('people-sort');
+  if (sortSel) sortSel.onchange = () => { ui.peopleSort = sortSel.value; rerender(); };
   document.querySelectorAll('[data-person]').forEach((b) => b.onclick = () => {
     const id = +b.dataset.person;
     if (id === game.player.id) return;

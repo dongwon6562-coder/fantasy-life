@@ -5,6 +5,8 @@ import { actionIcon } from '../art/icons.js';
 import { portrait } from '../art/portrait.js';
 import { esc } from './util.js';
 import { crisisActDesc } from './crisis.js';
+import { prefs, setPref } from './settings.js';
+import { lifeId } from './saves.js';
 
 const LABELS = { 4: ['첫째 주', '둘째 주', '셋째 주', '넷째 주'], 3: ['상순', '중순', '하순'], 2: ['전반', '후반'], 1: ['이번 달'] };
 
@@ -25,6 +27,86 @@ export function normalizePlan(game, ui) {
     if (act?.needsTarget && !people.some((p) => p.id === c.target)) c.target = people[0]?.id;
   }
   ui.active = Math.min(ui.active ?? 0, n - 1);
+}
+
+/* ---------- 할 일 틀: 지난달 그대로, 저장한 틀 (이 기기에만 저장) ---------- */
+const TPL_MAX = 6;
+const tpls = () => (Array.isArray(prefs().planTpls) ? prefs().planTpls.filter((t) => t && Array.isArray(t.plan) && t.plan.length) : []);
+const samePlan = (a, b) => a.length === b.length && a.every((c, i) => c.id === b[i].id && (c.target ?? null) === (b[i].target ?? null));
+const actName = (id) => ACTIONS.find((a) => a.id === id)?.name ?? id;
+/** 틀 이름 기본값: 들어 있는 일 이름을 많은 순으로 */
+function tplDefaultName(plan) {
+  const n = {};
+  plan.forEach((c) => { n[c.id] = (n[c.id] ?? 0) + 1; });
+  return Object.keys(n).sort((a, b) => n[b] - n[a]).slice(0, 3).map(actName).join('·').slice(0, 20);
+}
+/** 틀을 지금 칸 수에 맞춰 넣는다. 칸이 더 많으면 틀을 되풀이한다. 지금 못 하는 일은 다듬기에서 바뀐다. */
+function applyTpl(game, ui, src, keepTargets) {
+  const n = slotsFor(game);
+  ui.plan = Array.from({ length: n }, (_, i) => { const c = { ...src[i % src.length] }; if (!keepTargets) delete c.target; return c; });
+  const want = ui.plan.map((c) => c.id);
+  ui.active = 0;
+  normalizePlan(game, ui);
+  const lost = [...new Set(want.filter((id, i) => ui.plan[i].id !== id))];
+  ui.tplNote = lost.length ? `지금은 할 수 없는 일(${lost.map(actName).join(', ')})은 다른 일로 바뀌었다.` : null;
+}
+
+function renderTpl(game, ui) {
+  const list = tpls();
+  const last = ui.lastPlan?.length && !samePlan(ui.lastPlan, ui.plan) ? ui.lastPlan : null;
+  const chips = [
+    last ? `<button class="ghost sm tpl" data-tpl="last" title="${esc(last.map((c) => actName(c.id)).join(', '))}">지난달 그대로</button>` : '',
+    ...list.map((t, i) => `<button class="ghost sm tpl" data-tpl="${i}" aria-pressed="${samePlan(t.plan, ui.plan)}" title="${esc(t.plan.map((c) => actName(c.id)).join(', '))}">${esc(t.name)}</button>`),
+    `<button class="ghost sm tpl add" id="tpl-open" aria-expanded="${!!ui.tplEdit}">${list.length ? '틀 정리' : '이 계획을 틀로 저장'}</button>`,
+  ].join('');
+  let edit = '';
+  if (ui.tplEdit) {
+    const full = list.length >= TPL_MAX;
+    edit = `<div class="tpl-edit">
+      ${full ? `<p class="note">틀은 ${TPL_MAX}개까지 둘 수 있다. 하나를 지우면 새로 저장할 수 있다.</p>` : `<label class="tpl-name"><span>지금 계획을 틀로 저장</span>
+        <span class="tpl-in"><input id="tpl-name" maxlength="20" value="${esc(tplDefaultName(ui.plan))}" aria-label="틀 이름"><button class="primary sm" id="tpl-save">저장</button></span></label>
+        <p class="note">${esc(ui.plan.map((c) => actName(c.id)).join(' → '))}</p>`}
+      ${list.length ? `<ul class="tpl-list">${list.map((t, i) => `<li><span class="txt"><strong>${esc(t.name)}</strong><span class="note">${esc(t.plan.map((c) => actName(c.id)).join(' → '))}</span></span>${ui.tplDel === i
+        ? `<span class="sv-confirm"><button class="danger sm" data-tpl-del="${i}">정말 지우기</button><button class="ghost sm" data-tpl-keep>그만두기</button></span>`
+        : `<button class="ghost sm" data-tpl-ask="${i}">지우기</button>`}</li>`).join('')}</ul>` : ''}
+      <div class="actions-row"><button class="ghost sm" id="tpl-close">닫기</button></div>
+    </div>`;
+  }
+  return `<div class="plan-tpl">
+    <div class="tpl-row"><span class="lbl">틀</span>${chips}</div>
+    ${ui.tplNote ? `<p class="note warn">${esc(ui.tplNote)}</p>` : ''}
+    ${edit}
+  </div>`;
+}
+
+function bindTpl(game, ui, rerender) {
+  const $ = (q) => document.querySelector(q);
+  const $$ = (q) => [...document.querySelectorAll(q)];
+  $$('[data-tpl]').forEach((b) => b.onclick = () => {
+    const k = b.dataset.tpl;
+    if (k === 'last') applyTpl(game, ui, ui.lastPlan, true);
+    else { const t = tpls()[+k]; if (t) applyTpl(game, ui, t.plan, t.life === lifeId(game)); }
+    rerender();
+  });
+  const open = $('#tpl-open');
+  if (open) open.onclick = () => { ui.tplEdit = !ui.tplEdit; ui.tplDel = null; rerender(); };
+  const close = $('#tpl-close');
+  if (close) close.onclick = () => { ui.tplEdit = false; ui.tplDel = null; rerender(); };
+  const save = $('#tpl-save');
+  if (save) save.onclick = () => {
+    const name = ($('#tpl-name')?.value ?? '').trim() || tplDefaultName(ui.plan);
+    const list = tpls();
+    if (list.length >= TPL_MAX) return;
+    list.push({ name: name.slice(0, 20), plan: ui.plan.map((c) => (c.target != null ? { id: c.id, target: c.target } : { id: c.id })), life: lifeId(game) });
+    setPref('planTpls', list);
+    ui.tplEdit = false; ui.tplNote = null;
+    rerender();
+  };
+  const name = $('#tpl-name');
+  if (name) name.onkeydown = (e) => { if (e.key === 'Enter') { e.preventDefault(); save?.click(); } };
+  $$('[data-tpl-ask]').forEach((b) => b.onclick = () => { ui.tplDel = +b.dataset.tplAsk; rerender(); });
+  $$('[data-tpl-keep]').forEach((b) => b.onclick = () => { ui.tplDel = null; rerender(); });
+  $$('[data-tpl-del]').forEach((b) => b.onclick = () => { const list = tpls(); list.splice(+b.dataset.tplDel, 1); setPref('planTpls', list); ui.tplDel = null; rerender(); });
 }
 
 // 행동 묶음: 고르기 쉽게 성격별로 나눈다. 어두운 일은 접어 둔다(고르면 펼쳐진 채로).
@@ -108,6 +190,7 @@ export function renderPlan(game, ui) {
         return `<details class="act-group dark"${open ? ' open' : ''}><summary><h4>${name}</h4><span class="note">${list.length}가지</span></summary><div class="act-grid">${cards}</div></details>`;
       }).join('')}
     </div>
+    ${renderTpl(game, ui)}
     <div class="actions-row plan-tools">
       <button class="ghost sm" id="fill">${esc(`모든 칸을 '${activeAct?.name ?? ''}'(으)로`)}</button>
       <button class="ghost sm" id="skip3">같은 계획으로 석 달 보내기</button>
@@ -137,10 +220,12 @@ export function bindPlan(game, ui, rerender) {
   });
   const dark = document.querySelector('details.act-group.dark');
   if (dark) dark.ontoggle = () => { ui.darkOpen = dark.open; };
+  bindTpl(game, ui, rerender);
   const fill = document.getElementById('fill');
   if (fill) fill.onclick = () => {
     const src = ui.plan[ui.active];
     ui.plan = ui.plan.map(() => ({ ...src }));
+    ui.tplNote = null;
     rerender();
   };
 }
