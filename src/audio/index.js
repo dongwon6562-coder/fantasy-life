@@ -68,9 +68,14 @@ function unlock() {
   if (!engine) {
     const AC = window.AudioContext ?? window.webkitAudioContext;
     if (!AC) return;
+    // 아이폰: 무음 스위치가 켜져 있으면 스피커로는 소리가 안 나고 이어폰으로만 난다.
+    // 소리 종류를 '재생'으로 알려 주면 스위치와 상관없이 난다. (끄고 싶으면 게임 안 소리 설정으로)
+    safe(() => { if (navigator.audioSession) navigator.audioSession.type = 'playback'; });
     const ctx = safe(() => new AC({ latencyHint: 'interactive' }));
     if (!ctx) return;
     engine = new Engine(ctx);
+    // 이어폰을 꽂거나 뺄 때 소리 장치가 멈추면 다시 깨운다
+    safe(() => ctx.addEventListener('statechange', () => { if (engine?.ctx === ctx && ctx.state !== 'running' && ctx.state !== 'closed' && settings.on && !document.hidden) wake(); }));
     player = new MusicPlayer(engine, TRACKS);
     fx = engine.group('sfx');
     amb = new Ambience(engine);
