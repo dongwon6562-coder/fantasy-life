@@ -45,6 +45,8 @@ import { deepStatus } from '../src/deep/index.js';
 import { estateStatus } from '../src/estate/index.js';
 import { E as EST } from '../src/estate/core.js';
 import { vocationStatus, VOC_JOB_IDS } from '../src/vocation/index.js';
+import { armyStatus } from '../src/army/index.js';
+import { A as ARMY } from '../src/army/core.js';
 import { V as VOC } from '../src/vocation/core.js';
 import { WORK as VWORK } from '../src/jobs.js';
 import { D as DEEP, RELIC_IDS } from '../src/deep/core.js';
@@ -65,7 +67,7 @@ function roundTrip(g, rng) {
 function chaos(g, rng) {
   const life = L(g);
   const adult = playerAge(g) >= 15;
-  const r = rng.int(0, 18);
+  const r = rng.int(0, 19);
   if (r === 0) return 'roundtrip';
   if (r === 1 && !CR(g).active) startCrisis(g, rng, rng.pick(Object.keys(CRISES)));
   else if (r === 2) { g.realm.balhart.war = true; g.realm.balhart.warMonths = 0; }
@@ -84,6 +86,7 @@ function chaos(g, rng) {
   else if (r === 16) deepShake(g, rng);
   else if (r === 17) estateShake(g, rng);
   else if (r === 18 && adult && !isJailed(g)) vocationShake(g, rng);
+  else if (r === 19 && adult && !isJailed(g)) armyShake(g, rng);
   else if (r === 15 && adult && !life.travel && !isJailed(g)) { const port = rng.pick(['klein', 'portel', 'saltmare', 'saltrock']); life.place = port; const rt = rng.pick(seaRoutesFrom(g, port)); if (rt) setSail(g, rt.to, rt.months, { own: !!S(g).ship }); }
   return null;
 }
@@ -100,7 +103,7 @@ function stale(g, rng) {
   else if (r === 5) g.player.money = 0;
   else if (r === 6 && !life.travel) life.travel = { to: rng.pick(ALL_PLACES), left: 2, from: life.place };
   else if (r === 7 && playerAge(g) >= 15 && !isJailed(g)) jail(g, 2);
-  else if (r === 8) { const sea = S(g); sea.ship = null; sea.pirate = null; sea.cargo = null; sea.lair = true; const d = DEEP(g); d.relics = []; d.lord = 'slain'; d.gate = 0; L(g).houses = []; EST(g).loans = []; EST(g).rentals = []; VOC(g).project = null; VOC(g).traps = 0; if (VOC_JOB_IDS.includes(life.job?.id)) life.job = null; }
+  else if (r === 8) { const sea = S(g); sea.ship = null; sea.pirate = null; sea.cargo = null; sea.lair = true; const d = DEEP(g); d.relics = []; d.lord = 'slain'; d.gate = 0; L(g).houses = []; EST(g).loans = []; EST(g).rentals = []; VOC(g).project = null; VOC(g).traps = 0; ARMY(g).campaign = null; ARMY(g).captive = null; if (VOC_JOB_IDS.includes(life.job?.id)) life.job = null; }
 }
 // 집과 재산을 흔든다 (src/estate/)
 function estateShake(g, rng) {
@@ -111,6 +114,18 @@ function estateShake(g, rng) {
   e.loans = rng.chance(0.5) ? [{ id: 900 + rng.int(0, 99), lender: rng.pick(['shark', 'company', 'temple']), principal: rng.int(10, 900), due: g.date.year * 12 + g.date.month - rng.int(-3, 4), missed: rng.int(0, 4) }] : [];
   e.rentals = rng.chance(0.5) ? [{ id: 800, kind: rng.pick(['land', 'shop', 'house']), place: rng.pick(ALL_PLACES), tenant: rng.chance(0.5) ? '흔들 세입자' : null, rent: 5, cond: rng.int(0, 100), unpaid: rng.int(0, 3), value: 200 }] : [];
   e.deposits = rng.chance(0.4) ? [{ company: rng.chance(0.5) ? 'silverscale' : 'gone', name: '흔들 상단', amount: rng.int(10, 500), last: 40 }] : [];
+}
+// 군대를 흔든다 (src/army/)
+function armyShake(g, rng) {
+  const a = ARMY(g);
+  const life = L(g);
+  if (rng.chance(0.5)) { life.job = { id: 'soldier', place: rng.chance(0.7) ? life.place : rng.pick(ALL_PLACES), months: rng.int(0, 60), lastRank: 0 }; a.service = { unit: '흔들 백인대', rank: rng.int(0, 4), merit: rng.int(0, 700), months: rng.int(0, 80), place: life.job.place, term: rng.int(-2, 36), since: 0, awol: rng.int(0, 2) }; }
+  else if (rng.chance(0.3)) a.service = null;
+  a.campaign = a.service && rng.chance(0.4) ? { key: rng.pick(['balhart', 'garbes', 'bandits', 'realm_valhart', 'nothing']), name: '흔들 원정', kind: rng.pick(['realm', 'peace', 'politics']), foe: 'valhart', month: rng.int(0, 5), months: rng.int(1, 5), morale: rng.int(10, 90), marched: [] } : null;
+  a.captive = !a.campaign && rng.chance(0.2) ? { by: '흔들 군', months: rng.int(0, 11), ransom: rng.int(10, 300), officer: rng.chance(0.3), war: rng.pick(['balhart', 'bandits', 'gone']) } : null;
+  a.deserted = rng.chance(0.2) ? { year: g.date.year - rng.int(0, 12), at: 0, caught: rng.chance(0.5), unit: '흔들 백인대' } : a.deserted;
+  a.veteran = rng.chance(0.2) ? { rank: rng.int(0, 4), years: rng.int(0, 20), unit: 'x', year: 500, pension: rng.int(0, 20) } : a.veteran;
+  if (rng.chance(0.3)) a.scars.push({ id: rng.pick(['limp', 'nightmare', 'gone']), name: '흔들 상처', year: g.date.year });
 }
 // 새 일 갈래를 흔든다 (src/vocation/)
 function vocationShake(g, rng) {
@@ -148,7 +163,7 @@ function checkState(g, seed, m) {
   const p = g.player;
   for (const [k, v] of Object.entries({ money: p.money, fatigue: p.fatigue, stress: p.stress, renown: L(g).renown, notoriety: L(g).notoriety })) if (!Number.isFinite(v)) fail('NaN 값', k, seed, m);
   if (p.money < 0) fail('돈이 음수', p.money, seed, m);
-  for (const [name, fn] of [['partyStatus', partyStatus], ['crisisStatus', crisisStatus], ['craftStatus', craftStatus], ['domainReport', (x) => (x.domain ? domainReport(x) : null)], ['seaStatus', seaStatus], ['deepStatus', deepStatus], ['estateStatus', estateStatus], ['vocationStatus', vocationStatus]]) {
+  for (const [name, fn] of [['partyStatus', partyStatus], ['crisisStatus', crisisStatus], ['craftStatus', craftStatus], ['domainReport', (x) => (x.domain ? domainReport(x) : null)], ['seaStatus', seaStatus], ['deepStatus', deepStatus], ['estateStatus', estateStatus], ['vocationStatus', vocationStatus], ['armyStatus', armyStatus]]) {
     try { const r = deepBad(fn(g)); if (r) fail(`${name}에 나쁜 값`, r, seed, m); } catch (e) { fail(`${name} 예외`, e.stack, seed, m); }
   }
   if (partyOf(g).members.includes(g.player.id)) fail('내가 내 동료 명단에 있음', g.player.id, seed, m);
