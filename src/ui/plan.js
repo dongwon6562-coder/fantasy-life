@@ -112,12 +112,12 @@ function bindTpl(game, ui, rerender) {
 // 행동 묶음: 고르기 쉽게 성격별로 나눈다. 어두운 일은 접어 둔다(고르면 펼쳐진 채로).
 const GROUPS = [
   ['crisis', '나라의 큰일', /^crisis_/],
-  ['work', '일과 벌이', /^(work|seek_job|day_labor|inn_kitchen|herbs|help_home|shop_manage|open_shop|domain_|realm_office|farmer|merchant)/],
+  ['work', '일과 벌이', /^(work|seek_job|day_labor|inn_kitchen|herbs|help_home|shop_manage|open_shop|domain_|realm_office|farmer|merchant|estate_)/],
   ['learn', '배움과 수련', /^(study|train_body|sword_|meditate|magic_|legend_lesson|research)/],
   ['faith', '믿음과 기도', /^(pray|worship|keep_feast|pilgrimage|faith_seek|holy_heal)$/],
   ['court', '궁정', /^court_/],
-  ['people', '사람과 마을', /^(visit|play|wander|rel_|faction_door|bard|era_)/],
-  ['road', '길과 모험', /^(party_|gather_party|travel|on_road|housing|quest|delve|deep_|gear|pioneer|buy_title|tower_dare|wolves|goblins)/],
+  ['people', '사람과 마을', /^(visit|play|wander|rel_|faction_door|bard|era_|kin_)/],
+  ['road', '길과 모험', /^(party_|gather_party|travel|on_road|housing|quest|delve|deep_|pol_|gear|pioneer|buy_title|tower_dare|wolves|goblins)/],
   ['sea', '바다', /^(sail|sailing|at_sea|cargo|shipyard|sea_|serpent_lair|saltrock|pirate_)/],
   ['dark', '어두운 일', /^(crime_|gang_|dawn_rite)/],
   ['rest', '쉼', /^(rest|drift_years)$/],
