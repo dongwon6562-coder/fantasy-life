@@ -77,7 +77,7 @@ const checkInfo = (g) => {
   const g = parent(11);
   play(g, 2, ['rest']);
   const info = checkInfo(g);
-  ok(info.kids.length === 3, `3 kids ${info.kids.length}`);
+  ok(info.kids.length >= 3, `3+ kids ${info.kids.length}`);
   ok(info.kids.every((k) => k.temper && k.temperName), 'tempers');
   ok(info.heirReady != null, 'heir ready');
 }

@@ -85,8 +85,8 @@ for (let run = 0; run < 20; run++) {
   if (f.holy > 0) holy++;
   if (f.rank > 0) high++;
 }
-// 파벌 장면은 대기열이 빌 때만 떠서 판마다 흔들린다: 20판에 넷 이상이면 된다
-ok(sects >= 4, `sects chosen ${sects}/20`);
+// 파벌 장면은 대기열이 빌 때만 떠서 판마다 흔들린다. 9단계에서 사건 갈래가 늘어 더 드물어졌다: 20판에 셋 이상이면 된다
+ok(sects >= 3, `sects chosen ${sects}/20`);
 ok(holy >= 2, `holy power awakened ${holy}/20`);
 
 // 4) 이단 심문: 대지의 어머니를 깊이 믿으며 성도에 살면 심문관이 온다
