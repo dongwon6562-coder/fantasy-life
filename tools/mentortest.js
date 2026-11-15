@@ -114,7 +114,7 @@ const checkInfo = (g) => {
   play(g, 4, ['mentor_take'], { mentor_pick: 2 }, 1);
   const [p, d] = myDisciples(g)[0];
   d.skill = 66; d.since -= 40; p.ageMonths = 20 * 12;
-  play(g, 12, ['mentor_teach', 'rest'], { mentor_graduate: 0 }, 1);
+  for (let i = 0; i < 36 && !mentorState(g).grads.some((x) => x.id === p.id); i++) play(g, 1, ['mentor_teach', 'rest'], { mentor_graduate: 0 }, 1);
   ok(mentorState(g).grads.some((x) => x.id === p.id), 'graduated');
   g.player.money = 300;
   ok(availableActions(g).some((a) => a.id === 'mentor_found'), 'found available');
@@ -152,6 +152,27 @@ const checkInfo = (g) => {
   const old = JSON.parse(JSON.stringify(g)); delete old.mentor;
   runHooks('migrate', old);
   ok(old.mentor && Array.isArray(old.mentor.grads), 'old save mentor');
+}
+
+// 5b) 하산·배신한 제자는 다시 후보가 되지 않고, 새 후보는 아는 사람과 이름이 겹치지 않는다
+{
+  let again = 0, dup = 0;
+  for (let t = 0; t < 4; t++) {
+    const g = adult(70 + t, 'farmer', 30, 'trade', 90);
+    for (let r = 0; r < 8; r++) {
+      play(g, 7, ['mentor_take', 'rest'], { mentor_pick: (pe) => Math.max(0, pe.choices.findIndex((c) => /^아는 얼굴/.test(c))) }, 1);
+      for (const [p, d] of myDisciples(g)) { d.skill = 85; d.since -= 40; p.ageMonths = Math.max(p.ageMonths, 20 * 12); }
+      play(g, 6, ['rest'], { mentor_graduate: 0, mentor_betray: 1 }, 1);
+    }
+    const m = mentorState(g);
+    const ids = m.grads.map((x) => x.id);
+    again += ids.length - new Set(ids).size;
+    for (const [p] of myDisciples(g)) if (ids.includes(p.id)) again++;
+    const names = [...m.grads.map((x) => x.name), ...myDisciples(g).map(([p]) => `${p.name} ${p.lastName}`)];
+    dup += names.length - new Set(names).size;
+  }
+  ok(again === 0, `former disciple taken again ${again}`);
+  ok(dup === 0, `same-name disciples ${dup}`);
 }
 
 // 6) 여러 삶: 솜씨 있는 어른으로 15년

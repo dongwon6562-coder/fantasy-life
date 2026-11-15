@@ -49,6 +49,8 @@ export function spellPower(g) {
   const ward = Math.max(0, ...sp.filter((x) => x.use === 'ward').map((x) => SPELL_POW[x.circle] ?? 0));
   return (atk[0] ?? 0) + atk.slice(1).reduce((t, v) => t + v * 0.25, 0) + ward * 0.4;
 }
+// 다른 갈래가 싸움 힘에 더할 것: (g) => 숫자. 예: 함께 다니는 짐승(src/beasts/)
+export const POWER_BONUS = [];
 export function playerPower(g) {
   const p = g.player;
   const s = p.stats, k = p.skills;
@@ -58,6 +60,7 @@ export function playerPower(g) {
   pow += spellPower(g); // 서클이 같아도 싸우는 주문을 익혀야 더 세다
   const gear = L(g).gear;
   pow += (gear.weapon ?? 0) + (gear.armor ?? 0) * 0.6;
+  for (const f of POWER_BONUS) pow += Number(f(g)) || 0; // 다른 갈래가 더하는 힘 (짐승 등)
   pow *= Math.max(0.45, 1 - p.injuries.length * 0.12);
   if (p.fatigue > 70) pow *= 0.8;
   return Math.max(3, pow);

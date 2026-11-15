@@ -117,24 +117,29 @@ export function mentorInfo(g) {
 }
 
 /* ---------- 제자 들이기 ---------- */
+// 한번 내 문하에 들었던 사람(하산·배신·파문 포함)은 다시 후보가 되지 않는다
+const wasMine = (g, p) => p.mentored || !!recOf(g, p.id) || M(g).grads.some((x) => x.id === p.id);
 function candidates(g, rng, art) {
   const out = [];
   // 내 자식 (10살 넘고 아직 제자가 아닌)
   for (const id of me(g).childIds ?? []) {
     const p = byId(g, id);
-    if (!p || !p.alive || p.isPlayer || recOf(g, id) || ageYears(p) < 10 || ageYears(p) > 30) continue;
+    if (!p || !p.alive || p.isPlayer || wasMine(g, p) || ageYears(p) < 10 || ageYears(p) > 30) continue;
     const kr = kinState(g).kids?.[id];
     if (kr?.left || kr?.disowned) continue;
     out.push({ who: 'kid', id, talent: kr?.gift && kr.gift === art ? 1.3 : 1 });
     if (out.length >= 1) break;
   }
   // 아는 젊은이
-  const known = g.people.filter((p) => p.alive && !p.isPlayer && p.known && !recOf(g, p.id) && !g.player.familyIds.includes(p.id) && ageYears(p) >= 12 && ageYears(p) <= 24 && p.affection >= 10 && (p.place ?? 'ern') === here(g));
+  const known = g.people.filter((p) => p.alive && !p.isPlayer && p.known && !wasMine(g, p) && !g.player.familyIds.includes(p.id) && ageYears(p) >= 12 && ageYears(p) <= 24 && p.affection >= 10 && (p.place ?? 'ern') === here(g));
   if (known.length) { const p = rng.pick(known); out.push({ who: 'known', id: p.id, talent: Math.max(0.6, Math.min(1.6, rng.normal(1, 0.25))) }); }
   // 찾아온 낯선 아이들
   while (out.length < 3) {
     const sex = rng.chance(0.5) ? 'm' : 'f';
-    const tmp = makePerson(rng, { sex, ageMonths: rng.int(12, 19) * 12 });
+    // 아는 사람·옛 제자·다른 후보와 이름이 겹치지 않게 (동명이인으로 헷갈리지 않도록)
+    const taken = new Set([...g.people.filter((q) => q.alive && (q.known || wasMine(g, q))).map((q) => `${q.name} ${q.lastName}`), ...M(g).grads.map((x) => x.name), ...out.filter((c) => c.who === 'new').map((c) => `${c.name} ${c.lastName}`)]);
+    let tmp = makePerson(rng, { sex, ageMonths: rng.int(12, 19) * 12 });
+    for (let t = 0; t < 8 && taken.has(`${tmp.name} ${tmp.lastName}`); t++) tmp = makePerson(rng, { sex, ageMonths: rng.int(12, 19) * 12 });
     out.push({ who: 'new', sex, age: ageYears(tmp), name: tmp.name, lastName: tmp.lastName, traits: tmp.traits, talent: Math.max(0.55, Math.min(1.7, rng.normal(1, 0.3))) });
   }
   return out;
@@ -152,6 +157,7 @@ function takeDisciple(g, p, art, talent, { kid = false } = {}) {
   rel(p);
   p.known = true;
   const base = kid ? 8 : 0;
+  p.mentored = true;
   m.disciples[p.id] = {
     art, skill: Math.max(base, Math.min(30, (p.skill ?? 0) * 0.3)), talent: Math.round(talent * 100) / 100,
     loyalty: clamp(55 + (kid ? 15 : 0) + (has(p, 'kind') || has(p, 'diligent') ? 8 : 0) - (has(p, 'ambitious') ? 8 : 0) - (has(p, 'cruel') ? 6 : 0), 20, 90),

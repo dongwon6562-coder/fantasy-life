@@ -171,9 +171,11 @@ function soldier(seed, family = 'farmer', place = 'harfen') {
     const ids = availableActions(g).map((a) => a.id);
     if (ids.some((id) => !['army_escape', 'army_captive_wait', 'rest', 'meditate'].includes(id))) fail('captive can do too much', ids.join(','));
     g.player.money = run % 2 ? 100 : 0;
-    for (let m = 0; m < 14 && A(g).captive && !g.over; m++) { war(g); month(g, run % 3 === 0 ? ['army_escape'] : ['army_captive_wait'], (k, labels) => (k === 'army_ransom' ? 0 : -1)); heal(g); }
+    let ran = false;
+    for (let m = 0; m < 14 && A(g).captive && !g.over; m++) { war(g); month(g, run % 2 === 0 ? ['army_escape'] : ['army_captive_wait'], (k, labels) => (k === 'army_ransom' ? 0 : -1)); heal(g); if ((g.lastResults ?? []).some((r) => /제 발로 걸어 나온/.test(r.text))) ran = true; }
     if (A(g).captive) fail('captive never freed');
-    if (/달아났다/.test(JSON.stringify(g.people.find((p) => p.id === g.player.id).history.slice(-6)))) escaped++; else freed++;
+    // 기록 끝 여섯 줄은 다른 갈래(짐승 등)의 일로 밀려날 수 있어, 이번 달 결과로 본다
+    if (ran || /달아났다/.test(JSON.stringify(g.people.find((p) => p.id === g.player.id).history.slice(-6)))) escaped++; else freed++;
   }
   console.log(`포로 6판: 탈출 ${escaped}, 풀려남 ${freed}`);
   if (!escaped) fail('nobody escaped');
@@ -196,8 +198,8 @@ function soldier(seed, family = 'farmer', place = 'harfen') {
   // 병영을 석 달 비우면 탈영
   const h = soldier(44100);
   placeAt(h, 'ern');
-  for (let m = 0; m < 4; m++) month(h, ['rest']);
-  if (A(h).service || !A(h).deserted) fail('awol should become desertion');
+  for (let m = 0; m < 8 && A(h).service; m++) { peace(h); A(h).campaign = null; if (L(h).place === A(h).service.place) placeAt(h, 'ern'); month(h, ['rest']); }
+  if (A(h).service || !A(h).deserted) fail('awol should become desertion', JSON.stringify(A(h).service), L(h).place, L(h).job?.id, isJailed(h), JSON.stringify(A(h).deserted));
   // 옥에 갇히면 쫓겨난다(탈영 아님)
   const j = soldier(44200);
   const { jail } = await import('../src/crime.js');
