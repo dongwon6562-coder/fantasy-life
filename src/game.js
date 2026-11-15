@@ -287,7 +287,10 @@ function checkPlayerState(game, rng) {
 }
 
 export function availableActions(game) {
-  return ACTIONS.filter((a) => a.available(game) && HOOKS.actionFilter.every((f) => f(game, a) !== false));
+  const list = ACTIONS.filter((a) => a.available(game) && HOOKS.actionFilter.every((f) => f(game, a) !== false));
+  // 여러 갈래의 잠금(감옥, 포로, 원정 등)이 겹쳐 할 일이 하나도 남지 않으면, 적어도 쉬기는 할 수 있게 (헤드)
+  if (!list.length && slotsFor(game) > 0) return ACTIONS.filter((a) => a.id === 'rest');
+  return list;
 }
 
 export function knownPeople(game) {

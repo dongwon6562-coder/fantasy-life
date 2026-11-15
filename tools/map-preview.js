@@ -6,7 +6,11 @@ import { readFileSync, writeFileSync, mkdirSync } from 'node:fs';
 mkdirSync('dist', { recursive: true });
 writeFileSync('dist/_map_entry.js', `import { mountMap } from '../src/art/map.js';
 globalThis.FL_DATA_URLS = true; // 견본 페이지는 그림을 data 주소로 넣는다
-mountMap(document.getElementById('host'), { here: 'ern' });
+// 견본에서는 한 집안이 다닌 길을 지어서 보여 준다
+const game = { life: { place: 'barka' }, date: { year: 531, month: 6 }, atlas: { home: 'ern', last: 'barka',
+  v: { ern: [500, 204], harfen: [517, 30], verden: [519, 8], leocast: [520, 44], rosen: [524, 3], ort: [525, 14], eisen: [527, 6], roten: [527, 2], libera: [528, 3], portel: [528, 2], barka: [529, 20], tower: [530, 2] },
+  t: ['ern', 'harfen', 'ern', 'harfen', 'verden', 'leocast', 'rosen', 'leocast', 'ort', 'eisen', 'roten', 'libera', 'portel', 'barka', 'tower', 'barka'], f: { tower: 530 } } };
+mountMap(document.getElementById('host'), { here: 'barka', game });
 `);
 execSync('npx --yes esbuild@0.24.0 dist/_map_entry.js --bundle --format=iife --minify --outfile=dist/_map_bundle.js', { stdio: 'inherit' });
 const js = readFileSync('dist/_map_bundle.js', 'utf8').replace(/<\/script/gi, '<\\/script');

@@ -5,7 +5,7 @@ import { W, H, HZ, hash, fbm1, ridged1, rng, mixh, rgba, dark, light, clamp, sbu
 import { describe } from './scenePlaces.js';
 import { skyOf, paintSky, gradeLand, paintWeather } from './sceneSky.js';
 import { paletteOf, mountains, hillBand, treeline, forestMass, fields, water, tree, conifer, palm, rock, reedClump, foreground } from './sceneLand.js';
-import { STYLE, house, tower, wallRun, windmill, church, cathedral, keep, castle, citadel, mageTowers, endlessTower, wizardTower, bastion, manor, fortress, ruins, ruinPalace, lighthouse, ship, docks, elfSpire, tent, totem, blackSpire, stiltHut, dwarfGate, worldTree } from './sceneTown.js';
+import { STYLE, house, tower, wallRun, windmill, church, cathedral, keep, castle, citadel, mageTowers, endlessTower, wizardTower, elfGreatTree, ropeBridge, dwarfFacade, yurt, herd, ruinArch, bastion, manor, fortress, ruins, ruinPalace, lighthouse, ship, docks, elfSpire, tent, totem, blackSpire, stiltHut, dwarfGate, worldTree } from './sceneTown.js';
 
 /** 그 달의 때와 날씨 (같은 달이면 늘 같음) */
 export function conditions(year, month) {
@@ -149,7 +149,7 @@ function dwelling(L, e, x, y, s, i) {
     return;
   }
   if (c === 'elf') return R() < 0.7 ? elfSpire(L, x, y, s, S, P, wins, R) : plant(L, e, x, y, 9 * s);
-  if (c === 'beast') return R() < 0.9 ? tent(L, x, y, s, S, P, wins, R) : totem(L, x, y, s * 0.9, S);
+  if (c === 'beast') return R() < 0.62 ? yurt(L, x, y, s, S, P, wins, R) : R() < 0.8 ? tent(L, x, y, s, S, P, wins, R) : totem(L, x, y, s * 0.9, S);
   if (c === 'demon') return blackSpire(L, x, y, s, S, P, wins, R, false);
   if (c === 'sea') return stiltHut(L, x, y, s, st, S, P, wins, R, smoke);
   if (st.ruin || D.size === 'ruin') return ruins(L, x, y, s, S, P, wins, R, { n: 1, span: 10, glow: st.glow });
@@ -179,6 +179,8 @@ function settle(L, e, ground, cx, o = {}) {
   else if (f === 'wizardtower') { const k = WIZ[D.id] ?? {}; wizardTower(L, cx, ly + 30, 1.25, S, P, wins, k); block = [cx - 80, cx + 80, ly + 60]; }
   else if (f === 'fortress') { fortress(L, cx, ly + 20, 1, st, S, P, wins); block = [cx - 80, cx + 80, ly + 26]; }
   else if (f === 'demonkeep') { blackSpire(L, lx, ly + 10, 1, S, P, wins, R, true); blackSpire(L, lx - 40, ly + 12, 0.8, S, P, wins, R, true); blackSpire(L, lx + 34, ly + 12, 0.7, S, P, wins, R, true); block = [lx - 60, lx + 60, ly + 14]; }
+  if (D.culture === 'beast') { herd(L, cx - span * 0.95, top(cx - span * 0.95) + 30, 14, 190, S, R); herd(L, cx + span * 0.9, top(cx + span * 0.9) + 44, 8, 120, S, R); }
+  if ((f === 'ruins' || f === 'ruinpalace') && D.culture !== 'demon') { ruinArch(L, lx + (f === 'ruinpalace' ? -150 : 0), ly + 26, f === 'ruinpalace' ? 1.3 : 1.7, S, P, wins, R, { glow: D.culture === 'lost' ? '#b8e8c8' : null }); if (!block) block = [lx - 130, lx + 130, ly + 34]; }
   // 집
   const hs = [];
   for (let i = 0, tries = 0; i < D.houses && tries < D.houses * 4; tries++) {
@@ -332,7 +334,8 @@ const LAYOUTS = {
     hillBand(L, ground, mixh(P.hill, P.rock, 0.45), S, { seed: 21, depth: 110 });
     forestMass(L, (x) => ground(x) + 4, 22, P, S, R, { size: 7, haze: 0.2, pine: 0.9, gap: (x) => Math.abs(x - cx) < 210 || fbm1(x / 100 + q, 43) < 0.42 });
     for (let i = 0; i < 26; i++) { const x = R() * W, y = ground(x) + 30 + R() * 80; if (Math.abs(x - cx) < 200) continue; R() < 0.5 ? rock(L, x, y, 8 + R() * 16, 6 + R() * 12, P, S, R) : conifer(L, x, y, 24 + R() * 20, P, S, R); }
-    if (D.culture === 'dwarf') dwarfGate(L, cx + 40, ground(cx + 40) + 14, D.size === 'capital' ? 1.2 : 0.8, S, P, e.wins);
+    if (D.culture === 'dwarf' && (D.size === 'capital' || D.size === 'city' || D.size === 'village')) dwarfFacade(L, cx + 40, ground(cx + 40) + 14, D.size === 'capital' ? 1.05 : 0.72, S, P, e.wins, R);
+    if (D.culture === 'dwarf') dwarfGate(L, cx + 40, ground(cx + 40) + 14, D.size === 'capital' ? 1.05 : 0.72, S, P, e.wins);
     const [gx, gy] = settle(L, e, ground, cx, { span: Math.min(SPAN[D.size] ?? 300, 380), keepOut: D.culture === 'dwarf' ? (x, y) => Math.abs(x - cx - 40) < 56 && y < ground(x) + 30 : null });
     const fg = (x) => 404 - fbm1(x / 200 + q, 31, 3) * 30 + sbump(x, 640, 300) * 12;
     foreground(L, fg, P, S, R, { month, color: mixh(P.grass, P.rock, 0.3) });
@@ -356,6 +359,11 @@ const LAYOUTS = {
     const span = SPAN[D.size] ?? 300;
     forestMass(L, (x) => ground(x) + 4, 90, P, S, R, { size: 13, haze: 0.08, pine: elf ? 0.1 : 0.45, gap: (x, y) => Math.abs(x - cx) < span * (elf ? 0.3 : 0.62) && y > ground(x) - 4 });
     if (D.feature === 'dungeon') { const x = cx - 40, y = ground(x) + 70; rock(L, x, y, 56, 40, P, S, R); L.fillStyle = '#120e0c'; L.beginPath(); L.moveTo(x - 13, y); L.lineTo(x - 13, y - 14); L.arc(x, y - 14, 13, Math.PI, 0); L.lineTo(x + 13, y); L.closePath(); L.fill(); e.wins.push([x - 7, y - 12, 14, 10, 5, '#9ad0ff', true]); }
+    if (elf && D.size !== 'site') { // 큰 나무 집들과 줄다리
+      const n = D.size === 'capital' ? 5 : D.size === 'village' ? 3 : 2, at = [];
+      for (let i = 0; i < n; i++) { const x = cx + (i - (n - 1) / 2) * (span * 0.9 / n) * 1.5 + (R() - 0.5) * 30; at.push(elfGreatTree(L, x, ground(x) + 22 + R() * 14, D.size === 'capital' ? 1 : 0.85, S, P, e.wins, R)); }
+      for (let i = 0; i < at.length - 1; i++) ropeBridge(L, at[i], at[i + 1], e.wins);
+    }
     const [gx, gy] = settle(L, e, ground, cx, { noTrees: false });
     const fg = (x) => 400 - fbm1(x / 200 + q, 31, 3) * 30 + sbump(x, 640, 300) * 14;
     foreground(L, fg, P, S, R, { month, color: dark(P.grass, 0.12) });
