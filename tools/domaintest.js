@@ -86,6 +86,8 @@ for (let run = 0; run < 12 && true; run++) {
     if (run % 3 === 1 && m >= 60 && m < 96) { g.realm.balhart.war = true; if (m === 60) g.realm.balhart.front = 0; }
     if (run % 3 === 2 && m >= 90 && m < 120) { g.realm.succession = 'civilwar'; if (m === 90) g.realm.civilWarMonths = 0; }
     if (D(g) && m % 24 === 0) L(g).renown += 6; // 이름은 다른 데서도 쌓인다
+    // 작위 오르기는 드물다(씨앗마다 0~1번). 한 판은 조건을 채워 두고 장면이 제대로 나오는지 본다
+    if (run === 0 && D(g) && m === 240) { const d = D(g); d.pop = Math.max(d.pop, 420); d.favor = Math.max(d.favor, 80); d.buildings.manor ??= 1; L(g).renown = Math.max(L(g).renown, 40); }
     month(g);
     if (D(g) && !seen.fiefRun?.has(run)) { (seen.fiefRun ??= new Set()).add(run); seen.fiefs++; }
     if (m % 53 === 0) { const copy = JSON.parse(JSON.stringify(g)); setNextId(copy.nextId); runHooks('migrate', copy); if (D(g) && !copy.domain) { problems++; console.log('domain lost on migrate'); } }

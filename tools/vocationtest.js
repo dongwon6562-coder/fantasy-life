@@ -216,7 +216,7 @@ function pathGame(seed, id, setup) {
       const p0 = V(g).pelts;
       month(g, ['voc_traps', 'work']);
       pelts += Math.max(0, V(g).pelts - p0);
-      if (m % 6 === 5) { const m0 = g.player.money, n = V(g).pelts; month(g, ['voc_pelts']); if (n && g.player.money <= m0) fail('pelts sold for nothing'); sold += n - V(g).pelts; }
+      if (m % 6 === 5) { crimeState(g).jailed = null; /* 다른 갈래 사건으로 갇혀 있으면 가죽을 못 판다 */ if (L(g).place !== 'verden') placeAt(g, 'verden'); const m0 = g.player.money, n = V(g).pelts; month(g, ['voc_pelts']); if (n && g.player.money <= m0) fail('pelts sold for nothing'); sold += n - V(g).pelts; }
       healAll(g);
     }
     if (!V(g).traps && !V(g).lastCatch && !pelts) fail('traps do nothing');
