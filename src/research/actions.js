@@ -34,6 +34,8 @@ ACTIONS.push({
   run(g, rng) {
     const r = RS(g);
     const lab = labHere(g);
+    // 같은 달 다른 칸에서 길을 떠났거나 붙잡혔으면 연구실이 없다
+    if (!lab || L(g).travel) return '연구실을 떠나 있어 노트만 들여다보았다.';
     if (!labOpen(g)) return `${lab.name} 앞에서 문지기가 막았다. "협회의 공인이 없으면 들일 수 없소."`;
     if (!r.project) {
       if (sceneQueued(g, 'research_pick') || (r.pickAt ?? -99) > mi(g)) return '노트를 넘기며 무엇을 연구할지 더 생각했다.';
