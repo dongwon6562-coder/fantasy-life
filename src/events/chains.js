@@ -48,7 +48,7 @@ EVENTS.push(
     title: '봄',
     text: (g, c) => { const p = byId(g, C(g, 'illness').id); return c.survive ? `얼음이 녹던 아침, ${nm(p)}이(가) 혼자 일어나 창문을 열었다. 얼굴은 반쪽이 되었지만 눈빛이 돌아왔다. "배고프구나."` : `${nm(p)}의 숨이 점점 얕아진다. 가족이 침대 곁에 모였다. 사제가 마지막 기도를 준비하고 있다. 마른 손이 나를 찾는다.`; },
     choices: [
-      { label: '손을 잡는다', run: (g, rng, c) => { const p = byId(g, C(g, 'illness').id); endChain(g, 'illness', c.survive ? 'recovered' : 'died'); if (c.survive) { like(p, 15); p.health = Math.max(40, (p.health ?? 60) - 15); note(g, p, '폐병을 앓았으나 이겨 냈다.'); stress(g, -20); return '그날 저녁 식탁엔 오랜만에 고기 수프가 올랐다. 다들 말없이 먹었다. 말하면 울 것 같아서.'; } kill(g, p, '폐병'); stress(g, 40); gainStat(g, 'wil', 1.5); return `"...잘 커라." 그것이 마지막 말이었다. 창밖에서 봄비가 내리기 시작했다. ${p.name}은(는) 예배당 뒤 언덕에 묻혔다.`; } },
+      { label: '손을 잡는다', run: (g, rng, c) => { const p = byId(g, C(g, 'illness').id); endChain(g, 'illness', c.survive ? 'recovered' : 'died'); if (!p) { stress(g, 10); return '봄이 왔다. 앓던 사람의 자리는 이미 비어 있었다.'; } if (c.survive) { like(p, 15); p.health = Math.max(40, (p.health ?? 60) - 15); note(g, p, '폐병을 앓았으나 이겨 냈다.'); stress(g, -20); return '그날 저녁 식탁엔 오랜만에 고기 수프가 올랐다. 다들 말없이 먹었다. 말하면 울 것 같아서.'; } kill(g, p, '폐병'); stress(g, 40); gainStat(g, 'wil', 1.5); return `"...잘 커라." 그것이 마지막 말이었다. 창밖에서 봄비가 내리기 시작했다. ${p.name}은(는) 예배당 뒤 언덕에 묻혔다.`; } },
     ],
   },
 
