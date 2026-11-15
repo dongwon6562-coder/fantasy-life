@@ -917,3 +917,18 @@ button.danger.sm { min-height: 36px; padding: 6px 12px; font-size: 14px; border-
 .dp-list li.cursed strong { color: var(--blood); }
 .dp-list li.dead { opacity: .55; }
 .dp-rivals summary { cursor: pointer; color: var(--muted); font-size: 13px; padding: 4px 0; }
+
+/* ---------- 9단계: 폰에서 누르기 편하게 (누를 곳 44px) ---------- */
+@media (max-width: 860px), (pointer: coarse) {
+  details > summary { min-height: 44px; box-sizing: border-box; padding-top: 10px; padding-bottom: 10px; }
+  .act-group.dark > summary { min-height: 44px; }
+  .ft-kid { min-height: 40px; display: inline-flex; align-items: center; padding: 4px 14px; }
+  .ft-sp { min-height: 40px; }
+  .ft-kids { gap: 8px; }
+  [data-z] { min-width: 44px; min-height: 44px; }
+  .audio-host input[type="range"] { min-height: 44px; }
+  .audio-host .onoff button[data-a="on"] { min-height: 44px; min-width: 64px; }
+  .seg button { min-height: 44px; }
+  .tpl-row .tpl, .sv-btns button, .sv-confirm button { min-height: 44px; }
+  .linkish { min-height: 36px; padding: 6px 4px; }
+}
