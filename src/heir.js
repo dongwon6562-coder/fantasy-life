@@ -32,11 +32,14 @@ HOOKS.endOfMonth.push((g, rng) => {
   const life = L(g);
   const meP = me(g);
   // 이번 달에 죽음이 정해졌다 (치명상, 노환 등)
-  if (life.pendingDeath && meP.alive) {
+  // 내 인물 기록이 다른 시뮬레이션 탓에 먼저 죽어 있어도, 정해진 죽음은 그대로 온다 (안 그러면 백 살 넘게 살았다)
+  if (life.pendingDeath && g.player.alive !== false) {
     g.player.alive = false;
-    kill(g, meP, life.pendingDeath);
+    if (meP.alive) kill(g, meP, life.pendingDeath); else meP.deathCause ??= life.pendingDeath;
     g.over = true;
   }
+  // 다른 갈래가 내 인물 기록을 죽였다면(사고, 처형 등) 그것도 죽음이다: 살아 있는 척 이어지지 않게
+  if (!meP.alive && g.player.alive !== false) { g.player.alive = false; g.over = true; }
   life.pendingDeath = null;
   if (!g.over || g.player.alive !== false || life.heirPending) return;
   // 이번 달에 쌓인 장면들은 새 삶에서 의미가 없다
@@ -167,7 +170,7 @@ export function becomeHeir(g, rng, child) {
   life.notoriety = Math.floor(life.notoriety * 0.5);
   life.travel = null;
   life.home = life.houses.includes(life.place) ? 'own' : life.place === 'ern' ? 'family' : life.home === 'barracks' ? 'inn' : life.home;
-  if (age >= 15 && cj && WORK[child.job] && WORK[child.job].places.includes(life.place)) takeJob(g, child.job);
+  if (age >= 15 && cj && WORK[child.job] && WORK[child.job].places.includes(life.place) && !WORK[child.job].faction) takeJob(g, child.job);
   for (const n of life.nemeses) if (n.alive) n.grudge += 1; // 부모의 원수는 자식도 기억한다
 
   // 한 사람의 삶에 묶인 표시(성인식, 세례 같은 한 번뿐인 사건)는 새로 시작한다. 세계에 묶인 표시(world_)는 남긴다.
