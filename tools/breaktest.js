@@ -155,7 +155,8 @@ for (let run = 0; run < RUNS; run++) {
 // 내 장면(관계·범죄·다른 나라·종족)을 이상한 상황에서 억지로 띄우고 선택지를 하나씩 고른다
 const MY_SCENES = ['arrest', 'witness_blackmail', 'thugs', 'bounty_hunters', 'gang_offer', 'gang_contract', 'gang_turf', 'gang_takeover', 'gang_rescue',
   'border', 'caught_illegal', 'realm_office', 'realm_inquisitor', 'realm_spy', 'realm_slaves', 'realm_raid', 'realm_forbidden', 'city_story', 'race_slight', 'farewell', 'drift',
-  'pilgrim_pick', 'pilgrim_end', 'faith_convert', 'faith_sect', 'faith_sect_task', 'faith_high', 'faith_inquisition', 'dawn_invite', 'dawn_task'];
+  'pilgrim_pick', 'pilgrim_end', 'faith_convert', 'faith_sect', 'faith_sect_task', 'faith_high', 'faith_inquisition', 'dawn_invite', 'dawn_task',
+  'court_offer', 'court_patron', 'court_marriage', 'court_plot', 'court_strike', 'court_fall', 'court_turn', 'court_affair'];
 const STATES = ['plain', 'jailed', 'travel', 'broke', 'dead', 'old', 'child', 'heir'];
 const PLACES_TRY = ['ern', 'harfen', 'leocast', 'eisen', 'solaris', 'serenia', 'barka', 'graubel', 'silverleaf', 'hammer', 'fur', 'estella'].filter((p) => PLACES[p]);
 let forced = 0;
@@ -185,6 +186,11 @@ for (const [si, kind] of MY_SCENES.entries()) {
         const gangScene = kind.startsWith('gang') && kind !== 'gang_contract';
         const data = { id: gangScene ? gangId : st === 'dead' ? v?.id : side.chance(0.2) ? 999999 : v?.id, target: v?.id, pay: 40, crime: side.pick(Object.keys(CRIMES)), why: side.pick(['gang', 'blackmail']), gang: gangId,
           total: 50, to: side.pick(['valhart', 'holy', 'serenia', 'free', 'march', 'elf', 'dwarf', 'beast', 'leonia']), back: side.pick(['ern', 'harfen', undefined]), place: side.pick(['eisen', 'solaris', 'serenia', 'barka', 'graubel', 'silverleaf', 'hammer', 'fur']), step: side.int(0, 1), sect: side.pick(['orthodox', 'saint', 'purge']), line: side.int(0, 9), hunter: side.chance(0.3), n: 1 };
+        if (kind.startsWith('court_')) {
+          const hs = (g.history?.houses ?? []).filter((h) => !h.fallen);
+          Object.assign(data, { house: side.chance(0.15) ? 'gone' : side.pick(hs)?.id, step: side.pick(['pick', 'how']), level: side.int(0, 3), won: side.chance(0.5), affair: side.int(0, 4), why: side.pick(['poison', 'heat', 'lost']) });
+          if (st !== 'child') { L(g).renown = 50; g.court = g.court ?? {}; g.court.standing = side.int(0, 90); }
+        }
         L(g).queue = []; L(g).scene = null; g.pendingEvent = null;
         if (!showScene(g, { kind, ...data })) continue;
         forced++;
