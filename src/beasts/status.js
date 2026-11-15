@@ -3,6 +3,14 @@ import { B, KINDS, alive, ageOf, old, young, familiarOf, mountOf, kindName, beas
 import { SHOPS, BEAST_BUYERS, buyPrice, sellPrice, canFamiliar } from './events.js';
 import { L } from '../adventure/core.js';
 
+// 짐승 초상(src/art/beastPortrait.js)에 넘길 값: beastPortrait({ ...portrait, id, name, old, wild })
+const PORTRAIT = { dog: ['dog'], horse: ['horse'], warhorse: ['horse'], hawk: ['hawk'], direwolf: ['monster', 'direwolf'], shadowcat: ['monster', 'shadowcat'], wyvern: ['monster', 'drake'] };
+export const portraitOf = (a) => {
+  if (a.kind === 'familiar') return { kind: 'familiar', sub: a.form ?? null };
+  const [kind, sub = null] = PORTRAIT[a.kind] ?? ['dog'];
+  return { kind, sub };
+};
+
 export function beastsStatus(g) {
   const b = B(g);
   const place = L(g).place;
@@ -10,7 +18,7 @@ export function beastsStatus(g) {
   const f = familiarOf(g);
   return {
     animals: alive(g).map((a) => ({
-      id: a.id, kind: a.kind, kindName: kindName(a), name: a.name, form: a.form ?? null,
+      id: a.id, kind: a.kind, kindName: kindName(a), name: a.name, form: a.form ?? null, portrait: portraitOf(a),
       age: Math.round(ageOf(g, a) * 10) / 10, ageWord: AGE_WORD(g, a), young: young(g, a), old: old(g, a), life: KINDS[a.kind].life.slice(),
       bond: Math.round(a.bond), bondWord: BOND_WORD(a.bond), trained: Math.round(a.trained ?? 0), tamed: (a.trained ?? 0) >= 100,
       pow: Math.round(beastPow(g, a) * 10) / 10, ride: !!KINDS[a.kind].ride, beast: !!KINDS[a.kind].beast, familiar: !!KINDS[a.kind].familiar,
