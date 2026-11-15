@@ -1,5 +1,6 @@
 // 세계 연대기 화면: 나 없이도 굴러가는 레오니아 (src/history).
 // 세력의 힘, 가문, 상단, 이름난 사람, 곳곳의 변화, 왕국의 큰일 연표.
+import { yearFold } from './yearfold.js';
 import { worldChronicle, notablesOf, housesOf, companiesOf, powerOf, placeChanges } from '../history/index.js';
 import { houseName, SEAT_NAME } from '../history/nobles.js';
 import { notableTitle } from '../history/people.js';
@@ -65,13 +66,8 @@ export function renderWorld(game, ui) {
     body = changes.length ? changes.map(([p, l]) => `<div class="wd-place"><h4>${esc(PLACE_NAME[p])}</h4><ul>${l.slice(-6).reverse().map((t) => `<li>${esc(t)}</li>`).join('')}</ul></div>`).join('')
       : '<p class="note">아직 눈에 띄게 달라진 곳이 없다.</p>';
   } else {
-    // 큰일 연표: 해마다 묶어서, 최근 것부터
-    const byYear = new Map();
-    for (const e of [...log].reverse().slice(0, 200)) {
-      if (!byYear.has(e.y)) byYear.set(e.y, []);
-      byYear.get(e.y).push(e);
-    }
-    body = renderCrisisPast(game) + (log.length ? `<ol class="wd-years">${[...byYear].map(([y, es]) => `<li><h4>용사력 ${y}년</h4><ul>${es.map((e) => `<li class="${kindOf(e.text)}"><time>${e.m}월</time><span>${esc(e.text)}</span></li>`).join('')}</ul></li>`).join('')}</ol>`
+    // 큰일 연표: 해마다 묶어서, 최근 것부터 (오래되면 열 해씩 접힌다)
+    body = renderCrisisPast(game) + (log.length ? `<div class="wd-yearfold">${yearFold(log, (e) => `<li class="${kindOf(e.text)}"><time>${e.m}월</time><span>${esc(e.text)}</span></li>`, { ulClass: 'wd-ylist' })}</div>`
       : '<p class="note">아직 왕국에 큰일이 없었다.</p>');
   }
 

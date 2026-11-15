@@ -21,6 +21,7 @@ import { $, $$, esc, root } from './util.js';
 import { renderPlan, bindPlan } from './plan.js';
 import { snapshot, diffSummary, renderSummary } from './summary.js';
 import { renderPeople, bindPeople } from './people.js';
+import { yearFold, yearSpan } from './yearfold.js';
 import { applyPrefs, prefs, reducedMotion, renderSettings, bindSettings } from './settings.js';
 import { runGuide, stopGuide } from './guide.js';
 import { audio } from '../audio/index.js';
@@ -332,9 +333,23 @@ function renderChron() {
   </div>`;
   if (ui.chronTab === 'world') return tabs + renderWorld(game, ui);
   if (ui.chronTab === 'house') { try { return tabs + renderLegacy(game, ui); } catch (e) { console.error(e); } }
-  const items = game.chronicle.slice(-160).reverse();
-  return tabs + `<section class="card"><h2>연대기 <small>마을과 나의 기록</small></h2>
-    <ul class="chron">${items.map((c) => `<li class="${c.rel >= 100 ? 'mine' : ''}"><time>${c.y}년 ${c.m}월</time><span>${esc(c.text)}</span></li>`).join('')}</ul></section>`;
+  return tabs + renderChronMe();
+}
+
+// 오래 산 삶에서는 기록이 수백 줄이라, 해마다 묶고 최근 두 해만 펼쳐 둔다. '내 일'만 골라 볼 수 있다.
+const CHRON_F = [['all', '모두'], ['mine', '내 일'], ['town', '마을 소식']];
+function renderChronMe() {
+  const f = CHRON_F.some(([id]) => id === ui.chronFilter) ? ui.chronFilter : 'all';
+  const all = game.chronicle ?? [];
+  const pick = { all: () => true, mine: (c) => c.rel >= 100, town: (c) => !(c.rel >= 100) }[f];
+  const items = all.filter(pick);
+  const seg = `<div class="seg filters ch-filter" role="group" aria-label="보기">${CHRON_F.map(([id, name]) => `<button data-chronf="${id}" aria-pressed="${f === id}">${name}</button>`).join('')}</div>`;
+  const mineN = (list) => { const n = list.filter((c) => c.rel >= 100).length; return f === 'all' && n ? ` · 내 일 ${n}` : ''; };
+  const body = yearFold(items, (c) => `<li class="${c.rel >= 100 ? 'mine' : ''}"><time>${c.m}월</time><span>${esc(c.text)}</span></li>`, { count: mineN });
+  return `<section class="card chron-card"><h2>연대기 <small>${esc(yearSpan(all) || '마을과 나의 기록')}</small></h2>
+    ${all.length > 12 ? seg : ''}
+    ${body || '<p class="note">아직 이 칸에 적힌 일이 없다.</p>'}
+  </section>`;
 }
 
 function renderSave() {
@@ -526,6 +541,7 @@ function bindGame() {
   if (yt) yt.ontoggle = () => { ui.ytOpen = yt.open; };
   $$('[data-ws-person]').forEach((b) => b.onclick = () => { ui.view = 'people'; ui.person = +b.dataset.wsPerson; renderGame(); window.scrollTo({ top: 0 }); });
   $$('[data-chron]').forEach((b) => b.onclick = () => { ui.chronTab = b.dataset.chron; renderGame(); });
+  $$('[data-chronf]').forEach((b) => b.onclick = () => { ui.chronFilter = b.dataset.chronf; renderGame(); });
   $$('[data-legacy]').forEach((b) => b.onclick = () => { ui.legacySel = b.dataset.legacy === 'close' ? null : +b.dataset.legacy; renderGame(); if (ui.legacySel != null) document.querySelector('.lr-detail')?.scrollIntoView({ block: 'start' }); });
   const la = $('[data-legacy-all]');
   if (la) la.onclick = () => { ui.legacyAll = true; renderGame(); };

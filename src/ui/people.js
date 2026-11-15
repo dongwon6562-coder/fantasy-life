@@ -60,6 +60,13 @@ export function renderPeople(game, ui) {
   list.sort(SORT_FN[sort]);
   const shown = list.filter((p) => !q || matchQ(searchText(game, p), q)).length;
   const sel = ui.person && byId(game, ui.person);
+  // 오래 산 삶에서는 떠난 사람이 수십 명이라, '모두'·'가족'에서는 떠난 사람을 접어 아래에 둔다 (이름 순은 그대로).
+  const fold = (f === 'all' || f === 'family') && sort !== 'name';
+  const goneAll = fold ? list.filter((p) => !isHere(p)) : [];
+  const useFold = goneAll.length > 3 && goneAll.length < list.length;
+  const here = useFold ? list.filter(isHere) : list;
+  const gone = useFold ? goneAll : [];
+  const card = (p) => personCard(game, ui, p, q);
   return `
   <section class="card notebook">
     <h2>인물 수첩 <small>만난 사람 ${counts.all}명</small></h2>
@@ -72,8 +79,13 @@ export function renderPeople(game, ui) {
       <label class="p-sort"><span class="sr">늘어놓기</span><select id="people-sort">${SORTS.map(([id, name]) => `<option value="${id}"${sort === id ? ' selected' : ''}>${name}</option>`).join('')}</select></label>
     </div>
     <p class="note p-count" aria-live="polite">${q ? (shown ? `찾은 사람 ${shown}명` : '그런 사람은 이 칸에 없다.') : ''}</p>` : ''}
-    ${list.length ? `<div class="people">
-      ${list.map((p) => `
+    ${list.length ? `<div class="people">${here.map(card).join('')}</div>${gone.length ? `<details class="p-gone"${q || (sel && gone.includes(sel)) ? ' open' : ''}><summary>떠난 사람 ${gone.length}명 <small>세상을 떠났거나 마을을 떠난 사람</small></summary><div class="people">${gone.map(card).join('')}</div></details>` : ''}` : '<p class="note">아직 이 칸에 적힌 사람이 없다.</p>'}
+    <p class="note">만난 사람은 여기에 적히고, 그 사람의 삶이 바뀌면 기록도 함께 바뀐다.</p>
+  </section>`;
+}
+
+function personCard(game, ui, p, q) {
+  return `
         <button class="person ${p.alive && !p.away ? '' : 'dead'}" data-person="${p.id}" data-q="${esc(searchText(game, p))}" aria-pressed="${ui.person === p.id}"${q && !matchQ(searchText(game, p), q) ? ' hidden' : ''}>
           ${portrait(game, p, { size: 52 })}
           <span class="txt">
@@ -81,10 +93,7 @@ export function renderPeople(game, ui) {
             <span class="meta">${esc(personMeta(game, p))}</span>
             <span class="rel">${affBar(p.affection)}<span class="aff ${p.affection >= 20 ? 'pos' : p.affection < 0 ? 'neg' : ''}">${esc(relationLabel(game, p))}</span></span>
           </span>
-        </button>`).join('')}
-    </div>` : '<p class="note">아직 이 칸에 적힌 사람이 없다.</p>'}
-    <p class="note">만난 사람은 여기에 적히고, 그 사람의 삶이 바뀌면 기록도 함께 바뀐다.</p>
-  </section>`;
+        </button>`;
 }
 
 function renderDetail(game, p) {
@@ -128,6 +137,8 @@ export function bindPeople(game, ui, rerender) {
     const q = qIn.value.trim().toLowerCase();
     let n = 0;
     document.querySelectorAll('.people .person').forEach((el) => { const hit = !q || matchQ(el.dataset.q ?? '', q); el.hidden = !hit; if (hit) n++; });
+    const gone = document.querySelector('.p-gone');
+    if (gone && q) gone.open = true;
     const c = document.querySelector('.p-count');
     if (c) c.textContent = q ? (n ? `찾은 사람 ${n}명` : '그런 사람은 이 칸에 없다.') : '';
   };
