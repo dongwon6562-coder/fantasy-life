@@ -607,6 +607,40 @@ export const PLATES = {
     finish(v, { inside: true });
   },
 
+  /** 큰 미궁: 땅속으로 내려가는 돌계단과 횃불 든 일행. variant 'throne'이면 깊은 곳의 왕좌 */
+  depths(v) {
+    const { ctx, R } = v, throne = v.variant === 'throne';
+    ctx.fillStyle = vgrad(ctx, 0, VH, [[0, '#0c0b10'], [0.6, '#1a1820'], [1, '#0e0d12']]); ctx.fillRect(0, 0, VW, VH + 40);
+    // 동굴 벽과 종유석
+    for (const d of [-1, 1]) { ctx.fillStyle = '#16141a'; ctx.beginPath(); ctx.moveTo(d < 0 ? 0 : VW, 0); for (let y = 0; y <= VH; y += 12) ctx.lineTo((d < 0 ? 0 : VW) - d * (70 + fbm1(y / 40 + v.q, d + 3, 3) * 90 - y * 0.12), y); ctx.lineTo(d < 0 ? 0 : VW, VH); ctx.fill(); }
+    ctx.fillStyle = '#121016'; for (let i = 0; i < 16; i++) { const x = R() * VW, h = 14 + R() * 46, w = 5 + R() * 9; ctx.beginPath(); ctx.moveTo(x - w, 0); ctx.lineTo(x, h); ctx.lineTo(x + w, 0); ctx.fill(); }
+    const cx = 330;
+    if (throne) {
+      const col = '#6ad0c0';
+      glow(v, cx, 96, 200, col, 0.22);
+      for (let i = 0; i < 5; i++) rect(ctx, cx - 120 + i * 12, 176 + i * 9, 240 - i * 24, 9, i % 2 ? '#24212a' : '#2c2832');
+      rect(ctx, cx - 30, 78, 60, 100, '#1c1a22'); ctx.fillStyle = '#1c1a22'; ctx.beginPath(); ctx.moveTo(cx - 36, 78); ctx.lineTo(cx - 20, 40); ctx.lineTo(cx - 8, 70); ctx.lineTo(cx, 30); ctx.lineTo(cx + 8, 70); ctx.lineTo(cx + 20, 40); ctx.lineTo(cx + 36, 78); ctx.fill();
+      person(v, cx, 176, 92, { f: 0, pose: 'sit', raw: true, cloth: '#0e0d12', hair: '#0e0d12', robe: true, hood: true, rim: rgba(col, 0.6), rimDir: 1 });
+      ctx.fillStyle = col; ctx.fillRect(cx - 5, 107, 3, 2); ctx.fillRect(cx + 2, 107, 3, 2); glow(v, cx, 108, 14, col, 0.6);
+      ctx.fillStyle = '#b8a060'; for (let i = 0; i < 5; i++) ctx.fillRect(cx - 8 + i * 4, 92 - (i % 2) * 3, 2, 5);
+      for (const x of [cx - 150, cx + 150]) { rect(ctx, x - 6, 120, 12, 70, '#24212a'); glow(v, x, 112, 40, col, 0.4); ctx.fillStyle = '#c8fff0'; ctx.beginPath(); ctx.ellipse(x, 113, 3, 6, 0, 0, TAU); ctx.fill(); }
+      person(v, cx - 40, 240, 96, { f: 0, raw: true, cloth: dark(v.me.cloth, 0.5), hair: dark(v.me.hair, 0.4), female: v.me.female, long: v.me.long, stick: 'torch', rim: 'rgba(255,160,80,.6)', rimDir: 1 });
+      person(v, cx + 50, 242, 90, { f: 0, raw: true, cloth: '#221e1c', hair: '#14100e', cloak: true, stick: 'spear', rim: 'rgba(255,160,80,.5)', rimDir: -1 });
+    } else {
+      // 돌문과 아래로 꺼지는 계단
+      rect(ctx, cx - 84, 40, 30, 150, '#2a2730'); rect(ctx, cx + 54, 40, 30, 150, '#2a2730'); rect(ctx, cx - 96, 26, 192, 22, '#322e38');
+      ctx.fillStyle = '#060508'; ctx.fillRect(cx - 54, 48, 108, 150);
+      ctx.strokeStyle = '#4a4652'; ctx.lineWidth = 1.5; for (let i = 0; i < 7; i++) { ctx.beginPath(); ctx.arc(cx - 70 + i * 23, 37, 5, 0, TAU); ctx.stroke(); }
+      for (let i = 0; i < 7; i++) { const k = i / 7, w = 108 - k * 50; rect(ctx, cx - w / 2, 196 - i * 13, w, 13, `rgb(${40 - i * 4},${37 - i * 4},${46 - i * 4})`); }
+      glow(v, cx, 120, 70, '#6ad0c0', 0.16);
+      for (let i = 0; i < 4; i++) puff(ctx, cx - 30 + R() * 60, 150 + R() * 40, 60, 12, '#3a5a58', 0.14);
+      const pts = [[cx - 96, 236, 104, 'torch', 1], [cx - 30, 240, 110, 'staff', 0], [cx + 40, 238, 104, 'spear', 0], [cx + 104, 234, 98, 'torch', -1]];
+      pts.forEach(([x, y, h, st], i) => person(v, x, y, h, { f: 0, raw: true, cloth: i === 1 ? dark(v.me.cloth, 0.45) : ['#241f1c', '#1e2220', '#26201e'][i % 3], hair: i === 1 ? dark(v.me.hair, 0.3) : '#14100e', female: i === 1 ? v.me.female : i === 3, long: i === 1 && v.me.long, cloak: i !== 1, hood: i === 2, stick: st, rim: 'rgba(255,160,80,.6)', rimDir: i < 2 ? -1 : 1 }));
+      pool(v, cx, 232, 260, 24, '#ff9a48', 0.2);
+    }
+    finish(v, { inside: true });
+  },
+
   /** 마법: 어두운 방 바닥의 빛나는 원과 그 안의 사람. variant 'orb' 수정구, 'wild' 폭주, 'dark' 금지된 술법 */
   ritual(v) {
     const { ctx, R } = v, kind = v.variant ?? 'circle', fy = room(v, { wall: '#2c2a34', floor: '#1e1c24', fy: 166 });
@@ -614,7 +648,15 @@ export const PLATES = {
     // 책장
     for (const x of [30, 500]) { rect(ctx, x, 30, 110, 136, '#2a2018'); for (let r = 0; r < 4; r++) { rect(ctx, x + 4, 62 + r * 32, 102, 3, '#1a140f'); for (let i = 0; i < 12; i++) rect(ctx, x + 6 + i * 8.4, 40 + r * 32 + R() * 5, 6, 22 - R() * 5, ['#5a3a34', '#3e4658', '#4a5240', '#6a5a3c', '#44403c'][Math.floor(R() * 5)]); } }
     windowAt(v, cx, 30, 34, 70, { arch: true });
-    if (kind === 'orb') {
+    if (kind === 'study') { // 연구: 촛불 켠 책상, 펼친 책과 도면
+      const me = v.me, dx = cx + 30, dy = cy - 4;
+      rect(ctx, dx - 70, dy - 44, 150, 7, '#3a2a1e'); rect(ctx, dx - 62, dy - 38, 6, 46, '#2e2218'); rect(ctx, dx + 66, dy - 38, 6, 46, '#2e2218');
+      ctx.fillStyle = '#d8ccb0'; ctx.beginPath(); ctx.moveTo(dx - 20, dy - 45); ctx.lineTo(dx + 4, dy - 49); ctx.lineTo(dx + 28, dy - 45); ctx.lineTo(dx + 4, dy - 43); ctx.fill(); rect(ctx, dx + 36, dy - 47, 30, 3, '#c8bc9c');
+      for (let i = 0; i < 3; i++) rect(ctx, dx - 62 + i * 3, dy - 50 - i * 4, 26, 4, ['#5a3a34', '#3e4658', '#4a5240'][i]);
+      candle(v, dx - 28, dy - 44, 12); pool(v, dx, dy - 50, 130, 60, '#ffb060', 0.3);
+      ctx.fillStyle = '#9ab0c8'; ctx.beginPath(); ctx.arc(dx + 52, dy - 54, 6, 0, TAU); ctx.fill(); rect(ctx, dx + 50, dy - 64, 4, 6, '#9ab0c8'); glow(v, dx + 52, dy - 54, 16, col, 0.4);
+      person(v, dx - 2, dy + 8, 112, { f: 1, pose: 'sit', raw: true, cloth: me.cloth, hair: me.hair, female: me.female, long: me.long, arm: 'fwd', rim: 'rgba(255,180,100,.6)', rimDir: 1 });
+    } else if (kind === 'orb') {
       rect(ctx, cx - 14, cy - 60, 28, 60, '#3a3640'); rect(ctx, cx - 22, cy - 66, 44, 8, '#4a4650'); rect(ctx, cx - 22, cy - 4, 44, 6, '#4a4650');
       glow(v, cx, cy - 82, 110, col, 0.4); ctx.fillStyle = '#cfe4ff'; ctx.beginPath(); ctx.arc(cx, cy - 82, 15, 0, TAU); ctx.fill(); ctx.fillStyle = col; ctx.beginPath(); ctx.arc(cx + 2, cy - 80, 12, 0, TAU); ctx.fill(); ctx.fillStyle = 'rgba(255,255,255,.7)'; ctx.beginPath(); ctx.arc(cx - 5, cy - 88, 3.4, 0, TAU); ctx.fill();
       const me = v.me, kid = me.age < 15;
