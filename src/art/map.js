@@ -4,6 +4,7 @@
 //  - MAP_PLACES_EXTRA에 장소를 넣으면 지도에 나온다 ({ id, n, x, y, t, area, realm, d, todo }).
 //  - MAP_ACTIONS에 (game, place) => [{ label, run }] 함수를 넣으면 설명 칸에 버튼이 생긴다 (예: 여행).
 //  - 지금 있는 곳은 places.js의 L(g).place (지도 장소 id와 같음). 화면(ui/index.js)이 넘겨준다.
+import { drawTrail } from './mapTrail.js';
 import {
   continents, contGroup, innerSeas, TERRAIN, nations, central, regions, P, roads, oldRoads,
   seaRoutes, ghostRoutes, rivers, seaLabels, edgeLabels, mtLabels,
@@ -612,6 +613,7 @@ function build(svg, info, here, opt, signal) {
     info.innerHTML = `<p class="kind">${d.kind ?? ""}${isHere ? ' · <b class="here">지금 있는 곳</b>' : ""}</p>
       <h3>${d.name}</h3><p class="note">${d.realm ?? ""}</p><p class="desc">${d.desc ?? ""}</p>
       ${d.todo ? `<p class="todo"><span>할 수 있는 일</span>${d.todo}</p>` : ""}
+      ${place ? trail.info(place) : ''}
       ${extra}
       ${acts.length ? `<div class="actions-row">${acts.map((a, i) => `<button class="ghost" data-map-act="${i}">${a.label}</button>`).join("")}</div>` : ""}`;
     info.querySelectorAll("[data-map-act]").forEach((b) => b.addEventListener("click", () => { acts[+b.dataset.mapAct].run(); opt.onChange?.(); }));
@@ -636,6 +638,10 @@ function build(svg, info, here, opt, signal) {
   regions.forEach(regionLabel);
   regionLabel(Object.assign({ x: 760, y: 262, s: 22, big: true }, central));
 
+  // 내 발자취 (장소 기호 아래에 깔린다)
+  const trailG = el("g", { class: "trail" }, svg);
+  const trail = opt.game ? drawTrail(el, trailG, opt.game, byId, pin) : { count: 0, info: () => '' };
+  if (trail.count > 1) { const n = svg.closest(".mapbox")?.parentElement?.querySelector(".map-tools .note"); if (n) n.textContent = `붉은 고리는 가 본 곳(${trail.count}곳), 붉은 점선은 내가 다닌 길이다. 끌어서 움직이고, 두 손가락이나 휠로 확대한다.`; }
   // 장소
   const placeG = el("g", {}, svg);
   let hereP = null;
