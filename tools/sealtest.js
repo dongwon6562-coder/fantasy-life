@@ -58,6 +58,7 @@ const rest = (g, n = 1) => { for (let i = 0; i < n; i++) { endMonth(g, [{ id: 'r
   check(S.study > st0 && S.me.studied >= 2 && S.known >= 2, `조사해도 늘지 않는다 (${S.study} ${S.me.studied} ${S.known})`);
   check(sealInfo(g).wedges.length === 6 && sealInfo(g).stances.length === 4 && !BAD.test(sealLine(g)), '알게 된 뒤 화면 정보가 모자라다');
   // 4) 사건들
+  if (g.crime) g.crime.jailed = null; // 조사하는 동안 다른 갈래(수배 등) 탓에 갇히는 판이 있다: 사건 조건만 본다
   check(cond(g, 'seal_scholar'), '조사단 사건이 안 뜬다');
   fire(g, 'seal_scholar', 0);
   S.spies = 4;

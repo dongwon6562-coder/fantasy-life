@@ -13,6 +13,7 @@ import { setNextId } from '../src/npc.js';
 import { L, queueScene, SCENE_STRICT } from '../src/adventure/core.js';
 import { PLACES, travelMonths } from '../src/places.js';
 import { WORK, takeJob, jobRank } from '../src/jobs.js';
+import { crimeState } from '../src/crime.js';
 import { S, SEA_ROUTES } from '../src/sea/core.js';
 import { SEA_EVENTS } from '../src/sea/voyage.js';
 import { seaStatus } from '../src/sea/index.js';
@@ -99,6 +100,8 @@ if (travelMonths('ern', 'portel') >= 99) fail('portel unreachable by land');
     const before = jobRank(g);
     month(g, ['work']);
     if (L(g).job?.id === 'sailor' && jobRank(g) > before) promoted++;
+    // 다른 갈래 사건(탈영병 수배 등)으로 갇혀 일을 잃으면 다시 들게 한다: 이 점검은 선원 일 자체만 본다
+    if (crimeState(g).jailed || L(g).job?.id !== 'sailor') { crimeState(g).jailed = null; if (L(g).place !== 'klein') placeAt(g, 'klein'); if (L(g).job?.id !== 'sailor') takeJob(g, 'sailor'); }
   }
   if (!promoted) fail('sailor never promoted', g.player.skills.sailing);
   const r = WORK.sailor.work.call(WORK.sailor, g, rngOf(g));
