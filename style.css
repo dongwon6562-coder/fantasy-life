@@ -887,3 +887,33 @@ button.danger.sm { min-height: 36px; padding: 6px 12px; font-size: 14px; border-
 .ct-tag.foe { color: var(--blood); border-color: currentColor; }
 .ct-tag.spy { color: var(--mana); border-color: currentColor; }
 .ct-more summary { cursor: pointer; color: var(--muted); font-size: 13px; padding: 6px 0; }
+
+/* ---------- 8단계: 연구·깊은 구렁 ---------- */
+.research-block { display: grid; gap: 8px; }
+.research-block h3 small { font-size: 12px; color: var(--muted); font-weight: 400; margin-left: 6px; }
+.research-block > .note { margin: 0; }
+.rs-now { display: grid; gap: 4px; padding: 10px 12px; background: var(--bg); border: 1px solid var(--line); border-radius: 8px; }
+.rs-now .lbl { font-size: 11px; letter-spacing: .12em; color: var(--brass); font-weight: 600; }
+.rs-now strong { font-family: var(--f-display); font-size: 16px; font-weight: 400; }
+.wd-bar.rs i { background: var(--brass); }
+.rs-made { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; }
+.rs-made li { display: grid; gap: 1px; padding: 6px 0; border-bottom: 1px solid var(--line); }
+.deep-card { display: grid; gap: 10px; }
+.deep-card > .note, .dp-lord { margin: 0; }
+.dp-lord { font-size: 14px; font-style: italic; color: var(--muted); }
+.dp-depth { grid-template-columns: auto 1fr auto; }
+.dp-depth .v { white-space: nowrap; }
+.wd-bar.deep i { background: var(--mana); }
+.dp-strata { list-style: none; margin: 0; padding: 0; display: grid; gap: 3px; }
+.dp-strata li { display: grid; grid-template-columns: 62px minmax(0, 1fr); gap: 0 8px; padding: 6px 10px; border-left: 3px solid var(--line); background: var(--bg); border-radius: 0 6px 6px 0; }
+.dp-strata li .fl { grid-row: span 2; font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums; padding-top: 2px; }
+.dp-strata li .nm { font-weight: 500; }
+.dp-strata li .note { font-size: 12px; }
+.dp-strata li.past { border-left-color: var(--good); }
+.dp-strata li.now { border-left-color: var(--brass); }
+.dp-strata li:not(.past):not(.now) { opacity: .65; }
+.dp-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; }
+.dp-list li { display: grid; gap: 1px; padding: 6px 0; border-bottom: 1px solid var(--line); }
+.dp-list li.cursed strong { color: var(--blood); }
+.dp-list li.dead { opacity: .55; }
+.dp-rivals summary { cursor: pointer; color: var(--muted); font-size: 13px; padding: 4px 0; }
