@@ -15,8 +15,8 @@ const GROUPS = [
   ['에른 마을 (계절마다 곡 묶음이 달라진다)', ['village_spring', 'village_summer', 'village_autumn', 'village_winter', 'ern_fields', 'ern_dusk']],
   ['도시와 길', ['town', 'market', 'castle', 'capital', 'road']],
   ['세상 형편', ['hardship']],
-  ['싸움 (그 순간에만 흐르는 곡)', ['battle', 'boss', 'duel', 'war', 'dungeon']],
-  ['사건 (그 순간에만 흐르는 곡)', ['tense', 'solemn', 'festive', 'mystic', 'court', 'underworld']],
+  ['싸움 (그 순간에만 흐르는 곡)', ['battle', 'boss', 'duel', 'war', 'dungeon', 'abyss']],
+  ['사건 (그 순간에만 흐르는 곡)', ['tense', 'solemn', 'festive', 'mystic', 'court', 'palace', 'underworld']],
 ];
 const insts = (t) => [...new Set(t.sections.flatMap((s) => s.parts.map((p) => p.type ?? p.inst)).filter(Boolean))].map((i) => INST[i] ?? i);
 

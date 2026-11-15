@@ -427,11 +427,59 @@ const court = (() => {
   };
 })();
 
+/* ---------- 궁정: 웃는 얼굴들 사이의 음모 ---------- */
+const palace = (() => {
+  // 느린 궁정 춤곡의 걸음. 끝마디가 늘 풀리지 않은 채로 처음으로 돌아간다.
+  const cA = '1 | 5M | 6 | 3 | 4 | 1 | 4 | 5M', cB = '6 | 3 | 4 | 1 | 6 | 4 | 5s | 5M';
+  const A = "1' - - 7 1' - 5 - | #7 - - 5 2' - #7 - | 6 - - 1' 6 - 3 - | 5 - - - 3 - - . | 4 - - 5 6 - 4 - | 3 - - 1 5 - 3 - | 4 - - 2 6 - 4 - | 5 - 4 - #7, - - .";
+  const B = "1' - - - 6 - 1' - | 7 - - 5 3 - 5 - | 6 - - 4 1 - 4 - | 5 - - 3 1 - - . | 1' - - 3' 1' - 6 - | 6 - - 4 6 - 1' - | 2' - - 1' 2' - 5 - | #7 - - - 5 - - .";
+  const bs = bass('lute', 'r . . 5 r . a .', { oct: -1, vel: 0.56, o: { damp: true }, legato: 0.7 });
+  const harp = arp('harp', '. 0 2 . 3 2 . 2', { vel: 0.34 });
+  const step = perc('frame', 'x . . o x . o .', { vel: 0.2 });
+  return {
+    id: 'palace', kind: 'cue', gain: 1.1, name: '가면 아래', where: '궁정 · 관직 · 음모', bpm: 76, beats: 4, root: 57, scale: 'aeolian',
+    sections: [
+      sec(4, '1 | 5M | 1 | 5M', [bs, harp], { once: true }),
+      sec(8, cA, [bs, harp, mel('viol', A, { vel: 0.5, legato: 0.9 })]),
+      sec(8, cA, [bs, harp, step, pad('organ', { open: true, vel: 0.18 }), mel('viol', A, { vel: 0.5, legato: 0.9 }), under('flute', A, { oct: 1, vel: 0.22, every: 2 })]),
+      sec(8, cB, [bs, harp, step, pad('strings', { open: true, vel: 0.2, o: { trem: true } }), mel('flute', B, { vel: 0.44 }),
+        mel('glass', '. | . . . . . . 5 . | . | . . . . 3 . . . | . | . . . . . . 1 . | . | .', { oct: 2, vel: 0.16, flat: true })]),
+    ],
+  };
+})();
+
+/* ---------- 깊은 구렁: 회색 굴보다 더 아래 ---------- */
+const abyss = (() => {
+  const low = drone('drone', '1', { oct: -1, vel: 0.5 });
+  const pulse = gen(({ bar, rnd, deg }) => {
+    const ev = [];
+    if (bar % 2 === 0) { ev.push({ beat: 0, perc: 'war', vel: 0.16 }); ev.push({ beat: 0.6, perc: 'war', vel: 0.09 }); } // 느린 맥박
+    if (rnd() < 0.15) ev.push({ beat: 1 + rnd() * 2.5, perc: 'war', vel: 0.1 + rnd() * 0.1 });
+    if (bar === 0 || bar === 4) ev.push({ beat: 0, inst: 'bell', midi: deg('1') - 12, dur: 4, vel: 0.26, o: { decay: 7 } });
+    return ev;
+  });
+  return {
+    id: 'abyss', kind: 'cue', gain: 0.7, name: '깊은 구렁', where: '깊은 구렁 · 구렁의 옥좌', bpm: 44, beats: 4, root: 45, scale: 'phrygian',
+    sections: [
+      sec(8, '1o | 1o | 2 | 1o | 6 | 7 | 2 | 1o', [
+        low, pulse, pad('choirOo', { open: true, vel: 0.22 }),
+        mel('viol', "5 - - - | 6 - 5 - | 4 - - - | 5 - - - | 1' - - - | 7 - 6 - | 6 - 4 - | 5 - - -", { vel: 0.36, legato: 1, on: after(1) }),
+        mel('glass', ". | . . . 2' | . | . . 1' . | . | . . . 4' | . | .", { oct: 2, vel: 0.13, flat: true, on: odd }),
+      ]),
+      sec(8, '6 | 6 | 2 | 1o | 6 | 7 | 2 | 1o', [
+        low, pulse, pad('choirOo', { open: true, vel: 0.2 }), pad('organ', { oct: -1, open: true, vel: 0.22 }),
+        mel('horn', "1 - - - | - - 3 - | 2 - - - | 1 - - - | 1 - - 3 | 4 - - - | 2 - - - | 1 - - -", { vel: 0.3, legato: 1 }),
+        mel('viol', ". | . | 4 - 6 - | 5 - - - | . | . | 6 - 4 - | 5 - - -", { oct: 1, vel: 0.22, on: after(1) }),
+      ]),
+    ],
+  };
+})();
+
 export const TRACKS = [
   title, cradle, spring, summer, autumn, winter, fields, dusk,
   town, market, castle, capital, road, hardship,
   dungeon, underworld, battle, boss, duel, war,
-  tense, solemn, festive, mystic, court,
+  tense, solemn, festive, mystic, court, palace, abyss,
 ];
 void even;
 

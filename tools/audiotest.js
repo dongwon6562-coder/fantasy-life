@@ -5,7 +5,7 @@ import { TRACKS } from '../src/audio/tracks.js';
 import { compileTrack, scheduleBar, nextPos } from '../src/audio/music.js';
 import { SFX } from '../src/audio/sfx.js';
 import { pickTrack, pickMusic, placePool, eventMood, fightSfx, seasonOf, ambienceWhere } from '../src/audio/pick.js';
-import { AMBIENCES, pickAmbience } from '../src/audio/ambience.js';
+import { AMBIENCES, pickAmbience, ambienceScene, AMB_BEDS, AMB_SHOTS } from '../src/audio/ambience.js';
 import { conditionText } from '../src/art/scene.js';
 import { chordLine, melodyNotes } from '../src/audio/music.js';
 import { audio } from '../src/audio/index.js';
@@ -64,9 +64,29 @@ expect(pickTrack(scene('domain_rule')), 'court', '영지');
 expect(pickMusic(scene('fight', { enc: {} })).cue, true, '상황 곡');
 expect(pickAmbience(ambienceWhere(pickMusic(scene('fight', { enc: {} }))), '한낮 · 맑음'), 'none', '싸움 중 환경음');
 expect(pickAmbience(ambienceWhere(pickMusic(scene('dungeon'))), ''), 'dungeon', '미궁 환경음');
-expect(pickAmbience('village_spring', '한낮 · 비'), 'rain', '비 환경음');
-expect(pickAmbience('village_summer', '밤 · 맑음'), 'night', '밤 환경음');
-expect(pickAmbience('town', '한낮 · 흐림'), 'town', '도시 환경음');
+expect(pickAmbience('village_spring', '한낮 · 비'), 'field|spring|rain|day', '비 환경음');
+expect(pickAmbience('village_summer', '밤 · 맑음'), 'field|summer|clear|night', '밤 환경음');
+expect(pickAmbience('town', '한낮 · 흐림', 10), 'town|autumn|cloudy|day', '도시 환경음');
+expect(pickAmbience('castle', '새벽 · 눈보라', 1), 'castle|winter|blizzard|dawn', '눈보라 환경음');
+expect(pickAmbience('road', '해 질 녘 · 뇌우', 7), 'road|summer|storm|dusk', '뇌우 환경음');
+expect(pickAmbience('cradle', '밤 · 눈', 12), 'hearth|winter|snow|night', '집 안 환경음');
+expect(pickAmbience(ambienceWhere(pickMusic(scene('deep_descend'))), ''), 'deep', '깊은 구렁 환경음');
+expect(pickMusic(scene('court_plot')).pool[0], 'palace', '궁정 음모 곡');
+expect(pickMusic(scene('deep_throne')).pool[0], 'abyss', '깊은 구렁 곡');
+// 짜 맞출 수 있는 모든 환경음: 깔개와 소리 이름이 다 있는 것인지, 계절·날씨마다 정말 다른지
+{
+  const seen = new Set();
+  for (const pl of ['field', 'town', 'capital', 'castle', 'road', 'bleak', 'hearth']) for (const se of ['spring', 'summer', 'autumn', 'winter']) for (const wx of ['clear', 'cloudy', 'wind', 'fog', 'rain', 'storm', 'snow', 'blizzard']) for (const td of ['day', 'dawn', 'dusk', 'night']) {
+    const sc = ambienceScene(`${pl}|${se}|${wx}|${td}`);
+    if (!sc) { fail(`환경음을 못 짬: ${pl} ${se} ${wx} ${td}`); continue; }
+    for (const b of sc.beds) if (!AMB_BEDS.includes(b[0]) || !(b[1] > 0 && b[1] <= 1)) fail(`환경음 깔개 이상: ${sc.name} ${b}`);
+    for (const [n, every] of sc.shots) if (!AMB_SHOTS.includes(n) || !(every >= 0.4)) fail(`환경음 소리 이상: ${sc.name} ${n} ${every}`);
+    if (!(sc.gain > 0.2 && sc.gain <= 1)) fail(`환경음 크기 이상: ${sc.name} ${sc.gain}`);
+    if (pl === 'field') seen.add(JSON.stringify([sc.beds, sc.shots]));
+  }
+  if (seen.size < 80) fail(`들판 환경음이 계절·날씨로 충분히 갈리지 않는다: ${seen.size}`);
+  if (ambienceScene('field|spring|mud|day') || ambienceScene('nowhere')) fail('없는 환경음 id를 받아들였다');
+}
 expect(pickTrack(g0({ pendingEvent: { id: 'x', title: '수확제', text: '' } })), 'festive', '수확제');
 expect(pickTrack(g0({ pendingEvent: { id: 'x', title: '국상', text: '' } })), 'solemn', '국상');
 expect(pickTrack(g0({ pendingEvent: { id: 'x', title: '숲가의 늑대', text: '' } })), 'tense', '늑대');
@@ -78,7 +98,7 @@ expect(fightSfx('놈들을 쓰러뜨렸다.'), 'victory', '승리 소리');
 for (let m = 1; m <= 12; m++) if (!ids.has(`village_${seasonOf(m)}`)) fail(`계절 곡 없음: ${m}월`);
 
 // 3. 실제 게임을 돌리며: 고른 곡이 늘 있는 곡인지, 행동마다 효과음이 있는지
-const used = new Map(); const usedAmb = new Map(); const ambIds = new Set(AMBIENCES.map((a) => a.id));
+const used = new Map(); const usedAmb = new Map(); const ambIds = { has: (id) => !!ambienceScene(id) }; void AMBIENCES;
 for (let run = 0; run < 12; run++) {
   const g = newGame({ name: '소리', sex: run % 2 ? 'm' : 'f', familyId: ['farmer', 'fallen_knight', 'merchant'][run % 3], mode: 'once', seed: 4200 + run });
   for (let m = 0; m < 12 * 40 && !g.over; m++) {
@@ -87,7 +107,7 @@ for (let run = 0; run < 12; run++) {
     endMonth(g, choices);
     const pm = pickMusic(g, { overlay: !!g.pendingEvent });
     for (const x of pm.pool) if (!ids.has(x)) fail(`없는 곡을 골랐다: ${x}`);
-    const am = pickAmbience(ambienceWhere(pm), conditionText(g.date.year, g.date.month));
+    const am = pickAmbience(ambienceWhere(pm), conditionText(g.date.year, g.date.month), g.date.month);
     if (am !== 'none' && !ambIds.has(am)) fail(`없는 환경음: ${am}`);
     usedAmb.set(am, (usedAmb.get(am) ?? 0) + 1);
     let id = pm.pool[0];
@@ -108,6 +128,6 @@ if (audio.tracks.length !== TRACKS.length || !audio.sounds.length) fail('audio �
 
 console.log(`곡 ${TRACKS.length}개, 효과음 ${Object.keys(SFX).length}개, 점검한 음 ${notes}개`);
 console.log('게임에서 흐른 곡:', [...used].sort((a, b) => b[1] - a[1]).map(([k, v]) => `${k} ${v}`).join(', '));
-console.log('게임에서 흐른 환경음:', [...usedAmb].sort((a, b) => b[1] - a[1]).map(([k, v]) => `${k} ${v}`).join(', '));
+console.log(`게임에서 흐른 환경음 ${usedAmb.size}가지, 많은 순:`, [...usedAmb].sort((a, b) => b[1] - a[1]).slice(0, 14).map(([k, v]) => `${k} ${v}`).join(', '));
 console.log(bad ? `FAIL ${bad}` : 'OK');
 if (bad) process.exit(1);
