@@ -1133,3 +1133,23 @@ html:not(.motion) .pol-land .pol-ring { animation: none; }
 .wy-more summary { cursor: pointer; color: var(--muted); font-size: 13px; min-height: 44px; display: flex; align-items: center; }
 .wy-local li { display: grid; grid-template-columns: 24px minmax(0, 1fr) auto; gap: 8px; align-items: center; padding: 6px 10px; background: var(--bg); border: 1px solid var(--line); border-radius: 8px; font-size: 13.5px; }
 .wy-local .ic { color: var(--muted); }
+
+/* ---------- 11단계: 마탑·군대·사랑 ---------- */
+.tower-block, .army-block { display: grid; gap: 8px; }
+.tower-block h3 small { font-weight: 400; color: var(--muted); font-size: 12px; margin-left: 4px; }
+.tw-mem { display: grid; gap: 4px; padding: 8px 10px; background: var(--bg); border: 1px solid var(--line); border-radius: 8px; min-width: 0; }
+.tw-mem .top { display: flex; flex-wrap: wrap; gap: 2px 8px; align-items: baseline; }
+.tw-mem .note { margin: 0; }
+.tower-block .wd-row, .army-block .wd-row { grid-template-columns: minmax(0, 84px) minmax(0, 1fr) auto; }
+.tower-block .wd-row .v, .army-block .wd-row .v { white-space: nowrap; font-size: 12px; }
+.tw-forb { display: grid; gap: 6px; padding: 8px 10px; border: 1px dashed rgba(179, 38, 30, .55); border-radius: 8px; }
+.army-now { display: grid; gap: 8px; }
+.army-now > .note { margin: 0; }
+.army-now.captive { border-color: rgba(179, 38, 30, .6); }
+.army-now .wd-row { grid-template-columns: minmax(0, 60px) minmax(0, 1fr) auto; }
+.army-now .wd-row .v { white-space: nowrap; font-size: 12px; }
+.love-card { display: grid; gap: 10px; }
+.love-card > .note { margin: 0; }
+.wd-bar.love i { background: #c97a8a; }
+.kn-kid.lv-sp { border-color: rgba(201, 122, 138, .55); }
+.kn-kid.lv-aff { border-style: dashed; border-color: rgba(179, 38, 30, .55); }

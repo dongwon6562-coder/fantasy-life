@@ -114,13 +114,14 @@ function bindTpl(game, ui, rerender) {
 const GROUPS = [
   ['crisis', '나라의 큰일', /^crisis_/],
   ['work', '일과 벌이', /^(work|seek_job|day_labor|inn_kitchen|herbs|help_home|shop_manage|open_shop|domain_|realm_office|farmer|merchant|estate_|voc_)/],
-  ['learn', '배움과 수련', /^(study|train_body|sword_|meditate|magic_|legend_lesson|research|seal_study)/],
+  ['learn', '배움과 수련', /^(study|train_body|sword_|meditate|magic_|legend_lesson|research|seal_study|tower_(join|duty|exam|craft))/],
   ['faith', '믿음과 기도', /^(pray|worship|keep_feast|pilgrimage|faith_seek|holy_heal)$/],
   ['court', '궁정', /^court_/],
-  ['people', '사람과 마을', /^(visit|play|wander|rel_|faction_door|bard|era_|kin_|repute_(boast|feast|clear))/],
+  ['army', '군대', /^army_/],
+  ['people', '사람과 마을', /^(visit|play|wander|rel_|faction_door|bard|era_|kin_|love_|repute_(boast|feast|clear))/],
   ['road', '길과 모험', /^(party_|gather_party|travel|on_road|housing|quest|delve|deep_|pol_|gear|pioneer|buy_title|tower_dare|wolves|goblins)/],
   ['sea', '바다', /^(sail|sailing|at_sea|cargo|shipyard|sea_|serpent_lair|saltrock|pirate_)/],
-  ['dark', '어두운 일', /^(crime_|gang_|dawn_rite|repute_slander)/],
+  ['dark', '어두운 일', /^(crime_|gang_|dawn_rite|repute_slander|forbidden_rite)/],
   ['rest', '쉼', /^(rest|drift_years)$/],
 ];
 export const groupNameOf = (id) => GROUPS.find(([, , re]) => re.test(id))?.[1] ?? '그 밖';
