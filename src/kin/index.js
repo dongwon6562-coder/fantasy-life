@@ -629,7 +629,7 @@ HOOKS.heir.push((g, rng, old) => {
   else if (!will && eldest && eldest.ageMonths > meP.ageMonths && rng.chance(0.55)) { claimant = eldest; why = 'eldest'; }
   else if (sore && sore[1] >= 20 && rng.chance(0.6)) { claimant = sore[0]; why = 'grudge'; }
   else if (!will && sibs.length >= 2 && rng.chance(0.25)) { claimant = rng.pick(sibs); why = 'nowill'; }
-  if (claimant) queueScene(g, 'kin_dispute', { claimant: claimant.id, why, parent: old.name });
+  if (claimant) queueScene(g, 'kin_dispute', { claimant: claimant.id, why, parent: old.name }, { first: true });
 });
 
 defineScene('kin_dispute', {
