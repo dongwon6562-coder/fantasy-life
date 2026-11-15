@@ -39,3 +39,4 @@ import './vocation/index.js';
 import './seal/index.js'; // 봉인의 흔들림: 봉인석 균열, 쐐기, 마족 첩자, 세력의 대응
 import './tower/index.js'; // 마탑과 금지된 마법: 탑 안의 삶, 마도구, 금지 마법, 교단과의 갈등
 import './army/index.js';
+import './peoples/index.js'; // 다른 종족의 땅에서 살기: 풍습·의식·받아들여짐, 종족끼리의 편견과 우정, 섞인 혈통 자식
