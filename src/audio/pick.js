@@ -22,6 +22,8 @@ const SCENE_CUE = {
   gang_takeover: 'underworld', gang_turf: 'underworld', thugs: 'underworld', witness_blackmail: 'underworld',
   buy_title: 'court', domain_build: 'court', domain_event: 'court', domain_rank: 'court', domain_rule: 'court',
   fief_grant: 'court', nation_name: 'court', civil_side: 'court',
+  court_offer: 'palace', court_patron: 'palace', court_marriage: 'palace', court_plot: 'palace', court_fall: 'palace', court_turn: 'palace', court_affair: 'palace',
+  deep_descend: 'abyss', deep_throne: 'abyss',
 };
 
 /** 떠 있는 사건·장면의 상황 곡. 평범한 사건이면 null (배경 곡을 그대로 둔다) */
@@ -104,6 +106,8 @@ export function ambienceWhere(m) {
   if (!m.cue) return m.pool[0] === 'hardship' ? 'hardship' : m.where;
   const c = m.pool[0];
   if (c === 'dungeon') return 'dungeon';
+  if (c === 'abyss') return 'deep';
+  if (c === 'palace') return 'hall';
   if (['battle', 'boss', 'duel', 'war'].includes(c)) return 'none';
   return m.where;
 }

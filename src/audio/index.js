@@ -132,7 +132,7 @@ function sync() {
     if (settings.music > 0) player.program(m.pool, { cue: m.cue, soft: sameGround(lastWhere, m.where) });
     lastWhere = m.where;
     const weather = g?.date ? safe(() => conditionText(g.date.year, g.date.month), '') : '';
-    if (settings.sfx > 0) amb.set(pickAmbience(ambienceWhere(m), weather)); else amb.stop();
+    if (settings.sfx > 0) amb.set(pickAmbience(ambienceWhere(m), weather, g?.date?.month)); else amb.stop();
   }
   for (const f of listeners) f();
 }

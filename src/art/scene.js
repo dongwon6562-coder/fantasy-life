@@ -14,16 +14,16 @@ export function conditions(year, month) {
   const tod = r < 0.48 ? 'day' : r < 0.68 ? 'dusk' : r < 0.82 ? 'dawn' : 'night';
   const season = [0, '겨울', '겨울', '봄', '봄', '봄', '여름', '여름', '여름', '가을', '가을', '가을', '겨울'][month];
   let weather = 'clear';
-  if (season === '겨울') weather = w < 0.45 ? 'snow' : w < 0.7 ? 'cloudy' : 'clear';
-  else if (season === '봄') weather = w < 0.25 ? 'rain' : w < 0.4 ? 'cloudy' : w < 0.5 ? 'fog' : 'clear';
-  else if (season === '여름') weather = w < 0.15 ? 'rain' : w < 0.25 ? 'cloudy' : 'clear';
-  else weather = w < 0.25 ? 'rain' : w < 0.42 ? 'fog' : w < 0.6 ? 'cloudy' : 'clear';
+  if (season === '겨울') weather = w < 0.11 ? 'blizzard' : w < 0.45 ? 'snow' : w < 0.62 ? 'cloudy' : w < 0.72 ? 'wind' : 'clear';
+  else if (season === '봄') weather = w < 0.21 ? 'rain' : w < 0.26 ? 'storm' : w < 0.39 ? 'cloudy' : w < 0.49 ? 'fog' : w < 0.61 ? 'wind' : 'clear';
+  else if (season === '여름') weather = w < 0.11 ? 'rain' : w < 0.21 ? 'storm' : w < 0.29 ? 'cloudy' : w < 0.35 ? 'wind' : 'clear';
+  else weather = w < 0.21 ? 'rain' : w < 0.27 ? 'storm' : w < 0.42 ? 'fog' : w < 0.56 ? 'cloudy' : w < 0.72 ? 'wind' : 'clear';
   if (weather === 'fog' && tod === 'night') weather = 'cloudy';
   return { tod, weather, season };
 }
 
 const TOD_NAME = { day: '한낮', dusk: '해 질 녘', dawn: '새벽', night: '밤' };
-const WEATHER_NAME = { clear: '맑음', cloudy: '흐림', rain: '비', snow: '눈', fog: '안개' };
+const WEATHER_NAME = { clear: '맑음', cloudy: '흐림', rain: '비', snow: '눈', fog: '안개', storm: '뇌우', blizzard: '눈보라', wind: '바람' };
 export function conditionText(year, month) {
   const c = conditions(year, month);
   return `${TOD_NAME[c.tod]} · ${WEATHER_NAME[c.weather]}`;
@@ -48,7 +48,7 @@ function draw(year, month, famine, plague, place) {
   const D = describe(place), k = year * 12 + month;
   const { tod, weather: w0 } = conditions(year, month);
   // 남쪽 섬에는 눈이 오지 않고, 병든 땅의 눈은 재처럼 내린다
-  const weather = w0 === 'snow' && D.biome === 'island' ? 'rain' : w0;
+  const weather = D.biome === 'island' && (w0 === 'snow' || w0 === 'blizzard') ? (w0 === 'snow' ? 'rain' : 'storm') : w0;
   const P = paletteOf(month, D.biome, famine);
   const S = skyOf(tod, weather, D.biome, k);
   const cv = document.createElement('canvas'); cv.width = W; cv.height = H;
@@ -63,7 +63,7 @@ function draw(year, month, famine, plague, place) {
   gradeLand(L, S, plague);
   ctx.drawImage(land, 0, 0);
   lights(ctx, e);
-  paintWeather(ctx, S, wr, { leaves: !!P.autumn && !P.blight, embers: D.culture === 'demon' });
+  paintWeather(ctx, S, wr, { leaves: !!P.autumn && !P.blight, embers: D.culture === 'demon', month, snowy: !!P.snow, barren: !!P.blight });
   grain(ctx);
   land.width = land.height = 0;
   return canvasUrl(cv, 'image/jpeg', 0.88);

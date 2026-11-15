@@ -115,7 +115,7 @@ body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-a
   </div>
 
   <section class="part"><h2>음악</h2><div id="tracks" class="part"></div></section>
-  <section class="part"><h2>환경음</h2><p class="foot">누르면 깔리고 다시 누르면 꺼진다. 곡과 함께 틀어 보면 게임에서의 느낌에 가깝다.</p><div id="amb"></div></section>
+  <section class="part"><h2>환경음</h2><p class="foot">누르면 깔리고 다시 누르면 꺼진다. 곡과 함께 틀어 보면 게임에서의 느낌에 가깝다. 게임에서는 곳·계절·날씨·때에 따라 그때그때 짜 맞춘다. 아래는 그 본보기들이다.</p><div id="amb"></div></section>
   <section class="part"><h2>효과음</h2><div id="sfx" class="part"></div></section>
   <p class="foot">게임에서는 장소·계절·사건에 따라 곡과 환경음이 저절로 골라진다. 여기서는 곡을 멈출 때까지 되풀이하지만, 게임에서는 한 번 연주하고 쉰다. 폰이 무음 모드이면 소리가 나지 않을 수 있다.</p>
 </div>
