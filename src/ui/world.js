@@ -7,6 +7,7 @@ import { POWERS, COMPANY_KIND, TEMPER, KIND } from '../history/state.js';
 import { esc } from './util.js';
 import { renderCrisisPast } from './crisis.js';
 import { renderEra } from './era.js';
+import { renderLegends } from './realms7.js';
 
 const PLACE_NAME = { ern: '에른', harfen: '하르펜', verden: '베르덴', leocast: '왕도' };
 const bar = (v, cls = '') => `<span class="wd-bar ${cls}"><i style="width:${Math.max(0, Math.min(100, v))}%"></i></span>`;
@@ -30,10 +31,12 @@ export function renderWorld(game, ui) {
   const powers = Object.keys(POWERS).map((k) => [k, safe(() => powerOf(game, k), 50)]).sort((a, b) => b[1] - a[1]);
   const changes = Object.keys(PLACE_NAME).map((p) => [p, safe(() => placeChanges(game, p), [])]).filter(([, l]) => l.length);
   const sec = ui.worldSec ?? 'chron';
-  const tabs = [['chron', '큰일'], ['era', '시대'], ['powers', '세력'], ['houses', '가문·상단'], ['people', '이름난 사람'], ['places', '곳곳']];
+  const tabs = [['chron', '큰일'], ['era', '시대'], ['legends', '십강'], ['powers', '세력'], ['houses', '가문·상단'], ['people', '이름난 사람'], ['places', '곳곳']];
 
   let body = '';
-  if (sec === 'era') {
+  if (sec === 'legends') {
+    body = safe(() => renderLegends(game), '');
+  } else if (sec === 'era') {
     body = safe(() => renderEra(game), '');
   } else if (sec === 'powers') {
     body = `<div class="wd-powers">${powers.map(([k, v]) => `<div class="wd-row"><span>${esc(POWERS[k])}</span>${bar(v)}<span class="v">${v}</span></div>`).join('')}</div>
