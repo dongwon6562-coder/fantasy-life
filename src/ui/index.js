@@ -41,6 +41,7 @@ import { renderFaithBlock, renderSea } from './realms7.js';
 import { renderCourtBlock } from './court.js';
 import { renderResearchBlock, renderDeep } from './realms8.js';
 import { renderKin, renderEstateBlock } from './realms9.js';
+import { renderReputeBlock } from './repute.js';
 import { renderPolitics, decorateMap, bindPolitics } from './politics.js';
 
 // 시작 화면: 종족별 집안 (인간 집안은 race가 없다)
@@ -254,6 +255,7 @@ function renderSheet() {
       ${lifeLines()}
     </div>
     ${renderYouthBlock(game)}
+    ${renderReputeBlock(game)}
     ${renderFaithBlock(game)}
     ${renderCourtBlock(game)}
     ${renderEstateBlock(game)}
