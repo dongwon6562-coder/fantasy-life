@@ -142,6 +142,8 @@ ACTIONS.push({
     const life = L(g);
     const def = jobDef(g);
     if (!def) return '';
+    // 소속이 있어야 하는 일(기사단·교단·상단)인데 소속이 없으면 일자리를 잃는다 (대 잇기 뒤 등)
+    if (def.faction && !life.fac?.[def.faction]?.member) { life.job = null; return `${def.name}의 명부에 내 이름은 없었다. 문지기가 고개를 저었다.`; }
     if (def.work) return def.work(g, rng);
     return doWork(g, rng, def);
   },

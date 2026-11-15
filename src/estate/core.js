@@ -147,7 +147,7 @@ HOOKS.afterMonth.push((g, rng) => {
       stress(g, 15);
       continue;
     }
-    const change = (c.fortune - (d.last ?? c.fortune)) / 100 * 1.5 + 0.004;
+    const change = (c.fortune - (d.last ?? c.fortune)) / 100 * 1.5 + 0.002; // 헤드 균형: 바탕 이자를 해 2.4%로 (대를 이어 불리면 은화가 수만 닢까지 쌓였다)
     const before = d.amount;
     d.amount = Math.max(0, d.amount * (1 + change));
     d.last = c.fortune;

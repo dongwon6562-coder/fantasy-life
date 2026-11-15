@@ -74,6 +74,7 @@ function yearOf(g, rng, n, say, record) {
   const r = g.realm, P = H(g).powers;
   const p = n.pid ? byId(g, n.pid) : null;
   if (p && !p.alive) { drop(g, n); return; }
+  if (p?.isPlayer) { drop(g, n); return; } // 플레이어가 된 사람(대 잇기)은 이 시뮬레이션이 죽이거나 움직이지 않는다
   n.age += 1;
   if (p) p.ageMonths += 12; // 떠난 사람은 마을 시뮬레이션에서 빠져 있으니 여기서 나이를 먹는다
   const rel = relOf(g, n);
