@@ -318,9 +318,51 @@ function peoplesBeast(v, hunt) {
   finish(v, { noLeaves: true });
 }
 
+/* ---------- 제자와 문하 ---------- */
+/** 문하의 마당: 뒤로 낮은 집과 문, 연습 말뚝과 무기 걸이. variant 'lesson' 가르침, 'bow' 절하는 제자, 'found' 새 현판을 건 날 */
+function mentorYard(v) {
+  const { ctx, t, R } = v, k = v.variant ?? 'lesson', dim = v.S.tod === 'night' || v.S.tod === 'dusk', rim = dim ? WARM : null;
+  sky(v); far(v);
+  const gy = () => 172;
+  ground(v, gy);
+  // 마당 흙바닥
+  poly(ctx, [0, 180, VW, 180, VW, VH, 0, VH], t('#8a7658')); for (let i = 0; i < 30; i++) oval(ctx, R() * VW, 186 + R() * 50, 8 + R() * 20, 1.2, rgba('#000000', 0.06));
+  // 집: 돌 밑단, 흙벽, 낮은 지붕, 가운데 문
+  const hx = 250, hw = 330, wallTop = 96, roof = t('#4a3a30');
+  rect(ctx, hx, wallTop, hw, 86, t('#b8a888')); rect(ctx, hx, 164, hw, 18, t('#7c766c'));
+  for (let x = hx + 20; x < hx + hw; x += 46) rect(ctx, x, wallTop, 5, 68, t('#5a4632'));
+  poly(ctx, [hx - 22, wallTop + 4, hx + 30, 62, hx + hw - 30, 62, hx + hw + 22, wallTop + 4], roof); poly(ctx, [hx - 22, wallTop + 4, hx + hw + 22, wallTop + 4, hx + hw + 18, wallTop + 10, hx - 18, wallTop + 10], dark(roof, 0.3));
+  const dx = hx + hw / 2;
+  rect(ctx, dx - 26, 112, 52, 70, t('#2a1e16')); rect(ctx, dx - 30, 108, 60, 5, t('#5a4632')); if (dim) { glow(v, dx, 150, 46, '#ffb060', 0.3); rect(ctx, dx - 20, 118, 40, 64, 'rgba(255,170,90,.25)'); }
+  // 현판
+  const sign = k === 'found';
+  rect(ctx, dx - 44, 82, 88, 22, t(sign ? '#3a2416' : '#4a3a2a')); ctx.strokeStyle = t(sign ? '#c9a25a' : '#6a5a40'); ctx.lineWidth = 1.4; ctx.strokeRect(dx - 44, 82, 88, 22);
+  for (let i = 0; i < 4; i++) { const x = dx - 30 + i * 20; stroke(ctx, [x, 87, x + 8, 87, x + 4, 87, x + 4, 99, x, 95, x + 9, 96], 1.5, t(sign ? '#e8c880' : '#8a7a5c')); }
+  if (sign) { for (const d of [-1, 1]) { stroke(ctx, [dx + d * 48, 80, dx + d * 62, 70, dx + d * 60, 100], 2, '#8c2a1a'); poly(ctx, [dx + d * 60, 100, dx + d * 56, 112, dx + d * 64, 112], '#8c2a1a'); } }
+  // 연습 말뚝과 무기 걸이
+  for (const x of [96, 150]) { rect(ctx, x - 4, 142, 8, 62, t('#5a4632')); rect(ctx, x - 14, 154, 28, 5, t('#5a4632')); stroke(ctx, [x - 4, 148, x + 4, 150, x - 4, 153], 1.4, t('#b8a888')); oval(ctx, x, 205, 12, 2.4, rgba('#000000', 0.18)); }
+  rect(ctx, 600, 150, 4, 50, t('#4a3a2a')); rect(ctx, 560, 150, 4, 50, t('#4a3a2a')); rect(ctx, 556, 158, 52, 3, t('#4a3a2a')); for (let i = 0; i < 4; i++) stroke(ctx, [566 + i * 11, 196, 569 + i * 11, 134], 1.6, t(i % 2 ? '#6a5038' : '#8a8e94'));
+  const ot = v.other, pup = (x, y, h, o2 = {}) => person(v, x, y, h, { cloth: ot.cloth, hair: ot.hair, female: ot.female, long: ot.long, rim, rimDir: 1, ...o2 });
+  if (k === 'bow') {
+    person(v, 372, 226, 104, mine(v, { f: -1, old: v.me.age > 55, arm: 'chest', rim, rimDir: -1 }));
+    pup(292, 228, 96, { f: 1, pose: 'bow' });
+    stroke(ctx, [300, 229, 334, 226], 2.4, t('#6a5038'));
+  } else if (k === 'found') {
+    person(v, dx - 70, 214, 100, mine(v, { f: 1, arm: 'up', rim, rimDir: 1 }));
+    [[150, 232, 0], [196, 226, 1], [240, 232, 2], [470, 228, 3], [520, 234, 4]].forEach(([x, y, i]) => person(v, x, y, 84 + (i % 2) * 6, { f: x < dx ? 1 : -1, cloth: ['#4a4038', '#3e4a40', '#54463a', '#3a3e4a', '#5a4a3a'][i], hair: ['#2a1e16', '#6a4a2a', '#1c1614', '#8a6a44', '#3a2a1e'][i], female: i === 1 || i === 4, long: i === 1, rim, rimDir: x < dx ? 1 : -1 }));
+  } else {
+    pup(190, 224, 92, { f: -1, stick: 'staff', tilt: -0.5, arm: 'fwd' });
+    person(v, 300, 226, 104, mine(v, { f: -1, old: v.me.age > 55, arm: 'chest', rim, rimDir: -1 }));
+    person(v, 440, 216, 78, { f: -1, cloth: '#54463a', hair: '#2a1e16', child: true, rim, rimDir: -1 });
+  }
+  finish(v, { noLeaves: true });
+}
+
 export const PLATES3 = {
   /** 원수. variant: turned offer peace plot strike */
   feud(v) { const k = v.variant ?? 'turned'; return k === 'plot' ? feudPlot(v) : k === 'strike' ? feudStrike(v) : feudBridge(v); },
+  /** 제자와 문하. variant: lesson bow found */
+  mentor: mentorYard,
   /** 다른 종족의 땅. variant는 의식 id: elf_dew elf_fall dwarf_fire dwarf_hammer beast_hunt beast_totem */
   peoples(v) { const k = v.variant ?? 'elf_dew'; return k.startsWith('dwarf') ? peoplesDwarf(v, k === 'dwarf_hammer') : k.startsWith('beast') ? peoplesBeast(v, k === 'beast_hunt') : peoplesElf(v, k === 'elf_fall'); },
   /** 탐험. variant: frost deepwood cloud mist ash (가는 길), heart-<땅> (가장 깊은 곳) */
