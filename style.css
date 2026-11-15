@@ -1222,3 +1222,9 @@ html:not(.motion) .pol-land .pol-ring { animation: none; }
 .wd-ylist .invent::before { background: var(--mana); }
 .wd-ylist .rise::before { background: var(--brass); }
 .wd-ylist .fall::before { background: var(--muted); }
+
+/* ---------- 13단계: 제자와 문하 ---------- */
+.mentor-card { display: grid; gap: 10px; }
+.mentor-card > .note { margin: 0; }
+.mt-dis.cold { border-color: rgba(179, 38, 30, .55); }
+.mt-school.closed { opacity: .7; }
