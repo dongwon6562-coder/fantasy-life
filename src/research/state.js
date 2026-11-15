@@ -28,7 +28,7 @@ export const labHere = (g) => LABS[here(g)] ?? null;
 export function labOpen(g) {
   const lab = labHere(g);
   if (!lab) return false;
-  if (lab.kind === 'tower') return (g.magic?.certified ?? 0) >= 1 || (g.player.skills.magic ?? 0) >= 30;
+  if (lab.kind === 'tower') return (g.magic?.certified ?? 0) >= 1 || (g.player.skills.magic ?? 0) >= 30 || !!g.tower?.member;
   return true;
 }
 // 발명마다 어떤 손이 필요한가: 공방(smith), 글(letters), 마력(magic)
