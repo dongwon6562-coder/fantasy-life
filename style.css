@@ -932,3 +932,54 @@ button.danger.sm { min-height: 36px; padding: 6px 12px; font-size: 14px; border-
   .tpl-row .tpl, .sv-btns button, .sv-confirm button { min-height: 44px; }
   .linkish { min-height: 36px; padding: 6px 4px; }
 }
+
+/* ---------- 9단계: 대륙 정세·자식·집과 재산 ---------- */
+.pol-layer { pointer-events: none; }
+.pol-land .pol-ring { animation: pol-pulse 2.4s ease-in-out infinite; transform-origin: center; transform-box: fill-box; }
+@keyframes pol-pulse { 0%, 100% { opacity: .95; } 50% { opacity: .35; } }
+html:not(.motion) .pol-land .pol-ring { animation: none; }
+.pol-card { display: grid; gap: 10px; }
+.pol-card > .note { margin: 0; }
+.pl-legend { display: flex; flex-wrap: wrap; gap: 6px 14px; align-items: center; }
+.pl-toggle { display: inline-flex; gap: 8px; align-items: center; min-height: 44px; font-size: 14px; cursor: pointer; }
+.pl-toggle input { width: 20px; height: 20px; accent-color: var(--brass); }
+.lg-ring { display: inline-block; width: 12px; height: 12px; border-radius: 50%; vertical-align: -1px; margin: 0 4px 0 2px; }
+.lg-ring.war { border: 2px dashed #c0392b; }
+.lg-ring.changed { border: 3px solid var(--brass); }
+.pl-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.pl-list li { display: grid; gap: 4px; padding: 8px 10px; background: var(--bg); border: 1px solid var(--line); border-radius: 8px; min-width: 0; }
+.pl-list .top { display: flex; flex-wrap: wrap; gap: 4px 8px; align-items: center; }
+.pl-war { border-color: rgba(179, 38, 30, .55) !important; }
+.pl-war .vs { color: var(--muted); font-size: 12px; }
+.sw { display: inline-block; width: 10px; height: 10px; border-radius: 2px; background: var(--c); flex: none; }
+.pl-bars { display: grid; grid-template-columns: auto minmax(0, 1fr) auto minmax(0, 1fr); gap: 6px; align-items: center; font-size: 12px; color: var(--muted); }
+.pl-news { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; font-size: 13.5px; }
+.pl-news li { display: grid; grid-template-columns: 78px minmax(0, 1fr); gap: 8px; }
+.pl-news time { color: var(--muted); font-size: 12px; padding-top: 2px; }
+.pl-ties { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; font-size: 13.5px; }
+.pl-ties li { display: flex; justify-content: space-between; gap: 8px; flex-wrap: wrap; padding: 4px 0; border-bottom: 1px solid var(--line); }
+.pl-more summary { cursor: pointer; color: var(--muted); font-size: 13px; }
+.pl-more[open] { display: grid; gap: 8px; }
+.kin-card { display: grid; gap: 10px; }
+.kin-card > .note { margin: 0; }
+.kn-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.kn-kid { display: grid; grid-template-columns: 56px minmax(0, 1fr); gap: 10px; padding: 10px; background: var(--bg); border: 1px solid var(--line); border-radius: 8px; }
+.kn-kid.left, .kn-kid.disowned { opacity: .7; }
+.kn-face { padding: 0; border: 0; background: none; min-width: 52px; min-height: 52px; align-self: start; cursor: pointer; }
+.kn-txt { display: grid; gap: 4px; min-width: 0; }
+.kn-txt .top { display: flex; flex-wrap: wrap; gap: 2px 8px; align-items: baseline; }
+.kn-row { grid-template-columns: minmax(0, 84px) minmax(0, 1fr) auto; }
+.kn-row .v { white-space: nowrap; font-size: 12px; }
+.wd-bar.kin i { background: var(--good); }
+.ct-tag.heir { color: var(--brass); border-color: currentColor; }
+.ct-tag.gift { color: var(--mana); border-color: currentColor; }
+.estate-block { display: grid; gap: 8px; }
+.es-sum { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; }
+.es-sum > div { display: grid; gap: 2px; padding: 8px; background: var(--bg); border: 1px solid var(--line); border-radius: 8px; min-width: 0; }
+.es-sum .lbl { font-size: 11px; color: var(--muted); }
+.es-sum b { font-size: 14px; font-variant-numeric: tabular-nums; word-break: keep-all; }
+.es-loans li.bad { border-color: rgba(179, 38, 30, .6); }
+.ct-houses .top .v { font-variant-numeric: tabular-nums; }
+.estate-block .sm-row { grid-template-columns: 78px minmax(0, 1fr); }
+.estate-block .ct-houses .wd-row { grid-template-columns: auto minmax(0, 1fr) auto; }
+.estate-block .wd-row .v { white-space: nowrap; font-size: 12px; width: auto; }

@@ -39,6 +39,8 @@ import { ownedGoods } from './era.js';
 import { renderFaithBlock, renderSea } from './realms7.js';
 import { renderCourtBlock } from './court.js';
 import { renderResearchBlock, renderDeep } from './realms8.js';
+import { renderKin, renderEstateBlock } from './realms9.js';
+import { renderPolitics, decorateMap, bindPolitics } from './politics.js';
 
 // 시작 화면: 종족별 집안 (인간 집안은 race가 없다)
 const familiesOf = (race) => FAMILIES.filter((f) => (f.race ?? 'human') === race);
@@ -251,6 +253,7 @@ function renderSheet() {
     ${renderYouthBlock(game)}
     ${renderFaithBlock(game)}
     ${renderCourtBlock(game)}
+    ${renderEstateBlock(game)}
     ${renderResearchBlock(game)}
     <div class="block">
       <h3>몸과 마음</h3>
@@ -394,8 +397,8 @@ function renderGame() {
   let main = '';
   if (ui.view === 'month') main = game.over ? renderOver() : renderCrisis(game) + renderSummary(ui.summary) + renderNews() + renderYouthCard(game, ui) + renderWorkshop(game, ui) + renderPlan(game, ui);
   else if (ui.view === 'me') main = renderSheet();
-  else if (ui.view === 'people') main = renderParty(game) + renderPeople(game, ui);
-  else if (ui.view === 'map') main = renderMap() + renderDeep(game) + renderSea(game) + renderWorldCard(); // 지도가 먼저 (폰에서 바로 보이게)
+  else if (ui.view === 'people') main = renderKin(game) + renderParty(game) + renderPeople(game, ui);
+  else if (ui.view === 'map') main = renderMap() + renderPolitics(game, ui) + renderDeep(game) + renderSea(game) + renderWorldCard(); // 지도가 먼저 (폰에서 바로 보이게)
   else if (ui.view === 'chron') main = renderChron();
   else if (ui.view === 'save') main = renderSave();
   root().innerHTML = `
@@ -421,7 +424,11 @@ function renderGame() {
   bindGame();
   if (ui.view === 'map') {
     const host = $('#map-host');
-    if (host) unmountMap = mountMap(host, { here: L(game).place, game, onChange: () => renderGame() });
+    if (host) {
+      const um = mountMap(host, { here: L(game).place, game, onChange: () => renderGame() });
+      const ud = decorateMap(host, game, ui);
+      unmountMap = () => { ud(); um(); };
+    }
   }
   // 설정 화면: 소리 켜기·끄기와 음량은 소리 모듈이 직접 그린다 (없으면 내 음량 칸이 그대로 남는다)
   const ah = $('#audio-host');
@@ -495,6 +502,7 @@ function bindGame() {
   if (s3) s3.onclick = () => advance(3);
   bindPlan(game, ui, rerender);
   bindPeople(game, ui, rerender);
+  bindPolitics(ui, rerender);
   bindWorld(game, ui, rerender);
   const ws = $('details.workshop');
   if (ws) ws.ontoggle = () => { ui.wsOpen = ws.open; };
