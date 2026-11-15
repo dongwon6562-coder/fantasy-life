@@ -1192,3 +1192,39 @@ html:not(.motion) .pol-land .pol-ring { animation: none; }
 .ct-houses .pp-rites li { background: none; border: 0; padding: 0; border-radius: 0; display: flex; }
 .pp-lands .wd-row.kn-row { grid-template-columns: minmax(0, 1fr) auto; }
 .pp-lands .kn-row .v { white-space: nowrap; font-size: 12px; }
+
+/* ---------- 13단계: 긴 삶의 목록 ---------- */
+.chron-card { display: grid; gap: 8px; }
+.ch-filter { justify-self: start; }
+.ch-year { border-top: 1px solid var(--line); padding-top: 4px; }
+.ch-year > summary { cursor: pointer; display: flex; align-items: baseline; gap: 8px; min-height: 40px; padding: 8px 0 4px; }
+.ch-year > summary small { color: var(--muted); font-size: 13px; }
+.ch-year > .chron { margin: 4px 0 8px; }
+.ch-year .chron li { grid-template-columns: 40px 1fr; }
+.ch-year > summary { list-style: none; }
+.ch-year > summary::-webkit-details-marker { display: none; }
+.ch-year > summary::after { content: '펼치기'; margin-left: auto; font-size: 12px; color: var(--muted); }
+.ch-year[open] > summary::after { content: '접기'; }
+.p-gone > summary { cursor: pointer; display: flex; align-items: baseline; flex-wrap: wrap; gap: 4px 8px; min-height: 40px; padding: 10px 0 6px; border-top: 1px solid var(--line); list-style: none; color: var(--muted); }
+.p-gone > summary::-webkit-details-marker { display: none; }
+.p-gone > summary small { font-size: 12px; }
+.p-gone > summary::after { content: '펼치기'; margin-left: auto; font-size: 12px; }
+.p-gone[open] > summary::after { content: '접기'; }
+.ch-decade > .ch-year { margin-left: 12px; }
+.ch-decade > summary b { color: var(--muted); }
+.wd-yearfold { display: grid; }
+.wd-ylist { list-style: none; margin: 4px 0 10px; padding: 0 0 0 14px; border-left: 1px solid var(--line); display: grid; gap: 6px; font-size: 14px; }
+.wd-ylist li { display: grid; grid-template-columns: 34px 1fr; gap: 6px; position: relative; }
+.wd-ylist li::before { content: ''; position: absolute; left: -18px; top: 8px; width: 7px; height: 7px; border-radius: 50%; background: var(--line); }
+.wd-ylist time { color: var(--muted); font-size: 12px; font-variant-numeric: tabular-nums; }
+.wd-ylist .war::before, .wd-ylist .death::before { background: var(--blood); }
+.wd-ylist .war span { color: #e3917f; }
+.wd-ylist .invent::before { background: var(--mana); }
+.wd-ylist .rise::before { background: var(--brass); }
+.wd-ylist .fall::before { background: var(--muted); }
+
+/* ---------- 13단계: 제자와 문하 ---------- */
+.mentor-card { display: grid; gap: 10px; }
+.mentor-card > .note { margin: 0; }
+.mt-dis.cold { border-color: rgba(179, 38, 30, .55); }
+.mt-school.closed { opacity: .7; }

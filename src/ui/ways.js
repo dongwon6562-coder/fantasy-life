@@ -33,6 +33,7 @@ const PATHS = [
   { id: 'love', name: '사랑과 혼인', what: '마음에 둔 사람을 만나고, 고백하고, 혼인한다. 배우자도 저만의 일과 바람이 있다.', acts: ['love_date', 'love_spouse', 'love_grave'], lock: '어른이 되어 마음이 가는 사람이 생기면 만나러 갈 수 있다. 사람들과 자주 어울리면 인연이 생긴다.' },
   { id: 'kin', name: '가정과 자식', what: '자식과 시간을 보내고, 무엇을 가르칠지 정하고, 유언을 남긴다.', acts: ['kin_time', 'kin_adopt', 'kin_will'], lock: '자식이 생기거나, 어른이 되어 아이를 거둘 수 있을 때.' },
   { id: 'repute', name: '평판', what: '이름을 알리고, 잔치를 열고, 나쁜 소문을 바로잡는다.', acts: ['repute_boast', 'repute_feast', 'repute_clear'], lock: '고장 사람들이 나를 알아야 한다.' },
+  { id: 'mentor', name: '제자와 문하', what: '솜씨가 무르익으면 제자를 들여 가르치고, 내 이름을 단 도장·학파·공방을 세운다. 문파는 대를 넘어 남는다.', acts: ['mentor_take', 'mentor_teach', 'mentor_found', 'mentor_heritage'], lock: '스무 살부터, 검술·마법(2서클)·글·약초·대장일·요리·장사 중 하나가 숙련(45)에 이르면 제자를 들일 수 있다.' },
   { id: 'feud', name: '원수와 복수', what: '나를, 내 집안을 미워하는 사람에게 복수를 꾸미거나 화해를 청한다. 원한은 대를 잇기도 한다.', acts: ['feud_plot', 'feud_reconcile'], lock: '원한을 품은 사람이 생기면 열린다. 원한은 다툼, 배신, 선대의 빚에서 생긴다.' },
   { id: 'war', name: '용병과 전쟁', what: '전쟁 중인 나라에 칼을 판다.', acts: ['pol_merc'], lock: '열여섯 살부터, 전쟁 중인 나라가 용병을 구할 때.' },
   { id: 'seal', name: '봉인 조사', what: '마신의 봉인에 얽힌 기록과 조짐을 캔다.', acts: ['seal_study'], lock: '봉인이 흔들린다는 소문이 돌고, 글이나 마법을 갖추면 서고나 마탑에서 할 수 있다.' },
