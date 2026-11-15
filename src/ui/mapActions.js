@@ -4,6 +4,7 @@ import { L, traveling, isAdult, showScene } from '../adventure/core.js';
 import { PLACES, travelMonths, fareOf } from '../places.js';
 import { REALMS, realmInfo, realmOf, currentRealm, borderNote, crossBorder } from '../realms/index.js';
 import { autosave } from '../save.js';
+import { isPort, seaRoutesFrom } from '../sea/index.js';
 import { J } from '../narrative/text.js';
 import { rulerName } from '../world.js';
 import { esc } from './util.js';
@@ -20,6 +21,10 @@ MAP_ACTIONS.push((g, place) => {
   if (traveling(g) || g.pendingEvent) return [];
   const m = travelMonths(life.place, place.id);
   const abroad = realmOf(place.id) !== currentRealm(g);
+  // 바다로만 닿는 곳(섬, 바다 건너): 땅길은 없다. 항구에 있으면 부두로, 아니면 항구로 가라고 알려 준다
+  const sea = (() => { try { return isPort(life.place) ? seaRoutesFrom(g, life.place).find((r) => r.to === place.id) : null; } catch { return null; } })();
+  if (sea) return []; // 배 타기 버튼은 src/sea가 따로 단다
+  if (m >= 99) return [{ label: isPort(life.place) ? '여기서는 그리로 가는 배가 없다. 다른 항구에서 탄다' : '배로만 갈 수 있다. 먼저 항구로 가서 배를 탄다', run: () => {} }];
   return [{
     label: `길 떠나기 (여기까지 ${m}달, 은화 ${fareOf(m)}닢)`,
     run: () => { showScene(g, { kind: 'travel', at: life.place, to: place.id, abroad }); autosave(g); },
@@ -35,6 +40,7 @@ MAP_ACTIONS.push((g, place) => {
   if (!isAdult(g)) return [{ label: '열다섯 살이 되면 국경을 넘을 수 있다', run: () => {} }];
   if (traveling(g) || g.pendingEvent) return [];
   const cap = PLACES[r.capital];
+  if (travelMonths(L(g).place, r.capital) >= 99) return [{ label: `${J(r.short, '은/는')} 배로만 갈 수 있다. 항구에서 배를 탄다`, run: () => {} }];
   return [{
     label: `${J(r.short, '으로/로')} 떠나기 (${cap?.name ?? '수도'}까지 ${travelMonths(L(g).place, r.capital)}달)`,
     run: () => { if (crossBorder(g, id)) autosave(g); },

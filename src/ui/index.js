@@ -35,6 +35,7 @@ import { renderSavesBlock, renderSlotsBlock, bindSaves } from './savesView.js';
 import { shelveAuto, newUid } from './saves.js';
 import { renderCrisis } from './crisis.js';
 import { ownedGoods } from './era.js';
+import { renderFaithBlock, renderSea } from './realms7.js';
 
 // 시작 화면: 종족별 집안 (인간 집안은 race가 없다)
 const familiesOf = (race) => FAMILIES.filter((f) => (f.race ?? 'human') === race);
@@ -244,6 +245,7 @@ function renderSheet() {
       ${lifeLines()}
     </div>
     ${renderYouthBlock(game)}
+    ${renderFaithBlock(game)}
     <div class="block">
       <h3>몸과 마음</h3>
       ${bar('피로', p.fatigue, 100, p.fatigue > 70 ? 'warn' : '')}
@@ -387,7 +389,7 @@ function renderGame() {
   if (ui.view === 'month') main = game.over ? renderOver() : renderCrisis(game) + renderNews() + renderYouthCard(game, ui) + renderWorkshop(game, ui) + renderPlan(game, ui);
   else if (ui.view === 'me') main = renderSheet();
   else if (ui.view === 'people') main = renderParty(game) + renderPeople(game, ui);
-  else if (ui.view === 'map') main = renderMap() + renderWorldCard(); // 지도가 먼저 (폰에서 바로 보이게)
+  else if (ui.view === 'map') main = renderMap() + renderSea(game) + renderWorldCard(); // 지도가 먼저 (폰에서 바로 보이게)
   else if (ui.view === 'chron') main = renderChron();
   else if (ui.view === 'save') main = renderSave();
   root().innerHTML = `
