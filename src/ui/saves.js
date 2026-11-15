@@ -3,7 +3,7 @@
 // - 'life-<시각>': 새 삶을 시작하거나 다른 삶을 불러올 때, 하던 삶을 지우지 않고 옮겨 두는 칸.
 //   한 번뿐인 삶도 그 삶의 '하나뿐인 저장'이 자리만 옮기는 것이라 되돌리기는 생기지 않는다(복사본을 남기지 않는다).
 // - 'slot1'~'slot6': 자유 모드에서 손으로 저장하는 칸.
-import { load, saveSlot } from '../save.js';
+import { load, saveSlot, decodeSave } from '../save.js';
 
 const KEY = 'fantasy-life:';
 export const SLOT_COUNT = 6;
@@ -23,7 +23,7 @@ export const newUid = () => `${Date.now().toString(36)}${Math.floor(Math.random(
 
 function info(key, text) {
   try {
-    const g = JSON.parse(text);
+    const g = decodeSave(text);
     const meP = g.people.find((p) => p.id === g.player.id);
     return {
       key, kb: Math.round(text.length * 2 / 1024),
