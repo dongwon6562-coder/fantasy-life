@@ -118,7 +118,7 @@ for (const side of ['rudolf', 'erik']) {
   L(g).renown = 45;
   const c = courtState(g); c.standing = 40; c.side = side;
   g.realm.ruler = 'rudolf'; g.realm.succession = 'settled';
-  play(g, 2, ['rest'], { court_turn: 0 }, 1);
+  play(g, 6, ['rest'], { court_turn: 0 }, 1); // 다른 사건이 먼저 올 수 있어 몇 달 기다린다
   if (seen.scenes.court_turn) turns = seen.scenes.court_turn;
   if (side === 'rudolf') ok(courtState(g).favor >= 30, `won side favor ${courtState(g).favor}`);
   else ok(courtState(g).side === null || courtState(g).disgrace > 0, 'lost side kneels or falls');

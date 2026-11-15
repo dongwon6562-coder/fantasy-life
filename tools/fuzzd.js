@@ -41,6 +41,8 @@ const ALL_PLACES = Object.keys(PLACES);
 import { S, seaRoutesFrom } from '../src/sea/core.js';
 import { setSail } from '../src/sea/voyage.js';
 import { seaStatus } from '../src/sea/index.js';
+import { deepStatus } from '../src/deep/index.js';
+import { D as DEEP, RELIC_IDS } from '../src/deep/core.js';
 
 function roundTrip(g, rng) {
   const copy = JSON.parse(JSON.stringify(g));
@@ -58,7 +60,7 @@ function roundTrip(g, rng) {
 function chaos(g, rng) {
   const life = L(g);
   const adult = playerAge(g) >= 15;
-  const r = rng.int(0, 15);
+  const r = rng.int(0, 16);
   if (r === 0) return 'roundtrip';
   if (r === 1 && !CR(g).active) startCrisis(g, rng, rng.pick(Object.keys(CRISES)));
   else if (r === 2) { g.realm.balhart.war = true; g.realm.balhart.warMonths = 0; }
@@ -74,6 +76,7 @@ function chaos(g, rng) {
   else if (r === 12) { life.place = rng.pick(ALL_PLACES); life.travel = null; }
   else if (r === 13 && CR(g).active) CR(g).active = null;
   else if (r === 14) seaShake(g, rng);
+  else if (r === 16) deepShake(g, rng);
   else if (r === 15 && adult && !life.travel && !isJailed(g)) { const port = rng.pick(['klein', 'portel', 'saltmare', 'saltrock']); life.place = port; const rt = rng.pick(seaRoutesFrom(g, port)); if (rt) setSail(g, rt.to, rt.months, { own: !!S(g).ship }); }
   return null;
 }
@@ -90,7 +93,16 @@ function stale(g, rng) {
   else if (r === 5) g.player.money = 0;
   else if (r === 6 && !life.travel) life.travel = { to: rng.pick(ALL_PLACES), left: 2, from: life.place };
   else if (r === 7 && playerAge(g) >= 15 && !isJailed(g)) jail(g, 2);
-  else if (r === 8) { const sea = S(g); sea.ship = null; sea.pirate = null; sea.cargo = null; sea.lair = true; }
+  else if (r === 8) { const sea = S(g); sea.ship = null; sea.pirate = null; sea.cargo = null; sea.lair = true; const d = DEEP(g); d.relics = []; d.lord = 'slain'; d.gate = 0; }
+}
+// 깊은 구렁 상태를 흔든다 (src/deep/)
+function deepShake(g, rng) {
+  const d = DEEP(g);
+  d.gate = rng.pick([0, 5, 10, 20, 25, 30]);
+  d.relics = Array.from({ length: rng.int(0, 5) }, () => ({ id: rng.pick(RELIC_IDS), known: rng.chance(0.5) }));
+  d.lord = rng.pick(['alive', 'alive', 'pact', 'slain', 'sealed']);
+  d.ally = rng.chance(0.3) ? { name: '흔들린 탐사대', pow: 40 } : null;
+  if (rng.chance(0.3) && playerAge(g) >= 15 && !isJailed(g)) { L(g).place = 'gorge'; L(g).travel = null; }
 }
 // 바다 상태를 흔든다 (src/sea/)
 function seaShake(g, rng) {
@@ -106,7 +118,7 @@ function checkState(g, seed, m) {
   const p = g.player;
   for (const [k, v] of Object.entries({ money: p.money, fatigue: p.fatigue, stress: p.stress, renown: L(g).renown, notoriety: L(g).notoriety })) if (!Number.isFinite(v)) fail('NaN 값', k, seed, m);
   if (p.money < 0) fail('돈이 음수', p.money, seed, m);
-  for (const [name, fn] of [['partyStatus', partyStatus], ['crisisStatus', crisisStatus], ['craftStatus', craftStatus], ['domainReport', (x) => (x.domain ? domainReport(x) : null)], ['seaStatus', seaStatus]]) {
+  for (const [name, fn] of [['partyStatus', partyStatus], ['crisisStatus', crisisStatus], ['craftStatus', craftStatus], ['domainReport', (x) => (x.domain ? domainReport(x) : null)], ['seaStatus', seaStatus], ['deepStatus', deepStatus]]) {
     try { const r = deepBad(fn(g)); if (r) fail(`${name}에 나쁜 값`, r, seed, m); } catch (e) { fail(`${name} 예외`, e.stack, seed, m); }
   }
   if (partyOf(g).members.includes(g.player.id)) fail('내가 내 동료 명단에 있음', g.player.id, seed, m);

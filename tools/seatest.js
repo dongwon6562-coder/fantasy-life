@@ -121,7 +121,16 @@ for (let run = 0; run < 20; run++) {
     if (!PLACES[L(g).place]?.port && !g.over && !g.crime?.jailed) fail('arrived somewhere not a port', L(g).place);
   }
 }
-for (const id of Object.keys(SEA_EVENTS)) if (id !== 'pirates' && !seen.events[id]) fail('sea event never seen', id);
+// 저절로 안 나온 드문 사건은 직접 띄워 본다 (무게대로 나오므로 항해 수에 따라 빠질 수 있다)
+for (const id of Object.keys(SEA_EVENTS)) {
+  if (seen.events[id]) continue;
+  const g = adult(72900 + id.length);
+  placeAt(g, 'klein');
+  L(g).travel = { to: 'saltrock', left: 3, from: 'klein', sea: true };
+  queueScene(g, 'sea_event', { at: null, ev: id }, { first: true });
+  month(g, ['sea_deck']);
+  if (!seen.events[id] && !g.over) fail('sea event never shown', id);
+}
 console.log(`바다 사건: ${JSON.stringify(seen.events)} · 닿은 곳: ${[...seen.arrived].join(',')}`);
 if (!seen.arrived.has('saltrock') && !seen.arrived.has('saltmare')) fail('never reached an island');
 
