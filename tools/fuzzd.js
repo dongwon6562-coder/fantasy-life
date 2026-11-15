@@ -42,6 +42,8 @@ import { S, seaRoutesFrom } from '../src/sea/core.js';
 import { setSail } from '../src/sea/voyage.js';
 import { seaStatus } from '../src/sea/index.js';
 import { deepStatus } from '../src/deep/index.js';
+import { estateStatus } from '../src/estate/index.js';
+import { E as EST } from '../src/estate/core.js';
 import { D as DEEP, RELIC_IDS } from '../src/deep/core.js';
 
 function roundTrip(g, rng) {
@@ -60,7 +62,7 @@ function roundTrip(g, rng) {
 function chaos(g, rng) {
   const life = L(g);
   const adult = playerAge(g) >= 15;
-  const r = rng.int(0, 16);
+  const r = rng.int(0, 17);
   if (r === 0) return 'roundtrip';
   if (r === 1 && !CR(g).active) startCrisis(g, rng, rng.pick(Object.keys(CRISES)));
   else if (r === 2) { g.realm.balhart.war = true; g.realm.balhart.warMonths = 0; }
@@ -77,6 +79,7 @@ function chaos(g, rng) {
   else if (r === 13 && CR(g).active) CR(g).active = null;
   else if (r === 14) seaShake(g, rng);
   else if (r === 16) deepShake(g, rng);
+  else if (r === 17) estateShake(g, rng);
   else if (r === 15 && adult && !life.travel && !isJailed(g)) { const port = rng.pick(['klein', 'portel', 'saltmare', 'saltrock']); life.place = port; const rt = rng.pick(seaRoutesFrom(g, port)); if (rt) setSail(g, rt.to, rt.months, { own: !!S(g).ship }); }
   return null;
 }
@@ -93,7 +96,17 @@ function stale(g, rng) {
   else if (r === 5) g.player.money = 0;
   else if (r === 6 && !life.travel) life.travel = { to: rng.pick(ALL_PLACES), left: 2, from: life.place };
   else if (r === 7 && playerAge(g) >= 15 && !isJailed(g)) jail(g, 2);
-  else if (r === 8) { const sea = S(g); sea.ship = null; sea.pirate = null; sea.cargo = null; sea.lair = true; const d = DEEP(g); d.relics = []; d.lord = 'slain'; d.gate = 0; }
+  else if (r === 8) { const sea = S(g); sea.ship = null; sea.pirate = null; sea.cargo = null; sea.lair = true; const d = DEEP(g); d.relics = []; d.lord = 'slain'; d.gate = 0; L(g).houses = []; EST(g).loans = []; EST(g).rentals = []; }
+}
+// 집과 재산을 흔든다 (src/estate/)
+function estateShake(g, rng) {
+  const e = EST(g);
+  const life = L(g);
+  if (rng.chance(0.5) && !life.houses.includes(life.place)) life.houses.push(life.place);
+  if (rng.chance(0.3)) life.houses = [];
+  e.loans = rng.chance(0.5) ? [{ id: 900 + rng.int(0, 99), lender: rng.pick(['shark', 'company', 'temple']), principal: rng.int(10, 900), due: g.date.year * 12 + g.date.month - rng.int(-3, 4), missed: rng.int(0, 4) }] : [];
+  e.rentals = rng.chance(0.5) ? [{ id: 800, kind: rng.pick(['land', 'shop', 'house']), place: rng.pick(ALL_PLACES), tenant: rng.chance(0.5) ? '흔들 세입자' : null, rent: 5, cond: rng.int(0, 100), unpaid: rng.int(0, 3), value: 200 }] : [];
+  e.deposits = rng.chance(0.4) ? [{ company: rng.chance(0.5) ? 'silverscale' : 'gone', name: '흔들 상단', amount: rng.int(10, 500), last: 40 }] : [];
 }
 // 깊은 구렁 상태를 흔든다 (src/deep/)
 function deepShake(g, rng) {
@@ -118,7 +131,7 @@ function checkState(g, seed, m) {
   const p = g.player;
   for (const [k, v] of Object.entries({ money: p.money, fatigue: p.fatigue, stress: p.stress, renown: L(g).renown, notoriety: L(g).notoriety })) if (!Number.isFinite(v)) fail('NaN 값', k, seed, m);
   if (p.money < 0) fail('돈이 음수', p.money, seed, m);
-  for (const [name, fn] of [['partyStatus', partyStatus], ['crisisStatus', crisisStatus], ['craftStatus', craftStatus], ['domainReport', (x) => (x.domain ? domainReport(x) : null)], ['seaStatus', seaStatus], ['deepStatus', deepStatus]]) {
+  for (const [name, fn] of [['partyStatus', partyStatus], ['crisisStatus', crisisStatus], ['craftStatus', craftStatus], ['domainReport', (x) => (x.domain ? domainReport(x) : null)], ['seaStatus', seaStatus], ['deepStatus', deepStatus], ['estateStatus', estateStatus]]) {
     try { const r = deepBad(fn(g)); if (r) fail(`${name}에 나쁜 값`, r, seed, m); } catch (e) { fail(`${name} 예외`, e.stack, seed, m); }
   }
   if (partyOf(g).members.includes(g.player.id)) fail('내가 내 동료 명단에 있음', g.player.id, seed, m);
