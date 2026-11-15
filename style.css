@@ -867,3 +867,23 @@ button.danger.sm { min-height: 36px; padding: 6px 12px; font-size: 14px; border-
 .p-count { margin: 0; min-height: 0; }
 .p-count:empty { display: none; }
 .people .person[hidden] { display: none; }
+
+/* ---------- 8단계: 궁정 ---------- */
+.court-block { display: grid; gap: 8px; }
+.court-block h3 small { font-size: 12px; color: var(--muted); font-weight: 400; margin-left: 6px; }
+.wd-bar.court i { background: var(--brass); }
+.ct-ladder { list-style: none; margin: 2px 0; padding: 0; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 4px; }
+.ct-ladder li { text-align: center; font-size: 12px; padding: 5px 2px; border: 1px solid var(--line); border-radius: 6px; color: var(--muted); word-break: keep-all; }
+.ct-ladder li.past { color: var(--ink); }
+.ct-ladder li.now { border-color: var(--brass); color: var(--brass); font-weight: 600; }
+.ct-h { margin: 6px 0 0; font-size: 13px; color: var(--muted); font-weight: 500; }
+.ct-houses { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.ct-houses li { display: grid; gap: 4px; padding: 8px 10px; background: var(--bg); border: 1px solid var(--line); border-radius: 8px; min-width: 0; }
+.ct-houses .top { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 2px 8px; align-items: baseline; }
+.ct-houses .wd-row { grid-template-columns: 40px 1fr 30px; }
+.ct-tags { display: flex; flex-wrap: wrap; gap: 4px; }
+.ct-tag { font-size: 11px; padding: 1px 8px; border-radius: 10px; border: 1px solid var(--line); }
+.ct-tag.ally { color: var(--good); border-color: currentColor; }
+.ct-tag.foe { color: var(--blood); border-color: currentColor; }
+.ct-tag.spy { color: var(--mana); border-color: currentColor; }
+.ct-more summary { cursor: pointer; color: var(--muted); font-size: 13px; padding: 6px 0; }

@@ -37,6 +37,7 @@ import { shelveAuto, newUid } from './saves.js';
 import { renderCrisis } from './crisis.js';
 import { ownedGoods } from './era.js';
 import { renderFaithBlock, renderSea } from './realms7.js';
+import { renderCourtBlock } from './court.js';
 
 // 시작 화면: 종족별 집안 (인간 집안은 race가 없다)
 const familiesOf = (race) => FAMILIES.filter((f) => (f.race ?? 'human') === race);
@@ -248,6 +249,7 @@ function renderSheet() {
     </div>
     ${renderYouthBlock(game)}
     ${renderFaithBlock(game)}
+    ${renderCourtBlock(game)}
     <div class="block">
       <h3>몸과 마음</h3>
       ${bar('피로', p.fatigue, 100, p.fatigue > 70 ? 'warn' : '')}
