@@ -155,7 +155,7 @@ if (!seen.arrived.has('saltrock') && !seen.arrived.has('saltmare')) fail('never 
   console.log(`무역: 배 ${S(g).ship?.name}(${S(g).ship?.hull}) · 장사 손익 ${S(g).profit} · 돈 ${before} → ${g.player.money}`);
   // 선원 삯이 밀리면 배를 잃는다
   g.player.money = 0;
-  for (let i = 0; i < 4 && S(g).ship; i++) month(g, ['rest']);
+  for (let i = 0; i < 8 && S(g).ship; i++) { g.player.money = 0; month(g, ['rest']); }
   if (S(g).ship) fail('ship kept without wages', S(g).ship);
 }
 

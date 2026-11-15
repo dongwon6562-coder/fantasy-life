@@ -35,6 +35,22 @@ const RISING = [
   { name: '루나리엘', title: '엘프 숲지기 대장', kind: 'mage', haunts: ['silverleaf'], race: 'elf' },
   { name: '토르빈', title: '깊은 구렁의 수호자', kind: 'dwarf', haunts: ['hammer'], race: 'dwarf' },
 ];
+// 정해 둔 사람이 다 오른 뒤에는 이름을 지어 낸다 (오래 살면 십강 자리가 비어 가던 문제)
+const R_FIRST = ['콘라트', '마르틴', '아델하이트', '게르하르트', '로타르', '클라라', '베른하르트', '힐데', '루트비히', '에르나', '지크프리트', '마르가레테', '디트리히', '헤트비히'];
+const R_LAST = ['폰 아르님', '슈바르츠', '란트베어', '아이젠회퍼', '클링거', '로젠탈', '바르텐', '하르트만', '그륀', '폰 탈하임'];
+const R_KIND = [
+  { title: 'S급 모험가', kind: 'adventurer', haunts: ['barka', 'harfen', 'leocast'] },
+  { title: '기사단의 검', kind: 'sword', haunts: ['leocast', 'eisen'] },
+  { title: '5서클 대마법사', kind: 'mage', haunts: ['serenia', 'leocast'] },
+  { title: '용병왕', kind: 'sword', haunts: ['graubel', 'verden'] },
+];
+function riser(rng, used) {
+  for (let i = 0; i < 20; i++) {
+    const name = `${rng.pick(R_FIRST)} ${rng.pick(R_LAST)}`;
+    if (!used.has(name)) return { name, ...rng.pick(R_KIND) };
+  }
+  return null;
+}
 const KIND_TITLE = { adventurer: 'S급 모험가', knight: '기사단의 검', mage: '5서클 대마법사', outlaw: '피에 젖은 칼', merchant: '거상', scholar: '대학자' };
 const KIND_MAP = { adventurer: 'adventurer', knight: 'sword', mage: 'mage', outlaw: 'sword' };
 
@@ -137,9 +153,9 @@ WORLD_TICKS.push((g, rng, say, record) => {
       hist.notables.splice(hist.notables.indexOf(n), 1);
       const at = n.place ?? 'leocast';
       addLegend(g, { id: `n${g.date.year}${rng.int(10, 99)}`, name: `${n.name} ${n.lastName}`, title: KIND_TITLE[n.kind] ?? '이름난 사람', kind: KIND_MAP[n.kind], age: n.age, power: 64 + (n.fame - 92) * 1.5, at, haunts: [at, at, 'leocast'], pid: n.pid ?? null, from: n.home ?? null });
-    } else if (rng.chance(0.35)) {
+    } else if (rng.chance(aliveN < RANK_N ? 0.6 : 0.35)) {
       const used = new Set(lg.list.map((x) => x.name));
-      const r = RISING.find((y) => !used.has(y.name));
+      const r = RISING.find((y) => !used.has(y.name)) ?? riser(rng, used);
       if (r) addLegend(g, { id: `r${g.date.year}${rng.int(10, 99)}`, ...r, age: r.race === 'elf' ? rng.int(180, 400) : r.race === 'dwarf' ? rng.int(90, 160) : r.race === 'demon' ? null : rng.int(28, 40), timeless: r.race === 'demon', power: rng.int(64, 72), at: r.haunts[0] });
     }
   }

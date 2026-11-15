@@ -272,14 +272,16 @@ function worldTick(game, rng) {
 
 function checkPlayerState(game, rng) {
   const p = game.player;
-  // 아주 드물게 아이가 병으로 죽는다 (한 번뿐인 삶의 무게)
+  // 아주 드물게 어른이 병으로 갑자기 죽는다 (한 번뿐인 삶의 무게).
+  // 아이는 죽지 않는다: 이을 자식이 없을 때라 삶 전체가 바로 끝나 버려서, 처음 몇 분 만에 게임이 끝나는 일이 있었다.
   const age = playerAge(game);
-  let risk = age < 3 ? 0.0008 : 0.0002;
+  if (age < 16) return;
+  let risk = 0.0002;
   if (game.world.plague) risk *= 4;
   if (p.fatigue > 90) risk *= 3;
   if (rng.chance(risk)) {
     p.alive = false;
-    kill(game, me(game), age < 3 ? '열병' : '병');
+    kill(game, me(game), '병');
     game.over = true;
   }
 }

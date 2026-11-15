@@ -3,7 +3,7 @@
 // 동료(파티)와 함께 싸우는 길, 영지 병사를 이끄는 길(전쟁 지휘 모드), 왕국의 소집에 응하는 길이 열린다.
 import { HOOKS } from '../hooks.js';
 import { J } from '../narrative/text.js';
-import { gainSkill, circleOf } from '../game.js';
+import { gainSkill, circleOf, playerAge } from '../game.js';
 import { PLACES } from '../places.js';
 import { atWar, nudge, monthIndex } from '../world.js';
 import { living, kill } from '../npc.js';
@@ -229,7 +229,7 @@ function catchFever(g, rng, c, base) {
   const risk = base * (healer ? 0.4 : 1) * (1 - Math.min(0.6, g.player.skills.herbs / 100)) * (0.6 + c.sev / 100);
   if (!rng.chance(risk)) return '';
   // 한 번뿐인 삶의 무게: 아주 드물게 열병이 목숨을 가져간다
-  if (!healer && g.player.skills.herbs < 25 && rng.chance(0.05)) { L(g).pendingDeath = '잿빛 열병'; return ' 사흘째부터 열이 올랐다. 살갗에 잿빛 반점이 돋았다.'; }
+  if (!healer && g.player.skills.herbs < 25 && playerAge(g) >= 16 && rng.chance(0.05)) { L(g).pendingDeath = '잿빛 열병'; return ' 사흘째부터 열이 올랐다. 살갗에 잿빛 반점이 돋았다.'; }
   g.player.injuries.push({ name: '잿빛 열병', months: rng.int(1, 3) });
   stress(g, 8);
   return ` 그러다 나도 열병에 걸렸다. ${healer ? `${J(healer.name, '이/가')} 밤새 곁을 지켰다.` : '며칠을 앓아누웠다.'}`;
