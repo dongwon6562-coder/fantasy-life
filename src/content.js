@@ -24,3 +24,4 @@ import './era/index.js';
 import './later/index.js';
 import './legends/index.js';
 import './sea/index.js';
+import './art/battle.js'; // 전투 연출 (사건 창 그림 칸에 스스로 얹힌다)
