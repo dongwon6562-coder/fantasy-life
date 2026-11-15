@@ -41,6 +41,12 @@ export function outfitOf(job, sex, stage, r1, r2, r3) {
     case 'baker': case 'cook': return { kind: 'apron', main: '#8a7a62', under: LINEN, apron: '#ddd3bf', apronStrap: false, head: r3 < 0.6 ? 'coif' : null, headCol: '#ddd3bf' };
     case 'innkeeper': return { kind: 'apron', main: pick(['#5a4636', '#4a4a3a', '#5c3a34'], r1), under: LINEN, apron: '#c9bea6', vest: true };
     case 'herbalist': return { kind: fem ? 'dress' : 'tunic', main: pick(['#4f5e42', '#55604e'], r1), under: LINEN, neck: fem ? 'square' : 'v', shawl: '#6f7a4c', pouch: true, head: fem && r3 < 0.4 ? 'scarf' : null, headCol: '#6f7a4c' };
+    // 새 일: 의원·음유시인·선생·연금술사·석공
+    case 'physician': return { kind: 'coat', main: pick(['#2e3a34', '#3a2e2a', '#2c3038'], r1), trim: '#5a5a48', under: LINEN, pouch: true, strap: r2 < 0.5 ? '#3a2a1c' : null, head: r3 < 0.45 ? (fem ? 'coif' : 'skullcap') : null, headCol: fem ? '#d8d0bc' : '#2a2a28' };
+    case 'bard': return { kind: 'doublet', main: pick(['#7a2f34', '#2f5a5e', '#8a6a2a', '#4a3a6a'], r1), trim: pick(['#c9a25a', '#d8cfb8'], r2), under: LINEN, lace: true, scarfNeck: r2 < 0.45 ? pick(['#c9a25a', '#3a5a4a', '#7a2f2a'], r3) : null, earring: r2 > 0.6, head: r3 < 0.55 ? 'beret' : null, headCol: pick(['#3a2a3a', '#5a2a2a', '#2f4a4a'], r2) };
+    case 'tutor': return { kind: 'gown', main: pick(['#4a4238', '#3e4448', '#4a3e44'], r1), trim: '#6a6252', under: LINEN, shawl: fem && r2 < 0.5 ? '#7a7260' : null, head: fem && r3 < 0.35 ? 'coif' : null, headCol: '#d8d0bc' };
+    case 'alchemist': return { kind: 'apron', main: pick(['#34343e', '#3a3430', '#2e3a3a'], r1), under: r2 < 0.5 ? LINEN : null, apron: '#4a3a2a', apronStrap: true, soot: true, rolled: r2 > 0.4, head: r3 < 0.5 ? 'skullcap' : null, headCol: '#2a2622' };
+    case 'mason': return { kind: 'apron', main: pick(['#6a665e', '#5e5a50', '#6e6252'], r1), under: null, apron: '#5a4a38', apronStrap: true, dust: true, rolled: true, head: r3 < 0.35 ? 'coif' : r3 < 0.5 ? 'hood' : null, headCol: '#8a8474' };
     case 'weaver': return { kind: 'dress', main: pick(['#6d4b52', '#5a4a66', '#4f5a62'], r1), under: LINEN, neck: 'square', shawl: '#9a8a6a', embroidHem: true, head: r3 < 0.35 ? 'scarf' : null, headCol: '#9a8a6a' };
     case 'elder': return { kind: 'robe', main: '#3e3428', trim: '#8a7a5a', fur: '#8a7a62', chain: r2 < 0.5 ? '#8a7a5a' : null };
     case 'gang_boss': return { kind: 'coat', main: pick(['#22201f', '#2a1f22', '#1f262a'], r1), trim: '#6a5a3a', under: '#3a3230', scarfNeck: pick(['#5a1f1f', '#3a3a3a', '#4a3a1f'], r2), earring: true };
