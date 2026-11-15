@@ -126,7 +126,7 @@ for (let run = 0; run < 8; run++) {
   ok(L(g).queue.some((s) => s.kind === 'kin_dispute'), 'dispute queued when will names another');
   if (L(g).queue.some((s) => s.kind === 'kin_dispute')) disputes++;
   ok(kinState(g).will === null, 'will cleared');
-  play(g, 3, ['rest'], { kin_dispute: run % 4 });
+  play(g, 8, ['rest'], { kin_dispute: run % 4 }); // 새 주인의 성인식 같은 한 번뿐인 사건이 먼저 뜬다
 }
 ok(disputes >= 6, `disputes ${disputes}`);
 
