@@ -16,6 +16,7 @@ export function hairStyleOf({ male, stage, roll, old, race, beast }) {
   }
   if (stage === 'child') return roll < 0.4 ? 'braids' : roll < 0.75 ? 'long' : 'bob';
   if (race === 'elf') return roll < 0.6 ? 'long' : roll < 0.8 ? 'braid' : 'updo';
+  if (race === 'dwarf') return roll < 0.5 ? 'braids' : roll < 0.8 ? 'braid' : 'bun'; // 드워프 여인은 굵게 땋는다
   if (old > 0.55) return roll < 0.6 ? 'bun' : roll < 0.85 ? 'updo' : 'long';
   return ['long', 'braid', 'bun', 'tailf', 'long', 'updo', 'bob', 'braid', 'long'][Math.floor(roll * 9)];
 }
@@ -272,11 +273,12 @@ export function drawHair(style, h) {
 }
 
 /** 수염 종류 고르기 */
-export function beardOf({ male, stage, roll, old, race, job }) {
+export function beardOf({ male, stage, roll, old, race, job, rough }) {
   if (!male || stage === 'baby' || stage === 'child' || stage === 'teen') return null;
   if (race === 'elf') return null;
   if (race === 'dwarf') return roll < 0.55 ? 'braided' : 'long';
   if (race === 'half_elf') return roll < 0.2 ? 'stubble' : null;
+  if (rough) return roll < 0.55 ? 'stubble' : roll < 0.85 ? 'full' : 'short'; // 면도할 형편이 못 되는 사람
   const wise = job === 'elder' || job === 'court_mage' || job === 'hedge_mage' || job === 'bishop' || job === 'scholar';
   if (old > 0.45 && wise && roll < 0.7) return 'long';
   const table = stage === 'adult'
