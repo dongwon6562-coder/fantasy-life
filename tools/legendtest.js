@@ -117,9 +117,9 @@ const grown = (g, years = 22) => { for (const p of g.people) p.ageMonths += year
   check(ranking(g).includes('player'), `검왕급인데 십강에 못 든다 (${playerScore(g)})`);
   g.date.month = 12;
   let saw = false;
-  for (let m = 0; m < 4 && !saw; m++) {
+  for (let m = 0; m < 12 && !saw; m++) { // 한 달에 사건은 하나라, 밀린 사건이 먼저 나올 수 있다
     endMonth(g, [{ id: 'rest' }]);
-    for (let i = 0; i < 6 && g.pendingEvent; i++) { if (g.pendingEvent.id === 'legend_rank_entry') saw = true; resolveEvent(g, rngOf(g), 0); }
+    for (let i = 0; i < 6 && g.pendingEvent; i++) { if (g.pendingEvent.id === "legend_rank_entry") saw = true; resolveEvent(g, rngOf(g), 0); }
   }
   check(LG(g).playerRank != null, '한 해가 끝나도 십강 순위가 매겨지지 않는다');
   check(saw, '십강에 올랐다는 사건이 안 뜬다');

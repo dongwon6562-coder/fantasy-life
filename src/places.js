@@ -55,7 +55,7 @@ PLACES.harfen.links.gruental = 1;
 PLACES.verden.links.gruental = 1;
 PLACES.verden.links.estella = 4;
 export const placeOf = (g) => PLACES[L(g).place] ?? PLACES.ern;
-export const placeName = (g) => (traveling(g) ? `${J(PLACES[L(g).travel.to].name, '으로/로')} 가는 길` : placeOf(g).name);
+export const placeName = (g) => (traveling(g) ? `${J(PLACES[L(g).travel.to]?.name ?? '먼 곳', '으로/로')} 가는 ${L(g).travel.sea ? '뱃길' : '길'}` : placeOf(g).name);
 export const HOME_NAMES = { family: '부모님 집', inn: '여관', rent: '셋방', own: '내 집', barracks: '숙소', street: '노숙' };
 
 // 두 장소 사이에 걸리는 달 수 (가장 짧은 길)
@@ -148,7 +148,7 @@ export function meetPlacePerson(g, place, role, affection = 10) {
 
 /* ---------- 행동 제한: 마을 행동은 에른에서만, 길 위에서는 할 수 있는 게 적다 ---------- */
 const ERN_ONLY = new Set(['play', 'help_home', 'study', 'sword_father', 'sword_guard', 'magic_lesson', 'inn_kitchen', 'day_labor', 'wander']);
-const ON_ROAD = new Set(['rest', 'meditate', 'train_body', 'on_road']);
+const ON_ROAD = new Set(['rest', 'meditate', 'train_body', 'on_road', 'at_sea', 'sea_deck']); // 바다 위의 행동은 src/sea/
 HOOKS.actionFilter.push((g, a) => {
   const life = L(g);
   // 감옥에 갇혔으면 길은 끝났다 (감옥 행동은 crime.js가 거른다)
@@ -182,7 +182,8 @@ defineScene('travel', {
     const here = L(g).place;
     // 장면 선택지는 8개까지라, 다른 나라(src/realms/)는 '국경 너머로'에 따로 묶는다
     const realm = (id) => PLACES[id].realm ?? 'leonia';
-    const all = Object.keys(PLACES).filter((id) => id !== here && (!PLACES[id].hidden || PLACES[id].open?.(g)));
+    // 육로로 닿지 않는 곳(섬)은 뺀다. 섬은 항구에서 배를 탄다 (src/sea/)
+    const all = Object.keys(PLACES).filter((id) => id !== here && (!PLACES[id].hidden || PLACES[id].open?.(g)) && travelMonths(here, id) < 99);
     const near = all.filter((id) => (realm(id) === realm(here)) !== !!s?.abroad).sort((a, b) => travelMonths(here, a) - travelMonths(here, b));
     if (s?.to && all.includes(s.to)) { near.splice(near.indexOf(s.to), near.includes(s.to) ? 1 : 0); near.unshift(s.to); }
     const out = near.slice(0, 6).map((id) => {
@@ -223,7 +224,7 @@ ACTIONS.push({
   id: 'on_road',
   name: '길을 재촉한다',
   desc: '쉬지 않고 걷고, 길 위의 사람들과 풍경을 눈에 담는다.',
-  available: (g) => traveling(g),
+  available: (g) => traveling(g) && !L(g).travel.sea,
   run(g, rng) {
     tired(g, 10);
     const sn = gainStat(g, 'sen', 0.5), w = gainStat(g, 'wil', 0.4);
@@ -245,15 +246,16 @@ HOOKS.afterActions.push((g, rng, results) => {
   if (life.travel) {
     life.travel.left -= 1;
     if (life.travel.left <= 0) arrive(g, rng, results);
-    else if (rng.chance(0.18)) roadEncounter(g, rng);
+    else if (rng.chance(life.travel.sea ? 0.4 : 0.18)) roadEncounter(g, rng);
     return;
   }
   payLiving(g, rng, results);
 });
 
 function roadEncounter(g, rng) {
-  // 길 위의 위험은 adventure/quests.js가 장면을 정의한다
-  queueScene(g, 'road');
+  // 길 위의 위험은 adventure/quests.js가, 바다 위의 일은 sea/voyage.js가 장면을 정의한다
+  if (L(g).travel?.sea) queueScene(g, 'sea_event', { at: null }); // 바다 위 장면은 자리에 묶지 않는다
+  else queueScene(g, 'road');
 }
 
 function arrive(g, rng, results) {

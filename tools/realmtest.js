@@ -17,7 +17,8 @@ const samples = [];
 for (const id of REALM_IDS) {
   const cap = REALMS[id].capital;
   ok(PLACES[cap], `capital ${cap}`);
-  ok(travelMonths('ern', cap) < 10, `route to ${cap}: ${travelMonths('ern', cap)}`);
+  // 섬나라(남해 해상 연맹)의 수도는 땅길이 없고 항구에서 배로 간다 (src/sea/)
+  ok(travelMonths('ern', cap) < 10 || (PLACES[cap].port && travelMonths('ern', 'klein') < 10), `route to ${cap}: ${travelMonths('ern', cap)}`);
   ok(realmOf(cap) === id, `realmOf ${cap}`);
 }
 {
