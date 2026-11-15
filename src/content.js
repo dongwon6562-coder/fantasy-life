@@ -29,3 +29,4 @@ import './art/battle.js'; // 전투 연출 (사건 창 그림 칸에 스스로 �
 import './deep/index.js';
 import './research/index.js';
 import './art/vignette.js'; // 사건 삽화 (큰 사건의 그림 한 장, 사건 창 그림 칸에 스스로 얹힌다)
+import './politics/index.js'; // 움직이는 대륙: 나라끼리 동맹·전쟁·혼인, 왕조 교체, 국경

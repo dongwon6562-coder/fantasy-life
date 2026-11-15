@@ -55,6 +55,8 @@ const pickScene = (g, word) => {
   check(pickScene(g, '화석'), '연구 고르기에 화석이 없다');
   check(RS(g).project?.id === 'firestone', '고른 연구가 남지 않았다');
   g.player.stats.int = 90; g.player.skills.magic = 60;
+  // 세상이 먼저 내놓지 못하게 시대를 조금 뒤로 (그 경주는 아래 경쟁·도용 점검이 맡는다)
+  g.realm.tech = Math.min(g.realm.tech, 0.0);
   let months = 0;
   while (RS(g).project && months++ < 40) { endMonth(g, [{ id: 'research' }, { id: 'research' }]); g.player.fatigue = 0; g.player.injuries = []; for (let k = 0; k < 6 && g.pendingEvent && g.pendingEvent.id !== 'research_claim'; k++) resolveEvent(g, rngOf(g), 0); if (g.pendingEvent?.id === 'research_claim' || RS(g).claim) break; }
   check(!RS(g).project, `40달이 지나도 화석 연구가 끝나지 않는다 (${researchLine(g)})`);
@@ -71,7 +73,7 @@ const pickScene = (g, word) => {
   g.history.inventions.push('streetlamp', 'warmstone');
   RS(g).project = { kind: 'design', id: 'kiln', prog: 0.97, months: 3, fails: 0 };
   const m0 = g.player.money;
-  endMonth(g, [{ id: 'research' }]);
+  for (let k = 0; k < 6 && RS(g).project?.id === 'kiln'; k++) { endMonth(g, [{ id: 'research' }]); g.player.injuries = []; } // 막다른 길이 나와도 몇 달이면 된다
   check(madeThings(g).some((x) => x.id === 'kiln'), `온석 가마가 만들어지지 않았다 ${JSON.stringify(RS(g).project)}`);
   void m0;
   // 4) 경쟁과 도용
