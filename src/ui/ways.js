@@ -22,6 +22,7 @@ const PATHS = [
   { id: 'deep', name: '깊은 구렁', what: '끝이 없다는 구렁으로 내려간다. 아래로 갈수록 값진 것과 위험한 것이 함께 있다.', acts: ['deep_descend', 'deep_tavern', 'deep_market', 'deep_throne'], lock: '어른이 되어 구렁목까지 가야 한다.' },
   { id: 'explore', name: '지도에 없는 땅', what: '원정대를 꾸려 미지의 땅으로 간다. 옛 문명의 유적을 찾아 팔거나, 학계에 바치거나, 숨긴다.', acts: ['explore_plan', 'explore_sell', 'explore_give', 'explore_unhide'], lock: '어른이 되어 지도의 끝 고장(에스텔라 폐허, 은잎 마을, 쇠망치 골, 소금바위섬 등)에서 원정대를 꾸릴 수 있다.' },
   { id: 'sea', name: '바다', what: '배를 타고 먼 항구로 가고, 짐을 나르고, 해적을 쫓거나 해적이 된다.', acts: ['sail', 'shipyard', 'cargo', 'sea_bounty', 'pirate_den', 'pirate_raid', 'serpent_lair'], lock: '어른이 되어 항구 고장에 가야 한다.' },
+  { id: 'peoples', name: '다른 종족의 땅', what: '엘프의 숲, 드워프의 산, 수인의 초원에서 살며 그 땅의 말과 풍습을 익히고 의식에 함께한다.', acts: ['peoples_custom', 'peoples_rite'], lock: '여덟 살부터, 은잎 마을·쇠망치 골·털가죽 시장 같은 종족의 땅에 가면 풍습을 익힐 수 있다.' },
   { id: 'faith', name: '믿음', what: '신전에서 기도하고 축일을 지킨다. 믿음이 깊어지면 순례를 떠난다.', acts: ['pray', 'worship', 'keep_feast', 'pilgrimage', 'faith_seek', 'holy_heal'], lock: '다섯 살부터 기도할 수 있다.' },
   { id: 'court', name: '궁정', what: '궁정에 드나들며 편을 고르고, 혼담을 넣고, 음모를 꾸민다.', acts: ['court_attend', 'court_side', 'court_match', 'court_plot'], lock: '궁정이 있는 도읍에서, 작위나 관직이나 이름값으로 문이 열린다.' },
   { id: 'domain', name: '작위와 영지', what: '작위를 얻어 영지를 다스리고, 나라를 세울 수도 있다.', acts: ['buy_title', 'domain_rule', 'domain_build', 'pioneer', 'realm_office'], lock: '이름값을 30까지 쌓으면 왕도에서 작위를 살 수 있다. 공을 세워 받기도 한다.' },

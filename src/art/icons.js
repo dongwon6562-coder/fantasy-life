@@ -35,6 +35,7 @@ const BY_ID = {
   play: 'play', help_home: 'home', study: 'book', train_body: 'body', sword_father: 'sword', sword_guard: 'shield',
   meditate: 'meditate', magic_lesson: 'magic', herbs: 'herb', inn_kitchen: 'cook', day_labor: 'labor',
   wander: 'wander', visit: 'visit', rest: 'rest',
+  peoples_custom: 'visit', peoples_rite: 'pray',
 };
 const WORDS = [
   [/sword|fence|duel|knight/, 'sword'], [/guard|patrol|defen/, 'shield'], [/magic|spell|mana|circle/, 'magic'],
