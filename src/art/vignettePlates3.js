@@ -220,9 +220,109 @@ function exploreHeart(v, region) {
   finish(v, { inside: true });
 }
 
+/* ---------- 다른 종족의 땅 ---------- */
+/** 엘프의 숲: 세계수 뿌리 아래 빈터, 등불과 긴 옷의 엘프들. fall이면 낙엽 지는 밤의 노래, 아니면 봄의 이슬 받기 */
+function peoplesElf(v, fall) {
+  const { ctx, t, R } = v;
+  sky(v);
+  // 먼 숲 벽과 은빛 줄기
+  rect(ctx, 0, 40, VW, 150, t(fall ? '#2a2c26' : '#3c5240'));
+  for (let i = 0; i < 14; i++) { const x = i * 48 + R() * 20, w = 8 + R() * 10; rect(ctx, x, 0, w, 176, t(mixh('#8a9088', '#3a4a3c', R() * 0.5))); }
+  for (let i = 0; i < 22; i++) puff(ctx, R() * VW, R() * 60, 50 + R() * 40, 22 + R() * 14, t(fall ? ['#a8642c', '#8a4a24', '#b88434'][i % 3] : ['#4a7a4a', '#5a8a52', '#3c6a44'][i % 3]), 0.85);
+  const gy = (x) => 190 - fbm1(x / 140 + v.q, 2) * 6;
+  ctx.fillStyle = t(fall ? '#4a4030' : '#44603e'); ctx.beginPath(); ctx.moveTo(0, VH); for (let x = 0; x <= VW; x += 16) ctx.lineTo(x, gy(x) - 14); ctx.lineTo(VW, VH); ctx.fill();
+  // 세계수의 뿌리 (오른쪽을 가득 채운다)
+  const bark = t('#6e6a5c');
+  ctx.fillStyle = bark; ctx.beginPath(); ctx.moveTo(470, 0); ctx.bezierCurveTo(460, 90, 420, 150, 372, 196); ctx.lineTo(VW, 214); ctx.lineTo(VW, 0); ctx.fill();
+  ctx.fillStyle = rgba('#000000', 0.25); ctx.beginPath(); ctx.moveTo(540, 0); ctx.bezierCurveTo(530, 100, 520, 160, 500, 206); ctx.lineTo(VW, 214); ctx.lineTo(VW, 0); ctx.fill();
+  for (const [x0, y0, x1, y1, w] of [[440, 120, 330, 200, 16], [470, 150, 420, 214, 12], [560, 150, 600, 220, 18]]) { ctx.strokeStyle = dark(bark, 0.1); ctx.lineWidth = w; ctx.lineCap = 'round'; ctx.beginPath(); ctx.moveTo(x0, y0); ctx.quadraticCurveTo((x0 + x1) / 2, y0 + 10, x1, y1); ctx.stroke(); }
+  // 줄에 건 등불
+  const lamp = fall ? '#ffb060' : '#d8f0c0';
+  ctx.strokeStyle = rgba('#000000', 0.4); ctx.lineWidth = 0.8; ctx.beginPath(); ctx.moveTo(40, 70); ctx.quadraticCurveTo(250, 120, 452, 84); ctx.stroke();
+  for (let i = 0; i < 8; i++) { const k = (i + 0.5) / 8, x = 40 + k * 412, y = 70 + 14 * k + Math.sin(k * Math.PI) * 30; oval(ctx, x, y + 5, 2.6, 3.6, lamp); glow(v, x, y + 5, fall ? 26 : 16, lamp, fall ? 0.4 : 0.25); }
+  // 사람들
+  const robe = ['#c8d0c0', '#b8c4c8', '#d0c8b0', '#a8b8a8', '#c0c8d0'], hair = ['#e0d8b8', '#d8dce0', '#c8b890', '#e8e4d0'];
+  const rim = fall ? WARM : 'rgba(220,250,200,.4)';
+  [[176, 206, 1], [214, 200, 1], [372, 208, -1], [410, 204, -1]].forEach(([x, y, f], i) => person(v, x, y, 84 + (i % 2) * 6, { f, cloth: robe[i], hair: hair[i], female: i % 2 === 0, long: true, robe: true, arm: fall ? 'up' : 'chest', rim, rimDir: f }));
+  if (fall) {
+    person(v, 256, 212, 86, mine(v, { f: 1, arm: 'chest', rim, rimDir: 1 }));
+    person(v, 316, 208, 92, { f: -1, cloth: robe[4], hair: hair[1], long: true, robe: true, arm: 'up', old: true, rim, rimDir: -1 });
+    for (let i = 0; i < 46; i++) { const x = R() * VW, y = R() * VH; ctx.save(); ctx.translate(x, y); ctx.rotate(R() * 3); oval(ctx, 0, 0, 2.6, 1.2, ['#c8742c', '#a8521e', '#d8a03c'][i % 3]); ctx.restore(); }
+  } else {
+    // 잎에서 떨어지는 이슬과 그릇, 아기를 안은 어머니
+    person(v, 262, 210, 86, mine(v, { f: 1, arm: 'fwd' }));
+    person(v, 322, 208, 88, { f: -1, cloth: robe[2], hair: hair[0], female: true, long: true, robe: true, arm: 'chest' });
+    oval(ctx, 309, 208 - 54, 6.5, 5, t('#e8e4d8')); oval(ctx, 306, 208 - 57, 2.6, 2.6, t('#d8b8a0'));
+    stroke(ctx, [300, 60, 292, 100], 1.2, t('#4a7a4a')); poly(ctx, [292, 100, 284, 112, 296, 118, 302, 106], t('#6aa05a'));
+    oval(ctx, 290, 126, 1.6, 2.4, '#e8fff0'); glow(v, 290, 126, 14, '#c8ffe0', 0.6); glow(v, 290, 150, 26, '#c8ffe0', 0.2);
+  }
+  for (let i = 0; i < 18; i++) glow(v, R() * VW, 60 + R() * 150, 1.4, fall ? '#ffd080' : '#d8ffb0', 0.5);
+  finish(v, { noLeaves: true });
+}
+/** 드워프의 산: 바위를 깎은 큰 방과 화로. hammer면 모루 앞에서 망치를 든 젊은이, 아니면 화로를 지키며 밤을 새우는 사람들 */
+function peoplesDwarf(v, hammer) {
+  const { ctx, R } = v, fy = room(v, { wall: '#3a3432', floor: '#2a2624', fy: 176 });
+  // 굵은 기둥과 새긴 무늬
+  for (const x of [70, 200, 440, 570]) { rect(ctx, x - 18, 0, 36, fy, '#4a4440'); rect(ctx, x - 18, 0, 10, fy, 'rgba(0,0,0,.25)'); rect(ctx, x - 22, fy - 12, 44, 12, '#544e48'); rect(ctx, x - 22, 20, 44, 8, '#544e48'); for (let k = 0; k < 5; k++) { ctx.strokeStyle = 'rgba(0,0,0,.3)'; ctx.lineWidth = 1.2; ctx.strokeRect(x - 7, 40 + k * 24, 14, 14); } }
+  // 화로: 벽을 판 아치, 위에 조상의 이름
+  const hx = 320;
+  rect(ctx, hx - 70, 40, 140, fy - 40, '#2e2a28'); ctx.fillStyle = '#0c0908'; ctx.beginPath(); ctx.moveTo(hx - 50, fy); ctx.lineTo(hx - 50, 108); ctx.quadraticCurveTo(hx, 64, hx + 50, 108); ctx.lineTo(hx + 50, fy); ctx.fill();
+  rect(ctx, hx - 78, 34, 156, 10, '#5a524a');
+  for (let i = 0; i < 9; i++) { const x = hx - 56 + i * 14; stroke(ctx, [x, 50, x, 58, x + 5, 54], 1.1, '#8a7a5c'); }
+  flame(v, hx, fy - 4, 13); flame(v, hx - 22, fy - 2, 8); flame(v, hx + 24, fy - 2, 9);
+  glow(v, hx, fy - 30, 150, '#ff8a3a', 0.35); pool(v, hx, fy + 20, 220, 40, '#ff8a3a', 0.25);
+  const rim = 'rgba(255,150,70,.6)', C = ['#5a3a2a', '#44403c', '#4a3428', '#3a3e44', '#5a4a30'], H = ['#8a4a24', '#2a1e16', '#b8b4ac', '#6a3a1c'];
+  if (hammer) {
+    // 모루와 달군 쇠
+    const ax = 300, ay = fy + 46;
+    poly(ctx, [ax - 22, ay - 26, ax + 26, ay - 26, ax + 18, ay - 18, ax + 8, ay - 16, ax + 10, ay, ax - 12, ay, ax - 10, ay - 16, ax - 16, ay - 18], '#2a2a30'); rect(ctx, ax - 22, ay - 28, 48, 3, '#4a4a54');
+    rect(ctx, ax - 10, ay - 31, 30, 3, '#ffb060'); glow(v, ax + 5, ay - 30, 22, '#ffb060', 0.6);
+    person(v, ax - 44, ay + 4, 70, mine(v, { raw: true, f: 1, arm: 'up', rim, rimDir: 1 }));
+    stroke(ctx, [ax - 30, ay - 74, ax - 20, ay - 92], 2.4, '#3a2a1c'); rect(ctx, ax - 28, ay - 100, 16, 9, '#5a5a64');
+    for (let i = 0; i < 16; i++) { const an = -Math.PI * R(), d = 8 + R() * 30; glow(v, ax + 5 + Math.cos(an) * d, ay - 30 + Math.sin(an) * d, 1.4, '#ffd080', 0.9); }
+    person(v, ax + 70, ay + 2, 66, { raw: true, f: -1, cloth: C[0], hair: H[2], hood: false, old: true, arm: 'chest', rim, rimDir: -1 });
+    [[150, fy + 30, 1], [196, fy + 22, 1], [452, fy + 24, -1], [496, fy + 32, -1]].forEach(([x, y, f], i) => person(v, x, y, 60 + (i % 2) * 5, { raw: true, f, cloth: C[i + 1], hair: H[i], rim, rimDir: f }));
+  } else {
+    [[206, fy + 34, 1], [250, fy + 22, 1], [392, fy + 22, -1], [438, fy + 34, -1]].forEach(([x, y, f], i) => { person(v, x, y, 62 + (i % 2) * 4, { raw: true, pose: 'sit', f, cloth: C[i], hair: H[i], rim, rimDir: f }); rect(ctx, x + f * 14, y - 30, 6, 8, '#6a5a48'); });
+    person(v, 300, fy + 52, 70, mine(v, { raw: true, pose: 'sit', f: 0, rim, rimDir: 1 }));
+    person(v, 348, fy + 50, 64, { raw: true, pose: 'sit', f: 0, cloth: C[4], hair: H[0], rim, rimDir: -1 });
+    // 장작 더미
+    for (let i = 0; i < 5; i++) rect(ctx, 500 + (i % 3) * 14, fy + 8 - Math.floor(i / 3) * 8, 13, 7, i % 2 ? '#5a4230' : '#4a3626');
+  }
+  finish(v, { inside: true });
+}
+/** 수인의 초원. hunt면 큰 뿔 들소를 쫓는 사냥, 아니면 토템 기둥 아래 모닥불의 밤 */
+function peoplesBeast(v, hunt) {
+  const { ctx, t, R } = v;
+  sky(v); far(v);
+  const gy = (x) => 172 - fbm1(x / 200 + v.q, 2) * 8;
+  ground(v, gy);
+  for (let i = 0; i < 90; i++) { const x = R() * VW, y = 170 + R() * 70; stroke(ctx, [x, y, x + 2, y - 5 - R() * 5], 0.8, t('#a89858')); }
+  if (hunt) {
+    // 달아나는 들소 떼와 흙먼지
+    for (let i = 0; i < 10; i++) puff(ctx, 380 + i * 26 + R() * 10, 196 + R() * 10, 26 + R() * 14, 9 + R() * 4, t('#b8a070'), 0.35);
+    for (const [x, y, s] of [[560, 182, 0.6], [520, 188, 0.7], [470, 196, 0.9], [414, 204, 1.15]]) { const c = t('#2e2420'); oval(ctx, x, y - 16 * s, 24 * s, 13 * s, c); oval(ctx, x + 14 * s, y - 24 * s, 13 * s, 12 * s, c); oval(ctx, x + 26 * s, y - 16 * s, 8 * s, 8 * s, c); stroke(ctx, [x + 24 * s, y - 22 * s, x + 31 * s, y - 28 * s, x + 28 * s, y - 32 * s], 1.8 * s, t('#d8d0b8')); for (const [dx, a] of [[-16, -6], [-8, 4], [10, -5], [18, 6]]) stroke(ctx, [x + dx * s, y - 8 * s, x + (dx + a) * s, y + 2 * s], 3 * s, c); }
+    [[130, 214, 70], [186, 208, 76], [78, 220, 66]].forEach(([x, y, h], i) => person(v, x, y, h, { f: 1, cloth: ['#6a4a30', '#5a3e2a', '#74583a'][i], hair: ['#8a6a44', '#3a2a1e', '#b89a6a'][i], stick: 'spear', tilt: 0.35, arm: 'fwd' }));
+    person(v, 256, 212, 80, mine(v, { f: 1, stick: 'spear', tilt: 0.4, arm: 'fwd' }));
+  } else {
+    // 천막, 토템 기둥, 모닥불
+    for (const [x, w] of [[90, 30], [150, 22], [560, 28]]) { const y = gy(x) + 6, c = t('#a88a62'); ctx.fillStyle = c; ctx.beginPath(); ctx.moveTo(x - w, y); ctx.lineTo(x - w, y - w * 0.4); ctx.quadraticCurveTo(x, y - w * 1.1, x + w, y - w * 0.4); ctx.lineTo(x + w, y); ctx.fill(); rect(ctx, x - 3, y - w * 0.36, 6, w * 0.36, t('#2a1c14')); }
+    for (const [x, h] of [[408, 132], [448, 156], [490, 124]]) { const y = gy(x) + 26, c = t('#5a4230'); rect(ctx, x - 7, y - h, 14, h, c); rect(ctx, x - 7, y - h, 5, h, rgba('#000000', 0.25)); for (let k = 0; k < Math.floor(h / 30); k++) { const yy = y - h + 10 + k * 30; rect(ctx, x - 9, yy, 18, 3, dark(c, 0.3)); oval(ctx, x - 3, yy + 10, 1.6, 1.6, '#e8c890'); oval(ctx, x + 3, yy + 10, 1.6, 1.6, '#e8c890'); stroke(ctx, [x - 3, yy + 17, x + 3, yy + 17], 1.2, dark(c, 0.5)); } stroke(ctx, [x - 7, y - h, x - 18, y - h - 12], 2.4, c); stroke(ctx, [x + 7, y - h, x + 18, y - h - 12], 2.4, c); }
+    const fx = 300, fyy = 214;
+    stroke(ctx, [fx - 14, fyy, fx + 10, fyy - 6], 3, '#2a1c14'); stroke(ctx, [fx + 14, fyy, fx - 10, fyy - 6], 3, '#2a1c14');
+    flame(v, fx, fyy - 4, 11); glow(v, fx, fyy - 24, 130, '#ff8a3a', 0.32); pool(v, fx, fyy + 6, 170, 22, '#ff8a3a', 0.28);
+    const rim = 'rgba(255,150,70,.6)';
+    [[196, 220, 1], [236, 212, 1], [366, 212, -1], [404, 222, -1]].forEach(([x, y, f], i) => person(v, x, y, 74 + (i % 2) * 6, { raw: true, f, cloth: ['#6a4a30', '#5a3e2a', '#74583a', '#4a3a2c'][i], hair: ['#8a6a44', '#3a2a1e', '#b89a6a', '#d8d0c0'][i], cloak: i === 3, old: i === 3, stick: i === 3 ? 'staff' : null, rim, rimDir: f }));
+    person(v, 270, 228, 82, mine(v, { raw: true, f: 1, arm: 'chest', rim, rimDir: 1 }));
+  }
+  finish(v, { noLeaves: true });
+}
+
 export const PLATES3 = {
   /** 원수. variant: turned offer peace plot strike */
   feud(v) { const k = v.variant ?? 'turned'; return k === 'plot' ? feudPlot(v) : k === 'strike' ? feudStrike(v) : feudBridge(v); },
+  /** 다른 종족의 땅. variant는 의식 id: elf_dew elf_fall dwarf_fire dwarf_hammer beast_hunt beast_totem */
+  peoples(v) { const k = v.variant ?? 'elf_dew'; return k.startsWith('dwarf') ? peoplesDwarf(v, k === 'dwarf_hammer') : k.startsWith('beast') ? peoplesBeast(v, k === 'beast_hunt') : peoplesElf(v, k === 'elf_fall'); },
   /** 탐험. variant: frost deepwood cloud mist ash (가는 길), heart-<땅> (가장 깊은 곳) */
   explore(v) { const k = v.variant ?? 'frost'; return k.startsWith('heart-') ? exploreHeart(v, k.slice(6)) : exploreMarch(v, k); },
 };
