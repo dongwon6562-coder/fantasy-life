@@ -32,6 +32,7 @@ import { playableRaces, raceInfo } from '../races/index.js';
 import { renderParty } from './party.js';
 import { renderYouthCard, renderYouthBlock } from './youth.js';
 import { renderLegacy, renderLifeReview } from './legacy.js';
+import { initBook, closeBook } from './book.js';
 import { renderSavesBlock, renderSlotsBlock, bindSaves } from './savesView.js';
 import { shelveAuto, newUid } from './saves.js';
 import { renderCrisis } from './crisis.js';
@@ -52,6 +53,8 @@ const ui = {
   saves: {},
 };
 let unmountMap = null;
+// 생애 책: 어디서든 [data-book] 단추로 연다 (한 번만 묶는다)
+if (typeof document !== 'undefined') initBook(() => game);
 let lastArt = null;   // 바로 전에 보인 풍경 (바뀌면 천천히 겹쳐 바꾼다)
 let lastView = null;  // 바로 전 화면 (바뀌면 살짝 떠오르며 나타난다)
 
@@ -519,7 +522,7 @@ function bindGame() {
   $$('[data-view]').forEach((b) => b.onclick = () => { ui.view = b.dataset.view; ui.saves = {}; renderGame(); window.scrollTo({ top: 0 }); });
   bindSaves(ui.saves, { rerender, game });
   const tt = $('#to-title');
-  if (tt) tt.onclick = () => { game = null; if (unmountMap) { unmountMap(); unmountMap = null; } document.querySelectorAll('.month-card').forEach((x) => x.remove()); start(); };
+  if (tt) tt.onclick = () => { closeBook(); game = null; if (unmountMap) { unmountMap(); unmountMap = null; } document.querySelectorAll('.month-card').forEach((x) => x.remove()); start(); };
   $$('[data-choice]').forEach((b) => b.onclick = () => {
     const title = game.pendingEvent.title;
     const text = resolveEvent(game, rngOf(game), +b.dataset.choice);

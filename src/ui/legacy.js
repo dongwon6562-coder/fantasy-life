@@ -55,6 +55,7 @@ export function deedsOf(game, i, name) {
     .map((e) => ({ age: e.age, y: e.y, text: e.text.startsWith(`${name}, `) ? e.text.slice(name.length + 2) : e.text }));
 }
 
+const bookBtn = (i, label = '생애 책으로 넘겨 보기') => `<button class="ghost book-open" data-book="${i}">${label}</button>`;
 const tlItem = (e) => `<li><span class="tl-age">${e.age >= 0 ? `${e.age}살` : ''}</span><span class="tl-text">${esc(e.text)}${e.n > 1 ? ` <em>외 ${e.n - 1}번</em>` : ''}</span><time>${e.y}년</time></li>`;
 
 function timelineList(items, max = 40) {
@@ -100,9 +101,9 @@ export function renderLifeReview(game, rec, { compact = false } = {}) {
     </div>`;
   const chips = facts.length ? `<div class="lr-chips">${facts.map((f) => `<span class="chip">${esc(f)}</span>`).join('')}</div>` : '';
   if (compact) {
-    return `<details class="lr compact"><summary>지나온 삶 돌아보기</summary>${head}${chips}${timelineList(items, 24)}</details>`;
+    return `<details class="lr compact"><summary>지나온 삶 돌아보기</summary>${head}${chips}<div class="actions-row">${bookBtn(i)}</div>${timelineList(items, 24)}</details>`;
   }
-  return `<div class="lr">${head}${chips}<h3>한 삶의 연표</h3>${timelineList(items)}</div>`;
+  return `<div class="lr">${head}${chips}<div class="actions-row">${bookBtn(i, '생애 책 펼치기')}</div><h3>한 삶의 연표</h3>${timelineList(items)}</div>`;
 }
 
 /* ---------- 가계도 ---------- */
@@ -152,7 +153,7 @@ export function renderLegacy(game, ui = {}) {
     detail = `<section class="card lr-detail"><h2>${esc(gens[sel].name)} <small>${sel + 1}대 · ${esc(gens[sel].years)}</small></h2>
       ${(() => { const f = legacyFacts(game, anc[sel], gens[sel].person); return f.length ? `<div class="lr-chips">${f.map((x) => `<span class="chip">${esc(x)}</span>`).join('')}</div>` : ''; })()}
       ${timelineList(items)}
-      <div class="actions-row"><button class="ghost" data-legacy="close">접기</button></div></section>`;
+      <div class="actions-row">${bookBtn(sel, sel === anc.length ? '지금까지를 책으로 보기' : '생애 책으로 보기')}<button class="ghost" data-legacy="close">접기</button></div></section>`;
   }
   return `<section class="card legacy">
     <h2>${esc(game.player.lastName)} 가문 <small>${esc(family(game).name)}</small></h2>
