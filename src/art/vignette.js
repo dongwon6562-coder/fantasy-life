@@ -19,9 +19,10 @@ import { VW, VH, toner, lookFor } from './vignetteKit.js';
 import { PLATES as PLATES1 } from './vignettePlates.js';
 import { PLATES2 } from './vignettePlates2.js';
 import { PLATES3 } from './vignettePlates3.js';
+import { PLATES4 } from './vignettePlates4.js';
 import { regionOfSite } from './mapTrail.js';
 
-const PLATES = { ...PLATES1, ...PLATES2, ...PLATES3 };
+const PLATES = { ...PLATES1, ...PLATES2, ...PLATES3, ...PLATES4 };
 
 const hasDom = typeof document !== 'undefined';
 const safe = (fn, d = null) => { try { return fn(); } catch { return d; } };
@@ -29,9 +30,11 @@ const SCALE = 1.5; // 그리는 크기: 960x360
 
 /* ---------- 그리기 ---------- */
 // 판마다 당겨 그릴 중심(x)과 배율
-const FOCUS = { wedding: [410, 1.15], funeral: [330, 1.2], birth: [300, 1.1], muster: [380, 1.25], square: [330, 1.15], plague: [330, 1.25], monsters: [330, 1.2], famine: [330, 1.15], fire: [300, 1.25], prison: [380, 1.15], voyage: [330, 1.15], court: [400, 1.1], festival: [320, 1.3], chapel: [330, 1.1], dragon: [320, 1], road: [300, 1.25], bedside: [330, 1.15], ritual: [320, 1.2], depths: [330, 1.1], seal: [330, 1.1], trade: [330, 1.1], beast: [310, 1.15], mentor: [320, 1.1], peoples: [320, 1.1], feud: [330, 1.1], explore: [330, 1.1], army: [330, 1.1], love: [360, 1.25], tower: [330, 1.1] };
+const FOCUS = { wedding: [410, 1.15], funeral: [330, 1.2], birth: [300, 1.1], muster: [380, 1.25], square: [330, 1.15], plague: [330, 1.25], monsters: [330, 1.2], famine: [330, 1.15], fire: [300, 1.25], prison: [380, 1.15], voyage: [330, 1.15], court: [400, 1.1], festival: [320, 1.3], chapel: [330, 1.1], dragon: [320, 1], road: [300, 1.25], bedside: [330, 1.15], ritual: [320, 1.2], depths: [330, 1.1], seal: [330, 1.1], trade: [330, 1.1], beast: [310, 1.15], mentor: [320, 1.1], nature: [330, 1.1], beastlife: [330, 1.1], peoples: [320, 1.1], feud: [330, 1.1], explore: [330, 1.1], army: [330, 1.1], love: [360, 1.25], tower: [330, 1.1] };
 // 늘 밤이나 해 질 녘이어야 하는 그림
-const TOD = { 'peoples:elf_fall': 'night', 'peoples:beast_totem': 'night', 'peoples:beast_hunt': 'dusk', 'feud:turned': 'dusk', 'feud:plot': 'night', 'feud:strike': 'night', 'feud:peace': 'dawn', 'seal:stone': 'night', 'seal:visitor': 'night', 'seal:alley': 'dusk' };
+const TOD = { 'nature:flood': 'night', 'nature:storm': 'night', 'nature:winter': 'dusk', 'nature:granary': 'dusk', 'nature:drought': 'day', 'nature:locust': 'day', 'beastlife:bond': 'night', 'beastlife:grave': 'dusk', 'peoples:elf_fall': 'night', 'peoples:beast_totem': 'night', 'peoples:beast_hunt': 'dusk', 'feud:turned': 'dusk', 'feud:plot': 'night', 'feud:strike': 'night', 'feud:peace': 'dawn', 'seal:stone': 'night', 'seal:visitor': 'night', 'seal:alley': 'dusk' };
+// 날씨가 정해진 그림
+const WX = { 'nature:drought': 'clear', 'nature:locust': 'clear', 'nature:quake': 'cloudy', 'nature:flood': 'rain', 'nature:storm': 'storm', 'nature:winter': 'snow', 'nature:granary': 'cloudy', 'beastlife:bond': 'clear' };
 const cache = new Map();
 export function vignetteImage(spec) {
   if (!hasDom || !spec || !PLATES[spec.plate]) return '';
@@ -44,7 +47,7 @@ export function vignetteImage(spec) {
   try {
     const D = describe(place), k = year * 12 + month;
     const c = conditions(year, month);
-    const weather = c.weather === 'snow' && D.biome === 'island' ? 'rain' : c.weather;
+    const weather = WX[`${spec.plate}:${spec.variant ?? ''}`] ?? (c.weather === 'snow' && D.biome === 'island' ? 'rain' : c.weather);
     const S = skyOf(TOD[`${spec.plate}:${spec.variant ?? 'stone'}`] ?? c.tod, weather, D.biome, k), P = paletteOf(month, D.biome, !!spec.famine);
     const cv = document.createElement('canvas'); cv.width = VW * SCALE; cv.height = VH * SCALE;
     const ctx = cv.getContext('2d'); ctx.scale(SCALE, SCALE);
@@ -86,6 +89,8 @@ const BY_ID = {
 };
 // 장면 종류(life.scene.kind)로 정해지는 것
 const BY_SCENE = {
+  nature_drought: 'nature:drought', nature_flood: 'nature:flood', nature_winter: 'nature:winter', nature_quake: 'nature:quake', nature_locust: 'nature:locust', nature_storm: 'nature:storm', nature_granary: 'nature:granary',
+  beast_buy: 'beastlife:market', beast_sell: 'beastlife:market', beast_event: 'beastlife:care', beast_familiar: 'beastlife:bond', beast_death: 'beastlife:grave',
   heir: 'bedside:last',
   arrest: 'square:guards', caught_illegal: 'square:guards', bounty_hunters: 'square:guards',
   faith_inquisition: 'chapel:inquisition', realm_inquisitor: 'chapel:inquisition', faith_convert: 'chapel', faith_high: 'chapel', pilgrim_end: 'chapel',

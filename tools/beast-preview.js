@@ -30,8 +30,8 @@ const html = `<title>짐승 초상</title>
   ${row('개', '귀 모양, 털빛, 이마의 흰 줄, 얼룩이 저마다 다르다. 마지막 둘은 늙은 개와 떠돌이 개.', [...many('dog', null, 6), cell(beastPortrait({ kind: 'dog', id: 'dog3', old: true }, { size: S }), '늙음'), cell(beastPortrait({ kind: 'dog', id: 'dog17', wild: true }, { size: S }), '목줄 없음')])}
   ${row('말', '털빛과 이마의 흰 줄. 굴레를 씌운 말과 들말.', [...many('horse', null, 6), cell(beastPortrait({ kind: 'horse', id: 'horse3', old: true }, { size: S }), '늙음'), cell(beastPortrait({ kind: 'horse', id: 'horse17', wild: true }, { size: S }), '들말')])}
   ${row('매', '사나운 눈썹뼈와 굽은 부리, 가슴의 무늬.', [...many('hawk', null, 6), cell(beastPortrait({ kind: 'hawk', id: 'hawk3', old: true }, { size: S }), '늙음')])}
-  ${row('사역마', '고양이, 부엉이, 까마귀. 눈과 둘레에 마력의 빛이 돈다.', [...many('familiar', 'cat', 3), ...many('familiar', 'owl', 3), ...many('familiar', 'raven', 2)])}
-  ${row('마수', '큰 늑대, 드레이크, 그리핀.', [...many('monster', 'direwolf', 3), ...many('monster', 'drake', 3), ...many('monster', 'griffin', 2)])}
+  ${row('사역마', '고양이, 부엉이, 까마귀, 은여우. 눈과 둘레에 마력의 빛이 돈다. 은여우는 그림자가 꼬리 셋으로 갈라진다.', [...many('familiar', 'cat', 2), ...many('familiar', 'owl', 2), ...many('familiar', 'raven', 2), ...many('familiar', 'fox', 2)])}
+  ${row('마수', '큰 늑대, 드레이크, 그리핀, 그림자 표범.', [...many('monster', 'direwolf', 2), ...many('monster', 'drake', 2), ...many('monster', 'griffin', 2), ...many('monster', 'shadowcat', 2)])}
 </main>`;
 writeFileSync('dist/beast-preview.html', html);
 console.log('dist/beast-preview.html', Math.round(html.length / 1024) + 'KB');

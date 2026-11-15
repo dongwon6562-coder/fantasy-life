@@ -21,6 +21,8 @@ const GROUPS = [
   ['큰 짐승 사냥', [['흔적', 'beast:tracks'], ['큰 멧돼지', 'beast:boar'], ['동굴곰', 'beast:bear'], ['잿빛 큰곰', 'beast:ash'], ['흰 수사슴', 'beast:stag'], ['영주의 사슴', 'beast:deer']]],
   ['원수와 복수', [['등 돌린 친구', 'feud:turned'], ['복수를 꾸미는 밤', 'feud:plot'], ['원수의 손', 'feud:strike'], ['내민 손', 'feud:offer'], ['화해', 'feud:peace']]],
   ['제자와 문하', [['가르침', 'mentor:lesson'], ['절하는 제자', 'mentor:bow'], ['현판을 건 날', 'mentor:found']]],
+  ['하늘과 땅의 재앙', [['마른 우물', 'nature:drought'], ['둑이 운다', 'nature:flood'], ['얼어 가는 집', 'nature:winter'], ['땅이 운 날', 'nature:quake'], ['검은 구름', 'nature:locust'], ['부두의 밤', 'nature:storm'], ['잠긴 곳간', 'nature:granary']]],
+  ['짐승과 사는 삶', [['짐승 사고팔기', 'beastlife:market'], ['돌보기', 'beastlife:care'], ['사역마 맺기', 'beastlife:bond'], ['묻어 준 자리', 'beastlife:grave']]],
   ['다른 종족의 땅', [['엘프: 이슬 받기', 'peoples:elf_dew'], ['엘프: 낙엽의 노래', 'peoples:elf_fall'], ['드워프: 조상의 불 지키기', 'peoples:dwarf_fire'], ['드워프: 첫 망치', 'peoples:dwarf_hammer'], ['수인: 큰 사냥', 'peoples:beast_hunt'], ['수인: 이름 새기는 밤', 'peoples:beast_totem']]],
   ['지도에 없는 땅', [['서리 너머', 'explore:frost'], ['뿌리 아래 골짜기', 'explore:deepwood'], ['구름 위 고원', 'explore:cloud'], ['안개 군도', 'explore:mist'], ['재의 사막', 'explore:ash'], ['첫 왕의 얼음 무덤', 'explore:heart-frost'], ['세계수의 옛 뿌리', 'explore:heart-deepwood'], ['하늘 계단', 'explore:heart-cloud'], ['잠긴 왕궁', 'explore:heart-mist'], ['첫 왕들의 무덤 골짜기', 'explore:heart-ash']]],
   ['군대·사랑·마탑', [['행군', 'army:march'], ['병영', 'army:camp'], ['진급', 'army:promote'], ['전열', 'army:clash'], ['눈길', 'love:meet'], ['함께 걷는 길', 'love:walk'], ['부부 싸움', 'love:quarrel'], ['들킨 비밀', 'love:caught'], ['마탑 안', 'tower:hall'], ['마탑 회의', 'tower:vote']]],
