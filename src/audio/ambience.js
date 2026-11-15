@@ -299,6 +299,8 @@ const SHOTS = {
 export const AMB_BEDS = ['wind', 'rain', 'roof', 'brook', 'fire', 'crowd', 'rumble'];
 export const AMB_SHOTS = Object.keys(SHOTS);
 
+// 다른 고장(pick.js의 groundOf)은 가장 가까운 곳의 소리를 빌린다
+const GROUND_AMB = { isles: 'road', elfwood: 'field', dwarfhall: 'castle', magetower: 'castle', garrison: 'castle', labyrinth: 'town', empire: 'capital', holy: 'capital', north: 'bleak', demonland: 'bleak', lakecity: 'town' };
 const SEASON_OF = ['winter', 'winter', 'spring', 'spring', 'spring', 'summer', 'summer', 'summer', 'autumn', 'autumn', 'autumn', 'winter'];
 const wxOf = (text) => (/뇌우/.test(text) ? 'storm' : /눈보라/.test(text) ? 'blizzard' : /비/.test(text) ? 'rain' : /눈/.test(text) ? 'snow' : /안개/.test(text) ? 'fog' : /바람/.test(text) ? 'wind' : /흐림/.test(text) ? 'cloudy' : 'clear');
 const todOf = (text) => (/밤/.test(text) ? 'night' : /새벽/.test(text) ? 'dawn' : /해 질/.test(text) ? 'dusk' : 'day');
@@ -313,6 +315,6 @@ export function pickAmbience(where, weather = '', month = 0) {
   if (where === 'title') return 'hearth';
   const vs = /^village_(\w+)$/.exec(where)?.[1];
   const season = month >= 1 && month <= 12 ? SEASON_OF[month - 1] : SEASON_NAME[vs] ? vs : 'spring';
-  const place = where === 'cradle' ? 'hearth' : where === 'hardship' ? 'bleak' : PLACE_NAME[where] ? where : 'field';
+  const place = where === 'cradle' ? 'hearth' : where === 'hardship' ? 'bleak' : PLACE_NAME[where] ? where : GROUND_AMB[where] ?? 'field';
   return `${place}|${season}|${wxOf(weather)}|${todOf(weather)}`;
 }

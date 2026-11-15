@@ -44,6 +44,7 @@ expect(pickTrack(g0({ date: { year: 500, month: 12 } })), 'village_winter', '에
 expect(pickTrack(g0({ life: { place: 'harfen' } })), 'town', '하르펜');
 expect(pickTrack(g0({ life: { place: 'verden' } })), 'castle', '베르덴');
 expect(pickTrack(g0({ life: { place: 'leocast' } })), 'capital', '왕도');
+for (const [pl, want] of [['saltmare', 'isles'], ['iela', 'elfwood'], ['grondar', 'dwarfhall'], ['noah', 'magetower'], ['ort', 'garrison'], ['barka', 'labyrinth'], ['eisen', 'empire'], ['solaris', 'holy'], ['graubel', 'north'], ['estella', 'north'], ['dusk', 'demonland'], ['serenia', 'lakecity'], ['gruental', 'village_spring'], ['bern', 'village_spring']]) expect(pickTrack(g0({ life: { place: pl } })), want, `고장 곡 ${pl}`);
 expect(pickTrack(g0({ life: { place: 'ern', travel: { to: 'harfen' } } })), 'road', '길 위');
 expect(pickTrack(g0({ world: { famine: true } })), 'hardship', '기근');
 expect(placePool(g0({ world: { famine: true } })).join(), 'hardship,village_spring', '기근 곡 묶음');

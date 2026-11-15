@@ -27,7 +27,7 @@ $('#next').onclick = () => { st.year++; show(); };
 $('#famine').onclick = () => { st.famine = !st.famine; show(); };
 $('#plague').onclick = () => { st.plague = !st.plague; show(); };
 show();
-const picks = [['ern', 505, 1], ['harfen', 505, 4], ['leocast', 505, 10], ['solaris', 506, 9], ['serenia', 505, 7], ['barka', 505, 6], ['graubel', 505, 12], ['eisen', 505, 5], ['iela', 505, 6], ['grondar', 505, 6], ['redcastle', 505, 7], ['saltmare', 505, 6],
+const picks = [['ern', 505, 1], ['harfen', 505, 4], ['leocast', 505, 10], ['solaris', 506, 9], ['serenia', 505, 7], ['barka', 505, 6], ['graubel', 505, 12], ['eisen', 505, 5], ['iela', 505, 6], ['grondar', 505, 6], ['redcastle', 505, 7], ['saltmare', 505, 6], ['noah', 505, 5], ['spire', 505, 7], ['lich', 505, 8], ['tower', 505, 6], ['ort', 505, 5], ['stellen', 505, 9], ['wolffort', 505, 1], ['barracks', 505, 5],
   // 계절과 날씨: 뇌우, 눈보라, 바람, 오로라, 반딧불, 안개
   ['ern', 502, 8], ['ern', 500, 1], ['ern', 503, 11], ['graubel', 514, 2], ['ern', 505, 8], ['serenia', 502, 8], ['leocast', 507, 10], ['harfen', 538, 2], ['ern', 507, 3], ['ern', 500, 7], ['verden', 519, 10], ['ern', 501, 5]];
 let i = 0;
