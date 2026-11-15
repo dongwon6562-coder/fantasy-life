@@ -1033,3 +1033,31 @@ html:not(.motion) .pol-land .pol-ring { animation: none; }
 .bk-dots i { width: 6px; height: 6px; border-radius: 50%; background: rgba(232, 220, 198, .3); }
 .bk-dots i.on { background: var(--brass); }
 @media (max-width: 420px) { .bk-page { padding: 20px 16px 18px 22px; } .bk-lines li { grid-template-columns: 38px minmax(0, 1fr); font-size: 14.5px; } }
+
+/* ---------- 10단계: 평판과 소문 ---------- */
+.repute-block { display: grid; gap: 8px; }
+.repute-block h3 small { font-size: 12px; color: var(--brass); font-weight: 400; margin-left: 6px; }
+.rp-fame { grid-template-columns: minmax(0, auto) minmax(60px, 1fr) auto; }
+.rp-fame .v { white-space: nowrap; font-size: 12px; width: auto; }
+.rp-axes { display: grid; gap: 5px; }
+.rp-axis { display: grid; grid-template-columns: 48px minmax(60px, 1fr) minmax(0, 1.2fr); gap: 8px; align-items: center; font-size: 13.5px; }
+.rp-axis .nm { color: var(--muted); font-size: 12px; }
+.rp-axis .w { font-size: 13px; word-break: keep-all; }
+.rp-axis .w.pos { color: var(--good); }
+.rp-axis .w.neg { color: var(--blood); }
+.rp-two { position: relative; height: 6px; border-radius: 3px; background: var(--line); }
+.rp-two::after { content: ''; position: absolute; left: 50%; top: -3px; bottom: -3px; width: 1px; background: var(--muted); }
+.rp-two i { position: absolute; top: 0; bottom: 0; border-radius: 3px; background: var(--good); }
+.rp-two.neg i { background: var(--blood); }
+.rp-rumors { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.rp-rumors li { display: grid; gap: 3px; padding: 8px 10px; background: var(--bg); border: 1px solid var(--line); border-left: 3px solid var(--good); border-radius: 0 8px 8px 0; }
+.rp-rumors li.bad { border-left-color: var(--blood); }
+.rp-rumors li.lie { border-style: dashed; border-left-style: solid; }
+.rp-q { font-family: var(--f-display); font-size: 14.5px; line-height: 1.5; }
+.wd-bar.rp-good i { background: var(--good); }
+.rp-places { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.rp-places li { display: grid; gap: 3px; padding: 8px 10px; background: var(--bg); border: 1px solid var(--line); border-radius: 8px; }
+.rp-places .top { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 2px 8px; }
+.rp-places .wd-row { grid-template-columns: auto minmax(0, 1fr) 30px; }
+.rp-places .note.neg { color: var(--blood); }
+.rp-more summary { cursor: pointer; color: var(--muted); font-size: 13px; }
