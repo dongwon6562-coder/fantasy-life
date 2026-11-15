@@ -1061,3 +1061,36 @@ html:not(.motion) .pol-land .pol-ring { animation: none; }
 .rp-places .wd-row { grid-template-columns: auto minmax(0, 1fr) 30px; }
 .rp-places .note.neg { color: var(--blood); }
 .rp-more summary { cursor: pointer; color: var(--muted); font-size: 13px; }
+
+/* ---------- 10단계: 봉인·일의 길 ---------- */
+.seal-card { display: grid; gap: 10px; }
+.seal-card > .note, .seal-card .sl-desc { margin: 0; }
+.seal-card .sl-desc { font-size: 14.5px; line-height: 1.6; }
+.seal-card.deep { border-color: rgba(122, 60, 160, .5); }
+.seal-card.broken { border-color: rgba(179, 38, 30, .7); }
+.sl-track { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 2px; }
+.sl-track li { display: grid; justify-items: center; gap: 4px; min-width: 0; position: relative; }
+.sl-track li::before { content: ''; position: absolute; top: 5px; left: -50%; right: 50%; height: 2px; background: var(--line); }
+.sl-track li:first-child::before { display: none; }
+.sl-track li.past::before, .sl-track li.now::before { background: var(--mana); }
+.sl-track i { width: 12px; height: 12px; border-radius: 50%; border: 2px solid var(--line); background: var(--bg); position: relative; z-index: 1; }
+.sl-track li.past i { background: var(--mana); border-color: var(--mana); }
+.sl-track li.now i { background: var(--mana); border-color: var(--ink, currentColor); box-shadow: 0 0 0 3px rgba(127, 179, 213, .35); }
+.sl-track li.deep.now i, .sl-track li.deep.past i { background: #b3261e; border-color: #b3261e; }
+.sl-track span { font-size: 10.5px; color: var(--muted); text-align: center; line-height: 1.2; word-break: keep-all; }
+.sl-track li.now span { color: inherit; font-weight: 700; }
+.sl-wedges { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; font-size: 13.5px; }
+.sl-wedges li { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px; align-items: baseline; padding: 6px 10px; background: var(--bg); border: 1px solid var(--line); border-radius: 8px; }
+.sl-wedges b { font-size: 12.5px; white-space: nowrap; }
+.sl-wedges li.ok b { color: var(--good); }
+.sl-wedges li.warn { border-color: rgba(200, 140, 30, .6); }
+.sl-wedges li.warn b { color: var(--brass); }
+.sl-wedges li.bad { border-color: rgba(179, 38, 30, .6); }
+.sl-wedges li.bad b { color: #c0392b; }
+.voc-block { display: grid; gap: 8px; }
+.vc-head { display: flex; flex-wrap: wrap; gap: 2px 8px; align-items: baseline; }
+.vc-proj { display: grid; gap: 4px; padding: 8px 10px; background: var(--bg); border: 1px solid var(--line); border-radius: 8px; }
+.vc-proj .top { display: flex; flex-wrap: wrap; gap: 2px 8px; align-items: baseline; }
+.voc-block .wd-row { grid-template-columns: minmax(0, 84px) minmax(0, 1fr) auto; }
+.voc-block .wd-row .v { white-space: nowrap; font-size: 12px; }
+.ct-tag.dark { color: #c0392b; border-color: currentColor; }

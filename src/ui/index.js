@@ -42,6 +42,7 @@ import { renderCourtBlock } from './court.js';
 import { renderResearchBlock, renderDeep } from './realms8.js';
 import { renderKin, renderEstateBlock } from './realms9.js';
 import { renderReputeBlock } from './repute.js';
+import { renderSeal, sealRow, renderVocBlock } from './realms10.js';
 import { renderPolitics, decorateMap, bindPolitics } from './politics.js';
 
 // 시작 화면: 종족별 집안 (인간 집안은 race가 없다)
@@ -258,6 +259,7 @@ function renderSheet() {
     ${renderReputeBlock(game)}
     ${renderFaithBlock(game)}
     ${renderCourtBlock(game)}
+    ${renderVocBlock(game)}
     ${renderEstateBlock(game)}
     ${renderResearchBlock(game)}
     <div class="block">
@@ -271,12 +273,15 @@ function renderSheet() {
 
 // 세계 정세: world.js의 '키: 값' 줄들을 표로
 function worldRows() {
-  return worldSummary(game).map((line) => {
+  const rows = worldSummary(game).map((line) => {
     const i = line.indexOf(':');
     return i > 0 ? [line.slice(0, i).trim(), line.slice(i + 1).trim()] : ['', line];
   });
+  const seal = sealRow(game);
+  if (seal) rows.push(seal);
+  return rows;
 }
-const ALARM = /전쟁|내전|위독|붕괴|창궐|일촉즉발|집결|밀리는/;
+const ALARM = /전쟁|내전|위독|붕괴|창궐|일촉즉발|집결|밀리는|흔들림|벼랑|마지막 고리|깨졌다/;
 
 function renderWorldCard() {
   const rows = worldRows();
@@ -403,7 +408,7 @@ function renderGame() {
   if (ui.view === 'month') main = game.over ? renderOver() : renderCrisis(game) + renderSummary(ui.summary) + renderNews() + renderYouthCard(game, ui) + renderWorkshop(game, ui) + renderPlan(game, ui);
   else if (ui.view === 'me') main = renderSheet();
   else if (ui.view === 'people') main = renderKin(game) + renderParty(game) + renderPeople(game, ui);
-  else if (ui.view === 'map') main = renderMap() + renderPolitics(game, ui) + renderDeep(game) + renderSea(game) + renderWorldCard(); // 지도가 먼저 (폰에서 바로 보이게)
+  else if (ui.view === 'map') main = renderMap() + renderPolitics(game, ui) + renderSeal(game) + renderDeep(game) + renderSea(game) + renderWorldCard(); // 지도가 먼저 (폰에서 바로 보이게)
   else if (ui.view === 'chron') main = renderChron();
   else if (ui.view === 'save') main = renderSave();
   root().innerHTML = `
