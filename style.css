@@ -1238,3 +1238,11 @@ html:not(.motion) .pol-land .pol-ring { animation: none; }
 .nt-regions li { display: grid; gap: 2px; min-width: 0; }
 .nt-regions li.here .wd-row > span:first-child { color: var(--brass); }
 .nt-regions .wd-row.kn-row { grid-template-columns: minmax(0, 1fr); }
+
+/* ---------- 13단계: 짐승과 함께 ---------- */
+.beasts-card { display: grid; gap: 10px; }
+.beasts-card > .note { margin: 0; }
+.bs-face { display: grid; place-items: center; }
+.bs-face svg { width: 48px; height: 48px; display: block; }
+.bs-animal.wild { border-color: rgba(179, 38, 30, .55); }
+.bs-face { cursor: default; }

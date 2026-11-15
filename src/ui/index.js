@@ -49,6 +49,7 @@ import { renderTowerBlock, renderArmyBlock, renderArmyNow, renderLove } from './
 import { renderFeud, renderExplore, renderExploreNow } from './realms12.js';
 import { renderPeoples } from './peoples.js';
 import { renderMentor } from './mentor.js';
+import { renderBeasts } from './beasts.js';
 import { renderNature, renderNatureNow, natureRow, NATURE_ALARM } from './nature.js';
 import { calamityAt } from '../nature/index.js';
 import { renderPolitics, decorateMap, bindPolitics } from './politics.js';
@@ -435,7 +436,7 @@ function renderGame() {
   let main = '';
   if (ui.view === 'month') main = game.over ? renderOver() : renderCrisis(game) + renderArmyNow(game) + renderExploreNow(game) + renderNatureNow(game) + renderSummary(ui.summary) + renderNews() + renderYouthCard(game, ui) + renderWorkshop(game, ui) + renderPlan(game, ui);
   else if (ui.view === 'me') main = renderSheet();
-  else if (ui.view === 'people') main = renderLove(game) + renderKin(game) + renderMentor(game) + renderFeud(game) + renderPeoples(game) + renderParty(game) + renderPeople(game, ui);
+  else if (ui.view === 'people') main = renderLove(game) + renderKin(game) + renderMentor(game) + renderBeasts(game) + renderFeud(game) + renderPeoples(game) + renderParty(game) + renderPeople(game, ui);
   else if (ui.view === 'map') main = renderMap() + renderPolitics(game, ui) + renderNature(game) + renderExplore(game) + renderSeal(game) + renderDeep(game) + renderSea(game) + renderWorldCard(); // 지도가 먼저 (폰에서 바로 보이게)
   else if (ui.view === 'chron') main = renderChron();
   else if (ui.view === 'save') main = renderSave();
