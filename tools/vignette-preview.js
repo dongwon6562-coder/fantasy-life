@@ -16,6 +16,9 @@ const GROUPS = [
   ['궁정과 신앙', [['알현과 서임', 'court', 'leocast'], ['예배당', 'chapel'], ['세례', 'chapel:child'], ['심문관들 앞', 'chapel:inquisition', 'solaris'], ['잔치', 'festival'], ['망자의 밤', 'festival:dead'], ['유랑 극단', 'festival:troupe']]],
   ['바다와 길', [['항해', 'voyage', 'saltmare'], ['폭풍', 'voyage:storm', 'saltmare'], ['부두', 'voyage:harbor', 'barka'], ['해적', 'voyage:pirate', 'saltmare'], ['바다뱀', 'voyage:serpent', 'saltmare'], ['난파', 'voyage:wreck', 'saltmare'], ['떠나는 길', 'road'], ['돌아오는 길', 'road:return']]],
   ['마법과 전설', [['마법진', 'ritual'], ['수정구', 'ritual:orb'], ['폭주', 'ritual:wild'], ['금지된 술법', 'ritual:dark'], ['연구', 'ritual:study'], ['용', 'dragon', 'barka'], ['큰 미궁의 돌문', 'depths'], ['깊은 왕', 'depths:throne']]],
+  ['봉인의 흔들림', [['쇠사슬 꿈', 'seal:dream'], ['북쪽으로 가는 조사단', 'seal:map'], ['그림자가 늦게 따라오는 사람', 'seal:alley', 'harfen'], ['창가의 손님', 'seal:visitor'], ['쐐기를 노리는 밤', 'seal:stone'], ['검은 돌 조각', 'seal:shard'], ['북쪽으로 가는 마법사들', 'seal:rite'], ['깨진 밤 다음 날', 'seal:broken']]],
+  ['일터', [['의원', 'trade:healer'], ['음유시인', 'trade:bard', 'harfen'], ['선생', 'trade:teacher'], ['연금술사', 'trade:alchemy', 'harfen'], ['목수와 석공', 'trade:builder']]],
+  ['큰 짐승 사냥', [['흔적', 'beast:tracks'], ['큰 멧돼지', 'beast:boar'], ['동굴곰', 'beast:bear'], ['잿빛 큰곰', 'beast:ash'], ['흰 수사슴', 'beast:stag'], ['영주의 사슴', 'beast:deer']]],
 ];
 const st = { year: 505, month: 6 };
 const main = document.getElementById('groups');

@@ -3,7 +3,7 @@
 //
 //   vignetteImage(spec) → 그림 주소 (없으면 '')
 //     spec: { plate, variant?, year, month, place, me?, other?, seed? }
-//       plate   : wedding funeral birth muster square plague monsters famine fire prison voyage court festival chapel dragon road bedside ritual depths
+//       plate   : wedding funeral birth muster square plague monsters famine fire prison voyage court festival chapel dragon road bedside ritual depths seal trade beast
 //       me/other: 게임 속 사람 (머리·옷 빛깔과 성별·나이를 읽는다). 없어도 된다.
 //   vignetteFor(game, { title, text, outcome }) → spec 또는 null : 지금 뜬 사건에 어울리는 그림
 //
@@ -16,7 +16,10 @@ import { describe } from './scenePlaces.js';
 import { skyOf } from './sceneSky.js';
 import { paletteOf } from './sceneLand.js';
 import { VW, VH, toner, lookFor } from './vignetteKit.js';
-import { PLATES } from './vignettePlates.js';
+import { PLATES as PLATES1 } from './vignettePlates.js';
+import { PLATES2 } from './vignettePlates2.js';
+
+const PLATES = { ...PLATES1, ...PLATES2 };
 
 const hasDom = typeof document !== 'undefined';
 const safe = (fn, d = null) => { try { return fn(); } catch { return d; } };
@@ -24,7 +27,9 @@ const SCALE = 1.5; // 그리는 크기: 960x360
 
 /* ---------- 그리기 ---------- */
 // 판마다 당겨 그릴 중심(x)과 배율
-const FOCUS = { wedding: [410, 1.15], funeral: [330, 1.2], birth: [300, 1.1], muster: [380, 1.25], square: [330, 1.15], plague: [330, 1.25], monsters: [330, 1.2], famine: [330, 1.15], fire: [300, 1.25], prison: [380, 1.15], voyage: [330, 1.15], court: [400, 1.1], festival: [320, 1.3], chapel: [330, 1.1], dragon: [320, 1], road: [300, 1.25], bedside: [330, 1.15], ritual: [320, 1.2], depths: [330, 1.1] };
+const FOCUS = { wedding: [410, 1.15], funeral: [330, 1.2], birth: [300, 1.1], muster: [380, 1.25], square: [330, 1.15], plague: [330, 1.25], monsters: [330, 1.2], famine: [330, 1.15], fire: [300, 1.25], prison: [380, 1.15], voyage: [330, 1.15], court: [400, 1.1], festival: [320, 1.3], chapel: [330, 1.1], dragon: [320, 1], road: [300, 1.25], bedside: [330, 1.15], ritual: [320, 1.2], depths: [330, 1.1], seal: [330, 1.1], trade: [330, 1.1], beast: [310, 1.15] };
+// 늘 밤이나 해 질 녘이어야 하는 그림
+const TOD = { 'seal:stone': 'night', 'seal:visitor': 'night', 'seal:alley': 'dusk' };
 const cache = new Map();
 export function vignetteImage(spec) {
   if (!hasDom || !spec || !PLATES[spec.plate]) return '';
@@ -38,7 +43,7 @@ export function vignetteImage(spec) {
     const D = describe(place), k = year * 12 + month;
     const c = conditions(year, month);
     const weather = c.weather === 'snow' && D.biome === 'island' ? 'rain' : c.weather;
-    const S = skyOf(c.tod, weather, D.biome, k), P = paletteOf(month, D.biome, !!spec.famine);
+    const S = skyOf(TOD[`${spec.plate}:${spec.variant ?? 'stone'}`] ?? c.tod, weather, D.biome, k), P = paletteOf(month, D.biome, !!spec.famine);
     const cv = document.createElement('canvas'); cv.width = VW * SCALE; cv.height = VH * SCALE;
     const ctx = cv.getContext('2d'); ctx.scale(SCALE, SCALE);
     const seed = (strSeed(spec.plate + (spec.variant ?? '')) ^ (D.seed * 7 + (spec.seed ?? 0) * 131)) >>> 0;
@@ -74,6 +79,7 @@ const BY_ID = {
   chain_illness_start: 'bedside', chain_illness_turn: 'bedside', later_will: 'bedside', adult_parent_aging: 'bedside',
   mana_test: 'ritual:orb', mana_awaken: 'ritual', circle_exam_run: 'ritual', circle_exam_control: 'ritual', magic_misfire: 'ritual:wild', chain_darkmage_reveal: 'ritual:dark', magic_forbidden_copy: 'ritual:dark', duel_aura_awakening: 'ritual',
   legend_magnus_audience: 'court',
+  seal_dream: 'seal:dream', seal_scholar: 'seal:map', seal_spy_found: 'seal:alley', seal_demon_offer: 'seal:visitor', seal_wedge_raid: 'seal:stone', seal_fragment_buyer: 'seal:shard', seal_council_voice: 'court', seal_rite_call: 'seal:rite', seal_after_break: 'seal:broken',
   research_buyer: 'ritual:study', research_claim: 'ritual:study', research_mentor: 'ritual:study', research_rival: 'ritual:study', research_spy_offer: 'ritual:study', research_sue: 'square:herald',
 };
 // 장면 종류(life.scene.kind)로 정해지는 것
@@ -88,6 +94,13 @@ const BY_SCENE = {
   research_pick: 'ritual:study',
   deep_descend: 'depths', deep_throne: 'depths:throne',
 };
+// 새 일(voc_path의 길 id, voc_event의 사건 id)마다의 그림. 없으면 지금 하는 일의 일터 그림
+const VOC_ART = {
+  royal_physician: 'court', plague_doctor: 'plague', court_bard: 'court', ballad: 'trade:bard', school: 'trade:teacher', book: 'ritual:study', elixir: 'trade:alchemy', stone: 'trade:alchemy', build: 'trade:builder', white_stag: 'beast:stag', beast_slayer: 'beast:ash',
+  lords_deer: 'beast:deer', wolf_pack: 'monsters:wolves', lost_child: 'beast:tracks', tavern_brawl: 'trade:bard', tower_inspect: 'trade:alchemy',
+};
+const JOB_ART = { physician: 'trade:healer', bard: 'trade:bard', tutor: 'trade:teacher', scholar: 'trade:teacher', alchemist: 'trade:alchemy', carpenter: 'trade:builder', mason: 'trade:builder', hunter: 'beast:tracks' };
+const BEAST_ART = { great_boar: 'beast:boar', cave_bear: 'beast:bear', ash_bear: 'beast:ash' };
 // 결과 글(그 뒤)에서 알아보는 것. 앞에 있는 것이 먼저다.
 const BY_OUTCOME = [
   [/예배당 종이 울렸다|혼례를 올렸|부부가 되었|혼인 서약/, 'wedding'],
@@ -127,6 +140,8 @@ export function vignetteFor(g, { title = '', text = '', outcome = false } = {}) 
     if (kind === 'fight' || kind === 'battle') return null;
     pick = BY_ID[id] ?? (kind === 'crisis_turn' ? crisisPlate(title, text) : null) ?? (kind ? BY_SCENE[kind] : null) ?? null;
     if (kind === 'sea_event') pick = /폭풍|풍랑/.test(title) ? 'voyage:storm' : /해적|검은 돛/.test(title) ? 'voyage:pirate' : /뱀|괴물|촉수/.test(title + text) ? 'voyage:serpent' : 'voyage';
+    if (kind === 'voc_path' || kind === 'voc_event') { const sc = g.life.scene; pick = VOC_ART[sc.path ?? sc.ev] ?? JOB_ART[g.life?.job?.id] ?? null; }
+    if (kind === 'voc_beast') pick = BEAST_ART[g.life.scene.beast] ?? 'beast:boar';
     if (!pick) pick = BY_TITLE.find(([re, , need]) => re.test(title) && (!need || kind || atSea(g)))?.[1] ?? null;
   }
   if (!pick) return null;

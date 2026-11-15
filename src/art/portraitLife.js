@@ -52,13 +52,13 @@ function npcJob(p) {
 /* ---------- 흉터가 생기는 삶 ---------- */
 const MARTIAL = {
   old_knight: 0.9, knight: 0.5, knight_captain: 0.7, guard: 0.28, soldier: 0.4, adventurer: 0.55, sword_master: 0.6, gang_boss: 0.7, rat_boss: 0.6, gang_member: 0.5,
-  pirate: 0.7, pirate_lord: 0.95, mercenary: 0.75, heavy: 0.6, hunter: 0.25, trapper: 0.3, sea_captain: 0.35, sailor: 0.15, delver: 0.5, smith: 0.14, inquisitor: 0.15, prisoner: 0.4, beggar: 0.2,
+  pirate: 0.7, pirate_lord: 0.95, mercenary: 0.75, heavy: 0.6, hunter: 0.25, trapper: 0.3, sea_captain: 0.35, sailor: 0.15, delver: 0.5, smith: 0.14, mason: 0.08, inquisitor: 0.15, prisoner: 0.4, beggar: 0.2,
 };
 const PATCH = { pirate_lord: 0.35, pirate: 0.12, old_knight: 0.08, mercenary: 0.06, adventurer: 0.03, gang_boss: 0.05, delver: 0.04 };
 // 볕과 바람을 맞는 일
 const OUTDOOR = {
   farmer: 0.7, laborer: 0.6, hunter: 0.7, trapper: 0.8, fisher: 0.9, sailor: 0.9, sea_captain: 0.8, pirate: 0.9, pirate_lord: 0.8, adventurer: 0.5, mercenary: 0.6, guard: 0.35, soldier: 0.5,
-  miller: 0.2, smith: 0.35, herbalist: 0.4, gardener: 0.5, knight: 0.3, old_knight: 0.45, beggar: 0.8, delver: 0.2, carpenter: 0.3, heavy: 0.4,
+  miller: 0.2, mason: 0.55, bard: 0.3, smith: 0.35, herbalist: 0.4, gardener: 0.5, knight: 0.3, old_knight: 0.45, beggar: 0.8, delver: 0.2, carpenter: 0.3, heavy: 0.4,
 };
 const FACE_WORD = /눈|뺨|볼|광대|이마|머리|입술|코|턱|(?<![발손])목|얼굴|귀|화상|덴/;
 const SEEDED = ['뺨의 칼자국', '이마의 흉터', '턱의 흉터', '눈가의 흉터', '입술의 흉터', '코의 흉터'];
