@@ -19,6 +19,7 @@ import { VW, VH, toner, lookFor } from './vignetteKit.js';
 import { PLATES as PLATES1 } from './vignettePlates.js';
 import { PLATES2 } from './vignettePlates2.js';
 import { PLATES3 } from './vignettePlates3.js';
+import { regionOfSite } from './mapTrail.js';
 
 const PLATES = { ...PLATES1, ...PLATES2, ...PLATES3 };
 
@@ -28,7 +29,7 @@ const SCALE = 1.5; // 그리는 크기: 960x360
 
 /* ---------- 그리기 ---------- */
 // 판마다 당겨 그릴 중심(x)과 배율
-const FOCUS = { wedding: [410, 1.15], funeral: [330, 1.2], birth: [300, 1.1], muster: [380, 1.25], square: [330, 1.15], plague: [330, 1.25], monsters: [330, 1.2], famine: [330, 1.15], fire: [300, 1.25], prison: [380, 1.15], voyage: [330, 1.15], court: [400, 1.1], festival: [320, 1.3], chapel: [330, 1.1], dragon: [320, 1], road: [300, 1.25], bedside: [330, 1.15], ritual: [320, 1.2], depths: [330, 1.1], seal: [330, 1.1], trade: [330, 1.1], beast: [310, 1.15], feud: [330, 1.1], army: [330, 1.1], love: [360, 1.25], tower: [330, 1.1] };
+const FOCUS = { wedding: [410, 1.15], funeral: [330, 1.2], birth: [300, 1.1], muster: [380, 1.25], square: [330, 1.15], plague: [330, 1.25], monsters: [330, 1.2], famine: [330, 1.15], fire: [300, 1.25], prison: [380, 1.15], voyage: [330, 1.15], court: [400, 1.1], festival: [320, 1.3], chapel: [330, 1.1], dragon: [320, 1], road: [300, 1.25], bedside: [330, 1.15], ritual: [320, 1.2], depths: [330, 1.1], seal: [330, 1.1], trade: [330, 1.1], beast: [310, 1.15], feud: [330, 1.1], explore: [330, 1.1], army: [330, 1.1], love: [360, 1.25], tower: [330, 1.1] };
 // 늘 밤이나 해 질 녘이어야 하는 그림
 const TOD = { 'feud:turned': 'dusk', 'feud:plot': 'night', 'feud:strike': 'night', 'feud:peace': 'dawn', 'seal:stone': 'night', 'seal:visitor': 'night', 'seal:alley': 'dusk' };
 const cache = new Map();
@@ -101,6 +102,8 @@ const BY_SCENE = {
   research_pick: 'ritual:study',
   // 12단계: 원수와 복수
   feud_turned: 'feud:turned', feud_plot: 'feud:plot', feud_strike: 'feud:strike', feud_offer: 'feud:offer', feud_peace: 'feud:peace', feud_deathbed: 'bedside',
+  // 12단계: 탐험 (가는 길과 깊은 곳은 아래에서 땅에 따라 고른다)
+  explore_plan: 'seal:map', explore_home: 'road:return', explore_give: 'ritual:study',
   deep_descend: 'depths', deep_throne: 'depths:throne',
 };
 // 새 일(voc_path의 길 id, voc_event의 사건 id)마다의 그림. 없으면 지금 하는 일의 일터 그림
@@ -150,6 +153,7 @@ export function vignetteFor(g, { title = '', text = '', outcome = false } = {}) 
     pick = BY_ID[id] ?? BY_SCENE[id] ?? (kind === 'crisis_turn' ? crisisPlate(title, text) : null) ?? (kind ? BY_SCENE[kind] : null) ?? null;
     if (kind === 'sea_event') pick = /폭풍|풍랑/.test(title) ? 'voyage:storm' : /해적|검은 돛/.test(title) ? 'voyage:pirate' : /뱀|괴물|촉수/.test(title + text) ? 'voyage:serpent' : 'voyage';
     if (kind === 'voc_path' || kind === 'voc_event') { const sc = g.life.scene; pick = VOC_ART[sc.path ?? sc.ev] ?? JOB_ART[g.life?.job?.id] ?? null; }
+    if (kind === 'explore_leg' || kind === 'explore_heart' || kind === 'explore_name') { const rg = kind === 'explore_name' ? regionOfSite(g.life.scene.site) : g.explore?.exp?.region; if (rg) pick = kind === 'explore_leg' ? `explore:${rg}` : `explore:heart-${rg}`; }
     if (kind === 'voc_beast') pick = BEAST_ART[g.life.scene.beast] ?? 'beast:boar';
     if (!pick) pick = BY_TITLE.find(([re, , need]) => re.test(title) && (!need || kind || atSea(g)))?.[1] ?? null;
   }

@@ -4,7 +4,7 @@
 //  - MAP_PLACES_EXTRA에 장소를 넣으면 지도에 나온다 ({ id, n, x, y, t, area, realm, d, todo }).
 //  - MAP_ACTIONS에 (game, place) => [{ label, run }] 함수를 넣으면 설명 칸에 버튼이 생긴다 (예: 여행).
 //  - 지금 있는 곳은 places.js의 L(g).place (지도 장소 id와 같음). 화면(ui/index.js)이 넘겨준다.
-import { drawTrail } from './mapTrail.js';
+import { drawTrail, drawBeyond } from './mapTrail.js';
 import {
   continents, contGroup, innerSeas, TERRAIN, nations, central, regions, P, roads, oldRoads,
   seaRoutes, ghostRoutes, rivers, seaLabels, edgeLabels, mtLabels,
@@ -642,6 +642,7 @@ function build(svg, info, here, opt, signal) {
   const trailG = el("g", { class: "trail" }, svg);
   const trail = opt.game ? drawTrail(el, trailG, opt.game, byId, pin) : { count: 0, info: () => '' };
   if (trail.count > 1) { const n = svg.closest(".mapbox")?.parentElement?.querySelector(".map-tools .note"); if (n) n.textContent = `붉은 고리는 가 본 곳(${trail.count}곳), 붉은 점선은 내가 다닌 길이다. 끌어서 움직이고, 두 손가락이나 휠로 확대한다.`; }
+  if (opt.game) { try { drawBeyond(el, trailG, opt.game, byId, pin); } catch { /* 탐험 기록이 없어도 지도는 그린다 */ } }
   // 장소
   const placeG = el("g", {}, svg);
   let hereP = null;

@@ -9,7 +9,9 @@ globalThis.FL_DATA_URLS = true; // 견본 페이지는 그림을 data 주소로 
 // 견본에서는 한 집안이 다닌 길을 지어서 보여 준다
 const game = { life: { place: 'barka' }, date: { year: 531, month: 6 }, atlas: { home: 'ern', last: 'barka',
   v: { ern: [500, 204], harfen: [517, 30], verden: [519, 8], leocast: [520, 44], rosen: [524, 3], ort: [525, 14], eisen: [527, 6], roten: [527, 2], libera: [528, 3], portel: [528, 2], barka: [529, 20], tower: [530, 2] },
-  t: ['ern', 'harfen', 'ern', 'harfen', 'verden', 'leocast', 'rosen', 'leocast', 'ort', 'eisen', 'roten', 'libera', 'portel', 'barka', 'tower', 'barka'], f: { tower: 530 } } };
+  t: ['ern', 'harfen', 'ern', 'harfen', 'verden', 'leocast', 'rosen', 'leocast', 'ort', 'eisen', 'roten', 'libera', 'portel', 'barka', 'tower', 'barka'], f: { tower: 530 } },
+  explore: { regions: { cloud: { mapped: 0.62, trips: 2, heart: false }, deepwood: { mapped: 1, trips: 3, heart: true } }, firsts: { dragon_nest: { who: '나', me: true, name: '용의 옛 둥지', year: 529 }, frozen_shrine: { who: '회색 나침반 원정대', me: false, name: '얼어붙은 사원', year: 527 }, moss_city: { who: '나', me: true, name: '이끼에 묻힌 돌 도시', year: 524 }, old_root: { who: '나', me: true, name: '어머니의 뿌리', year: 526 }, glass_city: { who: '나', me: true, name: '유리가 된 도시', year: 530 } } } };
+game.atlas.v.hammer = [528, 2]; game.atlas.v.silverleaf = [523, 3]; game.atlas.v.estella = [530, 1];
 mountMap(document.getElementById('host'), { here: 'barka', game });
 `);
 execSync('npx --yes esbuild@0.24.0 dist/_map_entry.js --bundle --format=iife --minify --outfile=dist/_map_bundle.js', { stdio: 'inherit' });

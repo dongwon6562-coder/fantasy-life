@@ -1,6 +1,6 @@
 // 12단계 삽화: 원수와 복수. (종족 땅·탐험 그림도 여기에 잇는다)
-import { fbm1, mixh, rgba, dark, light } from './sceneKit.js';
-import { VW, HZ, sky, far, townFar, ground, room, windowAt, glow, candle, pool, person, tree, crows, finish, zoom } from './vignetteKit.js';
+import { fbm1, mixh, rgba, dark, light, puff } from './sceneKit.js';
+import { VW, VH, HZ, sky, far, townFar, ground, room, windowAt, glow, candle, pool, person, tree, crows, flame, finish, zoom } from './vignetteKit.js';
 
 const TAU = Math.PI * 2;
 const rect = (ctx, x, y, w, h, c) => { ctx.fillStyle = c; ctx.fillRect(x, y, w, h); };
@@ -106,7 +106,123 @@ function feudStrike(v) {
   finish(v, { noLeaves: true });
 }
 
+/* ---------- 탐험: 지도에 없는 땅 ---------- */
+/** 원정대 한 줄: 앞장선 나와 짐을 진 사람들. (x, y)가 앞사람 발끝, dir 가는 쪽, gy(x) 땅 높이 */
+function party(v, x, gy, dir, n, h, o = {}) {
+  const { ctx, t, R } = v;
+  for (let i = n - 1; i >= 0; i--) {
+    const px = x - dir * i * h * (0.5 + (i ? 0.08 : 0)), py = gy(px), hh = h * (i ? 0.9 + R() * 0.08 : 1), s = hh / 100;
+    if (i) { // 등짐
+      rect(ctx, px - dir * 15 * s - 6 * s, py - 84 * s, 13 * s, 26 * s, t(['#6a5238', '#5a4a3a', '#74603e'][i % 3])); rect(ctx, px - dir * 15 * s - 7 * s, py - 90 * s, 15 * s, 7 * s, t('#8a7a5c'));
+      person(v, px, py, hh, { f: dir, cloth: ['#4a4038', '#3e4a40', '#54463a', '#3a3e4a'][i % 4], hair: '#2a1e16', hood: !!o.hood || i % 2 === 0, cloak: !!o.cloak, old: true, stick: i % 2 ? 'staff' : null, rim: o.rim, rimDir: dir });
+    } else person(v, px, py, hh, { f: dir, cloth: v.me.cloth, hair: v.me.hair, female: v.me.female, long: v.me.long, cloak: true, hood: !!o.hood, stick: o.torch ? 'torch' : 'staff', arm: o.torch ? 'up' : null, rim: o.rim, rimDir: dir });
+  }
+}
+/** 가는 길. region: frost deepwood cloud mist ash */
+function exploreMarch(v, region) {
+  const { ctx, t, R } = v, night = v.S.tod === 'night';
+  sky(v);
+  if (region === 'frost') {
+    // 흰 벌판, 먼 빙벽, 얼음에 갇힌 돛대들
+    const ice = t('#c4d4e0'), far2 = t('#9fb4c8');
+    ctx.fillStyle = far2; ctx.beginPath(); ctx.moveTo(0, HZ + 8); for (let x = 0; x <= VW; x += 16) ctx.lineTo(x, HZ - 14 - fbm1(x / 60 + v.q, 3) * 26 - (x % 48 ? 0 : 8)); ctx.lineTo(VW, HZ + 8); ctx.fill();
+    const gy = (x) => 186 - fbm1(x / 180 + v.q, 2) * 8;
+    ctx.fillStyle = t('#e6edf2'); ctx.fillRect(0, HZ + 6, VW, VH); ctx.fillStyle = ice; ctx.beginPath(); ctx.moveTo(0, VH); for (let x = 0; x <= VW; x += 20) ctx.lineTo(x, gy(x) + 26 + fbm1(x / 40, 2) * 6); ctx.lineTo(VW, VH); ctx.fill();
+    for (let i = 0; i < 9; i++) { const mx = 420 + i * 22 + R() * 8, my = HZ + 16 + R() * 6, mh = 22 + R() * 16; stroke(ctx, [mx, my, mx + 2, my - mh], 1.2, t('#5a6470')); stroke(ctx, [mx - 5, my - mh * 0.7, mx + 8, my - mh * 0.74], 0.8, t('#5a6470')); }
+    for (let i = 0; i < 26; i++) { const x = R() * VW, y = HZ + 20 + R() * 90; stroke(ctx, [x, y, x + 18 + R() * 30, y - 1], 0.7, rgba('#ffffff', 0.5)); }
+    for (let i = 0; i < 5; i++) { const px = 300 - i * 34; oval(ctx, px - 20, gy(px) + 2, 26, 2.4, rgba('#6a7c90', 0.3)); }
+    if (night) for (let i = 0; i < 5; i++) { ctx.save(); ctx.globalCompositeOperation = 'lighter'; puff(ctx, 120 + i * 100, 40 + Math.sin(i * 1.7) * 14, 90, 16, '#58e0a0', 0.16); ctx.restore(); }
+    party(v, 330, gy, 1, 5, 62, { hood: true, cloak: true });
+    for (let i = 0; i < 50; i++) { const x = R() * VW, y = R() * VH; stroke(ctx, [x, y, x + 10 + R() * 8, y + 2], 0.6, rgba('#ffffff', 0.4)); }
+  } else if (region === 'deepwood') {
+    // 한낮에도 어두운 숲: 집채만 한 나무 밑동 사이의 작은 사람들
+    ctx.fillStyle = t('#16241c'); ctx.fillRect(0, 0, VW, VH);
+    for (let i = 0; i < 6; i++) { ctx.save(); ctx.globalCompositeOperation = 'lighter'; const x = 90 + i * 100 + R() * 30; const g = ctx.createLinearGradient(x, 0, x + 60, 200); g.addColorStop(0, 'rgba(170,220,150,.22)'); g.addColorStop(1, 'rgba(170,220,150,0)'); ctx.fillStyle = g; ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x + 22, 0); ctx.lineTo(x + 96, 210); ctx.lineTo(x + 40, 210); ctx.fill(); ctx.restore(); }
+    for (let i = 0; i < 9; i++) { const x = 20 + i * 76 + R() * 30, w = 16 + R() * 18; rect(ctx, x, 0, w, 190, t(dark('#2a3a2c', 0.1 + R() * 0.2))); }
+    const gy = (x) => 204 - fbm1(x / 120 + v.q, 3) * 10;
+    ctx.fillStyle = t('#24382a'); ctx.beginPath(); ctx.moveTo(0, VH); for (let x = 0; x <= VW; x += 16) ctx.lineTo(x, gy(x) - 6); ctx.lineTo(VW, VH); ctx.fill();
+    // 이끼 낀 깎은 돌 (누군가 길을 냈다)
+    for (const [x, w] of [[392, 30], [430, 22], [470, 34]]) { rect(ctx, x, gy(x) - 16, w, 14, t('#5c6658')); rect(ctx, x, gy(x) - 18, w, 4, t('#4a7040')); }
+    party(v, 340, gy, 1, 5, 44, { rim: 'rgba(190,230,160,.4)' });
+    // 앞쪽의 거대한 밑동과 뿌리
+    for (const [x, w] of [[-40, 130], [540, 150]]) { poly(ctx, [x, 0, x + w, 0, x + w * 1.08, 170, x + w * 1.3, VH, x - w * 0.3, VH, x - w * 0.08, 170], '#0e1612'); stroke(ctx, [x + w * 0.3, 0, x + w * 0.36, VH], 3, 'rgba(255,255,255,.03)'); }
+    stroke(ctx, [70, 232, 130, 222, 190, 238], 10, '#0e1612'); stroke(ctx, [470, 238, 540, 224, 600, 236], 10, '#0e1612');
+    for (let i = 0; i < 26; i++) { ctx.save(); ctx.globalCompositeOperation = 'lighter'; puff(ctx, R() * VW, 40 + R() * 180, 1.6, 1.6, '#c8f0a0', 0.5); ctx.restore(); }
+  } else if (region === 'cloud') {
+    // 구름 위의 능선: 발밑에 구름 바다, 멀리 솟은 봉우리
+    for (let i = 0; i < 5; i++) { const x = 60 + i * 140 + R() * 40, h = 40 + R() * 50; poly(ctx, [x - 46, HZ + 30, x - 8, HZ + 30 - h, x + 6, HZ + 36 - h, x + 50, HZ + 30], t('#7c8698')); poly(ctx, [x - 16, HZ + 38 - h, x - 8, HZ + 30 - h, x + 6, HZ + 36 - h, x + 12, HZ + 44 - h, x - 2, HZ + 40 - h], t('#eef2f6')); }
+    for (let j = 0; j < 3; j++) for (let i = 0; i < 16; i++) puff(ctx, i * 46 + R() * 30 - 20, HZ + 28 + j * 16 + R() * 8, 46 + R() * 30, 12 + R() * 6, t(['#c8d2e0', '#dde4ee', '#eef2f8'][j]), 0.9);
+    const gy = (x) => 214 - Math.max(0, 1 - Math.abs(x - 330) / 330) * 34 - fbm1(x / 70 + v.q, 3) * 8;
+    ctx.fillStyle = t('#4e4a50'); ctx.beginPath(); ctx.moveTo(0, VH); for (let x = 0; x <= VW; x += 10) ctx.lineTo(x, gy(x)); ctx.lineTo(VW, VH); ctx.fill();
+    ctx.fillStyle = rgba('#000000', 0.22); ctx.beginPath(); ctx.moveTo(0, VH); for (let x = 0; x <= VW; x += 10) ctx.lineTo(x, gy(x) + 14 + fbm1(x / 30, 2) * 10); ctx.lineTo(VW, VH); ctx.fill();
+    for (let i = 0; i < 7; i++) { const x = 40 + i * 92 + R() * 30; oval(ctx, x, gy(x) + 1, 9 + R() * 8, 3, t('#e4e8ee')); }
+    // 바위의 거대한 발톱 자국
+    for (let i = 0; i < 3; i++) stroke(ctx, [476 + i * 12, gy(480) + 10, 500 + i * 12, gy(480) + 44], 3, rgba('#000000', 0.4));
+    party(v, 350, gy, 1, 5, 58, { cloak: true, hood: true });
+  } else if (region === 'mist') {
+    // 안개 바다: 작은 배와 물 위로 솟은 탑 꼭대기들
+    const sea = t('#5c7480'); ctx.fillStyle = sea; ctx.fillRect(0, HZ + 4, VW, VH);
+    for (const [x, h, w] of [[420, 64, 16], [470, 96, 22], [530, 50, 14], [150, 40, 12]]) { const c = t('#6e7e84'); rect(ctx, x, HZ + 16 - h, w, h + 10, c); poly(ctx, [x - 4, HZ + 16 - h, x + w / 2, HZ - 4 - h - w, x + w + 4, HZ + 16 - h], dark(c, 0.14)); rect(ctx, x + w / 2 - 2, HZ + 30 - h, 4, 8, dark(c, 0.5)); oval(ctx, x + w / 2, HZ + 27, w, 2.4, rgba('#ffffff', 0.25)); }
+    for (let i = 0; i < 30; i++) { const y = HZ + 12 + R() * 110, x = R() * VW; stroke(ctx, [x, y, x + 14 + R() * 26, y], 0.8, rgba('#ffffff', 0.16)); }
+    // 배
+    const bx = 280, by = 196;
+    poly(ctx, [bx - 86, by - 16, bx + 96, by - 16, bx + 70, by + 8, bx - 66, by + 8], t('#3a2c22')); rect(ctx, bx - 86, by - 19, 182, 4, t('#5a4632'));
+    rect(ctx, bx - 2, by - 120, 4, 104, t('#3a2c22')); poly(ctx, [bx + 4, by - 116, bx + 62, by - 60, bx + 4, by - 36], t('#b8ac94')); poly(ctx, [bx + 4, by - 116, bx + 62, by - 60, bx + 30, by - 70], rgba('#000000', 0.12));
+    const deck = () => by - 14;
+    person(v, bx + 72, deck(), 56, { f: 1, cloth: v.me.cloth, hair: v.me.hair, female: v.me.female, long: v.me.long, cloak: true, arm: 'fwd' });
+    for (const [dx, f] of [[-60, 1], [-30, 1], [28, -1]]) person(v, bx + dx, deck(), 48, { f, cloth: '#4a4038', hair: '#2a1e16', pose: 'sit' });
+    poly(ctx, [bx - 86, by - 16, bx + 96, by - 16, bx + 92, by - 10, bx - 82, by - 10], t('#4a3a2a'));
+    oval(ctx, bx, by + 10, 110, 4, rgba('#ffffff', 0.2));
+    for (let j = 0; j < 4; j++) for (let i = 0; i < 9; i++) puff(ctx, i * 84 + R() * 40 - 30, HZ - 6 + j * 34 + R() * 14, 80 + R() * 40, 12 + R() * 8, t('#c8d0d4'), 0.26);
+  } else {
+    // 재의 사막: 잿빛 모래 언덕, 유리가 된 검은 첨탑, 흐린 붉은 해
+    ctx.save(); ctx.globalCompositeOperation = 'lighter'; puff(ctx, 470, HZ - 34, 60, 60, '#c8402a', 0.3); ctx.restore(); oval(ctx, 470, HZ - 34, 15, 15, t('#d86a48'));
+    for (let j = 0; j < 3; j++) { const c = t(['#6a6468', '#585358', '#48444a'][j]); ctx.fillStyle = c; ctx.beginPath(); ctx.moveTo(0, VH); for (let x = 0; x <= VW; x += 12) ctx.lineTo(x, HZ + 10 + j * 30 - fbm1(x / (130 - j * 20) + v.q + j * 7, 2) * (22 + j * 6)); ctx.lineTo(VW, VH); ctx.fill(); if (j === 0) for (const [x, h] of [[90, 60], [124, 36], [540, 78], [572, 44], [240, 28]]) { poly(ctx, [x - 7, HZ + 12, x - 2, HZ + 12 - h, x + 3, HZ + 4 - h * 0.8, x + 8, HZ + 12], '#1a181e'); stroke(ctx, [x - 1, HZ + 8, x - 1, HZ + 16 - h], 0.8, rgba('#c8e0f0', 0.5)); } }
+    const gy = (x) => 208 - fbm1(x / 90 + v.q + 14, 2) * 28;
+    // 모래에 반쯤 묻힌 칼과 투구
+    for (const x of [440, 462, 500]) stroke(ctx, [x, gy(x) + 12, x + 4, gy(x) - 8], 1.6, t('#8a8e94')); oval(ctx, 482, gy(482) + 10, 7, 5, t('#6a6e74'));
+    party(v, 330, (x) => gy(x) + 14, 1, 5, 60, { cloak: true, hood: true, rim: 'rgba(255,140,100,.35)' });
+    for (let i = 0; i < 60; i++) { const x = R() * VW, y = R() * VH; oval(ctx, x, y, 0.9, 0.9, rgba('#d8d0c8', 0.4)); }
+  }
+  finish(v, { noLeaves: true });
+}
+/** 가장 깊은 곳: 벼랑을 통째로 깎은 문 앞, 횃불을 든 작은 사람들. region마다 돌빛과 문 안의 빛이 다르다 */
+function exploreHeart(v, region) {
+  const { ctx, R } = v;
+  const pal = { frost: ['#8ea4b8', '#a8e0ff', '#dfeaf2'], deepwood: ['#4a5a48', '#b8f0a0', '#2c3a2c'], cloud: ['#7a7c8c', '#fff0c0', '#c8cedc'], mist: ['#566a70', '#8ae0d8', '#3c5058'], ash: ['#3c383e', '#ff7a40', '#57505a'] }[region] ?? ['#6a665e', '#ffe0a0', '#4a463e'];
+  const [stone, lightC, groundC] = pal;
+  ctx.fillStyle = dark(stone, 0.72); ctx.fillRect(0, 0, VW, VH);
+  // 벼랑 면
+  for (let i = 0; i < 16; i++) { const x = i * 42 - 10 + R() * 10; rect(ctx, x, 0, 44, 190, dark(stone, 0.3 + R() * 0.22)); }
+  // 문: 높이가 사람 스무 길
+  const gx = 330, gw = 74, gt = 14, gb = 188;
+  rect(ctx, gx - gw - 26, gt - 8, (gw + 26) * 2, gb - gt + 8, dark(stone, 0.12)); rect(ctx, gx - gw - 34, gt - 14, (gw + 34) * 2, 10, light(stone, 0.06));
+  for (const d of [-1, 1]) { rect(ctx, gx + d * (gw + 13) - 11, gt, 22, gb - gt, stone); rect(ctx, gx + d * (gw + 13) - 11 + (d > 0 ? 11 : 0), gt, 11, gb - gt, rgba('#000000', 0.25)); for (let k = 0; k < 9; k++) rect(ctx, gx + d * (gw + 13) - 7, gt + 10 + k * 19, 14, 9, dark(stone, 0.3)); }
+  ctx.fillStyle = '#060608'; ctx.beginPath(); ctx.moveTo(gx - gw, gb); ctx.lineTo(gx - gw, gt + 50); ctx.quadraticCurveTo(gx, gt - 10, gx + gw, gt + 50); ctx.lineTo(gx + gw, gb); ctx.fill();
+  // 문 안의 빛 (조금 열린 틈)
+  ctx.save(); ctx.globalCompositeOperation = 'lighter'; const g = ctx.createLinearGradient(gx, gt + 30, gx, gb); g.addColorStop(0, rgba(lightC, 0)); g.addColorStop(1, rgba(lightC, 0.5)); ctx.fillStyle = g; ctx.fillRect(gx - 5, gt + 36, 10, gb - gt - 36); puff(ctx, gx, gb - 30, 60, 90, lightC, 0.2); puff(ctx, gx, gb, 110, 22, lightC, 0.22); ctx.restore();
+  // 문 위의 눈 모양 새김
+  ctx.strokeStyle = dark(stone, 0.5); ctx.lineWidth = 2; ctx.beginPath(); ctx.ellipse(gx, gt + 2, 22, 7, 0, 0, TAU); ctx.stroke(); oval(ctx, gx, gt + 2, 4, 4, dark(stone, 0.5));
+  // 바닥과 계단
+  ctx.fillStyle = dark(groundC, 0.35); ctx.fillRect(0, gb, VW, VH - gb);
+  for (let k = 0; k < 5; k++) { rect(ctx, gx - gw - 30 - k * 16, gb + k * 7, (gw + 30 + k * 16) * 2, 7, dark(groundC, 0.2 + k * 0.05)); rect(ctx, gx - gw - 30 - k * 16, gb + k * 7, (gw + 30 + k * 16) * 2, 1.2, rgba('#ffffff', 0.1)); }
+  if (region === 'frost') for (let i = 0; i < 14; i++) { const x = 20 + R() * 600; poly(ctx, [x - 4, 0, x + 4, 0, x, 14 + R() * 30], rgba('#dff0ff', 0.6)); }
+  if (region === 'deepwood') for (let i = 0; i < 7; i++) { const x = 40 + i * 92 + R() * 20; ctx.strokeStyle = '#1c2a1c'; ctx.lineWidth = 6 + R() * 6; ctx.beginPath(); ctx.moveTo(x, 0); ctx.bezierCurveTo(x + 30, 60, x - 40, 120, x + (x < gx ? 30 : -30), 200); ctx.stroke(); }
+  if (region === 'mist') { rect(ctx, 0, gb + 22, VW, VH, rgba('#3a6068', 0.55)); for (let i = 0; i < 16; i++) { const x = R() * VW, y = gb + 26 + R() * 24; stroke(ctx, [x, y, x + 16 + R() * 24, y], 0.8, rgba('#c8f0f0', 0.3)); } }
+  if (region === 'ash') for (let i = 0; i < 40; i++) oval(ctx, R() * VW, R() * VH, 1, 1, rgba('#d8c8c0', 0.4));
+  if (region === 'cloud') for (let i = 0; i < 30; i++) oval(ctx, gx - 60 + R() * 120, gt + 40 + R() * 130, 0.9, 0.9, rgba('#fff4d0', 0.7));
+  // 사람들: 횃불 든 나와 일행
+  const py = gb + 34;
+  person(v, 250, py, 34, { raw: true, f: 1, cloth: '#3e4a40', hair: '#2a1e16', hood: true, rim: WARM, rimDir: 1 });
+  person(v, 276, py + 2, 36, { raw: true, f: 1, cloth: v.me.cloth, hair: v.me.hair, female: v.me.female, long: v.me.long, cloak: true, stick: 'torch', rim: WARM, rimDir: 1 });
+  flame(v, 276 + 6.5, py + 2 - 37, 0.5); glow(v, 282, py - 34, 44, '#ffb060', 0.4); pool(v, 280, py + 2, 60, 9, '#ffb060', 0.2);
+  person(v, 226, py + 4, 34, { raw: true, f: 1, cloth: '#54463a', hair: '#2a1e16', old: true, stick: 'staff' });
+  finish(v, { inside: true });
+}
+
 export const PLATES3 = {
   /** 원수. variant: turned offer peace plot strike */
   feud(v) { const k = v.variant ?? 'turned'; return k === 'plot' ? feudPlot(v) : k === 'strike' ? feudStrike(v) : feudBridge(v); },
+  /** 탐험. variant: frost deepwood cloud mist ash (가는 길), heart-<땅> (가장 깊은 곳) */
+  explore(v) { const k = v.variant ?? 'frost'; return k.startsWith('heart-') ? exploreHeart(v, k.slice(6)) : exploreMarch(v, k); },
 };
