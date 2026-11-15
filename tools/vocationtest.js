@@ -13,6 +13,7 @@ import { PLACES } from '../src/places.js';
 import { WORK, takeJob, jobRank } from '../src/jobs.js';
 import { realmState } from '../src/realms/index.js';
 import { V, vocOfJob } from '../src/vocation/core.js';
+import { crimeState } from '../src/crime.js';
 import { vocationStatus, VOC_JOB_IDS, PATHS, VOC_EVENTS } from '../src/vocation/index.js';
 
 SCENE_STRICT.on = true;
@@ -101,8 +102,10 @@ const SETUP = {
         if (L(g).job?.id !== id) takeJob(g, id);
         month(g, ['work']);
         if (g.player.injuries.length > 2) healAll(g);
+        crimeState(g).jailed = null; // 다른 사건으로 갇히면 일을 잃는다: 이 점검은 일 자체만 본다
       }
       if (g.over) continue;
+      if (L(g).job?.id !== id) takeJob(g, id);
       ranks += jobRank(g) - r0;
       fame += V(g).fame[vocOfJob(id)] ?? 0;
       money += g.player.money - m0;
