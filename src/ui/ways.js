@@ -14,7 +14,9 @@ import { esc } from './util.js';
 // 갈래: 이름, 하는 일, 묶음 행동, 아무 데서도 안 될 때 보일 말
 const PATHS = [
   { id: 'magic', name: '마법과 서클', what: '마력을 다듬어 서클을 이룬다. 서클을 이룬 마법사는 드물다.', acts: ['meditate', 'magic_lesson', 'magic_selfstudy', 'spell_study', 'circle_exam'], lock: '마력을 깨닫는 것이 먼저다. 마력은 어릴 때 우연히, 또는 오랜 수련 끝에 깨어난다.' },
+  { id: 'tower', name: '마탑', what: '마탑에 들어가 견습 마도사로 산다. 탑 일을 하며 공을 쌓고, 서클 공인을 받고, 마도구를 만든다.', acts: ['tower_join', 'tower_duty', 'tower_exam', 'tower_craft'], lock: '열네 살부터, 마력을 깨닫고 마법 솜씨를 15쯤 쌓으면 마탑이 있는 고장에서 문을 두드릴 수 있다.' },
   { id: 'sword', name: '검술 유파', what: '유파에 들어가 검을 배우고 단을 딴다. 겨루기와 결투도 있다.', acts: ['sword_school_join', 'sword_school_train', 'sword_rank_test', 'sword_spar', 'sword_father', 'sword_guard'], lock: '여덟 살부터, 유파의 사범이 있는 고장에서 들어갈 수 있다.' },
+  { id: 'army', name: '왕국군', what: '모병소에서 입대해 세 해 동안 창을 든다. 공을 세우면 십인장, 백인장으로 오르고, 원정을 떠난다.', acts: ['army_enlist', 'army_resign'], lock: '열여섯 살부터 마흔두 살까지, 병영이 있는 고장의 모병소에서 입대할 수 있다.' },
   { id: 'guild', name: '소속 (기사단·교단·상단·길드)', what: '큰 무리에 들어가 그 안에서 오른다. 소속이 있어야 하는 일자리도 있다.', acts: ['faction_door'], lock: '어른(열다섯 살)이 되면 찾아갈 수 있다.' },
   { id: 'adventure', name: '모험과 동료', what: '동료를 모아 의뢰를 받고, 폐허와 미궁에 들어간다.', acts: ['gather_party', 'party_manage', 'party_quest', 'quest', 'delve', 'gear'], lock: '어른이 되면 동료를 모을 수 있다. 의뢰는 모험가 길드에 들어가야 받는다.' },
   { id: 'deep', name: '깊은 구렁', what: '끝이 없다는 구렁으로 내려간다. 아래로 갈수록 값진 것과 위험한 것이 함께 있다.', acts: ['deep_descend', 'deep_tavern', 'deep_market', 'deep_throne'], lock: '어른이 되어 구렁목까지 가야 한다.' },
@@ -26,11 +28,12 @@ const PATHS = [
   { id: 'estate', name: '집과 재산', what: '집을 옮기고, 땅과 가게를 세놓고, 돈을 빌리거나 맡긴다.', acts: ['housing', 'estate_manage', 'estate_borrow', 'estate_invest'], lock: '어른이 되면 집을 옮길 수 있다.' },
   { id: 'research', name: '연구와 발명', what: '공방과 학당에서 새 물건과 새 술식을 궁리한다.', acts: ['research'], lock: '열네 살부터, 연구할 곳이 있는 고장에서 글이나 손재주를 갖추면 된다.' },
   { id: 'legend', name: '이름난 스승', what: '세상에 이름난 사람에게 직접 배운다.', acts: ['legend_lesson'], lock: '열두 살부터, 큰 인물이 머무는 고장에서 그가 받아 줄 때.' },
+  { id: 'love', name: '사랑과 혼인', what: '마음에 둔 사람을 만나고, 고백하고, 혼인한다. 배우자도 저만의 일과 바람이 있다.', acts: ['love_date', 'love_spouse', 'love_grave'], lock: '어른이 되어 마음이 가는 사람이 생기면 만나러 갈 수 있다. 사람들과 자주 어울리면 인연이 생긴다.' },
   { id: 'kin', name: '가정과 자식', what: '자식과 시간을 보내고, 무엇을 가르칠지 정하고, 유언을 남긴다.', acts: ['kin_time', 'kin_adopt', 'kin_will'], lock: '자식이 생기거나, 어른이 되어 아이를 거둘 수 있을 때.' },
   { id: 'repute', name: '평판', what: '이름을 알리고, 잔치를 열고, 나쁜 소문을 바로잡는다.', acts: ['repute_boast', 'repute_feast', 'repute_clear'], lock: '고장 사람들이 나를 알아야 한다.' },
   { id: 'war', name: '용병과 전쟁', what: '전쟁 중인 나라에 칼을 판다.', acts: ['pol_merc'], lock: '열여섯 살부터, 전쟁 중인 나라가 용병을 구할 때.' },
   { id: 'seal', name: '봉인 조사', what: '마신의 봉인에 얽힌 기록과 조짐을 캔다.', acts: ['seal_study'], lock: '봉인이 흔들린다는 소문이 돌고, 글이나 마법을 갖추면 서고나 마탑에서 할 수 있다.' },
-  { id: 'dark', name: '어두운 길', what: '소매치기부터 조직의 일까지. 들키면 감옥에 간다.', acts: ['crime_pickpocket', 'crime_burglary', 'crime_fraud', 'crime_snoop', 'gang_seek', 'gang_job', 'dawn_rite', 'repute_slander'], lock: '여덟 살부터 소매치기를 할 수 있다. 조직은 그런 무리가 있는 고장에서.' },
+  { id: 'dark', name: '어두운 길', what: '소매치기부터 조직의 일까지. 들키면 감옥에 간다.', acts: ['crime_pickpocket', 'crime_burglary', 'crime_fraud', 'crime_snoop', 'gang_seek', 'gang_job', 'dawn_rite', 'repute_slander', 'forbidden_rite'], lock: '여덟 살부터 소매치기를 할 수 있다. 조직은 그런 무리가 있는 고장에서.' },
 ];
 const PATH_ACTS = new Set(PATHS.flatMap((p) => p.acts));
 // 어디서나 하는 흔한 일 (이 고장만의 일로 치지 않는다)
