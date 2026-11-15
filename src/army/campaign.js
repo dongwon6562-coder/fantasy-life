@@ -145,7 +145,7 @@ defineScene('army_march', {
 });
 
 /* ---------- 큰 싸움 ---------- */
-const enemyOf = (c) => ARMIES[c.key] ?? ARMIES.bandits;
+const enemyOf = (c) => ARMIES[c?.key] ?? ARMIES.bandits;
 defineScene('army_clash', {
   need: (g) => onCampaign(g),
   title: (g) => `${A(g).campaign.name}의 싸움`,
@@ -163,6 +163,7 @@ defineScene('army_clash', {
   resolve(g, rng, s, key) {
     const a = A(g);
     const c = a.campaign;
+    if (!c) return '싸움이 벌어지기 전에 원정이 끝났다. 깃발이 내려가고, 병사들은 흩어졌다.'; // 같은 달에 원정이 끝난 경우 (헤드)
     if (key === 'flee') { desert(g, 'battle'); stress(g, 10); return '창을 버리고 등을 돌렸다. 뒤에서 누군가 내 이름을 불렀다. 돌아보지 않았다.'; }
     const E = enemyOf(c);
     const rk = rankOf(g);

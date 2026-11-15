@@ -114,7 +114,7 @@ for (let run = 0; run < 14; run++) {
 lies = seen.scenes.repute_lie ?? 0; matches = seen.scenes.repute_match ?? 0;
 ok(nicks >= 3, `nicknames ${nicks}/14`);
 ok(lies >= 3, `lies ${lies}`);
-ok(matches >= 2, `matches ${matches}`);
+ok(matches >= 1, `matches ${matches}`); // 11단계 사랑(love_arranged)과 혼담이 나눠 가져 드물어졌다
 ok(maxFame >= 40, `fame grows ${maxFame}`);
 
 // 5) 대 잇기: 평판 일부가 남는다, 옛 저장

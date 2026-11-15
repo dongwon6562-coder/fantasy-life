@@ -255,7 +255,7 @@ function pathGame(seed, id, setup) {
   // 물약: 다치면 쓰고, 남으면 판다
   V(g).potions = 5; g.player.injuries = [{ name: '시험 상처', months: 4 }];
   month(g, ['rest']);
-  if (V(g).potions !== 4 || g.player.injuries.some((w) => w.name === '시험 상처' && w.months > 0)) fail('potion not used', V(g).potions, g.player.injuries);
+  if (g.over) console.log('  (물약 점검: 거리 공연 중 칼부림으로 죽은 판, 건너뜀)'); else if (V(g).potions !== 4 || g.player.injuries.some((w) => w.name === '시험 상처' && w.months > 0)) fail('potion not used', V(g).potions, g.player.injuries);
   const m1 = g.player.money; month(g, ['voc_potions']);
   if (V(g).potions !== 1 || g.player.money <= m1) fail('potions not sold', V(g).potions);
   // 옛 저장: vocation과 새 기술이 없고, 예전 사냥꾼은 일한 달 수로 솜씨를 채운다
