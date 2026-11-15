@@ -4,6 +4,7 @@
 import { W, H, HZ, hash, fbm1, ridged1, rng, mixh, rgba, dark, light, clamp, sbump, lerp, fillCurve, clipBelow, poly, puff, mist, vgrad, grain, trace, canvasUrl, dropUrl } from './sceneKit.js';
 import { describe } from './scenePlaces.js';
 import { skyOf, paintSky, gradeLand, paintWeather } from './sceneSky.js';
+import { weatherFor, tweak as seasonTweak, land as seasonLand, air as seasonAir } from './sceneSeason.js';
 import { paletteOf, mountains, hillBand, treeline, forestMass, fields, water, tree, conifer, palm, rock, reedClump, foreground } from './sceneLand.js';
 import { STYLE, house, tower, wallRun, windmill, church, cathedral, keep, castle, citadel, mageTowers, endlessTower, wizardTower, elfGreatTree, ropeBridge, dwarfFacade, yurt, herd, ruinArch, bastion, manor, fortress, ruins, ruinPalace, lighthouse, ship, docks, elfSpire, tent, totem, blackSpire, stiltHut, dwarfGate, worldTree } from './sceneTown.js';
 
@@ -16,6 +17,7 @@ export function conditions(year, month) {
   let weather = 'clear';
   if (season === '겨울') weather = w < 0.11 ? 'blizzard' : w < 0.45 ? 'snow' : w < 0.62 ? 'cloudy' : w < 0.72 ? 'wind' : 'clear';
   else if (season === '봄') weather = w < 0.21 ? 'rain' : w < 0.26 ? 'storm' : w < 0.39 ? 'cloudy' : w < 0.49 ? 'fog' : w < 0.61 ? 'wind' : 'clear';
+  else if (month === 7) weather = w < 0.34 ? 'rain' : w < 0.46 ? 'storm' : w < 0.56 ? 'cloudy' : w < 0.62 ? 'wind' : 'clear'; // 장마철
   else if (season === '여름') weather = w < 0.11 ? 'rain' : w < 0.21 ? 'storm' : w < 0.29 ? 'cloudy' : w < 0.35 ? 'wind' : 'clear';
   else weather = w < 0.21 ? 'rain' : w < 0.27 ? 'storm' : w < 0.42 ? 'fog' : w < 0.56 ? 'cloudy' : w < 0.72 ? 'wind' : 'clear';
   if (weather === 'fog' && tod === 'night') weather = 'cloudy';
@@ -31,12 +33,12 @@ export function conditionText(year, month) {
 
 const cache = new Map();
 /** 풍경 그림 (data URL). 브라우저에서만 동작. */
-export function sceneImage({ year, month, famine = false, plague = false, place = 'ern' }) {
-  const key = `${year}-${month}-${famine}-${plague}-${place}`;
+export function sceneImage({ year, month, famine = false, plague = false, place = 'ern', calamity = null }) {
+  const key = `${year}-${month}-${famine}-${plague}-${place}-${calamity ?? ''}`;
   if (cache.has(key)) return cache.get(key);
   if (typeof document === 'undefined') return '';
   let url = '';
-  try { url = draw(year, month, !!famine, !!plague, place); } catch { /* 그림이 없어도 게임은 이어진다 */ }
+  try { url = draw(year, month, !!famine, !!plague, place, calamity); } catch { /* 그림이 없어도 게임은 이어진다 */ }
   if (!url) return '';
   // 오래된 그림부터 버린다. 지금 화면에 나온 그림(가장 새것)은 남는다.
   while (cache.size >= 16) { const [k, old] = cache.entries().next().value; cache.delete(k); dropUrl(old); }
@@ -44,12 +46,16 @@ export function sceneImage({ year, month, famine = false, plague = false, place 
   return url;
 }
 
-function draw(year, month, famine, plague, place) {
+function draw(year, month, famine, plague, place, calamity) {
   const D = describe(place), k = year * 12 + month;
-  const { tod, weather: w0 } = conditions(year, month);
+  const c0 = conditions(year, month);
+  // 재앙이 없을 때, 7월의 비는 장마다
+  const cal = calamity ?? (month === 7 && (c0.weather === 'rain' || c0.weather === 'storm') && D.biome !== 'cold' && D.biome !== 'ash' && D.biome !== 'blight' ? 'monsoon' : null);
+  const { tod, weather: w0 } = cal ? weatherFor(cal, c0.tod, c0.weather) : c0;
   // 남쪽 섬에는 눈이 오지 않고, 병든 땅의 눈은 재처럼 내린다
   const weather = D.biome === 'island' && (w0 === 'snow' || w0 === 'blizzard') ? (w0 === 'snow' ? 'rain' : 'storm') : w0;
-  const P = paletteOf(month, D.biome, famine);
+  const P = paletteOf(cal === 'frost' && (month >= 11 || month <= 3) ? 1 : month, D.biome, famine);
+  if (cal) seasonTweak(P, cal);
   const S = skyOf(tod, weather, D.biome, k);
   const cv = document.createElement('canvas'); cv.width = W; cv.height = H;
   const ctx = cv.getContext('2d');
@@ -60,10 +66,12 @@ function draw(year, month, famine, plague, place) {
   const e = { D, P, S, R, wr, month, k, plague, wins: [], smoke: [], st: STYLE[D.culture] || STYLE.leonia, q: D.seed % 89 };
   const layout = D.layout ?? (D.biome === 'island' ? 'island' : D.biome === 'lake' ? 'lake' : D.biome === 'mountain' ? 'mountain' : D.biome === 'forest' ? 'forest' : D.coast || D.biome === 'coast' ? 'coast' : 'open');
   LAYOUTS[layout](L, e);
+  if (cal) seasonLand(L, cal, e);
   gradeLand(L, S, plague);
   ctx.drawImage(land, 0, 0);
   lights(ctx, e);
   paintWeather(ctx, S, wr, { leaves: !!P.autumn && !P.blight, embers: D.culture === 'demon', month, snowy: !!P.snow, barren: !!P.blight });
+  if (cal) seasonAir(ctx, cal, e);
   grain(ctx);
   land.width = land.height = 0;
   return canvasUrl(cv, 'image/jpeg', 0.88);

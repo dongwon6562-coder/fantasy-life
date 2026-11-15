@@ -16,18 +16,22 @@ sel.value = st.place;
 $('#months').innerHTML = Array.from({ length: 12 }, (_, i) => '<button class="ghost" data-m="' + (i + 1) + '">' + (i + 1) + '월</button>').join('');
 function show() {
   $('#view').src = sceneImage(st);
-  $('#cap').textContent = '용사력 ' + st.year + '년 ' + st.month + '월 · ' + conditionText(st.year, st.month) + (st.famine ? ' · 흉년' : '') + (st.plague ? ' · 역병' : '');
+  $('#cap').textContent = '용사력 ' + st.year + '년 ' + st.month + '월 · ' + conditionText(st.year, st.month) + (st.famine ? ' · 흉년' : '') + (st.plague ? ' · 역병' : '') + (st.calamity ? ' · ' + CAL[st.calamity] : '');
   document.querySelectorAll('[data-m]').forEach((b) => b.classList.toggle('on', +b.dataset.m === st.month));
   $('#famine').classList.toggle('on', st.famine); $('#plague').classList.toggle('on', st.plague);
 }
 sel.onchange = () => { st.place = sel.value; show(); };
-$('#months').onclick = (e) => { const m = e.target.dataset.m; if (m) { st.month = +m; show(); } };
+$('#months').onclick = (e) => { const m = e.target.dataset.m; if (m) { st.month = +m; st.calamity = null; show(); } };
 $('#prev').onclick = () => { st.year--; show(); };
 $('#next').onclick = () => { st.year++; show(); };
 $('#famine').onclick = () => { st.famine = !st.famine; show(); };
 $('#plague').onclick = () => { st.plague = !st.plague; show(); };
 show();
-const picks = [['ern', 505, 1], ['harfen', 505, 4], ['leocast', 505, 10], ['solaris', 506, 9], ['serenia', 505, 7], ['barka', 505, 6], ['graubel', 505, 12], ['eisen', 505, 5], ['iela', 505, 6], ['grondar', 505, 6], ['redcastle', 505, 7], ['saltmare', 505, 6], ['noah', 505, 5], ['spire', 505, 7], ['lich', 505, 8], ['tower', 505, 6], ['ort', 505, 5], ['stellen', 505, 9], ['wolffort', 505, 1], ['barracks', 505, 5],
+const CAL = { drought: '가뭄', flood: '큰물', frost: '혹한', locust: '메뚜기 떼', quake: '땅울림', monsoon: '장마' };
+const picks = [
+  // 13단계 철과 재앙: 가뭄, 큰물, 혹한, 메뚜기 떼, 땅울림, 장마
+  ['ern', 505, 8, 'drought'], ['ern', 505, 6, 'flood'], ['ern', 505, 1, 'frost'], ['ern', 505, 8, 'locust'], ['harfen', 505, 5, 'quake'], ['ern', 506, 7, 'monsoon'], ['verden', 506, 6, 'drought'], ['leocast', 505, 9, 'flood'], ['harfen', 505, 4, 'frost'],
+ ['ern', 505, 1], ['harfen', 505, 4], ['leocast', 505, 10], ['solaris', 506, 9], ['serenia', 505, 7], ['barka', 505, 6], ['graubel', 505, 12], ['eisen', 505, 5], ['iela', 505, 6], ['grondar', 505, 6], ['redcastle', 505, 7], ['saltmare', 505, 6], ['noah', 505, 5], ['spire', 505, 7], ['lich', 505, 8], ['tower', 505, 6], ['ort', 505, 5], ['stellen', 505, 9], ['wolffort', 505, 1], ['barracks', 505, 5],
   // 12단계 땅의 그림: 엘프 숲, 드워프 산속 도시, 수인 초원, 옛 유적
   ['silverleaf', 505, 10], ['border', 505, 8], ['hammer', 505, 1], ['garum', 505, 6], ['bear', 505, 5], ['argen', 505, 6], ['fallen', 505, 7], ['estella', 505, 5],
   // 계절과 날씨: 뇌우, 눈보라, 바람, 오로라, 반딧불, 안개
@@ -35,10 +39,10 @@ const picks = [['ern', 505, 1], ['harfen', 505, 4], ['leocast', 505, 10], ['sola
 let i = 0;
 (function next() {
   if (i >= picks.length) return;
-  const [place, year, month] = picks[i++], p = P.find((q) => q.id === place);
+  const [place, year, month, calamity = null] = picks[i++], p = P.find((q) => q.id === place);
   const f = document.createElement('figure');
-  f.innerHTML = '<img alt="" src="' + sceneImage({ place, year, month }) + '"><figcaption>' + (p ? p.n : place) + ' · ' + month + '월 · ' + conditionText(year, month) + '</figcaption>';
-  f.onclick = () => { st.place = place; st.year = year; st.month = month; sel.value = place; show(); scrollTo({ top: 0, behavior: 'smooth' }); };
+  f.innerHTML = '<img alt="" src="' + sceneImage({ place, year, month, calamity }) + '"><figcaption>' + (p ? p.n : place) + ' · ' + month + '월 · ' + (calamity ? CAL[calamity] : conditionText(year, month)) + '</figcaption>';
+  f.onclick = () => { st.place = place; st.year = year; st.month = month; st.calamity = calamity; sel.value = place; show(); scrollTo({ top: 0, behavior: 'smooth' }); };
   $('#gallery').appendChild(f);
   setTimeout(next, 30);
 })();
