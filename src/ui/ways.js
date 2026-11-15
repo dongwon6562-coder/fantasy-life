@@ -20,6 +20,7 @@ const PATHS = [
   { id: 'guild', name: '소속 (기사단·교단·상단·길드)', what: '큰 무리에 들어가 그 안에서 오른다. 소속이 있어야 하는 일자리도 있다.', acts: ['faction_door'], lock: '어른(열다섯 살)이 되면 찾아갈 수 있다.' },
   { id: 'adventure', name: '모험과 동료', what: '동료를 모아 의뢰를 받고, 폐허와 미궁에 들어간다.', acts: ['gather_party', 'party_manage', 'party_quest', 'quest', 'delve', 'gear'], lock: '어른이 되면 동료를 모을 수 있다. 의뢰는 모험가 길드에 들어가야 받는다.' },
   { id: 'deep', name: '깊은 구렁', what: '끝이 없다는 구렁으로 내려간다. 아래로 갈수록 값진 것과 위험한 것이 함께 있다.', acts: ['deep_descend', 'deep_tavern', 'deep_market', 'deep_throne'], lock: '어른이 되어 구렁목까지 가야 한다.' },
+  { id: 'explore', name: '지도에 없는 땅', what: '원정대를 꾸려 미지의 땅으로 간다. 옛 문명의 유적을 찾아 팔거나, 학계에 바치거나, 숨긴다.', acts: ['explore_plan', 'explore_sell', 'explore_give', 'explore_unhide'], lock: '어른이 되어 지도의 끝 고장(에스텔라 폐허, 은잎 마을, 쇠망치 골, 소금바위섬 등)에서 원정대를 꾸릴 수 있다.' },
   { id: 'sea', name: '바다', what: '배를 타고 먼 항구로 가고, 짐을 나르고, 해적을 쫓거나 해적이 된다.', acts: ['sail', 'shipyard', 'cargo', 'sea_bounty', 'pirate_den', 'pirate_raid', 'serpent_lair'], lock: '어른이 되어 항구 고장에 가야 한다.' },
   { id: 'faith', name: '믿음', what: '신전에서 기도하고 축일을 지킨다. 믿음이 깊어지면 순례를 떠난다.', acts: ['pray', 'worship', 'keep_feast', 'pilgrimage', 'faith_seek', 'holy_heal'], lock: '다섯 살부터 기도할 수 있다.' },
   { id: 'court', name: '궁정', what: '궁정에 드나들며 편을 고르고, 혼담을 넣고, 음모를 꾸민다.', acts: ['court_attend', 'court_side', 'court_match', 'court_plot'], lock: '궁정이 있는 도읍에서, 작위나 관직이나 이름값으로 문이 열린다.' },

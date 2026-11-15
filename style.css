@@ -1165,3 +1165,14 @@ html:not(.motion) .pol-land .pol-ring { animation: none; }
 /* 사람 카드(자식·사랑)의 막대: 좁은 폰·큰 글자에서 막대가 짓눌리지 않게, 이름과 값은 윗줄·막대는 아랫줄 */
 .kn-row { grid-template-columns: minmax(0, 1fr) auto; row-gap: 3px; }
 .kn-row > .wd-bar { grid-column: 1 / -1; grid-row: 2; width: 100%; }
+
+/* ---------- 12단계: 지도에 없는 땅 ---------- */
+.explore-card, .explore-now { display: grid; gap: 8px; }
+.explore-card > .note, .explore-now > .note { margin: 0; }
+.explore-now.bad { border-color: rgba(179, 38, 30, .6); }
+.explore-card .wd-row, .explore-now .wd-row { grid-template-columns: minmax(0, 84px) minmax(0, 1fr) auto; }
+.explore-card .wd-row .v, .explore-now .wd-row .v { white-space: nowrap; font-size: 12px; }
+.explore-card .ct-houses li > .note, .ex-regions li > .note { margin: 0; }
+.explore-card .note.ok { color: var(--good); }
+.ex-regions li.heart { border-color: var(--brass); }
+.sm-chip.down b { color: #d0675c; }
