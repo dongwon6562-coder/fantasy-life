@@ -19,6 +19,7 @@ const GROUPS = [
   ['봉인의 흔들림', [['쇠사슬 꿈', 'seal:dream'], ['북쪽으로 가는 조사단', 'seal:map'], ['그림자가 늦게 따라오는 사람', 'seal:alley', 'harfen'], ['창가의 손님', 'seal:visitor'], ['쐐기를 노리는 밤', 'seal:stone'], ['검은 돌 조각', 'seal:shard'], ['북쪽으로 가는 마법사들', 'seal:rite'], ['깨진 밤 다음 날', 'seal:broken']]],
   ['일터', [['의원', 'trade:healer'], ['음유시인', 'trade:bard', 'harfen'], ['선생', 'trade:teacher'], ['연금술사', 'trade:alchemy', 'harfen'], ['목수와 석공', 'trade:builder']]],
   ['큰 짐승 사냥', [['흔적', 'beast:tracks'], ['큰 멧돼지', 'beast:boar'], ['동굴곰', 'beast:bear'], ['잿빛 큰곰', 'beast:ash'], ['흰 수사슴', 'beast:stag'], ['영주의 사슴', 'beast:deer']]],
+  ['원수와 복수', [['등 돌린 친구', 'feud:turned'], ['복수를 꾸미는 밤', 'feud:plot'], ['원수의 손', 'feud:strike'], ['내민 손', 'feud:offer'], ['화해', 'feud:peace']]],
   ['군대·사랑·마탑', [['행군', 'army:march'], ['병영', 'army:camp'], ['진급', 'army:promote'], ['전열', 'army:clash'], ['눈길', 'love:meet'], ['함께 걷는 길', 'love:walk'], ['부부 싸움', 'love:quarrel'], ['들킨 비밀', 'love:caught'], ['마탑 안', 'tower:hall'], ['마탑 회의', 'tower:vote']]],
 ];
 const st = { year: 505, month: 6 };

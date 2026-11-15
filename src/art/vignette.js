@@ -18,8 +18,9 @@ import { paletteOf } from './sceneLand.js';
 import { VW, VH, toner, lookFor } from './vignetteKit.js';
 import { PLATES as PLATES1 } from './vignettePlates.js';
 import { PLATES2 } from './vignettePlates2.js';
+import { PLATES3 } from './vignettePlates3.js';
 
-const PLATES = { ...PLATES1, ...PLATES2 };
+const PLATES = { ...PLATES1, ...PLATES2, ...PLATES3 };
 
 const hasDom = typeof document !== 'undefined';
 const safe = (fn, d = null) => { try { return fn(); } catch { return d; } };
@@ -27,9 +28,9 @@ const SCALE = 1.5; // 그리는 크기: 960x360
 
 /* ---------- 그리기 ---------- */
 // 판마다 당겨 그릴 중심(x)과 배율
-const FOCUS = { wedding: [410, 1.15], funeral: [330, 1.2], birth: [300, 1.1], muster: [380, 1.25], square: [330, 1.15], plague: [330, 1.25], monsters: [330, 1.2], famine: [330, 1.15], fire: [300, 1.25], prison: [380, 1.15], voyage: [330, 1.15], court: [400, 1.1], festival: [320, 1.3], chapel: [330, 1.1], dragon: [320, 1], road: [300, 1.25], bedside: [330, 1.15], ritual: [320, 1.2], depths: [330, 1.1], seal: [330, 1.1], trade: [330, 1.1], beast: [310, 1.15], army: [330, 1.1], love: [360, 1.25], tower: [330, 1.1] };
+const FOCUS = { wedding: [410, 1.15], funeral: [330, 1.2], birth: [300, 1.1], muster: [380, 1.25], square: [330, 1.15], plague: [330, 1.25], monsters: [330, 1.2], famine: [330, 1.15], fire: [300, 1.25], prison: [380, 1.15], voyage: [330, 1.15], court: [400, 1.1], festival: [320, 1.3], chapel: [330, 1.1], dragon: [320, 1], road: [300, 1.25], bedside: [330, 1.15], ritual: [320, 1.2], depths: [330, 1.1], seal: [330, 1.1], trade: [330, 1.1], beast: [310, 1.15], feud: [330, 1.1], army: [330, 1.1], love: [360, 1.25], tower: [330, 1.1] };
 // 늘 밤이나 해 질 녘이어야 하는 그림
-const TOD = { 'seal:stone': 'night', 'seal:visitor': 'night', 'seal:alley': 'dusk' };
+const TOD = { 'feud:turned': 'dusk', 'feud:plot': 'night', 'feud:strike': 'night', 'feud:peace': 'dawn', 'seal:stone': 'night', 'seal:visitor': 'night', 'seal:alley': 'dusk' };
 const cache = new Map();
 export function vignetteImage(spec) {
   if (!hasDom || !spec || !PLATES[spec.plate]) return '';
@@ -98,6 +99,8 @@ const BY_SCENE = {
   tower_join: 'tower:hall', tower_pick: 'tower:hall', tower_craft_pick: 'trade:alchemy', tower_duty: 'tower:hall', tower_master_lesson: 'tower:hall', tower_master_errand: 'tower:hall', tower_vote: 'tower:vote', tower_exam: 'ritual', tower_burning: 'fire', tower_inquisitor: 'chapel:inquisition', tower_exposed: 'chapel:inquisition',
   tower_black_invite: 'ritual:dark', forbidden_pick: 'ritual:dark', tower_master_death: 'bedside:last', tower_clinic: 'trade:healer', tower_craft: 'trade:alchemy',
   research_pick: 'ritual:study',
+  // 12단계: 원수와 복수
+  feud_turned: 'feud:turned', feud_plot: 'feud:plot', feud_strike: 'feud:strike', feud_offer: 'feud:offer', feud_peace: 'feud:peace', feud_deathbed: 'bedside',
   deep_descend: 'depths', deep_throne: 'depths:throne',
 };
 // 새 일(voc_path의 길 id, voc_event의 사건 id)마다의 그림. 없으면 지금 하는 일의 일터 그림
@@ -154,7 +157,7 @@ export function vignetteFor(g, { title = '', text = '', outcome = false } = {}) 
   const [plate, variant] = pick.split(':');
   const me = safe(() => g.people.find((p) => p.id === g.player.id));
   // 사랑 장면은 그 장면의 상대를 그린다
-  const other = safe(() => (plate === 'love' && g.life.scene?.id != null ? g.people.find((p) => p.id === g.life.scene.id) : null)) ?? safe(() => g.people.find((p) => p.id === me.spouseId)) ?? null;
+  const other = safe(() => ((plate === 'love' || plate === 'feud' || /^feud_/.test(g.life.scene?.kind ?? '')) && g.life.scene?.id != null ? g.people.find((p) => p.id === g.life.scene.id) : null)) ?? safe(() => g.people.find((p) => p.id === me.spouseId)) ?? null;
   return {
     plate, variant: variant ?? null, year: g.date?.year ?? 505, month: g.date?.month ?? 6, place: g.life?.place ?? 'ern',
     famine: !!g.world?.famine, me, other, seed: strSeed(String(title)) % 997,
