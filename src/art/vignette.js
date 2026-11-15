@@ -29,7 +29,7 @@ const SCALE = 1.5; // 그리는 크기: 960x360
 
 /* ---------- 그리기 ---------- */
 // 판마다 당겨 그릴 중심(x)과 배율
-const FOCUS = { wedding: [410, 1.15], funeral: [330, 1.2], birth: [300, 1.1], muster: [380, 1.25], square: [330, 1.15], plague: [330, 1.25], monsters: [330, 1.2], famine: [330, 1.15], fire: [300, 1.25], prison: [380, 1.15], voyage: [330, 1.15], court: [400, 1.1], festival: [320, 1.3], chapel: [330, 1.1], dragon: [320, 1], road: [300, 1.25], bedside: [330, 1.15], ritual: [320, 1.2], depths: [330, 1.1], seal: [330, 1.1], trade: [330, 1.1], beast: [310, 1.15], peoples: [320, 1.1], feud: [330, 1.1], explore: [330, 1.1], army: [330, 1.1], love: [360, 1.25], tower: [330, 1.1] };
+const FOCUS = { wedding: [410, 1.15], funeral: [330, 1.2], birth: [300, 1.1], muster: [380, 1.25], square: [330, 1.15], plague: [330, 1.25], monsters: [330, 1.2], famine: [330, 1.15], fire: [300, 1.25], prison: [380, 1.15], voyage: [330, 1.15], court: [400, 1.1], festival: [320, 1.3], chapel: [330, 1.1], dragon: [320, 1], road: [300, 1.25], bedside: [330, 1.15], ritual: [320, 1.2], depths: [330, 1.1], seal: [330, 1.1], trade: [330, 1.1], beast: [310, 1.15], mentor: [320, 1.1], peoples: [320, 1.1], feud: [330, 1.1], explore: [330, 1.1], army: [330, 1.1], love: [360, 1.25], tower: [330, 1.1] };
 // 늘 밤이나 해 질 녘이어야 하는 그림
 const TOD = { 'peoples:elf_fall': 'night', 'peoples:beast_totem': 'night', 'peoples:beast_hunt': 'dusk', 'feud:turned': 'dusk', 'feud:plot': 'night', 'feud:strike': 'night', 'feud:peace': 'dawn', 'seal:stone': 'night', 'seal:visitor': 'night', 'seal:alley': 'dusk' };
 const cache = new Map();
@@ -102,6 +102,8 @@ const BY_SCENE = {
   research_pick: 'ritual:study',
   // 12단계: 원수와 복수
   feud_turned: 'feud:turned', feud_plot: 'feud:plot', feud_strike: 'feud:strike', feud_offer: 'feud:offer', feud_peace: 'feud:peace', feud_deathbed: 'bedside',
+  // 13단계: 제자와 문하
+  mentor_pick: 'mentor:lesson', mentor_lesson: 'mentor:lesson', mentor_graduate: 'mentor:bow', mentor_surpass: 'mentor:bow', mentor_found: 'mentor:found', mentor_betray: 'road', mentor_reclaim: 'feud:offer', mentor_succession: 'bedside:last',
   // 12단계: 다른 종족의 땅 (의식과 이름 받기는 아래에서 땅에 따라 고른다)
   peoples_friend: 'feud:peace', peoples_grudge: 'trade:bard', peoples_defend: 'square:herald', peoples_slavers: 'seal:alley', peoples_mixed_marriage: 'wedding', peoples_halfelf_years: 'funeral:visit',
   // 12단계: 탐험 (가는 길과 깊은 곳은 아래에서 땅에 따라 고른다)
@@ -165,7 +167,7 @@ export function vignetteFor(g, { title = '', text = '', outcome = false } = {}) 
   const [plate, variant] = pick.split(':');
   const me = safe(() => g.people.find((p) => p.id === g.player.id));
   // 사랑 장면은 그 장면의 상대를 그린다
-  const other = safe(() => ((plate === 'love' || plate === 'feud' || /^feud_/.test(g.life.scene?.kind ?? '')) && g.life.scene?.id != null ? g.people.find((p) => p.id === g.life.scene.id) : null)) ?? safe(() => g.people.find((p) => p.id === me.spouseId)) ?? null;
+  const other = safe(() => ((plate === 'love' || plate === 'feud' || /^(feud|mentor)_/.test(g.life.scene?.kind ?? '')) && g.life.scene?.id != null ? g.people.find((p) => p.id === g.life.scene.id) : null)) ?? safe(() => g.people.find((p) => p.id === me.spouseId)) ?? null;
   return {
     plate, variant: variant ?? null, year: g.date?.year ?? 505, month: g.date?.month ?? 6, place: g.life?.place ?? 'ern',
     famine: !!g.world?.famine, me, other, seed: strSeed(String(title)) % 997,
