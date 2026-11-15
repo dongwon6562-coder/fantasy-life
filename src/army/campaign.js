@@ -265,6 +265,7 @@ const CAMPAIGN_OK = new Set(['rest', 'meditate', 'train_body', 'work', 'army_res
 HOOKS.actionFilter.push((g, a) => {
   const ar = g.army;
   if (!ar) return true;
+  if (g.crime?.jailed) return true; // 감옥에 갇혀 있으면 감옥의 규칙만 (포로와 겹치면 할 일이 하나도 없었다, 헤드)
   if (ar.captive) return CAPTIVE_OK.has(a.id);
   if (CAPTIVE_OK.has(a.id) && a.id.startsWith('army_')) return false;
   if (ar.campaign) return CAMPAIGN_OK.has(a.id) && a.id !== 'army_resign';
