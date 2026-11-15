@@ -15,6 +15,7 @@ import { kill, fullName } from '../npc.js';
 import { isJailed } from '../crime.js';
 import { hasRelic, charmBonus } from '../deep/core.js';
 import { S as seaOf } from '../sea/core.js';
+import { hasKind, huntBonus } from '../beasts/core.js';
 import { J } from '../narrative/text.js';
 import {
   E, REGIONS, SITES, CIVS, SITE_SHORT, FINDS, regionsFrom, regionOf, claimFirst, addFame, logExplore, keepVal, keepBonus, findName, mi,
@@ -109,6 +110,7 @@ export function lostChance(g) {
   if (x.guide) p -= 0.08;
   if (companionsFor(g).some((c) => c.role === 'scout')) p -= 0.05;
   p -= (g.player.stats.sen ?? 30) / 1000;
+  if (hasKind(g, 'dog') || hasKind(g, 'direwolf')) p -= 0.04; // 개는 냄새로 길을 찾는다 (src/beasts/)
   if (R.sea) p -= (g.player.skills.sailing ?? 0) / 400 + (keepBonus(g, 'sail') ? 0.08 : 0);
   return Math.max(0.03, Math.min(0.5, p));
 }
@@ -263,7 +265,7 @@ function pickEvent(g, rng, back) {
 
 /* ---------- 달마다 겪는 일 ---------- */
 const stat = (g, k) => g.player.stats[k] ?? 30;
-const skill = (g, k) => g.player.skills[k] ?? 0;
+const skill = (g, k) => (g.player.skills[k] ?? 0) + (k === 'hunting' ? huntBonus(g) : 0);
 const fightOpts = (g, x) => ({ flee: 35, short: true, noTire: false });
 function tactic(g, rng) { return circleOf(g) >= 1 ? 'magic' : rng.chance(0.5) ? 'ambush' : 'charge'; }
 const foodWord = (x) => (x.food <= 0 ? '식량이 없다' : x.food === 1 ? '식량이 한 달 치 남았다' : `식량이 ${x.food}달 치 남았다`);

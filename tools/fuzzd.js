@@ -48,6 +48,7 @@ import { vocationStatus, VOC_JOB_IDS } from '../src/vocation/index.js';
 import { armyStatus } from '../src/army/index.js';
 import { A as ARMY } from '../src/army/core.js';
 import { exploreStatus } from '../src/explore/index.js';
+import { beastsStatus, B as BEASTS, KIND_IDS as BEAST_KINDS, addAnimal as addBeast } from '../src/beasts/index.js';
 import { E as EXPL, REGION_IDS as EXPL_REGIONS, FINDS as EXPL_FINDS } from '../src/explore/core.js';
 import { V as VOC } from '../src/vocation/core.js';
 import { WORK as VWORK } from '../src/jobs.js';
@@ -69,7 +70,7 @@ function roundTrip(g, rng) {
 function chaos(g, rng) {
   const life = L(g);
   const adult = playerAge(g) >= 15;
-  const r = rng.int(0, 20);
+  const r = rng.int(0, 21);
   if (r === 0) return 'roundtrip';
   if (r === 1 && !CR(g).active) startCrisis(g, rng, rng.pick(Object.keys(CRISES)));
   else if (r === 2) { g.realm.balhart.war = true; g.realm.balhart.warMonths = 0; }
@@ -90,6 +91,7 @@ function chaos(g, rng) {
   else if (r === 18 && adult && !isJailed(g)) vocationShake(g, rng);
   else if (r === 19 && adult && !isJailed(g)) armyShake(g, rng);
   else if (r === 20 && adult && !isJailed(g)) exploreShake(g, rng);
+  else if (r === 21) beastShake(g, rng);
   else if (r === 15 && adult && !life.travel && !isJailed(g)) { const port = rng.pick(['klein', 'portel', 'saltmare', 'saltrock']); life.place = port; const rt = rng.pick(seaRoutesFrom(g, port)); if (rt) setSail(g, rt.to, rt.months, { own: !!S(g).ship }); }
   return null;
 }
@@ -129,6 +131,16 @@ function armyShake(g, rng) {
   a.deserted = rng.chance(0.2) ? { year: g.date.year - rng.int(0, 12), at: 0, caught: rng.chance(0.5), unit: '흔들 백인대' } : a.deserted;
   a.veteran = rng.chance(0.2) ? { rank: rng.int(0, 4), years: rng.int(0, 20), unit: 'x', year: 500, pension: rng.int(0, 20) } : a.veteran;
   if (rng.chance(0.3)) a.scars.push({ id: rng.pick(['limp', 'nightmare', 'gone']), name: '흔들 상처', year: g.date.year });
+}
+// 짐승을 흔든다 (src/beasts/)
+function beastShake(g, rng) {
+  const b = BEASTS(g);
+  if (rng.chance(0.6)) { const a = addBeast(g, rng.pick(BEAST_KINDS), { ageYears: rng.float(0, 30), trained: rng.int(0, 100), bond: rng.int(0, 100), form: '까마귀' }); if (a && rng.chance(0.2)) a.dying = 'old'; }
+  if (rng.chance(0.2)) b.animals.push({ id: 999, kind: 'gone', name: 'x', born: 0, bond: 0, trained: 0, alive: true });
+  if (rng.chance(0.2) && b.animals.length) b.animals[0].alive = false;
+  if (rng.chance(0.2)) b.debt = rng.int(0, 20);
+  b.animals = b.animals.filter((a) => a.kind !== 'gone' || rng.chance(0.5));
+  if (b.animals.some((a) => a.kind === 'gone')) runHooks('migrate', g);
 }
 // 지도에 없는 땅을 흔든다 (src/explore/)
 function exploreShake(g, rng) {
@@ -181,7 +193,7 @@ function checkState(g, seed, m) {
   const p = g.player;
   for (const [k, v] of Object.entries({ money: p.money, fatigue: p.fatigue, stress: p.stress, renown: L(g).renown, notoriety: L(g).notoriety })) if (!Number.isFinite(v)) fail('NaN 값', k, seed, m);
   if (p.money < 0) fail('돈이 음수', p.money, seed, m);
-  for (const [name, fn] of [['partyStatus', partyStatus], ['crisisStatus', crisisStatus], ['craftStatus', craftStatus], ['domainReport', (x) => (x.domain ? domainReport(x) : null)], ['seaStatus', seaStatus], ['deepStatus', deepStatus], ['estateStatus', estateStatus], ['vocationStatus', vocationStatus], ['armyStatus', armyStatus], ['exploreStatus', exploreStatus]]) {
+  for (const [name, fn] of [['partyStatus', partyStatus], ['crisisStatus', crisisStatus], ['craftStatus', craftStatus], ['domainReport', (x) => (x.domain ? domainReport(x) : null)], ['seaStatus', seaStatus], ['deepStatus', deepStatus], ['estateStatus', estateStatus], ['vocationStatus', vocationStatus], ['armyStatus', armyStatus], ['exploreStatus', exploreStatus], ['beastsStatus', beastsStatus]]) {
     try { const r = deepBad(fn(g)); if (r) fail(`${name}에 나쁜 값`, r, seed, m); } catch (e) { fail(`${name} 예외`, e.stack, seed, m); }
   }
   if (partyOf(g).members.includes(g.player.id)) fail('내가 내 동료 명단에 있음', g.player.id, seed, m);

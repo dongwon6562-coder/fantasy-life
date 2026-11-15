@@ -32,8 +32,9 @@ registerJob('soldier', {
       ['백 명의 이름과 얼굴을 외웠다. 죽으면 편지를 써야 하니까.', '보급 장부를 맞췄다. 밀가루 스무 자루가 사라졌다.', '연병장에서 백인대 전체 대열을 지휘했다. 북소리에 맞춰 백 개의 창이 한꺼번에 내려왔다.', '귀족 출신 백인장들과 술자리를 했다. 그들은 내 말투를 흉내 냈다.'],
       ['천인장 막사에서 왕도의 전령을 맞았다. 국경의 소식이 좋지 않다.', '열 개 백인대를 사열했다. 깃발마다 다른 이야기가 있다.', '군법 회의를 열었다. 탈영병 둘의 목숨이 내 말 한마디에 달렸다.', '전사자 명단에 서명했다. 이름 하나하나를 소리 내어 읽었다.'],
     ][rk];
-    const out = doWork(g, rng, WORK.soldier, { tire: 16, skillGain: 1.3, line: pickOf(rng, lines), wageMul: atWar(g) ? 1.2 : 1 });
-    addMerit(g, 2 + (atWar(g) ? 1 : 0));
+    const cav = cavalry(g);
+    const out = doWork(g, rng, WORK.soldier, { tire: 16, skillGain: 1.3, line: pickOf(rng, lines) + (cav ? ' 내 군마와 함께 기병 대열에 섰다.' : ''), wageMul: (atWar(g) ? 1.2 : 1) * (cav ? 1.4 : 1) });
+    addMerit(g, 2 + (atWar(g) ? 1 : 0) + (cav ? 1 : 0));
     if (rk >= 2) gainSkill(g, 'letters', 0.15, 'int');
     if (rk >= 2) gainStat(g, 'cha', 0.15);
     maybeBarracksEvent(g, rng);
@@ -72,6 +73,8 @@ defineScene('army_enlist', {
     return enlist(g, rng);
   },
 });
+// 기병: 다 길든 군마가 있으면 (src/beasts/) 품삯과 공이 늘고 싸움에서 유리하다
+export const cavalry = (g) => !!g.beasts?.animals?.some((a) => a.alive && a.kind === 'warhorse' && (a.trained ?? 0) >= 100);
 export function enlist(g, rng, term = TERM) {
   const a = A(g);
   const unit = pickOf(rng, UNITS);

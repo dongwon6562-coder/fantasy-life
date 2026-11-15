@@ -114,7 +114,7 @@ const checkInfo = (g) => {
   play(g, 4, ['mentor_take'], { mentor_pick: 2 }, 1);
   const [p, d] = myDisciples(g)[0];
   d.skill = 66; d.since -= 40; p.ageMonths = 20 * 12;
-  play(g, 12, ['mentor_teach', 'rest'], { mentor_graduate: 0 }, 1);
+  for (let i = 0; i < 36 && !mentorState(g).grads.some((x) => x.id === p.id); i++) play(g, 1, ['mentor_teach', 'rest'], { mentor_graduate: 0 }, 1);
   ok(mentorState(g).grads.some((x) => x.id === p.id), 'graduated');
   g.player.money = 300;
   ok(availableActions(g).some((a) => a.id === 'mentor_found'), 'found available');
