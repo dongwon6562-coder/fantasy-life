@@ -42,7 +42,7 @@ function startCampaign(g, rng, war) {
   a.campaigns += 1;
 }
 defineScene('army_muster', {
-  need: (g, s) => enlisted(g) && !onCampaign(g) && !captive(g),
+  need: (g, s) => enlisted(g) && !onCampaign(g) && !captive(g) && !g.crime?.jailed && !L(g).travel, // 갇혀 있거나 길 위면 소집에 못 간다 (헤드: 갈래 겹침)
   title: (g, s) => '출정 명령',
   text: (g, s) => {
     const peace = s.war.kind === 'peace';
