@@ -91,7 +91,9 @@ export const INVENTIONS = [
 function inventions(g, rng, say, record) {
   const hist = H(g), r = g.realm;
   const next = INVENTIONS.find((v) => !hist.inventions.includes(v.id));
-  if (!next || r.tech < next.at || !rng.chance(0.25)) return;
+  // 플레이어가 한창 연구 중인 발명은 남들도 더디다 (경쟁·도용은 research 사건이 맡는다)
+  const mine = g.research?.project?.kind === 'invent' && g.research.project.id === next?.id && g.research.project.prog >= 0.2;
+  if (!next || r.tech < next.at || !rng.chance(mine ? 0.06 : 0.25)) return;
   hist.inventions.push(next.id);
   let who = '세레니아의 공방';
   if (next.by === 'company') {
