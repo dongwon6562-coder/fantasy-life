@@ -3,6 +3,7 @@ import '../src/content.js';
 import { newGame, endMonth, availableActions, slotsFor, playerAge, rngOf, me, circleOf } from '../src/game.js';
 import { resolveEvent } from '../src/events.js';
 import { living } from '../src/npc.js';
+import { encodeSave } from '../src/pack.js';
 
 const N = +(process.argv[2] ?? 40);
 const fams = ['farmer', 'fallen_knight', 'merchant'];
@@ -51,7 +52,7 @@ for (let run = 0; run < N; run++) {
   out.worstRepeat.push(Math.max(0, ...content.map(([, n]) => n)));
   const w = content.sort((a, b) => b[1] - a[1])[0]; if (w) (out.worstIds ??= {})[w[0]] = ((out.worstIds ??= {})[w[0]] ?? 0) + 1;
   out.pop.push(living(g).length);
-  out.saveKB.push(JSON.stringify(g).length / 1024);
+  out.saveKB.push(encodeSave(g).length * 2 / 1024); // 실제 저장되는 압축 크기 (UTF-16)
   out.gens.push(g.player.generation ?? g.lineage?.length ?? 1);
 }
 const avg = (a) => (a.reduce((s, x) => s + x, 0) / a.length).toFixed(1);
