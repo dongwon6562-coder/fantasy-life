@@ -86,3 +86,60 @@ export function drawTrail(el, layer, g, byId, pin) {
   };
   return { count, info };
 }
+
+/* ---------- 지도 밖의 땅 (탐험) ---------- */
+// 지도 가장자리 어디쯤인가. 지도는 거기서 끝나므로, 양피지 귀퉁이에 손으로 덧적은 메모처럼 그린다.
+// (탐험 갈래의 땅 표를 그대로 옮겨 적은 것. 지도 그림이 놀이 규칙 파일을 끌어오지 않게 하려고 따로 둔다)
+const BEYOND = { frost: [1480, 40], ash: [1578, 285, 'end'], cloud: [960, 38], deepwood: [180, 455], mist: [120, 850] };
+const REGIONS = {
+  frost: { name: '서리 너머', from: ['estella'], sites: ['frozen_fleet', 'singing_glacier'], heart: 'giant_tomb' },
+  deepwood: { name: '뿌리 아래 골짜기', from: ['silverleaf', 'fur'], sites: ['moss_city', 'beast_graves'], heart: 'old_root' },
+  cloud: { name: '구름 위 고원', from: ['hammer', 'gorge'], sites: ['dragon_nest', 'frozen_shrine'], heart: 'sky_stair' },
+  mist: { name: '안개 군도', from: ['saltrock', 'klein'], sites: ['sunken_port', 'turtle_isle'], heart: 'drowned_palace' },
+  ash: { name: '재의 사막', from: ['estella'], sites: ['glass_city', 'iron_river'], heart: 'first_tombs' },
+};
+const SERIF = '"Noto Serif KR","Nanum Myeongjo","Batang",serif';
+/** 유적 id → 그 유적이 있는 땅 id (삽화가 쓴다) */
+export const regionOfSite = (s) => Object.keys(REGIONS).find((id) => REGIONS[id].heart === s || REGIONS[id].sites.includes(s)) ?? null;
+/**
+ * 탐험으로 알게 된 지도 밖의 땅. game.explore를 읽기만 한다.
+ * 가 본 땅: 떠난 곳에서 이어지는 점선, 땅 이름, 얼마나 그렸는가, 찾은 유적마다 별(우리 집안이 처음이면 금빛, 남이 먼저면 빈 별).
+ * 아직 안 간 땅: 떠날 수 있는 곳에 가 본 적이 있으면 흐린 이름만.
+ * 돌려주는 값: 찾은 유적 수
+ */
+export function drawBeyond(el, layer, g, byId, pin) {
+  const e = safe(() => g.explore); if (!e) return 0;
+  const A = safe(() => atlasOf(g)) ?? { v: {} };
+  let found = 0;
+  for (const [id, [x, y, al = 'middle']] of Object.entries(BEYOND)) {
+    const R = REGIONS[id]; if (!R) continue;
+    const k = e.regions?.[id] ?? {}, sites = [...R.sites, R.heart].map((s) => [s, e.firsts?.[s]]).filter(([, f]) => f);
+    const been = (k.trips ?? 0) > 0 || (k.mapped ?? 0) > 0 || sites.length > 0 || e.exp?.region === id;
+    const heard = R.from.some((p) => A.v[p]);
+    if (!been && !heard) continue;
+    const line = el('g', { class: 'trail-beyond', 'pointer-events': 'none' }, layer);
+    const from = R.from.map((p) => byId[p]).find(Boolean);
+    if (been && from) {
+      const mx = (from.x + x) / 2 + (hash(x, y) - 0.5) * 30, my = (from.y + y) / 2 + (hash(y, x) - 0.5) * 30, d = `M${from.x} ${from.y}Q${mx} ${my} ${x} ${y}`;
+      el('path', { d, fill: 'none', stroke: '#f0e6cb', 'stroke-width': 4, 'stroke-linecap': 'round', opacity: 0.5 }, line);
+      el('path', { d, fill: 'none', stroke: INK, 'stroke-width': 1.5, 'stroke-dasharray': '1.5 3.6', 'stroke-linecap': 'round', opacity: 0.85 }, line);
+    }
+    // 글과 표는 확대해도 읽을 만한 크기를 지킨다
+    const m = el('g', { class: 'trail-beyond', 'pointer-events': 'none', opacity: been ? 1 : 0.6 }, layer); pin(m, x, y, '--ls');
+    // 가위표: 여기서부터는 지도에 없다
+    if (been) el('path', { d: 'M-5 -5l10 10M5 -5l-10 10', fill: 'none', stroke: INK, 'stroke-width': 1.8, 'stroke-linecap': 'round' }, m);
+    const tx = al === 'end' ? 8 : 0, ty = 20;
+    el('text', { x: tx, y: ty, 'text-anchor': al, 'font-family': SERIF, 'font-style': 'italic', 'font-weight': 700, 'font-size': 12, fill: INK, stroke: '#f0e6cb', 'stroke-width': 2.6, 'paint-order': 'stroke' }, m).textContent = R.name;
+    const sub = been ? (k.heart ? '가장 깊은 곳까지 다녀옴' : `지도에 옮긴 만큼 ${Math.round((k.mapped ?? 0) * 100)}%`) : '아직 아무도 그리지 못한 땅';
+    el('text', { x: tx, y: ty + 11, 'text-anchor': al, 'font-family': SERIF, 'font-style': 'italic', 'font-size': 8, fill: '#5a3a2a', stroke: '#f0e6cb', 'stroke-width': 2.2, 'paint-order': 'stroke' }, m).textContent = sub;
+    // 찾은 유적: 이름 아래 한 줄씩
+    sites.forEach(([s, f], i) => {
+      found++;
+      const sy = ty + 23 + i * 10.5, mineStar = f.me || f.family;
+      let d = ''; for (let j = 0; j < 10; j++) { const an = (j / 10) * Math.PI * 2 - Math.PI / 2, rr = j % 2 ? 1.5 : 3.6; d += `${j ? 'L' : 'M'}${((al === 'end' ? tx - 3 : tx - 34) + Math.cos(an) * rr).toFixed(1)} ${(sy - 2.8 + Math.sin(an) * rr).toFixed(1)}`; }
+      el('path', { d: d + 'Z', fill: mineStar ? '#c9a25a' : '#f0e6cb', stroke: '#3a2214', 'stroke-width': 0.6, 'stroke-linejoin': 'round' }, m);
+      el('text', { x: al === 'end' ? tx - 9 : tx - 28, y: sy, 'text-anchor': al === 'end' ? 'end' : 'start', 'font-family': SERIF, 'font-size': 7.6, fill: '#3a2214', stroke: '#f0e6cb', 'stroke-width': 2, 'paint-order': 'stroke' }, m).textContent = `${f.name ?? s}${s === R.heart ? ' ✦' : ''} (${f.year}년${mineStar ? '' : `, ${f.who}`})`;
+    });
+  }
+  return found;
+}
