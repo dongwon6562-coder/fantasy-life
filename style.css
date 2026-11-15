@@ -1176,3 +1176,19 @@ html:not(.motion) .pol-land .pol-ring { animation: none; }
 .explore-card .note.ok { color: var(--good); }
 .ex-regions li.heart { border-color: var(--brass); }
 .sm-chip.down b { color: #d0675c; }
+/* ---------- 12단계: 다른 종족의 땅 ---------- */
+.peoples-card { display: grid; gap: 10px; }
+.peoples-card > .note, .peoples-card > .pp-now { margin: 0; }
+.pp-now { font-weight: 600; }
+.pp-lands li > .note { margin: 0; }
+.pp-land.here { border-color: var(--brass); }
+.pp-name { color: var(--brass); }
+.pp-rites { list-style: none; margin: 2px 0 0; padding: 0; display: grid; gap: 2px; font-size: 13px; }
+.pp-rites li { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 2px 8px; }
+.pp-rites li.done span:first-child::before { content: '✓ '; color: var(--good); }
+.pp-ties { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; font-size: 13.5px; }
+.pp-ties li { display: grid; grid-template-columns: minmax(0, 7.5em) minmax(0, 1fr) auto; gap: 8px; align-items: center; }
+.pp-ties .note { margin: 0; font-size: 12px; white-space: nowrap; }
+.ct-houses .pp-rites li { background: none; border: 0; padding: 0; border-radius: 0; display: flex; }
+.pp-lands .wd-row.kn-row { grid-template-columns: minmax(0, 1fr) auto; }
+.pp-lands .kn-row .v { white-space: nowrap; font-size: 12px; }
