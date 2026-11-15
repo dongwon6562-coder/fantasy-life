@@ -193,7 +193,8 @@ for (let attempt = 0; attempt < 4; attempt++) {
     const g = adult(91500 + run);
     placeAt(g, 'harfen');
     L(g).houses.push('harfen'); L(g).home = 'own';
-    homeOf(g, 'harfen').cond = 20;
+    // 홀수 판은 낡은 집(불), 짝수 판은 멀쩡한 집(도둑): 낡은 집은 일찍 타 버려 도둑이 들 틈이 없을 때가 있다
+    homeOf(g, 'harfen').cond = run % 2 ? 20 : 95;
     for (let m = 0; m < 12 * 10 && !g.over; m++) {
       g.player.money = Math.max(g.player.money, 600);
       month(g, ['rest']);

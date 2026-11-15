@@ -145,7 +145,8 @@ const checkInfo = (g) => {
   play(g, 3, ['mentor_heritage'], {}, 1);
   ok(g.player.skills.sword > before + 1, `learn from elder ${before} → ${g.player.skills.sword.toFixed(1)}`);
   g.player.skills.sword = 75; p.affection = 80; me(g).ageMonths = 30 * 12;
-  play(g, 4, ['mentor_heritage'], { mentor_reclaim: 0 }, 1);
+  // 앞서 쌓인 장면들이 있어 돌려받기 장면은 몇 달 뒤에 올 수 있다
+  play(g, 8, ['mentor_heritage'], { mentor_reclaim: 0 }, 1);
   ok(sc.headId == null && sc.gens === 2, `reclaimed ${sc.headId} gens ${sc.gens}`);
   checkInfo(g);
   const old = JSON.parse(JSON.stringify(g)); delete old.mentor;
