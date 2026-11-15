@@ -21,7 +21,7 @@ export function setRelationHooks(h) { Object.assign(HOOK, h); }
 const AFFINITY = [];
 export function addAffinity(fn) { AFFINITY.push(fn); }
 const affinityOf = (g, p) => AFFINITY.reduce((a, f) => a + (f(g, p) || 0), HOOK.affinity(g, p));
-import { JOBS } from './data.js';
+import { JOBS, SKILLS } from './data.js';
 import { J, join, up, gains, splitResult, pickLine } from './narrative/text.js';
 import * as S from './narrative/talk-text.js';
 import { reputationShift } from './crime.js';
@@ -331,7 +331,7 @@ EVENTS.push(
       remember(g, p, '부탁을 들어주었다', 1, { tag: 'helped' });
       if (skill && ageYears(p) >= 16) {
         const k = gainSkill(g, skill, 1.4);
-        const sk = { sword: '검', magic: '마법', letters: '글', farming: '농사', cooking: '요리', trade: '장사', herbs: '약초' }[skill];
+        const sk = { sword: '검', magic: '마법', letters: '글', farming: '농사', cooking: '요리', trade: '장사', herbs: '약초', smithing: '대장일' }[skill] ?? SKILLS.find((s) => s.id === skill)?.name ?? '일';
         return join(`${J(n(p), '은/는')} 소매를 걷어붙이고 ${sk} 요령을 직접 보여 주었다. 몇 년을 걸려 익힌 걸 한나절 만에.`, gains(up(sk, k)));
       }
       if ((has(p, 'generous') || has(p, 'kind')) && p.wealth > 20 && ageYears(p) >= 16) {

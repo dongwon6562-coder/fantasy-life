@@ -47,6 +47,8 @@ import { E as EST } from '../src/estate/core.js';
 import { vocationStatus, VOC_JOB_IDS } from '../src/vocation/index.js';
 import { armyStatus } from '../src/army/index.js';
 import { A as ARMY } from '../src/army/core.js';
+import { exploreStatus } from '../src/explore/index.js';
+import { E as EXPL, REGION_IDS as EXPL_REGIONS, FINDS as EXPL_FINDS } from '../src/explore/core.js';
 import { V as VOC } from '../src/vocation/core.js';
 import { WORK as VWORK } from '../src/jobs.js';
 import { D as DEEP, RELIC_IDS } from '../src/deep/core.js';
@@ -67,7 +69,7 @@ function roundTrip(g, rng) {
 function chaos(g, rng) {
   const life = L(g);
   const adult = playerAge(g) >= 15;
-  const r = rng.int(0, 19);
+  const r = rng.int(0, 20);
   if (r === 0) return 'roundtrip';
   if (r === 1 && !CR(g).active) startCrisis(g, rng, rng.pick(Object.keys(CRISES)));
   else if (r === 2) { g.realm.balhart.war = true; g.realm.balhart.warMonths = 0; }
@@ -87,6 +89,7 @@ function chaos(g, rng) {
   else if (r === 17) estateShake(g, rng);
   else if (r === 18 && adult && !isJailed(g)) vocationShake(g, rng);
   else if (r === 19 && adult && !isJailed(g)) armyShake(g, rng);
+  else if (r === 20 && adult && !isJailed(g)) exploreShake(g, rng);
   else if (r === 15 && adult && !life.travel && !isJailed(g)) { const port = rng.pick(['klein', 'portel', 'saltmare', 'saltrock']); life.place = port; const rt = rng.pick(seaRoutesFrom(g, port)); if (rt) setSail(g, rt.to, rt.months, { own: !!S(g).ship }); }
   return null;
 }
@@ -103,7 +106,7 @@ function stale(g, rng) {
   else if (r === 5) g.player.money = 0;
   else if (r === 6 && !life.travel) life.travel = { to: rng.pick(ALL_PLACES), left: 2, from: life.place };
   else if (r === 7 && playerAge(g) >= 15 && !isJailed(g)) jail(g, 2);
-  else if (r === 8) { const sea = S(g); sea.ship = null; sea.pirate = null; sea.cargo = null; sea.lair = true; const d = DEEP(g); d.relics = []; d.lord = 'slain'; d.gate = 0; L(g).houses = []; EST(g).loans = []; EST(g).rentals = []; VOC(g).project = null; VOC(g).traps = 0; ARMY(g).campaign = null; ARMY(g).captive = null; if (VOC_JOB_IDS.includes(life.job?.id)) life.job = null; }
+  else if (r === 8) { const sea = S(g); sea.ship = null; sea.pirate = null; sea.cargo = null; sea.lair = true; const d = DEEP(g); d.relics = []; d.lord = 'slain'; d.gate = 0; L(g).houses = []; EST(g).loans = []; EST(g).rentals = []; VOC(g).project = null; VOC(g).traps = 0; ARMY(g).campaign = null; ARMY(g).captive = null; EXPL(g).exp = null; EXPL(g).pack = []; EXPL(g).cache = []; if (VOC_JOB_IDS.includes(life.job?.id)) life.job = null; }
 }
 // 집과 재산을 흔든다 (src/estate/)
 function estateShake(g, rng) {
@@ -126,6 +129,21 @@ function armyShake(g, rng) {
   a.deserted = rng.chance(0.2) ? { year: g.date.year - rng.int(0, 12), at: 0, caught: rng.chance(0.5), unit: '흔들 백인대' } : a.deserted;
   a.veteran = rng.chance(0.2) ? { rank: rng.int(0, 4), years: rng.int(0, 20), unit: 'x', year: 500, pension: rng.int(0, 20) } : a.veteran;
   if (rng.chance(0.3)) a.scars.push({ id: rng.pick(['limp', 'nightmare', 'gone']), name: '흔들 상처', year: g.date.year });
+}
+// 지도에 없는 땅을 흔든다 (src/explore/)
+function exploreShake(g, rng) {
+  const e = EXPL(g);
+  const life = L(g);
+  const fids = [...Object.keys(EXPL_FINDS), 'gone'];
+  if (rng.chance(0.5)) {
+    const region = rng.pick([...EXPL_REGIONS, 'nowhere']);
+    e.exp = { region, from: rng.chance(0.8) ? life.place : rng.pick(ALL_PLACES), phase: rng.pick(['out', 'back']), leg: rng.int(0, 6), legs: rng.int(1, 5), back: rng.int(0, 3), food: rng.int(-1, 8), porters: rng.int(0, 2), morale: rng.int(0, 100), lost: rng.int(0, 1), lostRun: rng.int(0, 3), hungry: rng.int(0, 3), mule: rng.chance(0.5), guide: false, months: rng.int(0, 9), finds: [{ id: rng.pick(fids), region, site: null, year: 500 }], sites: [], dead: rng.chance(0.3) ? ['흔들'] : [], comps: [], started: 0 };
+    if (region === 'nowhere') runHooks('migrate', g);
+  } else if (rng.chance(0.3)) e.exp = null;
+  if (rng.chance(0.4)) e.pack.push({ id: rng.pick(fids), region: rng.pick(EXPL_REGIONS), site: null, year: 500 });
+  if (rng.chance(0.3)) e.cache.push({ id: rng.pick(fids), region: rng.pick(EXPL_REGIONS), site: null, year: 500 });
+  e.pack = e.pack.filter((f) => EXPL_FINDS[f.id]); e.cache = e.cache.filter((f) => EXPL_FINDS[f.id]);
+  if (rng.chance(0.2)) e.rivals.forEach((r) => { r.prog = rng.int(0, 8); });
 }
 // 새 일 갈래를 흔든다 (src/vocation/)
 function vocationShake(g, rng) {
@@ -163,7 +181,7 @@ function checkState(g, seed, m) {
   const p = g.player;
   for (const [k, v] of Object.entries({ money: p.money, fatigue: p.fatigue, stress: p.stress, renown: L(g).renown, notoriety: L(g).notoriety })) if (!Number.isFinite(v)) fail('NaN 값', k, seed, m);
   if (p.money < 0) fail('돈이 음수', p.money, seed, m);
-  for (const [name, fn] of [['partyStatus', partyStatus], ['crisisStatus', crisisStatus], ['craftStatus', craftStatus], ['domainReport', (x) => (x.domain ? domainReport(x) : null)], ['seaStatus', seaStatus], ['deepStatus', deepStatus], ['estateStatus', estateStatus], ['vocationStatus', vocationStatus], ['armyStatus', armyStatus]]) {
+  for (const [name, fn] of [['partyStatus', partyStatus], ['crisisStatus', crisisStatus], ['craftStatus', craftStatus], ['domainReport', (x) => (x.domain ? domainReport(x) : null)], ['seaStatus', seaStatus], ['deepStatus', deepStatus], ['estateStatus', estateStatus], ['vocationStatus', vocationStatus], ['armyStatus', armyStatus], ['exploreStatus', exploreStatus]]) {
     try { const r = deepBad(fn(g)); if (r) fail(`${name}에 나쁜 값`, r, seed, m); } catch (e) { fail(`${name} 예외`, e.stack, seed, m); }
   }
   if (partyOf(g).members.includes(g.player.id)) fail('내가 내 동료 명단에 있음', g.player.id, seed, m);

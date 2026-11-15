@@ -40,3 +40,4 @@ import './vocation/index.js';
 import './seal/index.js'; // 봉인의 흔들림: 봉인석 균열, 쐐기, 마족 첩자, 세력의 대응
 import './tower/index.js'; // 마탑과 금지된 마법: 탑 안의 삶, 마도구, 금지 마법, 교단과의 갈등
 import './army/index.js';
+import './explore/index.js';
