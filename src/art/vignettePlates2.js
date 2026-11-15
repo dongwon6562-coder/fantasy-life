@@ -475,7 +475,168 @@ function beastPlate(v) {
   finish(v);
 }
 
+/* ---------- 군대 ---------- */
+const ARMY = ['#5a3a34', '#4a4a52', '#5a4636', '#44403c'];
+/** 군막 한 채 */
+function armyTent(v, x, y, w) {
+  const { ctx, t } = v, c = t(v.P.snow ? '#d8d6cc' : '#b8ae96');
+  poly(ctx, [x - w, y, x, y - w * 0.9, x + w, y], c); poly(ctx, [x + v.S.dir * -w, y, x, y - w * 0.9, x + v.S.dir * -w * 0.1, y], rgba('#14101a', 0.3));
+  poly(ctx, [x - w * 0.16, y, x, y - w * 0.4, x + w * 0.16, y], t('#2a1c14'));
+}
+/** 깃대와 깃발 */
+function standard(v, x, y, h, col) {
+  const { ctx, t } = v, d = -v.S.dir || 1;
+  stroke(ctx, [x, y, x, y - h], Math.max(1, h * 0.025), t('#2e241a'));
+  poly(ctx, [x, y - h, x + d * h * 0.3, y - h + h * 0.05, x + d * h * 0.26, y - h * 0.72, x, y - h * 0.7], t(col));
+}
+/** 행군: 창을 멘 긴 줄이 길을 따라 멀어지고, 짐수레가 뒤따른다 */
+function armyMarch(v) {
+  const { ctx, t, R } = v;
+  sky(v); far(v); townFar(v, 500, HZ + 14, { s: 0.4, n: 5 });
+  const gy = (x) => 160 - fbm1(x / 150 + v.q, 3) * 8;
+  ground(v, gy, { tufts: 110 });
+  road(v, 250, 470, HZ + 22, { w: 150 });
+  tree(v, 70, 196, 120); tree(v, 598, 186, 96);
+  const line = [[452, 160, 20], [438, 166, 27], [420, 174, 36], [398, 185, 48], [368, 199, 64], [328, 218, 84]];
+  standard(v, 446, 158, 34, '#8a2a1e');
+  line.forEach(([x, y, h], i) => {
+    person(v, x - h * 0.2, y, h, { f: 0, cloth: ARMY[i % 4], hair: '#3a3632', hat: true, stick: 'spear', tilt: 0.1 });
+    person(v, x + h * 0.26, y + 1, h * 0.98, { f: 0, cloth: ARMY[(i + 2) % 4], hair: '#3a3632', hat: i % 2 === 0, stick: 'spear', tilt: 0.1 });
+  });
+  for (let i = 0; i < 8; i++) puff(ctx, 330 + R() * 130, 180 + R() * 40, 30, 8, t('#b8a888'), 0.14);
+  // 짐수레
+  const wx = 150, wy = 226;
+  rect(ctx, wx - 44, wy - 34, 88, 20, t('#5a4028')); poly(ctx, [wx - 40, wy - 34, wx - 30, wy - 58, wx + 30, wy - 58, wx + 40, wy - 34], t('#b8ae96'));
+  for (const k of [-26, 26]) { ctx.strokeStyle = t('#2e241a'); ctx.lineWidth = 3; ctx.beginPath(); ctx.arc(wx + k, wy - 12, 12, 0, TAU); ctx.stroke(); stroke(ctx, [wx + k - 12, wy - 12, wx + k + 12, wy - 12], 1.4, t('#2e241a')); stroke(ctx, [wx + k, wy - 24, wx + k, wy], 1.4, t('#2e241a')); }
+  person(v, 262, 242, 114, { ...mine(v, { raw: false }), f: 0, cloak: true, stick: 'spear', tilt: 0.1 });
+  finish(v);
+}
+/** 병영: 군막 줄, 화톳불, 창을 세우고 선 신병들과 부사관 */
+function armyCamp(v) {
+  const { ctx, t } = v, promote = v.variant === 'promote';
+  sky(v); far(v);
+  const gy = (x) => 158 - fbm1(x / 160 + v.q, 3) * 6;
+  ground(v, gy, { tufts: 60, color2: '#6a5a44' });
+  // 목책
+  for (let x = 0; x < VW; x += 9) poly(ctx, [x, gy(x) + 6, x, gy(x) - 16 - (x % 27 ? 0 : 3), x + 3.5, gy(x) - 21, x + 7, gy(x) - 16, x + 7, gy(x) + 6], t(x % 18 ? '#5a4630' : '#4e3c28'));
+  for (const [x, w] of [[90, 30], [160, 26], [476, 28], [548, 32], [610, 26]]) armyTent(v, x, gy(x) + 22, w);
+  standard(v, 330, gy(330) + 10, 96, '#8a2a1e');
+  flame(v, 520, 214, 5); stroke(ctx, [508, 215, 532, 215], 3, '#1c1410');
+  if (promote) { // 진급: 대열 앞에서 지휘관에게 받는다
+    for (let i = 0; i < 7; i++) person(v, 96 + i * 30, 214 + (i % 2) * 3, 86, { f: 1, cloth: ARMY[i % 4], hair: '#3a3632', hat: true, stick: 'spear' });
+    person(v, 430, 236, 116, { f: -1, cloth: '#5a2a26', hair: '#8a8478', cloak: true, arm: 'fwd' });
+    person(v, 372, 238, 108, { ...mine(v, { raw: false }), f: 1, pose: 'kneel' });
+  } else {
+    for (let i = 0; i < 6; i++) person(v, 190 + i * 34, 220 + (i % 2) * 3, 92, { f: 1, cloth: i === 2 ? v.me.cloth : ARMY[i % 4], hair: i === 2 ? v.me.hair : '#3a3632', female: i === 2 && v.me.female, hat: i !== 2, stick: 'spear' });
+    person(v, 452, 232, 110, { f: -1, cloth: '#5a2a26', hair: '#4a3220', hat: true, arm: 'out', stick: 'staff' });
+  }
+  finish(v);
+}
+/** 전열: 창을 세운 아군의 등 너머로, 언덕 위에 선 적의 줄과 깃발 */
+function armyClash(v) {
+  const { ctx, t, R } = v;
+  sky(v); far(v);
+  const ridge = (x) => 132 - Math.sin(x / 110 + v.q) * 8 - fbm1(x / 90 + v.q, 7, 3) * 8;
+  ground(v, ridge, { tufts: 60, haze: 0.3 });
+  // 언덕 위의 적
+  for (let x = 70; x < 590; x += 11) { const y = ridge(x) + 6, h = 20 + R() * 4; rect(ctx, x, y - h, 6, h, t('#2a2630')); stroke(ctx, [x + 7, y - 4, x + 9, y - h - 14], 0.9, t('#2a2630')); }
+  for (const x of [150, 330, 500]) standard(v, x, ridge(x) + 4, 46, '#2c2c34');
+  smoke(v, 560, 120, 90, 26, '#3a3632', 0.3); smoke(v, 90, 124, 70, 20, '#3a3632', 0.24);
+  // 날아오는 화살
+  ctx.strokeStyle = rgba(t('#1c1814'), 0.7); ctx.lineWidth = 0.9; for (let i = 0; i < 22; i++) { const x = 160 + R() * 340, y = 30 + R() * 60; ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x - 9, y - 5 + (x - 330) * 0.01); ctx.stroke(); }
+  const gy = (x) => 190 - fbm1(x / 150 + v.q, 3) * 5;
+  ground(v, gy, { tufts: 80 });
+  for (let i = 0; i < 12; i++) puff(ctx, R() * VW, 170 + R() * 24, 80, 10, v.S.haze, 0.2);
+  // 아군의 줄
+  standard(v, 96, 236, 150, '#8a2a1e');
+  for (let i = 0; i < 9; i++) {
+    const x = 60 + i * 66 + R() * 10, mineHere = i === 4, h = 118 + R() * 8;
+    person(v, x, 262, h, { f: 0, cloth: mineHere ? v.me.cloth : dark(ARMY[i % 4], 0.3), hair: mineHere ? v.me.hair : '#2a2420', female: mineHere && v.me.female, long: mineHere && v.me.long, hat: !mineHere, stick: 'spear', tilt: 0.04 });
+    ctx.fillStyle = t(i % 2 ? '#5a2a26' : '#4a4038'); ctx.beginPath(); ctx.ellipse(x - h * 0.16, 262 - h * 0.6, h * 0.1, h * 0.15, 0, 0, TAU); ctx.fill();
+  }
+  finish(v, { noLeaves: true });
+}
+
+/* ---------- 사랑 ---------- */
+/** 만남: 마을 어귀 큰 나무 아래 낮은 돌담, 조금 떨어져 마주 선 두 사람 */
+function loveMeet(v) {
+  const { ctx, t } = v, me = v.me, ot = v.other, walk = v.variant === 'walk';
+  sky(v); far(v); townFar(v, 150, HZ + 20, { s: 0.7 });
+  const gy = (x) => 164 - fbm1(x / 150 + v.q, 3) * 8;
+  ground(v, gy);
+  if (walk) road(v, 330, 150, HZ + 26, { w: 110 });
+  tree(v, 452, 212, 210);
+  // 돌담
+  for (let x = 250; x < 640; x += 15) rect(ctx, x, 202 - (x % 30 ? 0 : 2), 14, 16 + (x % 30 ? 0 : 2), t(x % 45 ? '#8c8274' : '#7a7266'));
+  rect(ctx, 250, 216, 390, 3, rgba('#000000', 0.2));
+  if (lit(v)) glow(v, 150, HZ + 10, 60, '#ffb060', 0.2);
+  if (walk) {
+    person(v, 300, 236, 106, { f: 0, cloth: me.cloth, hair: me.hair, female: me.female, long: me.long });
+    person(v, 340, 236, 102, { f: 0, cloth: ot.cloth, hair: ot.hair, female: ot.female, long: ot.long });
+  } else {
+    person(v, 316, 236, 108, { f: 1, cloth: me.cloth, hair: me.hair, female: me.female, long: me.long, arm: 'chest' });
+    person(v, 398, 234, 104, { f: -1, cloth: ot.cloth, hair: ot.hair, female: ot.female, long: ot.long });
+  }
+  finish(v);
+}
+const lit = (v) => v.S.tod === 'night' || v.S.tod === 'dusk';
+/** 다툼: 식탁을 사이에 둔 두 사람. 한 사람은 등을 돌렸다. variant 'caught'면 식탁 위에 손수건 */
+function loveQuarrel(v) {
+  const { ctx } = v, fy = room(v, { stone: false, wall: '#3a2e26', floor: '#2a211a', fy: 170 }), me = v.me, ot = v.other;
+  ctx.save(); zoom(v, 330, 244, 1.28);
+  windowAt(v, 330, 66, 38, 44);
+  rect(ctx, 468, 86, 70, 84, '#2a2420'); rect(ctx, 462, 80, 82, 8, '#3a322c'); rect(ctx, 482, 112, 42, 58, '#0c0908'); glow(v, 503, 160, 30, '#ff7a30', 0.3); rect(ctx, 492, 164, 22, 4, '#5a2a18');
+  const tx = 330, ty = 198;
+  poly(ctx, [tx - 60, ty - 42, tx + 60, ty - 42, tx + 74, ty - 28, tx - 74, ty - 28], '#5a4230'); rect(ctx, tx - 74, ty - 28, 148, 6, '#3a2a1e'); rect(ctx, tx - 66, ty - 22, 6, 44, '#2e2218'); rect(ctx, tx + 60, ty - 22, 6, 44, '#2e2218');
+  candle(v, tx + 30, ty - 36, 9); pool(v, tx + 20, ty - 40, 110, 46, '#ffb060', 0.2);
+  if (v.variant === 'caught') { poly(ctx, [tx - 22, ty - 38, tx - 4, ty - 39, tx - 2, ty - 32, tx - 24, ty - 31], '#d8ccd0'); stroke(ctx, [tx - 20, ty - 36, tx - 6, ty - 34], 0.8, '#8a3a4a'); }
+  else { oval(ctx, tx - 20, ty - 34, 6, 2.6, '#8a7a5c'); ctx.save(); ctx.translate(tx - 2, ty - 33); ctx.rotate(1.3); rect(ctx, -3, -4, 6, 8, '#7a6a54'); ctx.restore(); oval(ctx, tx + 4, ty - 31, 8, 2.2, 'rgba(60,30,24,.6)'); }
+  person(v, tx - 112, ty + 36, 108, { f: -1, raw: true, cloth: ot.cloth, hair: ot.hair, female: ot.female, long: ot.long, arm: 'chest', rim: 'rgba(255,180,100,.45)', rimDir: 1 });
+  person(v, tx + 104, ty + 38, 110, mine(v, { f: v.variant === 'caught' ? -1 : 1, old: v.variant === 'caught', rim: WARM, rimDir: -1 }));
+  ctx.restore();
+  finish(v, { inside: true });
+}
+
+/* ---------- 마탑 ---------- */
+/** 탑 안: 돌벽을 따라 도는 계단, 높은 창, 책장, 떠 있는 등불 아래의 스승과 견습. variant 'vote'면 둘러선 마도사들 */
+function towerHall(v) {
+  const { ctx, R } = v, fy = room(v, { wall: '#34323e', floor: '#24222a', fy: 172 }), me = v.me, vote = v.variant === 'vote';
+  for (const x of [250, 330, 410]) { windowAt(v, x, 18, 26, 96, { arch: true }); if (v.S.tod !== 'night') shaft(v, x, 114, 26, 120, 50, v.S.lit, 0.1); }
+  // 벽을 따라 오르는 계단
+  for (let i = 0; i < 12; i++) { const x = 20 + i * 15, y = fy - i * 11; rect(ctx, x, y - 11, 60, 11, i % 2 ? '#3c3a46' : '#44424e'); rect(ctx, x, y - 11, 60, 2, 'rgba(255,255,255,.06)'); }
+  poly(ctx, [20, fy, 200, fy, 200, fy - 132, 185, fy - 132], '#2a2832');
+  stroke(ctx, [24, fy - 30, 190, fy - 152], 2, '#5a4a38'); for (let i = 0; i < 12; i += 2) stroke(ctx, [28 + i * 15, fy - 12 - i * 11, 28 + i * 15, fy - 32 - i * 11], 1.4, '#5a4a38');
+  shelf(v, 470, 44, 150, 4);
+  // 떠 있는 등불
+  for (const [x, y, r] of [[230, 70, 5], [330, 140, 4], [440, 84, 6], [380, 44, 3.5]]) { glow(v, x, y, r * 7, COLD, 0.34); oval(ctx, x, y, r, r, '#e8f2ff'); }
+  for (let i = 0; i < 16; i++) glow(v, 220 + R() * 240, 30 + R() * 130, 1.5 + R() * 1.5, COLD, 0.4);
+  const rim = 'rgba(160,200,255,.55)';
+  if (vote) { // 원탁 회의
+    oval(ctx, 340, 214, 120, 22, '#3a3040'); oval(ctx, 340, 210, 120, 22, '#4a3e4e');
+    const C = ['#3a3450', '#4a2a2e', '#5a5a62', '#2e4038', '#44403c', '#3a3450', '#4e3a2a'];
+    [[226, 204, 0], [262, 196, 1], [306, 192, 2], [372, 192, 3], [416, 196, 4], [454, 204, 5]].forEach(([x, y, i]) => person(v, x, y, 84, { f: x < 340 ? 1 : -1, raw: true, cloth: C[i], hair: i % 2 ? '#8a8478' : '#2a1e16', robe: true, hood: i % 3 === 0, arm: i === 2 || i === 4 ? 'up' : null, rim, rimDir: x < 340 ? 1 : -1 }));
+    person(v, 300, 256, 112, mine(v, { f: 0, cloth: mixh(me.cloth, '#3a3450', 0.5), robe: !me.female, rim, rimDir: 1 }));
+    person(v, 390, 258, 108, { f: 0, raw: true, cloth: '#2e2a3a', hair: '#8a8478', robe: true, rim, rimDir: -1 });
+  } else {
+    const tx = 360, ty = 210;
+    poly(ctx, [tx - 60, ty - 38, tx + 70, ty - 38, tx + 82, ty - 26, tx - 72, ty - 26], '#4a3a2c'); rect(ctx, tx - 72, ty - 26, 154, 6, '#30241a'); rect(ctx, tx - 64, ty - 20, 6, 40, '#2a2018'); rect(ctx, tx + 70, ty - 20, 6, 40, '#2a2018');
+    for (let i = 0; i < 3; i++) rect(ctx, tx - 50 + i * 3, ty - 44 - i * 4, 26, 4, ['#5a3a34', '#3e4658', '#4a5240'][i]);
+    poly(ctx, [tx - 8, ty - 39, tx + 12, ty - 43, tx + 34, ty - 39, tx + 12, ty - 37], '#d8ccb0');
+    oval(ctx, tx + 56, ty - 46, 7, 7, '#9ab0c8'); glow(v, tx + 56, ty - 46, 22, COLD, 0.4);
+    person(v, tx + 122, ty + 28, 116, { f: -1, raw: true, cloth: '#3a3450', hair: '#b8b4ac', robe: true, stick: 'staff', rim, rimDir: -1 });
+    glow(v, tx + 122 - 21, ty + 28 - 124, 12, COLD, 0.6);
+    person(v, tx - 110, ty + 30, me.age < 16 ? 86 : 106, mine(v, { f: 1, cloth: mixh(me.cloth, '#3a3450', 0.45), robe: !me.female, arm: 'chest', rim, rimDir: 1 }));
+  }
+  finish(v, { inside: true });
+}
+
 export const PLATES2 = {
+  /** 군대. variant: march camp promote clash */
+  army(v) { const k = v.variant ?? 'camp'; return k === 'march' ? armyMarch(v) : k === 'clash' ? armyClash(v) : armyCamp(v); },
+  /** 사랑. variant: meet walk quarrel caught */
+  love(v) { const k = v.variant ?? 'meet'; return k === 'quarrel' || k === 'caught' ? loveQuarrel(v) : loveMeet(v); },
+  /** 마탑 안. variant: hall vote */
+  tower: towerHall,
   /** 봉인의 흔들림. variant: dream stone map shard alley visitor rite broken */
   seal(v) {
     const k = v.variant ?? 'stone';

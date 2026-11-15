@@ -26,6 +26,9 @@ const SCENE_CUE = {
   fief_grant: 'court', nation_name: 'court', civil_side: 'court',
   court_offer: 'palace', court_patron: 'palace', court_marriage: 'palace', court_plot: 'palace', court_fall: 'palace', court_turn: 'palace', court_affair: 'palace',
   deep_descend: 'abyss', deep_throne: 'abyss',
+  army_clash: 'war', army_hunted: 'tense', army_press: 'tense',
+  love_wedding: 'festive', love_after: 'solemn', love_betrayed: 'tense', love_caught: 'tense',
+  tower_join: 'mystic', tower_exam: 'mystic', tower_vote: 'mystic', tower_black_invite: 'mystic', forbidden_pick: 'mystic', tower_burning: 'tense', tower_inquisitor: 'tense', tower_exposed: 'tense', tower_master_death: 'solemn',
 };
 
 /** 떠 있는 사건·장면의 상황 곡. 평범한 사건이면 null (배경 곡을 그대로 둔다) */
@@ -39,6 +42,7 @@ export function eventMood(game) {
     if (s.kind === 'fight') return s.enc?.nemesisId ? 'boss' : 'battle';
     return SCENE_CUE[s.kind] ?? null;
   }
+  if (SCENE_CUE[e.id]) return SCENE_CUE[e.id]; // 장면이 아닌 사건으로 뜨는 것 (마탑 사건 등)
   const title = String(e.title ?? ''); const all = `${title} ${e.text ?? ''}`;
   if (RE.solemn.test(all)) return 'solemn';
   if (RE.festive.test(title)) return 'festive';

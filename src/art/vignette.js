@@ -3,7 +3,7 @@
 //
 //   vignetteImage(spec) → 그림 주소 (없으면 '')
 //     spec: { plate, variant?, year, month, place, me?, other?, seed? }
-//       plate   : wedding funeral birth muster square plague monsters famine fire prison voyage court festival chapel dragon road bedside ritual depths seal trade beast
+//       plate   : wedding funeral birth muster square plague monsters famine fire prison voyage court festival chapel dragon road bedside ritual depths seal trade beast army love tower
 //       me/other: 게임 속 사람 (머리·옷 빛깔과 성별·나이를 읽는다). 없어도 된다.
 //   vignetteFor(game, { title, text, outcome }) → spec 또는 null : 지금 뜬 사건에 어울리는 그림
 //
@@ -27,7 +27,7 @@ const SCALE = 1.5; // 그리는 크기: 960x360
 
 /* ---------- 그리기 ---------- */
 // 판마다 당겨 그릴 중심(x)과 배율
-const FOCUS = { wedding: [410, 1.15], funeral: [330, 1.2], birth: [300, 1.1], muster: [380, 1.25], square: [330, 1.15], plague: [330, 1.25], monsters: [330, 1.2], famine: [330, 1.15], fire: [300, 1.25], prison: [380, 1.15], voyage: [330, 1.15], court: [400, 1.1], festival: [320, 1.3], chapel: [330, 1.1], dragon: [320, 1], road: [300, 1.25], bedside: [330, 1.15], ritual: [320, 1.2], depths: [330, 1.1], seal: [330, 1.1], trade: [330, 1.1], beast: [310, 1.15] };
+const FOCUS = { wedding: [410, 1.15], funeral: [330, 1.2], birth: [300, 1.1], muster: [380, 1.25], square: [330, 1.15], plague: [330, 1.25], monsters: [330, 1.2], famine: [330, 1.15], fire: [300, 1.25], prison: [380, 1.15], voyage: [330, 1.15], court: [400, 1.1], festival: [320, 1.3], chapel: [330, 1.1], dragon: [320, 1], road: [300, 1.25], bedside: [330, 1.15], ritual: [320, 1.2], depths: [330, 1.1], seal: [330, 1.1], trade: [330, 1.1], beast: [310, 1.15], army: [330, 1.1], love: [360, 1.25], tower: [330, 1.1] };
 // 늘 밤이나 해 질 녘이어야 하는 그림
 const TOD = { 'seal:stone': 'night', 'seal:visitor': 'night', 'seal:alley': 'dusk' };
 const cache = new Map();
@@ -91,6 +91,12 @@ const BY_SCENE = {
   sail: 'voyage:harbor', shipyard: 'voyage:harbor', cargo: 'voyage:harbor', sea_event: 'voyage', pirate_den: 'voyage:pirate', pirate_raid: 'voyage:pirate', navy_hunt: 'voyage:pirate', sea_bounty: 'voyage', serpent_lair: 'voyage:serpent',
   farewell: 'road', realm_raid: 'fire',
   court_offer: 'court', court_patron: 'court', court_marriage: 'court', court_plot: 'court', court_fall: 'court', court_turn: 'court', court_affair: 'court',
+  // 11단계: 군대·사랑·마탑
+  army_march: 'army:march', army_muster: 'muster', army_press: 'muster', army_clash: 'army:clash', army_promote: 'army:promote', army_term: 'army:camp', army_enlist: 'army:camp', army_event: 'army:camp', army_ransom: 'prison', army_hunted: 'square:guards',
+  love_glance: 'love:meet', love_admirer: 'love:meet', love_wish: 'love:meet', love_temptation: 'love:walk', love_bloom: 'bedside', love_wedding: 'wedding', love_arranged: 'wedding', love_unrequited: 'wedding:far',
+  love_quarrel: 'love:quarrel', love_betrayed: 'love:quarrel', love_caught: 'love:caught', love_leave: 'road', love_after: 'funeral:visit',
+  tower_join: 'tower:hall', tower_pick: 'tower:hall', tower_craft_pick: 'trade:alchemy', tower_duty: 'tower:hall', tower_master_lesson: 'tower:hall', tower_master_errand: 'tower:hall', tower_vote: 'tower:vote', tower_exam: 'ritual', tower_burning: 'fire', tower_inquisitor: 'chapel:inquisition', tower_exposed: 'chapel:inquisition',
+  tower_black_invite: 'ritual:dark', forbidden_pick: 'ritual:dark', tower_master_death: 'bedside:last', tower_clinic: 'trade:healer', tower_craft: 'trade:alchemy',
   research_pick: 'ritual:study',
   deep_descend: 'depths', deep_throne: 'depths:throne',
 };
@@ -138,7 +144,7 @@ export function vignetteFor(g, { title = '', text = '', outcome = false } = {}) 
     if (id === 'duel_round' || id === 'duel_start') return null;
     const kind = id === 'life_scene' ? g.life?.scene?.kind : null;
     if (kind === 'fight' || kind === 'battle') return null;
-    pick = BY_ID[id] ?? (kind === 'crisis_turn' ? crisisPlate(title, text) : null) ?? (kind ? BY_SCENE[kind] : null) ?? null;
+    pick = BY_ID[id] ?? BY_SCENE[id] ?? (kind === 'crisis_turn' ? crisisPlate(title, text) : null) ?? (kind ? BY_SCENE[kind] : null) ?? null;
     if (kind === 'sea_event') pick = /폭풍|풍랑/.test(title) ? 'voyage:storm' : /해적|검은 돛/.test(title) ? 'voyage:pirate' : /뱀|괴물|촉수/.test(title + text) ? 'voyage:serpent' : 'voyage';
     if (kind === 'voc_path' || kind === 'voc_event') { const sc = g.life.scene; pick = VOC_ART[sc.path ?? sc.ev] ?? JOB_ART[g.life?.job?.id] ?? null; }
     if (kind === 'voc_beast') pick = BEAST_ART[g.life.scene.beast] ?? 'beast:boar';
@@ -147,7 +153,8 @@ export function vignetteFor(g, { title = '', text = '', outcome = false } = {}) 
   if (!pick) return null;
   const [plate, variant] = pick.split(':');
   const me = safe(() => g.people.find((p) => p.id === g.player.id));
-  const other = safe(() => g.people.find((p) => p.id === me.spouseId)) ?? null;
+  // 사랑 장면은 그 장면의 상대를 그린다
+  const other = safe(() => (plate === 'love' && g.life.scene?.id != null ? g.people.find((p) => p.id === g.life.scene.id) : null)) ?? safe(() => g.people.find((p) => p.id === me.spouseId)) ?? null;
   return {
     plate, variant: variant ?? null, year: g.date?.year ?? 505, month: g.date?.month ?? 6, place: g.life?.place ?? 'ern',
     famine: !!g.world?.famine, me, other, seed: strSeed(String(title)) % 997,
