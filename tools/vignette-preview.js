@@ -15,7 +15,7 @@ const GROUPS = [
   ['광장과 법', [['포고 (십강 발표)', 'square:herald', 'harfen'], ['방', 'square:notice', 'harfen'], ['태형', 'square:flog', 'verden'], ['이단 심문', 'square:trial', 'solaris'], ['순찰대 (체포)', 'square:guards', 'harfen'], ['감옥', 'prison']]],
   ['궁정과 신앙', [['알현과 서임', 'court', 'leocast'], ['예배당', 'chapel'], ['세례', 'chapel:child'], ['심문관들 앞', 'chapel:inquisition', 'solaris'], ['잔치', 'festival'], ['망자의 밤', 'festival:dead'], ['유랑 극단', 'festival:troupe']]],
   ['바다와 길', [['항해', 'voyage', 'saltmare'], ['폭풍', 'voyage:storm', 'saltmare'], ['부두', 'voyage:harbor', 'barka'], ['해적', 'voyage:pirate', 'saltmare'], ['바다뱀', 'voyage:serpent', 'saltmare'], ['난파', 'voyage:wreck', 'saltmare'], ['떠나는 길', 'road'], ['돌아오는 길', 'road:return']]],
-  ['마법과 전설', [['마법진', 'ritual'], ['수정구', 'ritual:orb'], ['폭주', 'ritual:wild'], ['금지된 술법', 'ritual:dark'], ['용', 'dragon', 'barka']]],
+  ['마법과 전설', [['마법진', 'ritual'], ['수정구', 'ritual:orb'], ['폭주', 'ritual:wild'], ['금지된 술법', 'ritual:dark'], ['연구', 'ritual:study'], ['용', 'dragon', 'barka'], ['큰 미궁의 돌문', 'depths'], ['깊은 왕', 'depths:throne']]],
 ];
 const st = { year: 505, month: 6 };
 const main = document.getElementById('groups');

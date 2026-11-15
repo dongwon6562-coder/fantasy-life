@@ -3,7 +3,7 @@
 //
 //   vignetteImage(spec) → 그림 주소 (없으면 '')
 //     spec: { plate, variant?, year, month, place, me?, other?, seed? }
-//       plate   : wedding funeral birth muster square plague monsters famine fire prison voyage court festival chapel dragon road bedside ritual
+//       plate   : wedding funeral birth muster square plague monsters famine fire prison voyage court festival chapel dragon road bedside ritual depths
 //       me/other: 게임 속 사람 (머리·옷 빛깔과 성별·나이를 읽는다). 없어도 된다.
 //   vignetteFor(game, { title, text, outcome }) → spec 또는 null : 지금 뜬 사건에 어울리는 그림
 //
@@ -24,7 +24,7 @@ const SCALE = 1.5; // 그리는 크기: 960x360
 
 /* ---------- 그리기 ---------- */
 // 판마다 당겨 그릴 중심(x)과 배율
-const FOCUS = { wedding: [410, 1.15], funeral: [330, 1.2], birth: [300, 1.1], muster: [380, 1.25], square: [330, 1.15], plague: [330, 1.25], monsters: [330, 1.2], famine: [330, 1.15], fire: [300, 1.25], prison: [380, 1.15], voyage: [330, 1.15], court: [400, 1.1], festival: [320, 1.3], chapel: [330, 1.1], dragon: [320, 1], road: [300, 1.25], bedside: [330, 1.15], ritual: [320, 1.2] };
+const FOCUS = { wedding: [410, 1.15], funeral: [330, 1.2], birth: [300, 1.1], muster: [380, 1.25], square: [330, 1.15], plague: [330, 1.25], monsters: [330, 1.2], famine: [330, 1.15], fire: [300, 1.25], prison: [380, 1.15], voyage: [330, 1.15], court: [400, 1.1], festival: [320, 1.3], chapel: [330, 1.1], dragon: [320, 1], road: [300, 1.25], bedside: [330, 1.15], ritual: [320, 1.2], depths: [330, 1.1] };
 const cache = new Map();
 export function vignetteImage(spec) {
   if (!hasDom || !spec || !PLATES[spec.plate]) return '';
@@ -74,6 +74,7 @@ const BY_ID = {
   chain_illness_start: 'bedside', chain_illness_turn: 'bedside', later_will: 'bedside', adult_parent_aging: 'bedside',
   mana_test: 'ritual:orb', mana_awaken: 'ritual', circle_exam_run: 'ritual', circle_exam_control: 'ritual', magic_misfire: 'ritual:wild', chain_darkmage_reveal: 'ritual:dark', magic_forbidden_copy: 'ritual:dark', duel_aura_awakening: 'ritual',
   legend_magnus_audience: 'court',
+  research_buyer: 'ritual:study', research_claim: 'ritual:study', research_mentor: 'ritual:study', research_rival: 'ritual:study', research_spy_offer: 'ritual:study', research_sue: 'square:herald',
 };
 // 장면 종류(life.scene.kind)로 정해지는 것
 const BY_SCENE = {
@@ -83,6 +84,9 @@ const BY_SCENE = {
   fief_grant: 'court', buy_title: 'court', domain_rank: 'court', nation_name: 'court', realm_office: 'court', civil_side: 'muster',
   sail: 'voyage:harbor', shipyard: 'voyage:harbor', cargo: 'voyage:harbor', sea_event: 'voyage', pirate_den: 'voyage:pirate', pirate_raid: 'voyage:pirate', navy_hunt: 'voyage:pirate', sea_bounty: 'voyage', serpent_lair: 'voyage:serpent',
   farewell: 'road', realm_raid: 'fire',
+  court_offer: 'court', court_patron: 'court', court_marriage: 'court', court_plot: 'court', court_fall: 'court', court_turn: 'court', court_affair: 'court',
+  research_pick: 'ritual:study',
+  deep_descend: 'depths', deep_throne: 'depths:throne',
 };
 // 결과 글(그 뒤)에서 알아보는 것. 앞에 있는 것이 먼저다.
 const BY_OUTCOME = [
