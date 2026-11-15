@@ -44,10 +44,72 @@ export function outfitOf(job, sex, stage, r1, r2, r3) {
     case 'weaver': return { kind: 'dress', main: pick(['#6d4b52', '#5a4a66', '#4f5a62'], r1), under: LINEN, neck: 'square', shawl: '#9a8a6a', embroidHem: true, head: r3 < 0.35 ? 'scarf' : null, headCol: '#9a8a6a' };
     case 'elder': return { kind: 'robe', main: '#3e3428', trim: '#8a7a5a', fur: '#8a7a62', chain: r2 < 0.5 ? '#8a7a5a' : null };
     case 'gang_boss': return { kind: 'coat', main: pick(['#22201f', '#2a1f22', '#1f262a'], r1), trim: '#6a5a3a', under: '#3a3230', scarfNeck: pick(['#5a1f1f', '#3a3a3a', '#4a3a1f'], r2), earring: true };
+    // 바다와 강
+    case 'fisher': return { kind: 'tunic', main: pick(['#4f5a5e', '#5a5648', '#465660'], r1), under: r2 < 0.6 ? LINEN : null, neck: 'round', jerkin: r2 > 0.5 ? '#3a3a34' : null, head: r3 < 0.3 ? 'strawhat' : fem && r3 < 0.6 ? 'scarf' : null, headCol: '#6a705c', patch: r2 > 0.6 };
+    case 'sailor': return { kind: 'tunic', main: pick(['#3f4c5c', '#4a4a44', '#5a4a3a'], r1), under: '#cfc6b2', neck: 'v', lace: true, strap: r2 < 0.4 ? '#2f241a' : null, head: r3 < 0.3 ? 'scarf' : null, headCol: pick(['#7a2f2a', '#3a4a5a', '#5a5030'], r2), earring: r2 > 0.7 };
+    case 'sea_captain': return { kind: 'coat', main: pick(['#1f2c44', '#2a2a30', '#3a2428'], r1), trim: GOLD, under: LINEN, scarfNeck: pick(['#d9cfba', '#6a2a26'], r2), head: r3 < 0.35 ? 'beret' : null, headCol: '#1a1f2c' };
+    case 'pirate': return { kind: 'leather', main: pick(['#4a3528', '#3a3230'], r1), under: pick(['#8a8068', '#6a3a34', '#4a5a5e'], r2), strap: '#241a12', head: r3 < 0.6 ? 'scarf' : null, headCol: pick(['#6a2622', '#2a2a30', '#5a4a26'], r2), earring: true };
+    case 'pirate_lord': return { kind: 'coat', main: pick(['#4a1c1e', '#1f1f26', '#2a2f1f'], r1), trim: GOLD, under: '#cfc6b2', scarfNeck: '#1a1616', fur: r2 < 0.4 ? '#3a3028' : null, chain: GOLD, earring: true, head: r3 < 0.5 ? 'scarf' : null, headCol: '#1f1a1a' };
+    // 뒷골목
+    case 'rat_boss': return { kind: 'coat', main: pick(['#2c2a24', '#33282a', '#262c2a'], r1), trim: '#5a5040', under: '#4a4238', scarfNeck: pick(['#4a3a2a', '#3a3a3a'], r2), earring: r2 > 0.5, patch: true };
+    case 'gang_member': return { kind: 'leather', main: pick(['#3a302a', '#2f2c2c', '#40342a'], r1), under: pick(['#4a4640', '#5a4a44'], r2), strap: '#1f1814', hoodDown: r3 < 0.5, headCol: '#2a2826' };
+    case 'fence': return { kind: 'doublet', main: pick(['#3f3a34', '#3a3440', '#44382c'], r1), trim: '#7a6a4a', under: '#bdb29a', pin: r2 < 0.4 };
+    case 'prisoner': return { kind: 'tunic', main: '#6a6253', under: null, neck: 'round', patch: true, torn: true };
+    case 'beggar': return { kind: 'tunic', main: pick(['#54493c', '#4c4a42', '#5a4c40'], r1), under: null, neck: 'v', patch: true, torn: true, shawl: r2 < 0.5 ? '#3f3a32' : null };
+    // 싸우는 사람들
+    case 'mercenary': return { kind: 'leather', main: pick(['#4a3a2c', '#3f3a36', '#4c4030'], r1), under: STEEL, strap: '#2a2018', pauldron: r3 > 0.3, furCollar: r2 < 0.3 ? '#5a4c3c' : null, cloak: r2 > 0.7 ? '#3a3430' : null };
+    case 'soldier': return { kind: 'mail', main: STEEL, cloth: pick(['#5a2a2a', '#3a4a3a', '#34405a', '#4a4030'], r1), trim: '#a8935e', gambeson: true, emblem: pick(['chevron', 'tower'], r2), head: r3 < 0.35 ? 'kettle' : r3 < 0.5 ? 'mailcoif' : null };
+    case 'heavy': return { kind: 'plate', main: '#8f959c', cloth: pick(['#3a3a40', '#4a3a30', '#2f3a44'], r1), trim: '#8a8478', emblem: null, cloak: r2 < 0.5 ? '#2f2c2a' : null };
+    case 'delver': return { kind: 'leather', main: pick(['#4a4038', '#3c3a34'], r1), under: '#5a564c', strap: '#241c14', head: r3 < 0.4 ? 'hood' : null, hoodDown: r3 >= 0.4, headCol: '#3a362e', pauldron: r2 > 0.6 };
+    case 'trapper': return { kind: 'leather', main: pick(['#5a4a30', '#4f4634'], r1), under: '#6a6450', strap: '#2c241a', furCollar: pick(['#7a6a52', '#5a4c3e', '#8a8478'], r2) };
+    // 신전과 관청
+    case 'inquisitor': return { kind: 'robe', main: '#231f22', trim: '#8a2a2a', stole: '#6a1f1f', emblem: 'sunpendant', head: r3 < 0.4 ? 'hood' : null, headCol: '#1c181b' };
+    case 'acolyte': return { kind: 'robe', main: '#cfc6b0', trim: '#a8987a', head: fem && r3 < 0.5 ? 'coif' : null, headCol: '#d9cfba' };
+    case 'sea_priest': return { kind: 'robe', main: '#2f4a5a', trim: SILVER, stole: '#c9d2d4', chain: SILVER };
+    case 'keeper': return { kind: 'robe', main: pick(['#5a3226', '#4a4030', '#3f3a34'], r1), trim: '#a8935e', stole: pick(['#8a4a26', '#5a5a3a'], r2) };
+    case 'official': return { kind: 'doublet', main: pick(['#3a3f4a', '#44403a', '#3a4440'], r1), trim: '#a8935e', under: LINEN, tabs: true, chain: r2 < 0.4 ? '#a8935e' : null, head: r3 < 0.25 ? 'beret' : null, headCol: '#2a2a30' };
+    case 'courtier': return { kind: 'doublet', main: pick(RICH, r1), trim: GOLD, under: LINEN, ruff: true, chain: r2 < 0.6 ? GOLD : null, ornate: true, head: r3 < 0.3 ? 'beret' : null, headCol: shade(pick(RICH, r1), 0.3) };
+    case 'minister': return { kind: 'noble', main: pick(['#2a2430', '#3a1f24', '#1f2f3a'], r1), trim: GOLD, under: '#e6dcc8', fur: '#4a3c30', chain: GOLD, jewel: pick(['#8a2a2a', '#2a5a8a'], r2) };
+    case 'lord': return { kind: 'noble', main: pick(['#4a1f2a', '#1f3350', '#2a3f34', '#3a3020'], r1), trim: GOLD, under: '#e6dcc8', fur: pick(['#5a4a3a', '#8a7a62', '#3a3028'], r2), chain: GOLD, jewel: pick(['#8a2a2a', '#2a5a8a', '#2a7a5a'], r2) };
+    case 'royal': return { kind: 'noble', main: pick(['#5a1a26', '#2a1f4a', '#1f3350'], r1), trim: GOLD, under: '#efe6d2', fur: '#e8e0d0', ermine: true, chain: GOLD, jewel: pick(['#8a2a2a', '#2a5a8a', '#6a2a7a'], r2), head: 'circlet', ornate: true };
+    // 만드는 사람들
+    case 'artificer': return { kind: 'apron', main: pick(['#3f4650', '#4a4438'], r1), under: LINEN, apron: '#5a4a38', apronStrap: true, rolled: true };
+    case 'gardener': return { kind: 'tunic', main: pick(['#4f6044', '#5a6a4a'], r1), under: LINEN, neck: 'v', lace: true, apron: r2 < 0.5 ? '#6a5a40' : null };
+    case 'undertaker': return { kind: 'gown', main: '#262224', trim: '#5a544c', under: '#bdb5a4', head: r3 < 0.3 ? 'scholarcap' : null, headCol: '#1f1c1e' };
+    case 'warden': return { kind: 'mail', main: '#7a7f86', cloth: '#3a3632', trim: '#7a7468', gambeson: true, emblem: null, worn: true };
+    case 'idle': return { kind: fem ? 'dress' : 'tunic', main: pick(['#5c5140', '#4c5a52', '#6a4e3c', '#4e4a5e', '#5a4a4a'], r1), under: r2 < 0.7 ? LINEN : null, neck: fem ? (r2 < 0.5 ? 'square' : 'round') : 'v', lace: r2 > 0.5 };
     default: {
       return { kind: fem ? 'dress' : 'tunic', main: pick(['#5c5140', '#4c5a52', '#6a4e3c', '#4e4a5e', '#5a4a4a'], r1), under: r2 < 0.7 ? LINEN : null, neck: fem ? (r2 < 0.5 ? 'square' : 'round') : 'v', lace: r2 > 0.5 };
     }
   }
+}
+
+const CLOTH_KINDS = new Set(['tunic', 'dress', 'wrap', 'apron']);
+const FINE_KINDS = new Set(['doublet', 'coat', 'robe', 'gown', 'cloak', 'magerobe']);
+const HUMBLE = new Set(['idle', 'farmer', 'laborer', 'apprentice', 'fisher', 'sailor', 'herbalist', 'weaver', 'miller', 'gardener', undefined, null]);
+/**
+ * 살림 형편을 옷에 입힌다. tier: 0 빈털터리 ~ 4 부자. job: 옷차림 이름 (없으면 평범한 옷으로 본다)
+ * 가난하면 빛이 바래고 기운 자리가 생기고, 넉넉하면 평범한 일을 하는 사람도 좋은 옷을 입는다.
+ */
+export function wearTier(o, tier, job, sex, r1, r2) {
+  if (!o || o.kind === 'swaddle') return o;
+  const out = { ...o };
+  if (tier <= 1) {
+    const k = tier === 0 ? 0.55 : 0.22;
+    out.main = shade(mixHex(o.main, '#5a5348', k), tier === 0 ? 0.12 : 0);
+    if (o.trim && tier === 0) out.trim = mixHex(o.trim, '#6a6050', 0.6);
+    if (o.under && CLOTH_KINDS.has(o.kind)) out.under = mixHex(o.under, '#8a8068', k);
+    if (CLOTH_KINDS.has(o.kind) || o.kind === 'leather' || tier === 0) out.patch = true;
+    if (tier === 0) { out.torn = true; out.chain = null; out.ruff = false; out.ornate = false; if (o.fur && o.kind !== 'noble') out.fur = null; }
+  } else if (tier >= 3 && HUMBLE.has(job) && o.kind !== 'leather' && o.kind !== 'mail' && o.kind !== 'plate') {
+    // 돈이 있는 사람: 일은 평범해도 옷감이 다르다
+    const rich = pick(RICH, r1);
+    if (tier >= 4) return { kind: 'doublet', main: rich, trim: GOLD, under: LINEN, fur: r2 < 0.5 ? '#5a4a3a' : null, chain: r2 > 0.3 ? GOLD : null, ruff: r2 < 0.3, head: o.head === 'scarf' || o.head === 'strawhat' ? null : o.head, headCol: o.headCol };
+    out.main = mixHex(o.main, rich, 0.55); out.patch = false; out.under = o.under ?? LINEN; out.embroidHem = sex === 'f';
+    if (o.kind === 'tunic') { out.jerkin = shade(rich, 0.35); out.lace = true; }
+    if (out.head === 'strawhat') out.head = null;
+  } else if (tier >= 4 && FINE_KINDS.has(o.kind) && !o.chain && o.kind !== 'cloak') out.chain = o.trim ?? GOLD;
+  return out;
 }
 
 /* ---------- 그리기 ---------- */
@@ -123,7 +185,8 @@ export function drawGarb(o, c) {
         if (o.kind === 'dress' && detail) t += `<path d="M${f(cx - nw - 5)} ${f(baseY + 9)} Q${cx} ${f(baseY + 13)} ${f(cx + nw + 5)} ${f(baseY + 9)}" fill="none" stroke="${dark}" stroke-width="0.5" opacity="0.7"/>`;
       }
       if (o.apron) t += `<path d="M${f(cx - 10)} ${f(baseY + 10)} L${f(cx - 12)} 104 L${f(cx + 12)} 104 L${f(cx + 10)} ${f(baseY + 10)}Z" fill="${o.apron}" ${ink(0.5)}/>`;
-      if (o.patch && detail) t += `<path d="M${f(cx - sw * 0.6)} ${f(sy + 9)} l4.6 -0.6 0.5 4.4 -4.7 0.5Z" fill="${shade(o.main, 0.16)}" stroke="${shade(o.main, 0.5)}" stroke-width="0.35" stroke-dasharray="0.8 0.6"/>`;
+      if (o.torn) t += `<path d="M${f(cx - nw - 1.4)} ${f(baseY - 1.4)} l-1.6 2.6 l1.8 0.6 l-1.4 2.4 M${f(cx + sw * 0.5)} ${f(sy + 14)} l1.6 3 l-2 1.4 l1.4 3" fill="none" stroke="${shade(o.main, 0.55)}" stroke-width="0.55" stroke-linecap="round"/>` + (detail ? `<path d="M${f(cx + sw * 0.2)} ${f(sy + 7)} l4 0.4 0.2 3.8 -4.4 -0.2Z" fill="${mixHex(o.main, '#3a3a30', 0.4)}" stroke="${shade(o.main, 0.5)}" stroke-width="0.35" stroke-dasharray="0.8 0.6"/>` : '');
+      if (o.patch && detail) t += `<path d="M${f(cx - sw * 0.6)} ${f(sy + 9)} l5 -0.7 0.6 4.8 -5.2 0.5Z" fill="${mixHex(o.main, '#8a7c62', 0.35)}" stroke="${shade(o.main, 0.55)}" stroke-width="0.4" stroke-dasharray="0.8 0.6"/>`;
       if (o.dust && detail) t += `<path d="M${f(cx - sw * 0.5)} ${f(sy + 6)} q6 3 12 0 M${f(cx + 4)} ${f(sy + 12)} q5 2 10 -1" fill="none" stroke="#efe8d6" stroke-width="1.6" opacity="0.25" stroke-linecap="round"/>`;
       if (o.shawl) t += `<path d="M${f(cx - sw + 1)} ${f(sy + 7)} Q${f(cx - nw - 4)} ${f(baseY - 1)} ${f(cx - nw - 1)} ${f(baseY - 2)} L${f(cx - 2)} ${f(baseY + 17)} L${f(cx - sw + 6)} ${f(sy + 22)}Z M${f(cx + sw - 1)} ${f(sy + 7)} Q${f(cx + nw + 4)} ${f(baseY - 1)} ${f(cx + nw + 1)} ${f(baseY - 2)} L${f(cx + 2)} ${f(baseY + 17)} L${f(cx + sw - 6)} ${f(sy + 22)}Z" fill="${o.shawl}" ${ink(0.5)}/>${detail ? `<path d="M${f(cx - sw + 5)} ${f(sy + 12)} L${f(cx - 4)} ${f(baseY + 12)} M${f(cx + sw - 5)} ${f(sy + 12)} L${f(cx + 4)} ${f(baseY + 12)}" stroke="${shade(o.shawl, 0.3)}" stroke-width="0.45" stroke-dasharray="1.6 1" fill="none"/>` : ''}`;
       if (o.strap) t += `<path d="M${f(cx - sw + 3)} ${f(sy + 4)} L${f(cx + sw * 0.5)} 104 L${f(cx + sw * 0.5 + 5)} 104 L${f(cx - sw + 7)} ${f(sy + 2)}Z" fill="${o.strap}" ${ink(0.45)}/>`;
@@ -213,6 +276,9 @@ export function drawGarb(o, c) {
     }
     default: t += base() + shadeR;
   }
+  // 기운 자리와 해진 단: 어떤 옷이든 형편이 어려우면 드러난다
+  if (o.patch && !['tunic', 'dress', 'wrap'].includes(o.kind)) t += `<path d="M${f(cx - sw * 0.62)} ${f(sy + 10)} l5 -0.7 0.6 4.8 -5.2 0.5Z" fill="${mixHex(o.main, '#8a7c62', 0.35)}" stroke="${shade(o.main, 0.55)}" stroke-width="0.4" stroke-dasharray="0.9 0.6"/>`;
+  if (o.torn && !['tunic', 'dress', 'wrap'].includes(o.kind)) t += `<path d="M${f(cx + sw * 0.5)} ${f(sy + 14)} l1.6 3 l-2 1.4 l1.4 3" fill="none" stroke="${shade(o.main, 0.55)}" stroke-width="0.55" stroke-linecap="round"/>`;
   out.torso = t;
 
   /* ----- 목 위로 올라오는 것들 ----- */
