@@ -320,10 +320,10 @@ HOOKS.afterMonth.push((g, rng) => {
   const d = a.deserted;
   if (d && !d.caught) {
     if (g.date.year - d.year >= 10) { d.caught = true; note(g, '탈영병 수배가 풀렸다. 이제 아무도 그 일을 묻지 않는다.'); }
-    else if (realmOf(life.place) === 'leonia' && !life.travel && !isJailed(g) && !sceneQueued(g, 'army_hunted') && rng.chance(atWar(g) ? 0.09 : 0.06)) queueScene(g, 'army_hunted');
+    else if (realmOf(life.place) === 'leonia' && !life.travel && !g.explore?.exp && !isJailed(g) && !sceneQueued(g, 'army_hunted') && rng.chance(atWar(g) ? 0.09 : 0.06)) queueScene(g, 'army_hunted');
   }
   // 징집: 전쟁 중, 레오니아 고을의 일 없는 젊은이
-  if (!s && atWar(g) && isAdult(g) && playerAge(g) >= 16 && playerAge(g) <= 32 && !a.deserted && !life.travel && !isJailed(g) && mi(g) >= a.pressCool
+  if (!s && atWar(g) && isAdult(g) && playerAge(g) >= 16 && playerAge(g) <= 32 && !a.deserted && !life.travel && !g.explore?.exp && !isJailed(g) && mi(g) >= a.pressCool
     && LEONIA_PLACES.includes(life.place) && (!life.job || ['laborer', 'farmer'].includes(life.job.id)) && !life.fac?.knights?.member && !g.domain
     && !sceneQueued(g, 'army_press') && rng.chance(0.05)) queueScene(g, 'army_press');
 });
