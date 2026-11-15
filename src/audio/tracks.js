@@ -475,11 +475,221 @@ const abyss = (() => {
   };
 })();
 
+/* ---------- 다른 고장들 (11단계: 장소의 얼굴) ---------- */
+// 남해 군도: 흔들리는 뱃전 같은 세 박, 피리와 류트
+const isles = (() => {
+  const cA = '1 | 7 | 1 | 4 | 1 | 7 | 4 5 | 1', cB = '4 | 1 | 7 | 1 | 4 | 1 | 5 | 1o';
+  const A = "5 - 6 5 - 3 | 4 - 2 7, - - | 1 - 3 5 - 6 | 6 - 4 - - . | 5 - 6 1' - 6 | 7 - 5 4 - 2 | 4 - 6 5 - 2 | 1 - - - - .";
+  const B = "6 - 1' 6 - 4 | 5 - 3 1 - - | 7 - 2' 7 - 5 | 5 - 3 - - . | 6 - 1' 2' - 1' | 5 - 3 5 - 1' | 7 - 5 2 - 4 | 1 - - - - .";
+  const lute = arp('lute', '0 2 3 . 2 3', { vel: 0.5 });
+  const bs = bass('lute', 'r . . 5 . .', { oct: -2, vel: 0.55 });
+  const dr = perc('frame', 'X . . o . x', { vel: 0.34 });
+  return {
+    id: 'isles', kind: 'mood', plays: 1, gain: 1.05, name: '소금 바람', where: '남해 군도 (섬과 항구)', bpm: 58, beats: 2, root: 57, scale: 'mixolydian',
+    sections: [
+      sec(2, '1 | 7', [lute, dr], { once: true }),
+      sec(8, cA, [lute, bs, dr, mel('pipe', A, { vel: 0.48, legato: 0.9 })]),
+      sec(8, cB, [lute, bs, dr, perc('jingle', '. . . x . .', { vel: 0.2 }), mel('viol', B, { vel: 0.5, legato: 0.9 })]),
+      sec(8, cA, [lute, bs, dr, perc('jingle', '. . . x . .', { vel: 0.2 }), mel('pipe', A, { vel: 0.46, legato: 0.9 }), under('viol', A, { vel: 0.3 }), pad('strings', { oct: -1, open: true, vel: 0.2 })]),
+    ],
+  };
+})();
+
+// 엘프 숲: 북 없이, 하프와 피리와 사람 아닌 목소리
+const elfwood = (() => {
+  const cA = '1 | 2 | 6 | 1 | 1 | 2 | 5 | 1o', cB = '6 | 2 | 1 | 5 | 6 | 2 | 5 | 1o';
+  const A = "5 - - 6 | #4 - 2 - | 3 - 1 - | 2 - - . | 5 - - 7 | 1' - 6 - | 7 6 5 2 | 3 - - .";
+  const B = "1' - 7 6 | 6 - #4 - | 5 - 3 - | 2 - - . | 1' - 7 6 | 2' - 1' 6 | 7 - 5 - | 5 - - .";
+  const harp = arp('harp', '0 2 4 3 2 4 3 2', { vel: 0.44 });
+  const low = drone('drone', '1 5', { oct: -2, vel: 0.26 });
+  return {
+    id: 'elfwood', kind: 'mood', plays: 1, gain: 0.85, name: '세계수 아래', where: '대삼림 · 엘프의 땅', bpm: 56, beats: 4, root: 64, scale: 'lydian',
+    sections: [
+      sec(2, '1 | 2', [harp, low], { once: true }),
+      sec(8, cA, [harp, low, mel('flute', A, { vel: 0.46, legato: 0.95 })]),
+      sec(8, cB, [harp, low, pad('choirOo', { open: true, vel: 0.2 }), mel('viol', B, { vel: 0.42, legato: 0.95 }),
+        mel('glass', '. | . . . 5 | . | . . 3 . | . | . . . 6 | . | . . 1 .', { oct: 2, vel: 0.16, flat: true })]),
+      sec(8, cA, [harp, low, pad('choirOo', { open: true, vel: 0.22 }), pad('strings', { oct: -1, open: true, vel: 0.2 }), mel('flute', A, { vel: 0.44, legato: 0.95 }), under('viol', A, { vel: 0.26 })]),
+    ],
+  };
+})();
+
+// 드워프 산: 낮은 뿔나팔, 모루 소리 같은 박, 굵은 합창
+const dwarfhall = (() => {
+  const cA = '1o | 7 | 1o | 4 | 1o | 3 | 7 | 1o', cB = '4 | 1 | 7 | 1o | 4 | 3 | 5 | 1o';
+  const A = "1 - - 2 | 3 - 2 - | 1 - 5, - | 6, - - . | 1 - - 3 | 5 - 4 3 | 2 - 7, - | 1 - - .";
+  const B = "6 - 4 - | 5 - 3 - | 4 - 2 - | 1 - - . | 6 - 4 6 | 5 - 3 - | 2 - 5 - | 1 - - .";
+  const low = drone('drone', '1', { oct: -1, vel: 0.4 });
+  const drum = perc('war', 'X . . . x . . .', { vel: 0.34 });
+  const anvil = perc('tick', '. . x . . . x x', { vel: 0.3 });
+  return {
+    id: 'dwarfhall', kind: 'mood', plays: 1, gain: 0.68, name: '깊은 화로', where: '천룡 산맥 · 드워프의 땅', bpm: 72, beats: 4, root: 48, scale: 'dorian',
+    sections: [
+      sec(2, '1o | 1o', [low, drum], { once: true }),
+      sec(8, cA, [low, drum, anvil, mel('horn', A, { vel: 0.56 })]),
+      sec(8, cA, [low, drum, anvil, pad('choir', { oct: -1, open: true, vel: 0.26 }), mel('horn', A, { vel: 0.54 }), bass('harp', 'r - - - 5 - - -', { oct: -1, vel: 0.5 })]),
+      sec(8, cB, [low, drum, pad('strings', { oct: -1, vel: 0.28 }), mel('viol', B, { vel: 0.5 }), bass('harp', 'r - - - 5 - a -', { oct: -1, vel: 0.5 })]),
+      sec(8, cA, [low, drum, anvil, perc('tom', '. . . . . . x x', { vel: 0.26 }), pad('choir', { oct: -1, open: true, vel: 0.28 }), pad('organ', { oct: -1, open: true, vel: 0.16 }), mel('horn', A, { vel: 0.56 }), under('viol', A, { vel: 0.3 })]),
+    ],
+  };
+})();
+
+// 마탑: 유리 소리의 고른 셈, 종, 홀로 생각하는 비올
+const magetower = (() => {
+  const cA = '1 | 4 | 1 | 7 | 1 | 4 | 5 | 1o', cB = '3 | 7 | 4 | 1 | 3 | 7 | 5 | 1o';
+  const A = "5 - - | 6 5 3 | 5 - - | 4 - 2 | 3 - 5 | 6 - 1' | 7 - 5 | 1' - -";
+  const B = "7 - 5 | 2' - 7 | 6 - 4 | 5 - - | 7 - 5 | 4 - 2 | 5 - 7 | 1' - -";
+  const glass = arp('glass', '0 2 3 2 4 2', { oct: 1, vel: 0.3 });
+  const low = drone('drone', '1', { oct: -2, vel: 0.3 });
+  const toll = mel('bell', '1 - - | . | . | . | 5, - - | . | . | .', { oct: -1, vel: 0.26, flat: true });
+  return {
+    id: 'magetower', kind: 'mood', plays: 1, gain: 0.85, name: '별을 재는 탑', where: '마탑과 옛 탑', bpm: 63, beats: 3, root: 59, scale: 'dorian',
+    sections: [
+      sec(4, '1 | 1 | 4 | 1o', [glass, low], { once: true }),
+      sec(8, cA, [glass, low, toll, mel('viol', A, { vel: 0.46, legato: 0.95 })]),
+      sec(8, cB, [glass, low, pad('organ', { oct: -1, open: true, vel: 0.18 }), mel('flute', B, { vel: 0.42, legato: 0.95 }), bass('harp', 'r - -', { oct: -2, vel: 0.44 })]),
+      sec(8, cA, [glass, low, toll, pad('strings', { open: true, vel: 0.2, o: { trem: true } }), pad('choirOo', { open: true, vel: 0.14 }), mel('viol', A, { vel: 0.46, legato: 0.95 }), under('harp', A, { oct: -1, vel: 0.36 })]),
+    ],
+  };
+})();
+
+// 병영과 요새: 걸음 맞추는 북, 피리, 멀리서 받는 뿔나팔
+const garrison = (() => {
+  const cA = '1 | 1 | 7 | 1 | 1 | 3 | 7 | 1o', cB = '4 | 1 | 7 | 5 | 4 | 1 | 5 | 1o';
+  const A = "1 - 1 2 3 - 1 - | 5 - 4 3 2 - - . | 7, - 7, 1 2 - 4 - | 3 2 1 - 1 - - . | 1 - 1 2 3 - 5 - | 7 - 5 3 5 - - . | 4 - 2 7, 2 - 4 - | 1 - - - - - . .";
+  const B = "6 - 4 - 6 - 1' - | 5 - 3 - 1 - - . | 7 - 5 - 2 - 4 - | 5 - - - 2 - - . | 6 - 4 - 6 - 1' - | 5 - 3 - 5 - - . | 2 - 5 - 7 - 5 - | 1 - - - - - . .";
+  const snare = perc('frame', 'X . x x X . x .', { vel: 0.36 });
+  const drum = perc('war', 'x . . . o . . .', { vel: 0.3 });
+  const bs = bass('lute', 'r . . . 5 . . .', { oct: -2, vel: 0.5 });
+  const call = mel('horn', '. | . | . | . . . . 5 - 1\' - | . | . | . | . . . . 5 - - -', { oct: -1, vel: 0.3, flat: true });
+  return {
+    id: 'garrison', kind: 'mood', plays: 1, gain: 1.05, name: '병영의 아침', where: '요새와 병영', bpm: 92, beats: 4, root: 55, scale: 'dorian',
+    sections: [
+      sec(2, '1 | 1', [snare, drum], { once: true }),
+      sec(8, cA, [snare, drum, bs, mel('pipe', A, { oct: 1, vel: 0.44, legato: 0.8 })]),
+      sec(8, cB, [snare, drum, bs, pad('strings', { oct: -1, open: true, vel: 0.24 }), mel('viol', B, { vel: 0.5, legato: 0.85 })]),
+      sec(8, cA, [snare, drum, bs, call, pad('strings', { oct: -1, open: true, vel: 0.24 }), mel('pipe', A, { oct: 1, vel: 0.44, legato: 0.8 }), mel('viol', A, { vel: 0.36, legato: 0.85 })]),
+    ],
+  };
+})();
+
+// 미궁 도시 바르카: 모험가들의 도시. 빠른 류트와 굵은 비올
+const labyrinth = (() => {
+  const cA = '1 | 7 | 6 | 7 | 1 | 3 | 7 | 1', cB = '6 | 7 | 1 | 1 | 6 | 7 | 5M | 1o';
+  const A = "1 - 5 - 4 3 1 - | 2 - 7, - 2 - - . | 1 - 6, - 1 3 1 - | 7, - 2 - 4 - - . | 1 - 5 - 7 5 3 - | 5 - 7 - 3 - - . | 4 - 2 - 7, - 2 - | 1 - - - - - . .";
+  const B = "6 - 1' - 6 4 3 - | 2 - 4 - 7 - - . | 5 - 3 - 1 3 5 - | 5 - - - 3 - - . | 6 - 1' - 3' 1' 6 - | 2' - 7 - 4 - - . | #7 - 5 - 2 - #7 - | 1' - - - - - . .";
+  const st = strum('D . . u d . d u', { oct: -1, vel: 0.46 });
+  const bs = bass('lute', 'r . . 8 . . a .', { oct: -2, vel: 0.58 });
+  const dr = perc('frame', 'X . . x . x . .', { vel: 0.4 });
+  const tom = perc('tom', '. . . . x . . .', { vel: 0.3 });
+  return {
+    id: 'labyrinth', kind: 'mood', plays: 1, gain: 0.9, name: '탑 아래 도시', where: '미궁 도시 바르카 · 끝없는 탑', bpm: 100, beats: 4, root: 52, scale: 'aeolian',
+    sections: [
+      sec(2, '1 | 7', [st, dr], { once: true }),
+      sec(8, cA, [st, bs, dr, mel('viol', A, { vel: 0.56, legato: 0.85 })]),
+      sec(8, cB, [st, bs, dr, tom, mel('pipe', B, { vel: 0.46, legato: 0.85 })]),
+      sec(8, cA, [st, bs, dr, tom, perc('jingle', '. . . . . . x .', { vel: 0.2 }), mel('viol', A, { vel: 0.54, legato: 0.85 }), under('pipe', A, { oct: 1, vel: 0.26, every: 2 }), pad('strings', { oct: -1, open: true, vel: 0.2 })]),
+    ],
+  };
+})();
+
+// 발하르트 제국: 무겁고 곧은 걸음. 뿔나팔과 현, 오르간
+const empire = (() => {
+  const cA = '1 | 6 | 3 | 7 | 1 | 4 | 5M | 1o', cB = '6 | 3 | 7 | 1 | 6 | 4 | 5M | 1o';
+  const A = "1 - - 5, | 6, - 1 - | 3 - 2 1 | 2 - - . | 1 - - 3 | 4 - 6 - | 5 - #7, - | 1 - - .";
+  const B = "3 - 1 - | 5 - 3 - | 4 - 2 - | 1 - - . | 3 - 1 3 | 6 - 4 - | 5 - 2 - | 1 - - .";
+  const strs = pad('strings', { oct: -1, vel: 0.3 });
+  const drum = perc('war', 'X . . . x . x .', { vel: 0.3 });
+  return {
+    id: 'empire', kind: 'mood', plays: 1, gain: 0.8, name: '쇠의 수도', where: '발하르트 제국', bpm: 70, beats: 4, root: 50, scale: 'aeolian',
+    sections: [
+      sec(2, '1o | 1o', [drum, drone('drone', '1', { oct: -2, vel: 0.36 })], { once: true }),
+      sec(8, cA, [strs, drum, mel('horn', A, { vel: 0.56 }), bass('harp', 'r - - - 5 - - -', { oct: -2, vel: 0.5 })]),
+      sec(8, cB, [strs, drum, pad('organ', { oct: -1, open: true, vel: 0.18 }), mel('viol', B, { oct: 1, vel: 0.46 }), bass('harp', 'r - - - 5 - a -', { oct: -2, vel: 0.5 })]),
+      sec(8, cA, [strs, drum, perc('tom', '. . . . . . x x', { vel: 0.24 }), pad('organ', { oct: -1, open: true, vel: 0.2 }), pad('choir', { oct: -1, open: true, vel: 0.2 }), mel('horn', A, { vel: 0.56 }), mel('strings', A, { oct: 1, vel: 0.28, o: { attack: 0.18, release: 0.4 } }), bass('harp', 'r - - - 5 - a -', { oct: -2, vel: 0.5 })]),
+    ],
+  };
+})();
+
+// 성국: 오르간과 성가, 느린 종
+const holy = (() => {
+  const cA = '1 | 4 | 1 | 5 | 1 | 4 | 7 | 1o', cB = '4 | 1 | 7 | 4 | 4 | 1 | 5 | 1o';
+  const A = "1 - 2 3 | 4 - 3 - | 5 - 3 1 | 2 - - . | 3 - 4 5 | 6 - 5 - | 4 3 2 - | 1 - - .";
+  const B = "6 - 5 4 | 5 - 3 - | 4 - 2 - | 4 - - . | 6 - 5 4 | 5 - 1' - | 7 5 2 - | 1 - - .";
+  const org = pad('organ', { oct: -1, open: true, vel: 0.26 });
+  const toll = mel('bell', '1 - - - | . | . | . | . | . | 5, - - - | .', { oct: -1, vel: 0.3, flat: true });
+  return {
+    id: 'holy', kind: 'mood', plays: 1, gain: 0.52, name: '성광 아래', where: '성국 솔라리스', bpm: 54, beats: 4, root: 60, scale: 'mixolydian',
+    sections: [
+      sec(2, '1 | 1o', [org, mel('bell', '1 - - - | .', { oct: -1, vel: 0.3, flat: true })], { once: true }),
+      sec(8, cA, [org, toll, mel('choirOo', A, { vel: 0.44, legato: 1 })]),
+      sec(8, cB, [org, pad('strings', { oct: -1, vel: 0.24 }), mel('choirOo', B, { vel: 0.44, legato: 1 }), under('choir', B, { oct: -1, vel: 0.24 })]),
+      sec(8, cA, [org, toll, pad('strings', { oct: -1, vel: 0.26 }), mel('choirOo', A, { vel: 0.42, legato: 1 }), under('choir', A, { oct: -1, vel: 0.26 }), mel('viol', A, { oct: 1, vel: 0.3, legato: 0.95 }), bass('harp', 'r - - - - - 5 -', { oct: -2, vel: 0.44 })]),
+    ],
+  };
+})();
+
+// 북쪽 변경과 잊힌 땅: 눈 위의 비올 한 대
+const north = (() => {
+  const cA = '1o | 1o | 6 | 7 | 1o | 3 | 7 | 1o', cB = '6 | 3 | 7 | 1o | 6 | 4 | 5 | 1o';
+  const A = "5 - - - | 4 3 1 - | 3 - 1 - | 2 - - . | 5 - - 7 | 1' - 7 5 | 4 - 2 - | 1 - - .";
+  const B = "1' - 6 - | 7 - 5 - | 4 - 5 2 | 3 - - . | 1' - 6 - | 6 - 4 - | 5 - 7 - | 1' - - .";
+  const low = drone('drone', '1 5', { oct: -2, vel: 0.34 });
+  const air = pad('strings', { open: true, vel: 0.16, o: { trem: true } });
+  return {
+    id: 'north', kind: 'mood', plays: 1, gain: 0.7, name: '눈의 변경', where: '북쪽 변경 · 잊힌 땅 · 높은 산', bpm: 50, beats: 4, root: 52, scale: 'aeolian',
+    sections: [
+      sec(2, '1o | 1o', [low, air], { once: true }),
+      sec(8, cA, [low, air, mel('viol', A, { vel: 0.5, legato: 0.95 })]),
+      sec(8, cB, [low, air, arp('harp', '0 . 2 . 3 . 2 .', { oct: -1, vel: 0.36 }), mel('flute', B, { vel: 0.4, legato: 0.95 })]),
+      sec(8, cA, [low, air, arp('harp', '0 . 2 . 3 . 2 .', { oct: -1, vel: 0.36 }), perc('war', 'o . . . . . . .', { vel: 0.18 }), mel('viol', A, { vel: 0.5, legato: 0.95 }), under('choirOo', A, { oct: -1, vel: 0.18, every: 2 }),
+        mel('bell', '. | . | . | 1 - - - | . | . | . | .', { oct: -1, vel: 0.22, flat: true })]),
+    ],
+  };
+})();
+
+// 마대륙: 프리지아의 반음, 낮은 뿔나팔과 느린 맥박
+const demonland = (() => {
+  const cA = '1o | 2 | 1o | 7 | 1o | 2 | 7 | 1o', cB = '6 | 2 | 7 | 1o | 6 | 2 | 7 | 1o';
+  const A = "1 - - 2 | 1 - 7, - | 1 - 3 - | 2 - - . | 5 - - 6 | 5 - 4 2 | 3 - 2 - | 1 - - .";
+  const B = "3 - 5 - | 4 - 2 - | 7, - 2 - | 1 - - . | 3 - 5 6 | 4 - 2 - | 2 - 7, - | 1 - - .";
+  const low = drone('drone', '1', { oct: -1, vel: 0.44 });
+  const pulse = perc('war', 'x . . o . . . .', { vel: 0.24 });
+  return {
+    id: 'demonland', kind: 'mood', plays: 1, gain: 0.72, name: '잿빛 땅', where: '마대륙', bpm: 48, beats: 4, root: 47, scale: 'phrygian',
+    sections: [
+      sec(2, '1o | 1o', [low, pulse], { once: true }),
+      sec(8, cA, [low, pulse, mel('horn', A, { vel: 0.5 })]),
+      sec(8, cB, [low, pulse, pad('choir', { oct: -1, open: true, vel: 0.22 }), mel('viol', B, { vel: 0.44, legato: 0.95 })]),
+      sec(8, cA, [low, pulse, pad('choir', { oct: -1, open: true, vel: 0.24 }), pad('strings', { open: true, vel: 0.16, o: { trem: true } }), mel('horn', A, { vel: 0.5 }), under('viol', A, { vel: 0.28 }),
+        mel('glass', '. | . . . 2 | . | . | . | . . 5 . | . | .', { oct: 2, vel: 0.12, flat: true })]),
+    ],
+  };
+})();
+
+// 세레니아: 호수 위의 마법 왕국. 하프와 피리의 느린 세 박
+const lakecity = (() => {
+  const cA = '1 | 5 | 6 | 2 | 1 | 5 | 2 | 1o', cB = '6 | 2 | 5 | 1 | 6 | 2 | 5 | 1o';
+  const A = "3 - 5 | 7 - 5 | 6 - 3 | #4 - 2 | 3 - 5 | 2' - 7 | 6 #4 2 | 1 - -";
+  const B = "1' - 6 | 6 - #4 | 5 - 7 | 5 - 3 | 1' - 3' | 2' - 6 | 7 - 5 | 1' - -";
+  const harp = arp('harp', '0 2 3 4 3 2', { vel: 0.46 });
+  return {
+    id: 'lakecity', kind: 'mood', plays: 1, gain: 0.85, name: '호수 위의 탑들', where: '세레니아 마법 왕국', bpm: 72, beats: 3, root: 65, scale: 'lydian',
+    sections: [
+      sec(2, '1 | 5', [harp], { once: true }),
+      sec(8, cA, [harp, mel('flute', A, { vel: 0.46, legato: 0.92 }), bass('harp', 'r - -', { oct: -2, vel: 0.46 })]),
+      sec(8, cB, [harp, pad('strings', { oct: -1, vel: 0.26 }), mel('viol', B, { vel: 0.46, legato: 0.92 }), bass('harp', 'r - 5', { oct: -2, vel: 0.46 })]),
+      sec(8, cA, [harp, pad('strings', { oct: -1, vel: 0.26 }), arp('glass', '0 . . 2 . .', { oct: 1, vel: 0.16 }), mel('flute', A, { vel: 0.44, legato: 0.92 }), under('viol', A, { vel: 0.3 }), bass('harp', 'r - 5', { oct: -2, vel: 0.46 })]),
+    ],
+  };
+})();
+
 export const TRACKS = [
   title, cradle, spring, summer, autumn, winter, fields, dusk,
   town, market, castle, capital, road, hardship,
   dungeon, underworld, battle, boss, duel, war,
   tense, solemn, festive, mystic, court, palace, abyss,
+  isles, elfwood, dwarfhall, magetower, garrison, labyrinth, empire, holy, north, demonland, lakecity,
 ];
 void even;
 

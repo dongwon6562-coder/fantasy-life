@@ -4,6 +4,8 @@
 //  - 배경 곡(mood): 장소·계절·형편에 맞는 "곡 묶음". 그 안에서 번갈아 한 곡씩 흐르고, 곡 사이엔 환경음만 남는다.
 //  - 상황 곡(cue): 싸움·결투·사건처럼 그 순간에만 흐르는 곡. 상황이 끝날 때까지 이어진다.
 
+import { describe } from '../art/scenePlaces.js';
+
 const SEASON = ['winter', 'winter', 'spring', 'spring', 'spring', 'summer', 'summer', 'summer', 'autumn', 'autumn', 'autumn', 'winter'];
 export const seasonOf = (month) => SEASON[(month - 1) % 12];
 
@@ -53,12 +55,45 @@ const ageMonths = (game) => {
   return p?.ageMonths ?? null;
 };
 
+// 레오니아 남부 밖의 고장들. 지도 자료에서 그곳의 종족·땅·크기를 읽어 고장 낱말로 바꾼다.
+const TOWERS = new Set(['noah', 'spire', 'lich', 'arcana']);
+const GROUND = new Map();
+/** 장소 id → 고장 낱말 (isles elfwood dwarfhall magetower garrison labyrinth empire holy north demonland lakecity). 레오니아의 여느 마을이면 null */
+export function groundOf(id) {
+  if (!id) return null;
+  if (GROUND.has(id)) return GROUND.get(id);
+  let w = null;
+  try {
+    const d = describe(id);
+    w = id === 'barka' || id === 'tower' ? 'labyrinth'
+      : TOWERS.has(id) ? 'magetower'
+      : d.culture === 'sea' ? 'isles'
+      : d.culture === 'elf' ? 'elfwood'
+      : d.culture === 'dwarf' ? 'dwarfhall'
+      : d.culture === 'demon' ? 'demonland'
+      : d.size === 'fort' ? 'garrison'
+      : d.culture === 'serenia' ? 'lakecity'
+      : d.culture === 'lost' || d.culture === 'march' || d.culture === 'dragon' || d.biome === 'cold' ? 'north'
+      : d.culture === 'holy' ? 'holy'
+      : d.culture === 'empire' ? 'empire'
+      : d.culture === 'free' && (d.size === 'city' || d.size === 'capital') ? 'town'
+      : null;
+  } catch { w = null; }
+  GROUND.set(id, w);
+  return w;
+}
+// 고장마다의 곡 묶음. 첫 곡이 그 고장의 얼굴이고, 뒤의 곡이 사이사이 섞인다.
+const GROUND_POOL = {
+  isles: ['isles', 'road'], elfwood: ['elfwood'], dwarfhall: ['dwarfhall'], magetower: ['magetower'], garrison: ['garrison', 'castle'], labyrinth: ['labyrinth', 'market'],
+  empire: ['empire', 'castle'], holy: ['holy'], north: ['north'], demonland: ['demonland'], lakecity: ['lakecity'],
+};
+
 /** 지금 있는 곳을 가리키는 낱말. 환경음도 이것으로 고른다. */
 export function whereOf(game) {
   if (!game) return 'title';
   const life = game.life ?? {};
   if (life.travel) return 'road';
-  const place = { harfen: 'town', verden: 'castle', leocast: 'capital' }[life.place];
+  const place = { harfen: 'town', verden: 'castle', leocast: 'capital' }[life.place] ?? groundOf(life.place);
   if (place) return place;
   const a = ageMonths(game);
   if (a != null && a < 36) return 'cradle';
@@ -74,6 +109,7 @@ export function placePool(game) {
   else if (where === 'town') pool = ['town', 'market'];
   else if (where === 'castle') pool = ['castle'];
   else if (where === 'capital') pool = ['capital'];
+  else if (GROUND_POOL[where]) pool = [...GROUND_POOL[where]];
   else if (where === 'cradle') pool = ['cradle', `village_${seasonOf(game.date?.month ?? 3)}`];
   else {
     const s = where.slice(8);

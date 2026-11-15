@@ -37,6 +37,11 @@ const HAND = {
   serenia: { size: 'capital', biome: 'lake', feature: 'towers', houses: 46 },
   barka: { size: 'city', biome: 'coast', feature: 'endless', wall: true, houses: 56 },
   graubel: { size: 'capital', biome: 'cold', feature: 'bastion', wall: true, houses: 52, coast: true },
+  // 11단계: 탑과 병영
+  noah: { feature: 'wizardtower', houses: 0 }, spire: { feature: 'wizardtower', houses: 3 }, lich: { feature: 'wizardtower', houses: 2 },
+  tower: { feature: 'endless', houses: 8 },
+  ort: { camp: true, houses: 30, zoom: 1.5, span: 420 }, stellen: { camp: true, houses: 38, zoom: 1.5, span: 480 }, wolffort: { camp: true, houses: 26, zoom: 1.5, span: 400 }, grey: { camp: true, houses: 26, zoom: 1.5, span: 400 }, wall: { camp: true, houses: 24, zoom: 1.5, span: 400 },
+  barracks: { camp: true, houses: 54, zoom: 1.4, span: 560 },
   estella: { size: 'ruin', biome: 'cold', feature: 'ruinpalace', houses: 26 },
 };
 const COAST = new Set(['klein', 'portel', 'stein', 'kars', 'maren', 'salt', 'wall', 'cape', 'nocturna', 'post', 'barracks', 'silver', 'light', 'crow', 'saltmare', 'pearl', 'slaveisle', 'coral', 'kraken', 'noah', 'libera']);

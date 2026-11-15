@@ -5,7 +5,7 @@ import { W, H, HZ, hash, fbm1, ridged1, rng, mixh, rgba, dark, light, clamp, sbu
 import { describe } from './scenePlaces.js';
 import { skyOf, paintSky, gradeLand, paintWeather } from './sceneSky.js';
 import { paletteOf, mountains, hillBand, treeline, forestMass, fields, water, tree, conifer, palm, rock, reedClump, foreground } from './sceneLand.js';
-import { STYLE, house, tower, wallRun, windmill, church, cathedral, keep, castle, citadel, mageTowers, endlessTower, bastion, manor, fortress, ruins, ruinPalace, lighthouse, ship, docks, elfSpire, tent, totem, blackSpire, stiltHut, dwarfGate, worldTree } from './sceneTown.js';
+import { STYLE, house, tower, wallRun, windmill, church, cathedral, keep, castle, citadel, mageTowers, endlessTower, wizardTower, bastion, manor, fortress, ruins, ruinPalace, lighthouse, ship, docks, elfSpire, tent, totem, blackSpire, stiltHut, dwarfGate, worldTree } from './sceneTown.js';
 
 /** 그 달의 때와 날씨 (같은 달이면 늘 같음) */
 export function conditions(year, month) {
@@ -139,8 +139,15 @@ function lights(ctx, e) {
 const SPAN = { hamlet: 300, village: 350, town: 420, city: 450, capital: 540, fort: 230, site: 150, ruin: 320 };
 // 작은 마을일수록 가까이서 본 듯 크게 그린다
 const ZOOM = { hamlet: 1.5, village: 1.35, town: 1.15, city: 1.05, fort: 1.2, site: 1.3, ruin: 1.1 };
+// 마법사의 탑마다 다른 모습
+const WIZ = { noah: { dead: true, stone: '#aeb2bc', cap: '#39405e' }, spire: { stone: '#c8ccd4', cap: '#5a6a8a', glow: '#bfe8ff', broken: true }, lich: { stone: '#4a4650', cap: '#2a2630', glow: '#9ae87a', broken: true } };
 function dwelling(L, e, x, y, s, i) {
   const { D, P, S, R, st, wins, smoke } = e, c = D.culture;
+  if (D.camp && i % 4 !== 0) { // 병영: 줄지은 군막, 군데군데 깃대
+    tent(L, x, y, s * 0.9, S, P, wins, R, c === 'demon' ? ['#5a4444', '#4a3a40', '#644a44'] : ['#c8bea4', '#b8ae96', '#d0c8b0', '#a89e88']);
+    if (i % 5 === 0) { L.strokeStyle = '#2a1d12'; L.lineWidth = 1.2; L.beginPath(); L.moveTo(x + 14 * s, y); L.lineTo(x + 14 * s, y - 34 * s); L.stroke(); L.fillStyle = c === 'demon' ? '#6a1a22' : D.culture === 'empire' ? '#2c2c34' : '#8a2a1e'; L.beginPath(); L.moveTo(x + 14 * s, y - 34 * s); L.lineTo(x + 14 * s - S.dir * 12 * s, y - 31 * s); L.lineTo(x + 14 * s, y - 26 * s); L.fill(); }
+    return;
+  }
   if (c === 'elf') return R() < 0.7 ? elfSpire(L, x, y, s, S, P, wins, R) : plant(L, e, x, y, 9 * s);
   if (c === 'beast') return R() < 0.9 ? tent(L, x, y, s, S, P, wins, R) : totem(L, x, y, s * 0.9, S);
   if (c === 'demon') return blackSpire(L, x, y, s, S, P, wins, R, false);
@@ -154,8 +161,8 @@ function dwelling(L, e, x, y, s, i) {
 /** ground 곡선 위, cx 둘레에 마을을 놓는다. 돌려주는 값: 성문/길이 닿는 자리 */
 function settle(L, e, ground, cx, o = {}) {
   const { D, P, S, R, st, wins, smoke } = e;
-  const z = o.z ?? (D.culture === 'beast' ? 1.5 : ZOOM[D.size] ?? 1);
-  const span = o.span ?? SPAN[D.size] ?? 300, depth = o.depth ?? (D.size === 'capital' ? 84 : D.size === 'hamlet' ? 66 : 76);
+  const z = o.z ?? D.zoom ?? (D.culture === 'beast' ? 1.5 : ZOOM[D.size] ?? 1);
+  const span = o.span ?? D.span ?? SPAN[D.size] ?? 300, depth = o.depth ?? (D.size === 'capital' ? 84 : D.size === 'hamlet' ? 66 : 76);
   const top = (x) => ground(x) + (o.off ?? 10);
   const human = !!STYLE[D.culture];
   // 마을 뒤 나무
@@ -169,6 +176,7 @@ function settle(L, e, ground, cx, o = {}) {
   else if (f === 'cathedral') { cathedral(L, lx, ly + 14, 0.9, st, S, P, wins, smoke); block = [lx - 62, lx + 62, ly + 22]; }
   else if (f === 'bastion') { bastion(L, lx, ly + 2, 0.8, st, S, P, wins); block = [lx - 150, lx + 150, ly + 30]; }
   else if (f === 'ruinpalace') { ruinPalace(L, lx, ly + 8, 0.9, S, P, wins, R); block = [lx - 60, lx + 60, ly + 14]; }
+  else if (f === 'wizardtower') { const k = WIZ[D.id] ?? {}; wizardTower(L, cx, ly + 30, 1.25, S, P, wins, k); block = [cx - 80, cx + 80, ly + 60]; }
   else if (f === 'fortress') { fortress(L, cx, ly + 20, 1, st, S, P, wins); block = [cx - 80, cx + 80, ly + 26]; }
   else if (f === 'demonkeep') { blackSpire(L, lx, ly + 10, 1, S, P, wins, R, true); blackSpire(L, lx - 40, ly + 12, 0.8, S, P, wins, R, true); blackSpire(L, lx + 34, ly + 12, 0.7, S, P, wins, R, true); block = [lx - 60, lx + 60, ly + 14]; }
   // 집

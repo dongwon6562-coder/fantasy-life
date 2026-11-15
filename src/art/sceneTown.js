@@ -204,6 +204,26 @@ export function mageTowers(L, x, y, s, st, S, P, wins) {
     wins.push([tx - 1.5 * s, ty - h * s - w * s * 3 - 4 * s, 3 * s, 3 * s, 1100 + dx, '#bcd8ff', true]);
   }
 }
+/** 홀로 선 마법사의 탑: 바위 위의 높은 몸통, 허리의 테라스, 곁탑, 꼭대기의 빛. o: stone, cap, glow, dead(불 꺼진 탑), broken(무너진 꼭대기) */
+export function wizardTower(L, x, y, s, S, P, wins, o = {}) {
+  const stone = o.stone ?? '#b9b6c0', cap = o.cap ?? '#3a3f66', glow = o.dead ? null : o.glow ?? '#bcd8ff', sd = sdOf(S);
+  // 바위 턱
+  poly(L, [[x - 62 * s, y + 6 * s], [x - 40 * s, y - 16 * s], [x - 8 * s, y - 26 * s], [x + 30 * s, y - 20 * s], [x + 58 * s, y + 6 * s]], mixh('#6e6a6a', S.haze, 0.2));
+  poly(L, [[x + sd * 58 * s, y + 6 * s], [x + sd * 30 * s, y - 20 * s], [x + sd * 4 * s, y - 24 * s], [x + sd * 10 * s, y + 6 * s]], rgba('#14101a', 0.3));
+  const by = y - 20 * s;
+  // 곁탑과 본채
+  tower(L, x + 24 * s, by + 4 * s, 13 * s, 62 * s, { stone: dark(stone, 0.08), top: 'cone', cap, glow: glow ?? '#2a2630' }, S, P, wins);
+  tower(L, x - 24 * s, by + 6 * s, 10 * s, 40 * s, { stone: dark(stone, 0.08), top: 'cone', cap, glow: glow ?? '#2a2630' }, S, P, wins);
+  tower(L, x, by, 24 * s, 128 * s, { stone, top: o.broken ? 'broken' : 'cren', cap, glow: glow ?? '#2a2630' }, S, P, wins);
+  // 허리의 테라스와 다리
+  for (const k of [0.42, 0.74]) { L.fillStyle = dark(stone, 0.2); L.fillRect(x - 17 * s, by - 128 * s * k, 34 * s, 3 * s); L.fillStyle = rgba('#14101a', 0.3); L.fillRect(x - 17 * s, by - 128 * s * k + 3 * s, 34 * s, 1.6 * s); }
+  L.strokeStyle = dark(stone, 0.25); L.lineWidth = 2 * s; L.beginPath(); L.moveTo(x + 10 * s, by - 52 * s); L.quadraticCurveTo(x + 18 * s, by - 58 * s, x + 24 * s, by - 50 * s); L.stroke();
+  if (!o.broken) { // 꼭대기: 가는 윗탑과 별 보는 둥근 지붕
+    tower(L, x, by - 128 * s - 4 * s, 14 * s, 26 * s, { stone, top: 'dome', cap, glow: glow ?? '#2a2630', slits: false }, S, P, wins);
+    L.strokeStyle = GOLD; L.lineWidth = 1; L.beginPath(); L.ellipse(x, by - 176 * s, 9 * s, 3 * s, -0.4, 0, 6.3); L.stroke();
+  }
+  if (glow) { const gy = o.broken ? by - 120 * s : by - 146 * s; wins.push([x - 3 * s, gy, 6 * s, 7 * s, 2200 + Math.round(x), glow, true]); puff(L, x, gy + 3 * s, 26 * s, 26 * s, glow, 0.16); }
+}
 export function endlessTower(L, x, y, s, S, P) {
   // 꼭대기가 보이지 않는 탑: 그림 위쪽 밖으로 이어진다
   const c = mixh('#8a8690', S.haze, 0.45), sd = sdOf(S), w0 = 34 * s, w1 = 22 * s;
@@ -287,8 +307,8 @@ export function elfSpire(L, x, y, s, S, P, wins, R) {
   L.fillStyle = dark('#dde2d0', 0.16); L.fillRect(x - w * 0.8, y - h * 0.62, w * 1.6, 1.6 * s);
   L.strokeStyle = rgba('#3e7264', 0.7); L.lineWidth = 1; L.beginPath(); L.moveTo(x - w * 0.8, y - h * 0.62); L.quadraticCurveTo(x - w * 2, y - h * 0.5, x - w * 2.4, y - h * 0.3); L.stroke();
 }
-export function tent(L, x, y, s, S, P, wins, R) {
-  const w = (14 + R() * 8) * s, h = w * (0.8 + R() * 0.3), c = ['#a8845c', '#9a7650', '#b4946a', '#8c6c4c'][Math.floor(R() * 4)], sd = sdOf(S);
+export function tent(L, x, y, s, S, P, wins, R, cols = ['#a8845c', '#9a7650', '#b4946a', '#8c6c4c']) {
+  const w = (14 + R() * 8) * s, h = w * (0.8 + R() * 0.3), c = cols[Math.floor(R() * cols.length)], sd = sdOf(S);
   poly(L, [[x - w, y], [x, y - h], [x + w, y]], P.snow ? mixh(c, '#e4e7e8', 0.5) : c);
   poly(L, [[x + sd * w, y], [x, y - h], [x + sd * w * 0.1, y]], rgba('#14101a', 0.32));
   L.strokeStyle = '#3a2a1c'; L.lineWidth = 1; L.beginPath(); L.moveTo(x - w * 0.12, y - h * 1.18); L.lineTo(x + w * 0.1, y - h * 0.9); L.moveTo(x + w * 0.12, y - h * 1.18); L.lineTo(x - w * 0.1, y - h * 0.9); L.stroke();
