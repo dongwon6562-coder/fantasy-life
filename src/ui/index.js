@@ -49,6 +49,9 @@ import { renderTowerBlock, renderArmyBlock, renderArmyNow, renderLove } from './
 import { renderFeud, renderExplore, renderExploreNow } from './realms12.js';
 import { renderPeoples } from './peoples.js';
 import { renderMentor } from './mentor.js';
+import { renderBeasts } from './beasts.js';
+import { renderNature, renderNatureNow, natureRow, NATURE_ALARM } from './nature.js';
+import { calamityAt } from '../nature/index.js';
 import { renderPolitics, decorateMap, bindPolitics } from './politics.js';
 
 // 시작 화면: 종족별 집안 (인간 집안은 race가 없다)
@@ -287,9 +290,13 @@ function worldRows() {
   });
   const seal = sealRow(game);
   if (seal) rows.push(seal);
+  const nat = natureRow(game);
+  if (nat) rows.push(nat);
   return rows;
 }
-const ALARM = /전쟁|내전|위독|붕괴|창궐|일촉즉발|집결|밀리는|흔들림|벼랑|마지막 고리|깨졌다/;
+const ALARM = new RegExp(`전쟁|내전|위독|붕괴|창궐|일촉즉발|집결|밀리는|흔들림|벼랑|마지막 고리|깨졌다|${NATURE_ALARM.source}`);
+// 풍경 그림에 넘길 이 고장의 재앙 (src/nature)
+function calamityNow() { try { return calamityAt(game); } catch (e) { console.error(e); return null; } }
 
 function renderWorldCard() {
   const rows = worldRows();
@@ -366,7 +373,7 @@ function renderMap() {
 function renderEvent() {
   const e = game.pendingEvent;
   if (!e && !ui.outcome) return '';
-  const art = sceneImage({ year: game.date.year, month: game.date.month, famine: game.world?.famine, plague: game.world?.plague, place: L(game).place });
+  const art = sceneImage({ year: game.date.year, month: game.date.month, famine: game.world?.famine, plague: game.world?.plague, place: L(game).place, calamity: calamityNow() });
   const head = `${art ? `<div class="ev-art" aria-hidden="true"><i style="background-image:url(${art})"></i></div>` : ''}`;
   if (ui.outcome) {
     return `<div class="overlay"><div class="event" role="dialog" aria-modal="true" aria-labelledby="ev-title">
@@ -425,12 +432,12 @@ function renderGame() {
   if (unmountMap) { unmountMap(); unmountMap = null; }
   const mi = monthInfo(game);
   const p = game.player;
-  const art = sceneImage({ year: game.date.year, month: game.date.month, famine: game.world?.famine, plague: game.world?.plague, place: L(game).place });
+  const art = sceneImage({ year: game.date.year, month: game.date.month, famine: game.world?.famine, plague: game.world?.plague, place: L(game).place, calamity: calamityNow() });
   let main = '';
-  if (ui.view === 'month') main = game.over ? renderOver() : renderCrisis(game) + renderArmyNow(game) + renderExploreNow(game) + renderSummary(ui.summary) + renderNews() + renderYouthCard(game, ui) + renderWorkshop(game, ui) + renderPlan(game, ui);
+  if (ui.view === 'month') main = game.over ? renderOver() : renderCrisis(game) + renderArmyNow(game) + renderExploreNow(game) + renderNatureNow(game) + renderSummary(ui.summary) + renderNews() + renderYouthCard(game, ui) + renderWorkshop(game, ui) + renderPlan(game, ui);
   else if (ui.view === 'me') main = renderSheet();
-  else if (ui.view === 'people') main = renderLove(game) + renderKin(game) + renderMentor(game) + renderFeud(game) + renderPeoples(game) + renderParty(game) + renderPeople(game, ui);
-  else if (ui.view === 'map') main = renderMap() + renderPolitics(game, ui) + renderExplore(game) + renderSeal(game) + renderDeep(game) + renderSea(game) + renderWorldCard(); // 지도가 먼저 (폰에서 바로 보이게)
+  else if (ui.view === 'people') main = renderLove(game) + renderKin(game) + renderMentor(game) + renderBeasts(game) + renderFeud(game) + renderPeoples(game) + renderParty(game) + renderPeople(game, ui);
+  else if (ui.view === 'map') main = renderMap() + renderPolitics(game, ui) + renderNature(game) + renderExplore(game) + renderSeal(game) + renderDeep(game) + renderSea(game) + renderWorldCard(); // 지도가 먼저 (폰에서 바로 보이게)
   else if (ui.view === 'chron') main = renderChron();
   else if (ui.view === 'save') main = renderSave();
   root().innerHTML = `
