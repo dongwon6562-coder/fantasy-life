@@ -152,10 +152,18 @@ export function endMonth(game, choices) {
   const rng = rngOf(game);
   const p = game.player;
   const results = [];
+  const done = new Set();
 
   for (const c of choices) {
     const act = ACTIONS.find((a) => a.id === c.id);
     if (!act) continue;
+    // 앞 칸에서 처지가 바뀌었으면(일자리를 잃었다, 끌려갔다, 갇혔다) 이 칸은 하지 못한다 (헤드: 갈래가 많아 생긴 오류 묶음)
+    // 같은 일을 이미 이 달에 했으면 조용히 넘어가고, 다른 까닭이면 한 줄 남긴다.
+    if (game.player.alive !== false && act.available && !act.available(game)) {
+      if (!done.has(act.id)) results.push({ name: act.name, text: '사정이 바뀌어 하지 못했다.' });
+      continue;
+    }
+    done.add(act.id);
     const text = act.run(game, rng, c);
     if (text) results.push({ name: act.name, text });
   }

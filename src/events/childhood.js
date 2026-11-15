@@ -216,7 +216,7 @@ EVENTS.push(
     text: (g) => `마을에 머무는 모험가 ${findJob(g, 'adventurer').name}이(가) 우물가에서 칼을 갈고 있다. 칼날에 검게 마른 무언가가 묻어 있다. "F급 의뢰라도 목숨은 하나야, 꼬마."`,
     choices: [
       { label: '미궁 이야기를 묻는다', run: (g) => { gainStat(g, 'int', 0.4); gainStat(g, 'wil', 0.4); setFlag(g, 'heard_dungeon'); return '"미궁은 살아 있어. 핵을 품고, 숨을 쉬고, 사람을 먹지. 하르펜 근처 것도 요즘 아래층이 깊어졌다더라." 모험가의 눈이 웃지 않았다.'; } },
-      { label: '칼을 쥐어 보게 해 달라고 한다', run: (g, rng) => { const a = findJob(g, 'adventurer'); like(a, 5); gainSkill(g, 'sword', 1.2, 'str'); return `생각보다 무거웠다. ${a.name}이(가) 자세를 고쳐 주었다. "환영류는 발이 먼저야. 칼은 그다음."`; } },
+      { label: '칼을 쥐어 보게 해 달라고 한다', run: (g, rng) => { const a = findJob(g, 'adventurer'); if (!a) return '모험가는 이미 마을을 떠난 뒤였다.'; like(a, 5); gainSkill(g, 'sword', 1.2, 'str'); return `생각보다 무거웠다. ${a.name}이(가) 자세를 고쳐 주었다. "환영류는 발이 먼저야. 칼은 그다음."`; } },
     ],
   },
   {
