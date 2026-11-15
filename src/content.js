@@ -29,4 +29,5 @@ import './sea/index.js';
 import './art/battle.js'; // 전투 연출 (사건 창 그림 칸에 스스로 얹힌다)
 import './deep/index.js';
 import './research/index.js';
+import './kin/index.js';
 import './art/vignette.js'; // 사건 삽화 (큰 사건의 그림 한 장, 사건 창 그림 칸에 스스로 얹힌다)
