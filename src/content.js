@@ -11,6 +11,7 @@ import './realms/index.js';
 import './races/index.js';
 import './realms/life.js';
 import './faith/index.js';
+import './court/index.js';
 import './duel/index.js';
 import './magic/index.js';
 import './war/spellpower.js';
