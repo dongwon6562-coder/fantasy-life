@@ -830,3 +830,40 @@ button.danger.sm { min-height: 36px; padding: 6px 12px; font-size: 14px; border-
 .sea-prices th:first-child, .sea-prices td:first-child { text-align: left; }
 .sea-prices tr.hi td { color: var(--blood); }
 .sea-prices tr.lo td { color: var(--good); }
+
+/* ---------- 8단계: 편하게 하기 (할 일 틀, 한눈에, 사람 찾기) ---------- */
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.plan-tpl { display: grid; gap: 8px; }
+.tpl-row { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.tpl-row .lbl { font-size: 12px; color: var(--muted); letter-spacing: .08em; margin-right: 2px; }
+.tpl-row .tpl { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.tpl-row .tpl[aria-pressed="true"] { border-color: var(--brass); color: var(--brass); }
+.tpl-row .tpl.add { border-style: dashed; }
+.plan-tpl > .note { margin: 0; }
+.tpl-edit { display: grid; gap: 8px; padding: 10px 12px; background: var(--bg); border: 1px solid var(--line); border-radius: 8px; }
+.tpl-edit > .note { margin: 0; font-size: 12.5px; word-break: keep-all; }
+.tpl-name { display: grid; gap: 4px; font-size: 13px; color: var(--muted); }
+.tpl-in { display: flex; gap: 6px; min-width: 0; }
+.tpl-in input { flex: 1; min-width: 0; font: inherit; color: var(--ink); background: var(--panel); border: 1px solid var(--line); border-radius: 6px; padding: 8px 10px; min-height: 42px; }
+.tpl-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.tpl-list li { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 6px 10px; padding: 6px 0; border-top: 1px solid var(--line); }
+.tpl-list .txt { display: grid; min-width: 0; flex: 1 1 160px; }
+.tpl-list .txt .note { font-size: 12px; word-break: keep-all; }
+@media (max-width: 860px) { .card.plan > .plan-tpl { order: 3; } }
+.month-sum { display: grid; gap: 8px; }
+.month-sum h2 { margin-bottom: 0; }
+.sm-row { display: grid; grid-template-columns: 64px minmax(0, 1fr); gap: 8px; align-items: start; }
+.sm-row .lbl { font-size: 12px; color: var(--muted); padding-top: 4px; }
+.sm-chips { display: flex; flex-wrap: wrap; gap: 4px 6px; min-width: 0; }
+.sm-chip { display: inline-flex; gap: 5px; align-items: baseline; padding: 2px 9px; border: 1px solid var(--line); border-radius: 12px; font-size: 13px; background: var(--bg); max-width: 100%; }
+.sm-chip b { font-weight: 600; font-variant-numeric: tabular-nums; }
+.sm-chip.up b { color: var(--good); }
+.sm-chip.down b { color: var(--blood); }
+.sm-lines { margin: 0; padding-left: 18px; font-size: 13.5px; color: var(--muted); display: grid; gap: 2px; }
+.p-find { display: flex; flex-wrap: wrap; gap: 8px; }
+.p-q { flex: 1 1 180px; min-width: 0; display: flex; }
+.p-q input, .p-sort select { font: inherit; color: var(--ink); background: var(--bg); border: 1px solid var(--line); border-radius: 6px; padding: 8px 10px; min-height: 44px; width: 100%; min-width: 0; }
+.p-sort { flex: 0 1 auto; display: flex; }
+.p-count { margin: 0; min-height: 0; }
+.p-count:empty { display: none; }
+.people .person[hidden] { display: none; }

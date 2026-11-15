@@ -19,6 +19,7 @@ import { worldSummary } from '../world.js';
 import { splitResult } from '../narrative/text.js';
 import { $, $$, esc, root } from './util.js';
 import { renderPlan, bindPlan } from './plan.js';
+import { snapshot, diffSummary, renderSummary } from './summary.js';
 import { renderPeople, bindPeople } from './people.js';
 import { applyPrefs, prefs, reducedMotion, renderSettings, bindSettings } from './settings.js';
 import { runGuide, stopGuide } from './guide.js';
@@ -171,6 +172,7 @@ function renderSetup() {
 
 function resetUi() {
   ui.plan = []; ui.active = 0; ui.outcome = null; ui.person = null; ui.view = 'month';
+  ui.lastPlan = null; ui.summary = null; ui.tplNote = null; ui.tplEdit = false; ui.peopleQ = '';
 }
 
 /* ---------- 게임 화면 ---------- */
@@ -386,7 +388,7 @@ function renderGame() {
   const p = game.player;
   const art = sceneImage({ year: game.date.year, month: game.date.month, famine: game.world?.famine, plague: game.world?.plague, place: L(game).place });
   let main = '';
-  if (ui.view === 'month') main = game.over ? renderOver() : renderCrisis(game) + renderNews() + renderYouthCard(game, ui) + renderWorkshop(game, ui) + renderPlan(game, ui);
+  if (ui.view === 'month') main = game.over ? renderOver() : renderCrisis(game) + renderSummary(ui.summary) + renderNews() + renderYouthCard(game, ui) + renderWorkshop(game, ui) + renderPlan(game, ui);
   else if (ui.view === 'me') main = renderSheet();
   else if (ui.view === 'people') main = renderParty(game) + renderPeople(game, ui);
   else if (ui.view === 'map') main = renderMap() + renderSea(game) + renderWorldCard(); // 지도가 먼저 (폰에서 바로 보이게)
@@ -461,6 +463,9 @@ function showMonthCard(before, passed) {
 function advance(times = 1, untilEvent = false) {
   const before = { year: game.date.year, season: monthInfo(game).season };
   let passed = 0;
+  const snap = (() => { try { return snapshot(game); } catch (e) { console.error(e); return null; } })();
+  if (slotsFor(game)) ui.lastPlan = ui.plan.map((c) => ({ ...c }));
+  ui.tplNote = null;
   for (let k = 0; k < times; k++) {
     passed++;
     endMonth(game, slotsFor(game) ? ui.plan.map((c) => ({ ...c })) : []);
@@ -469,6 +474,7 @@ function advance(times = 1, untilEvent = false) {
     if (untilEvent && slotsFor(game) > 0) break;
   }
   ui.active = 0;
+  try { ui.summary = snap && !game.over ? diffSummary(game, snap) : null; } catch (e) { console.error(e); ui.summary = null; }
   document.querySelectorAll('.month-card').forEach((x) => x.remove());
   showMonthCard(before, passed);
   renderGame();
