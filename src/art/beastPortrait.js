@@ -12,6 +12,8 @@ const pick = (seed, n, arr) => arr[Math.floor(rnd(seed, n) * arr.length) % arr.l
 const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 
 const KIND_WORDS = [
+  ['monster', /shadowcat|panther|표범/i],
+  ['familiar', /fox|여우/i],
   ['familiar', /familiar|사역마|cat|고양이|owl|부엉|올빼미|raven|crow|까마귀/i],
   ['monster', /monster|마수|direwolf|dire|warg|drake|wyvern|와이번|griffin|그리핀|beast_|마물/i],
   ['hawk', /hawk|falcon|eagle|매|송골|수리/i],
@@ -22,8 +24,8 @@ const KIND_WORDS = [
 export function beastKind(k) { const s = String(k ?? ''); for (const [id, re] of KIND_WORDS) if (re.test(s)) return id; return 'dog'; }
 const subOf = (kind, raw, seed) => {
   const s = String(raw ?? '');
-  if (kind === 'familiar') return /owl|부엉|올빼미/i.test(s) ? 'owl' : /raven|crow|까마귀/i.test(s) ? 'raven' : /cat|고양이/i.test(s) ? 'cat' : pick(seed, 9, ['cat', 'owl', 'raven']);
-  if (kind === 'monster') return /drake|wyvern|와이번|용/i.test(s) ? 'drake' : /griffin|그리핀/i.test(s) ? 'griffin' : /wolf|warg|늑대/i.test(s) ? 'direwolf' : pick(seed, 9, ['direwolf', 'drake', 'griffin']);
+  if (kind === 'familiar') return /fox|여우/i.test(s) ? 'fox' : /owl|부엉|올빼미/i.test(s) ? 'owl' : /raven|crow|까마귀/i.test(s) ? 'raven' : /cat|고양이/i.test(s) ? 'cat' : pick(seed, 9, ['cat', 'owl', 'raven']);
+  if (kind === 'monster') return /shadowcat|panther|표범/i.test(s) ? 'shadowcat' : /drake|wyvern|와이번|용/i.test(s) ? 'drake' : /griffin|그리핀/i.test(s) ? 'griffin' : /wolf|warg|늑대/i.test(s) ? 'direwolf' : pick(seed, 9, ['direwolf', 'drake', 'griffin']);
   return null;
 };
 
@@ -34,20 +36,20 @@ const lit = (d, a = 0.14) => `<path d="${d}" fill="#fff4dc" opacity="${a}"/>`;
 
 /** 옆모습 갯과: 개와 큰 늑대가 함께 쓴다 */
 function canine(seed, o, v) {
-  const { coat, wolf, iris } = v, pale = light(coat, wolf ? 0.28 : 0.45), dk = dark(coat, 0.42);
-  const pointed = wolf || rnd(seed, 2) < 0.45, blaze = !wolf && rnd(seed, 3) < 0.4, mask = !wolf && rnd(seed, 4) < 0.35, paleMuzzle = wolf || rnd(seed, 6) < 0.6;
+  const { coat, wolf, iris, fox } = v, pale = light(coat, wolf ? 0.28 : 0.45), dk = dark(coat, 0.42);
+  const pointed = wolf || fox || rnd(seed, 2) < 0.45, blaze = !wolf && !fox && rnd(seed, 3) < 0.4, mask = !wolf && !fox && rnd(seed, 4) < 0.35, paleMuzzle = wolf || fox || rnd(seed, 6) < 0.6;
   const ruff = wolf ? Array.from({ length: 8 }, (_, i) => { const y = 50 + i * 7, x = 70 - i * 1.6; return `<path d="M${x + 8} ${y - 4}L${x - 7 - (i % 2) * 3} ${y + 5}L${x + 9} ${y + 6}Z" fill="${i % 2 ? dk : dark(coat, 0.2)}"/>`; }).join('') : '';
   const ears = pointed
-    ? `<path d="M75 27L${wolf ? 83 : 81} ${wolf ? 5 : 9}L86 31Z" fill="${dk}"/><path d="M67 28L${wolf ? 71 : 70} ${wolf ? 3 : 7}L80 28Z" fill="${coat}"/><path d="M69.6 25L71 12L77 26Z" fill="#8a5a54" opacity=".65"/>`
+    ? `<path d="M75 27L${wolf || fox ? 83 : 81} ${fox ? 2 : wolf ? 5 : 9}L86 31Z" fill="${dk}"/><path d="M67 28L${wolf ? 71 : 70} ${fox ? 0 : wolf ? 3 : 7}L80 28Z" fill="${coat}"/><path d="M69.6 25L71 12L77 26Z" fill="#8a5a54" opacity=".65"/>${fox ? `<path d="M70 9L70.4 0L73 9Z" fill="#1a1a22"/><path d="M82 11L83 2L84 12Z" fill="#141418"/>` : ''}`
     : `<path d="M69 27Q85 29 86 50Q83 60 76 54Q73 42 67 33Z" fill="${dk}"/><path d="M72 31Q82 34 83 49" fill="none" stroke="${dark(coat, 0.6)}" stroke-width=".7" opacity=".6"/>`;
   const mouth = wolf
     ? `<path d="M29 56.4L52 59Q48 68 35 65Q30 62 29 56.4Z" fill="#2a0c0e"/><path d="M31 56.8L32.4 61.6L34.4 57.2ZM37 57.6L38.2 61.6L40 58ZM43 58.2L44 61.6L45.6 58.6Z" fill="#ece6d8"/><path d="M34 64.4L35.4 60.6L37 64.8ZM40 65L41.2 61.8L42.8 65Z" fill="#d8d0bc"/><path d="M35 65Q46 69 54 62L60 62Q52 72 38 69Q34 68 35 65Z" fill="${dark(coat, 0.15)}"/>`
     : `<path d="M26.6 54.4Q38 56.6 53 57.4" fill="none" stroke="#1c1414" stroke-width="1" stroke-linecap="round"/><path d="M40 56.6Q42 60 46 59" fill="none" stroke="#1c1414" stroke-width=".7" opacity=".6"/>`;
   return `
     <path d="M56 100L100 100L96 56Q89 38 75 32L61 46Q63 66 55 82Z" fill="${coat}"/>${shade('M80 38Q93 48 96 62L100 100L84 100Q90 68 80 38Z', 0.28)}
-    <path d="M56 100L70 100Q68 82 60 70Q60 78 55 84Z" fill="${pale}" opacity="${blaze || wolf ? 0.6 : 0.25}"/>
+    <path d="M56 100L70 100Q68 82 60 70Q60 78 55 84Z" fill="${pale}" opacity="${blaze || wolf ? 0.6 : fox ? 0.9 : 0.25}"/>
     ${ruff}
-    ${o.wild || wolf ? '' : `<path d="M57.4 74Q74 84 97.6 75" fill="none" stroke="#5a3422" stroke-width="4.6"/><path d="M57 72Q74 82 97.4 73" fill="none" stroke="#8a5a38" stroke-width=".7"/><circle cx="62" cy="81.6" r="2.2" fill="none" stroke="#c9a25a" stroke-width="1.1"/>`}
+    ${o.wild || wolf || fox ? '' : `<path d="M57.4 74Q74 84 97.6 75" fill="none" stroke="#5a3422" stroke-width="4.6"/><path d="M57 72Q74 82 97.4 73" fill="none" stroke="#8a5a38" stroke-width=".7"/><circle cx="62" cy="81.6" r="2.2" fill="none" stroke="#c9a25a" stroke-width="1.1"/>`}
     ${ears}
     <path d="M74 24Q62 24 55 34L50 39L28 45Q23 47 24 52Q26 57 32 57L50 61Q60 66 70 60Q82 52 80 38Q79 28 74 24Z" fill="${coat}"/>
     ${paleMuzzle ? `<path d="M50 40L28 45.6Q23 47 24 52Q26 57 32 57L50 61Q56 56 54 46Z" fill="${pale}" opacity=".85"/>` : ''}
@@ -59,10 +61,35 @@ function canine(seed, o, v) {
     <path d="M24 47.4Q26 45 29.6 46Q30.6 49.6 28 51.6Q24.6 52 24 47.4Z" fill="#120e10"/><ellipse cx="26.6" cy="47.6" rx="1" ry=".6" fill="#fff" opacity=".35"/>
     ${mouth}
     <path d="M50.6 ${wolf ? 38.6 : 37.4}Q56 ${wolf ? 36 : 34.4} 62 ${wolf ? 35.6 : 37}" fill="none" stroke="${dark(coat, 0.65)}" stroke-width="${wolf ? 2.2 : 1.5}" stroke-linecap="round"/>
-    ${wolf ? eye(56, 40.4, 2.5, iris, { pupil: 0.42, glow: iris }) : `<ellipse cx="56" cy="40.2" rx="2.5" ry="2.2" fill="${iris}"/><circle cx="56" cy="40.2" r="1.3" fill="#0a0808"/><circle cx="55.2" cy="39.4" r=".7" fill="#fff" opacity=".8"/>`}`;
+    ${wolf ? eye(56, 40.4, 2.5, iris, { pupil: 0.42, glow: iris }) : fox ? eye(56, 40.2, 2.4, iris, { slit: true, glow: iris }) : `<ellipse cx="56" cy="40.2" rx="2.5" ry="2.2" fill="${iris}"/><circle cx="56" cy="40.2" r="1.3" fill="#0a0808"/><circle cx="55.2" cy="39.4" r=".7" fill="#fff" opacity=".8"/>`}`;
 }
 function dog(seed, o) { return canine(seed, o, { coat: pick(seed, 1, ['#7a5a3a', '#2e2a28', '#8a8478', '#b08a58', '#5a4030', '#c8bca4']), iris: pick(seed, 8, ['#5a3a1c', '#4a2e16', '#6a4a22']) }); }
 function direwolf(seed, o) { return canine(seed, o, { wolf: true, coat: pick(seed, 1, ['#3a3a40', '#2a2624', '#5a544e', '#4a3a34']), iris: pick(seed, 2, ['#e8a020', '#d83a2a', '#c8e040']) }); }
+/** 은여우 사역마: 등 뒤 그림자가 꼬리 셋으로 갈라진다 */
+function fox(seed, o, glow) {
+  const tails = [[-36, 0.6], [-16, 0.5], [4, 0.42]].map(([a, op]) => `<path d="M84 96Q92 70 84 50Q80 34 86 14Q98 36 97 62Q96 84 92 98Z" transform="rotate(${a} 86 96)" fill="#08060e" opacity="${op}" stroke="${glow}" stroke-width=".5" stroke-opacity=".5"/>`).join('');
+  return tails + canine(seed, o, { fox: true, coat: pick(seed, 1, ['#aeb2bc', '#9498a4', '#c4c6cc', '#868a98']), iris: glow });
+}
+/** 그림자 표범: 검은 큰 고양잇과 마수. 몸 가장자리가 그림자로 풀린다 */
+function shadowcat(seed, o) {
+  const coat = pick(seed, 1, ['#16141c', '#1a1616', '#1c1a26', '#121218']), dk = dark(coat, 0.5), hi = light(coat, 0.16), iris = pick(seed, 2, ['#e8b020', '#b89aff', '#d8e060', '#e86a3a']);
+  const wisps = Array.from({ length: 9 }, (_, i) => { const x = 14 + rnd(seed, 20 + i) * 72, y = 58 + rnd(seed, 40 + i) * 34, h = 10 + rnd(seed, 60 + i) * 14, w = 3 + rnd(seed, 50 + i) * 4; return `<path d="M${x.toFixed(1)} ${y.toFixed(1)}q${(-w).toFixed(1)} ${(-h / 2).toFixed(1)} ${(w / 2).toFixed(1)} ${(-h).toFixed(1)}q${(w / 2).toFixed(1)} ${(h / 2).toFixed(1)} ${(w).toFixed(1)} ${(h).toFixed(1)}Z" fill="#08060e" opacity="${(0.25 + rnd(seed, 70 + i) * 0.3).toFixed(2)}"/>`; }).join('');
+  const rosettes = Array.from({ length: 12 }, (_, i) => { const x = 22 + rnd(seed, 100 + i) * 56, y = 76 + rnd(seed, 120 + i) * 22; return `<ellipse cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" rx="2.2" ry="1.6" fill="none" stroke="${hi}" stroke-width=".7" opacity=".5"/>`; }).join('');
+  return `
+    ${wisps}
+    <path d="M12 100Q14 76 32 66L68 66Q86 76 88 100Z" fill="${coat}"/>${rosettes}${shade('M56 66L68 66Q86 76 88 100L62 100Z', 0.35)}
+    <path d="M28 34Q22 22 30 17Q39 18 42 27Z" fill="${coat}"/><path d="M72 34Q78 22 70 17Q61 18 58 27Z" fill="${dk}"/><path d="M30 30Q27.6 23 32 20.6Q37 22 38.6 27Z" fill="#4a2e3a" opacity=".7"/><path d="M70 30Q72.4 23 68 20.6Q63 22 61.4 27Z" fill="#3a222c" opacity=".7"/>
+    <path d="M50 22Q30 22 26 40Q24 54 34 63Q42 70 50 70Q58 70 66 63Q76 54 74 40Q70 22 50 22Z" fill="${coat}"/>
+    ${shade('M54 22Q72 26 74 42Q75 55 66 63Q60 68 54 69Q64 56 63 42Q62 30 54 22Z', 0.34)}${lit('M46 24Q31 27 28 41Q32 31 42 27Z', 0.2)}
+    <path d="M50 40Q44 48 39 58Q43 66 50 67Q57 66 61 58Q56 48 50 40Z" fill="${hi}" opacity=".5"/>
+    <path d="M47 26L50 38L53 26" fill="none" stroke="${dk}" stroke-width="1" opacity=".8"/>
+    ${o.old ? '<path d="M39 58Q43 66 50 67Q57 66 61 58Q50 62 39 58Z" fill="#d8d4cc" opacity=".4"/>' : ''}
+    <path d="M32 40Q39 36.4 46 42.6M68 40Q61 36.4 54 42.6" fill="none" stroke="#050408" stroke-width="2.2" stroke-linecap="round"/>
+    ${eye(39.6, 43.6, 2.7, iris, { slit: true, glow: iris })}${eye(60.4, 43.6, 2.7, iris, { slit: true, glow: iris })}
+    <path d="M46 53.6Q50 52 54 53.6L50 58Z" fill="#2a1a20"/><path d="M50 58V60.6M50 60.6Q45 64.6 40.6 61.4M50 60.6Q55 64.6 59.4 61.4" fill="none" stroke="#050408" stroke-width="1" stroke-linecap="round"/>
+    <path d="M44.6 62.6L46 66.8L47.6 63.2ZM55.4 62.6L54 66.8L52.4 63.2Z" fill="#ece6d8"/>
+    <g stroke="#c8c4d4" stroke-width=".45" opacity=".55"><path d="M41 58L22 54M41 60L22 61M59 58L78 54M59 60L78 61"/></g>`;
+}
 
 function horse(seed, o) {
   const coat = pick(seed, 1, ['#6a3e22', '#1e1a1a', '#a8a49c', '#8a4a26', '#c8a878', '#4a3020']), maneC = coat === '#a8a49c' ? '#d8d4cc' : coat === '#c8a878' ? '#ece0c4' : dark(coat, 0.6), dk = dark(coat, 0.35);
@@ -162,8 +189,8 @@ export function beastPortrait(b = {}, opt = {}) {
   if (kind === 'dog') body = dog(seed, o);
   else if (kind === 'horse') body = horse(seed, o);
   else if (kind === 'hawk') body = bird(seed, o, { coat: pick(seed, 1, ['#6a5240', '#5a4a44', '#4a4a50', '#7a5a3a']), breast: '#e0d4b8', beak: '#34343a', cere: '#d8b040', iris: pick(seed, 2, ['#e8b020', '#d88a20', '#c8a060']), hooked: true, malar: true, jess: true });
-  else if (kind === 'familiar') body = sub === 'owl' ? owl(seed, o, glow) : sub === 'raven' ? bird(seed, o, { coat: '#1c1c26', breast: null, beak: '#101014', cere: '#101014', iris: glow, glow, hooked: false }) : cat(seed, o, glow);
-  else body = sub === 'drake' ? drake(seed, o) : sub === 'griffin' ? bird(seed, o, { coat: pick(seed, 1, ['#b8904a', '#8a6a3a', '#d8c8a0']), breast: '#c8a060', beak: '#c8a040', cere: '#e8c860', iris: '#e86a20', glow: '#e86a20', hooked: true, big: true, tufts: true }) : direwolf(seed, o);
+  else if (kind === 'familiar') body = sub === 'fox' ? fox(seed, o, glow) : sub === 'owl' ? owl(seed, o, glow) : sub === 'raven' ? bird(seed, o, { coat: '#1c1c26', breast: null, beak: '#101014', cere: '#101014', iris: glow, glow, hooked: false }) : cat(seed, o, glow);
+  else body = sub === 'shadowcat' ? shadowcat(seed, o) : sub === 'drake' ? drake(seed, o) : sub === 'griffin' ? bird(seed, o, { coat: pick(seed, 1, ['#b8904a', '#8a6a3a', '#d8c8a0']), breast: '#c8a060', beak: '#c8a040', cere: '#e8c860', iris: '#e86a20', glow: '#e86a20', hooked: true, big: true, tufts: true }) : direwolf(seed, o);
   const id = `b${seed.toString(36)}${kind[0]}${size}`, [c0, c1, c2] = BG[kind];
   // 사역마 둘레의 마력: 흐린 원과 떠도는 빛
   const aura = kind === 'familiar' ? `<circle cx="50" cy="48" r="34" fill="none" stroke="${glow}" stroke-width=".7" stroke-dasharray="2 5" opacity=".45"/>${Array.from({ length: 7 }, (_, i) => `<circle cx="${(14 + rnd(seed, 80 + i) * 72).toFixed(1)}" cy="${(12 + rnd(seed, 90 + i) * 60).toFixed(1)}" r="${(0.7 + rnd(seed, 70 + i) * 1.1).toFixed(1)}" fill="${glow}" opacity=".8"/>`).join('')}` : '';
