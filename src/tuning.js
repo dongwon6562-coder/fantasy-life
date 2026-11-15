@@ -38,3 +38,20 @@ const trim = (g) => {
 };
 HOOKS.endOfMonth.push((g) => { if (g.date.month === 1) trim(g); });
 HOOKS.migrate.push(trim);
+
+// 오래전에 죽은 남의 기록 줄이기 (저장 크기): 백 년 넘게 이어진 판은 죽은 사람 수백 명의 일기가 저장의 절반이었다.
+// 스무 해 넘게 지난, 내 핏줄도 짝도 아닌 죽은 사람은 이름과 마지막 몇 줄만 남긴다. 사람 자체는 지우지 않는다 (다른 갈래가 id로 찾는다).
+HOOKS.endOfMonth.push((g) => {
+  if (g.date.month !== 1 || !Array.isArray(g.people)) return;
+  const now = g.date.year;
+  const keep = new Set([...(g.player?.familyIds ?? []), ...(g.people.find((p) => p.isPlayer)?.childIds ?? [])]);
+  for (const a of g.life?.ancestors ?? []) keep.add(a.id);
+  for (const p of g.people) {
+    if (p.alive || p.isPlayer || keep.has(p.id) || p.compact) continue;
+    const last = p.history?.[p.history.length - 1];
+    if (!last || now - last.y < 20) continue;
+    if (p.history.length > 3) p.history = [p.history[0], ...p.history.slice(-2)];
+    if (p.memories) p.memories = [];
+    p.compact = 1;
+  }
+});
