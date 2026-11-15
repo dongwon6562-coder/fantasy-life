@@ -1,6 +1,6 @@
 // 대 잇기: 플레이어가 죽으면 자식 중 한 명을 골라 이어서 산다.
 // 재산(돈, 집, 장비)과 인맥(아는 사람들의 호감 일부), 가문의 이름, 그리고 원수까지 물려받는다.
-import { J } from './narrative/text.js';
+import { J, hasBatchim } from './narrative/text.js';
 import { HOOKS, run as runHooks } from './hooks.js';
 import { STATS, SKILLS, JOBS } from './data.js';
 import { me, playerAge, family } from './game.js';
@@ -24,8 +24,27 @@ HOOKS.endOfMonth.push((g, rng) => {
 /* ---------- 죽음과 이을 사람 고르기 ---------- */
 export function heirsOf(g) {
   const meP = me(g);
-  return meP.childIds.map((id) => byId(g, id)).filter((c) => c && c.alive && !c.isPlayer)
-    .sort((a, b) => b.ageMonths - a.ageMonths);
+  const ok = (c) => c && c.alive && !c.isPlayer && !c.away;
+  const byAge = (a, b) => b.ageMonths - a.ageMonths;
+  const kids = meP.childIds.map((id) => byId(g, id)).filter((c) => c && c.alive && !c.isPlayer).sort(byAge);
+  if (kids.length) return kids;
+  // 자식이 없으면 집안의 다른 핏줄이 잇는다: 먼저 떠난 자식의 아이(손주), 그다음 형제의 아이(조카), 그다음 형제
+  const grand = meP.childIds.flatMap((id) => byId(g, id)?.childIds ?? []).map((id) => byId(g, id)).filter(ok).sort(byAge);
+  if (grand.length) return grand;
+  const parents = [meP.fatherId, meP.motherId].map((id) => byId(g, id)).filter(Boolean);
+  const sibs = [...new Set(parents.flatMap((p) => p.childIds ?? []))].filter((id) => id !== meP.id).map((id) => byId(g, id)).filter(Boolean);
+  const nephews = sibs.flatMap((s) => s.childIds ?? []).map((id) => byId(g, id)).filter(ok).sort(byAge);
+  if (nephews.length) return nephews;
+  return sibs.filter(ok).sort((a, b) => a.ageMonths - b.ageMonths);
+}
+
+// 이을 사람이 나에게 누구인가 (아들, 손녀, 조카, 아우...)
+export function heirWord(g, c, from = me(g)) {
+  const m = c.sex === 'm';
+  if (from.childIds.includes(c.id)) return m ? '아들' : '딸';
+  if (from.childIds.some((id) => byId(g, id)?.childIds?.includes(c.id))) return m ? '손자' : '손녀';
+  if ([from.fatherId, from.motherId].some((pid) => pid != null && (c.fatherId === pid || c.motherId === pid))) return c.ageMonths < from.ageMonths ? (m ? '아우' : '누이') : (m ? '형제' : '자매');
+  return m ? '조카' : '조카딸';
 }
 
 HOOKS.endOfMonth.push((g, rng) => {
@@ -82,10 +101,12 @@ defineScene('heir', {
   text: (g, s) => {
     const r = s.record;
     const kids = s.heirs.map((id) => byId(g, id)).filter(Boolean);
-    return `${r.name} ${r.lastName}, ${r.age}살. ${J(r.cause ?? '', '으로/로')} 숨을 거두었다.${r.summary ? ` (${r.summary})` : ''} 장례가 끝나고, 남은 것들은 누군가가 이어받아야 한다. 자식은 ${kids.length}명. 누가 집안을 잇는가.`;
+    const own = kids.some((c) => me(g).childIds.includes(c.id));
+    const who = own ? `자식은 ${kids.length}명.` : `뒤를 이을 자식이 없다. 집안 어른들이 핏줄 가운데 ${kids.length}명을 앞에 세웠다.`;
+    return `${r.name} ${r.lastName}, ${r.age}살. ${J(r.cause ?? '', '으로/로')} 숨을 거두었다.${r.summary ? ` (${r.summary})` : ''} 장례가 끝나고, 남은 것들은 누군가가 이어받아야 한다. ${who} 누가 집안을 잇는가.`;
   },
   choices: (g, s) => s.heirs.map((id) => byId(g, id)).filter((c) => c && c.alive)
-    .map((c) => ({ label: `${c.sex === 'm' ? '아들' : '딸'} ${c.name} (${ageYears(c)}살${c.job && c.job !== 'child' ? `, ${JOBS[c.job]?.name ?? ''}` : ''})`, key: c.id })),
+    .map((c) => ({ label: `${heirWord(g, c)} ${c.name} (${ageYears(c)}살${c.job && c.job !== 'child' ? `, ${JOBS[c.job]?.name ?? ''}` : ''})`, key: c.id })),
   resolve(g, rng, s, key) {
     return becomeHeir(g, rng, byId(g, key));
   },
@@ -99,6 +120,8 @@ export function becomeHeir(g, rng, child) {
   life.heirPending = false;
   if (!child || !child.alive) { g.over = true; return '이을 사람이 없었다.'; }
   const age = ageYears(child);
+  const word = oldP ? heirWord(g, child, oldP) : (child.sex === 'm' ? '아들' : '딸');
+  const direct = word === '아들' || word === '딸';
 
   // 능력치: 나이만큼 자랐다고 보고, 부모의 재능을 일부 닮는다
   const talents = {};
@@ -122,7 +145,9 @@ export function becomeHeir(g, rng, child) {
   // 물려받는 돈: 장례비와 세금을 떼고
   const estate = Math.floor(old.money * 0.85);
   const fatherId = child.fatherId, motherId = child.motherId;
-  const siblings = (oldP?.childIds ?? []).filter((id) => id !== child.id && byId(g, id)?.alive);
+  // 형제: 자식이 이으면 옛 주인의 다른 자식, 손주·조카가 이으면 그 아이의 친형제
+  const sibPool = direct ? (oldP?.childIds ?? []) : [fatherId, motherId].flatMap((id) => byId(g, id)?.childIds ?? []);
+  const siblings = [...new Set(sibPool)].filter((id) => id !== child.id && byId(g, id)?.alive);
   const familyIds = [fatherId, motherId, ...siblings].filter((id) => id != null);
   if (child.spouseId) familyIds.push(child.spouseId, ...child.childIds);
 
@@ -184,8 +209,8 @@ export function becomeHeir(g, rng, child) {
   chron(g, `${child.name} ${child.lastName}, ${life.gen}대째 ${J(family(g).name, '을/를')} 잇다.`);
   const gear = life.gear.weaponName ? ` ${J(r.name, '이/가')} 쓰던 ${J(life.gear.weaponName, '이/가')} 이제 내 것이다.` : '';
   const house = life.houses.length ? ` ${life.houses.map((h) => PLACES[h].name).join(', ')}의 집도 물려받았다.` : '';
-  const young = age < 15 ? ` 아직 ${age}살. ${byId(g, child.motherId === r.id ? child.fatherId : child.motherId)?.alive ? '남은 부모의 손에서' : '친척들 손에서'} 자라게 될 것이다.` : '';
-  return `${J(child.name, '이/가')} ${r.name}의 뒤를 잇는다.${young} 물려받은 은화는 ${estate}닢.${house}${gear} 부모를 알던 사람들은 이제 나를 "${r.name}의 ${child.sex === 'm' ? '아들' : '딸'}"이라 부른다.`;
+  const young = age < 15 ? ` 아직 ${age}살. ${direct && byId(g, child.motherId === r.id ? child.fatherId : child.motherId)?.alive ? '남은 부모의 손에서' : !direct && [child.fatherId, child.motherId].some((id) => byId(g, id)?.alive) ? '제 부모의 손에서' : '친척들 손에서'} 자라게 될 것이다.` : '';
+  return `${J(child.name, '이/가')} ${r.name}의 뒤를 잇는다.${young} 물려받은 은화는 ${estate}닢.${house}${gear}${direct ? '' : ` ${r.name}에게 자식이 없어, ${word}인 내가 집안의 이름을 지게 되었다.`} ${direct ? '부모를' : J(r.name, '을/를')} 알던 사람들은 이제 나를 "${r.name}의 ${word}"${hasBatchim(word) ? '이라' : '라'} 부른다.`;
 }
 
 export function lineage(g) {
