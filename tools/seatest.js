@@ -60,6 +60,7 @@ function month(g, want = [], pick = null) {
 function scene(g, kind, re, data = {}) {
   let done = false;
   for (let i = 0; i < 6 && !done && !g.over; i++) {
+    crimeState(g).jailed = null; // 다른 갈래 사건으로 갇히면 부두에 못 나간다: 이 점검은 배 타기 자체만 본다
     if (!L(g).queue.some((x) => x.kind === kind) && L(g).scene?.kind !== kind) queueScene(g, kind, data, { first: true });
     month(g, ['rest'], (k, labels) => { if (k !== kind) return -1; done = true; return labels.findIndex((l) => re.test(l)); });
   }
