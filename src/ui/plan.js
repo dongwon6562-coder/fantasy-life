@@ -7,6 +7,7 @@ import { esc } from './util.js';
 import { crisisActDesc } from './crisis.js';
 import { prefs, setPref } from './settings.js';
 import { lifeId } from './saves.js';
+import { waysButton } from './ways.js';
 
 const LABELS = { 4: ['첫째 주', '둘째 주', '셋째 주', '넷째 주'], 3: ['상순', '중순', '하순'], 2: ['전반', '후반'], 1: ['이번 달'] };
 
@@ -122,6 +123,7 @@ const GROUPS = [
   ['dark', '어두운 일', /^(crime_|gang_|dawn_rite|repute_slander)/],
   ['rest', '쉼', /^(rest|drift_years)$/],
 ];
+export const groupNameOf = (id) => GROUPS.find(([, , re]) => re.test(id))?.[1] ?? '그 밖';
 function groupActs(acts) {
   const out = GROUPS.map(([id, name]) => [id, name, []]);
   const etc = ['etc', '그 밖', []];
@@ -160,6 +162,7 @@ export function renderPlan(game, ui) {
   return `
   <section class="card plan">
     <h2>이번 달 계획 <small class="hint-wide">칸을 고르고, 아래에서 할 일을 누른다</small><small class="hint-narrow">할 일을 누르면 아래 칸에 차례로 들어간다</small></h2>
+    <div class="ways-row">${waysButton()}<span class="note">지금 해 볼 수 있는 일과 갈 수 있는 길</span></div>
     <div class="slotbar" role="tablist" aria-label="이번 달의 칸" style="--n:${n}">
       ${ui.plan.map((c, i) => {
         const act = ACTIONS.find((a) => a.id === c.id);
