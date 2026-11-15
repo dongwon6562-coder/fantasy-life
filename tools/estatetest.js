@@ -68,9 +68,10 @@ function adult(seed, family = 'merchant') {
 }
 function placeAt(g, place) { const l = L(g); l.place = place; l.travel = null; l.home = 'inn'; l.queue = []; l.scene = null; g.pendingEvent = null; const R = realmState(g); R.cur = PLACES[place].realm ?? 'leonia'; R.last = place; }
 
-// 1) 집
-{
-  const g = adult(91001);
+// 1) 집 (드물게 점검 도중 병으로 죽으면 다른 씨앗으로 다시 한다)
+for (let attempt = 0; attempt < 4; attempt++) {
+  const p0 = problems;
+  const g = adult(91001 + attempt * 7);
   placeAt(g, 'harfen');
   g.player.money = 3000;
   scene(g, 'housing', /집을 산다/);
@@ -102,7 +103,9 @@ function placeAt(g, place) { const l = L(g); l.place = place; l.travel = null; l
   const worth = estateStatus(g).homes[0]?.worth;
   scene(g, 'estate_manage', /집을 판다/);
   if (L(g).houses.includes('harfen')) fail('sell failed');
+  if (g.over) { problems = p0; console.log(`(집 점검 중 ${g.date.year}년에 죽어서 다시: 위의 FAIL은 세지 않는다)`); continue; }
   console.log(`집: 저택까지 넓힘, 하인 2, 반년 세 ${rentIn}닢, 판 값 ${worth}닢 · 마음고생 ${st0}→${Math.round(g.player.stress)}`);
+  break;
 }
 
 // 2) 밭과 가게 자리

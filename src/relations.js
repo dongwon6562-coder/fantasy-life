@@ -147,7 +147,7 @@ export function canRomance(g, p) {
   return Math.abs(a - b) <= lim;
 }
 // 끌림: 사람마다 정해진 궁합 (0~1). 같은 두 사람은 늘 같다.
-function chemistry(g, p) {
+export function chemistry(g, p) {
   const h = Math.imul(p.id ^ 0x9e3779b1, 2654435761) ^ Math.imul(g.player.id + 7, 40503) ^ (g.rngSeed ?? 0);
   return ((h >>> 0) % 1000) / 1000;
 }
@@ -192,7 +192,7 @@ function talkKind(g, p) {
   if (p.rivalry >= 35) return 'rival';
   return a < 13 ? 'chat_young' : 'chat';
 }
-function queueTalk(g, p, rng) {
+export function queueTalk(g, p, rng) {
   const R = relState(g);
   const kind = talkKind(g, p);
   // 평범한 대화는 가끔만 장면으로 이어진다. 같은 사람과는 석 달에 한 번 정도.

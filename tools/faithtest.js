@@ -78,7 +78,7 @@ for (let run = 0; run < 20; run++) {
   life.fac.church = { member: true, rank: 1, merit: 60 };
   life.job = { id: 'cleric', place: 'leocast', months: 12, merit: 0 };
   g.player.skills.letters = Math.max(g.player.skills.letters, 50);
-  faithState(g).devotion = 70;
+  faithState(g).devotion = 70; faithState(g).god = 'solar'; // 성광교 사제의 길 (앞의 15년에 다른 신으로 개종했을 수 있다)
   play(g, 12 * 40, ['work', 'pray', 'holy_heal', 'worship', 'keep_feast'], { faith_high: 0 });
   const f = faithState(g);
   if (f.sect) sects++;
