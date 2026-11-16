@@ -7,7 +7,7 @@ import { L, defineScene, queueScene, sceneQueued, note, chron, tired, stress, up
 import { isJailed } from '../crime.js';
 import { PLACES } from '../places.js';
 import { makeRng } from '../rng.js';
-import { byId, kill, ageYears } from '../npc.js';
+import { byId, kill, ageYears, bodyAgeOf } from '../npc.js';
 import { realmOf } from '../realms/index.js';
 import { invented } from '../era/state.js';
 import { knows } from '../magic/spells.js';
@@ -194,6 +194,8 @@ HOOKS.afterMonth.push((g) => {
   if (!H || g.over || !g.player) return;
   const rng = ownRng(g, 3);
   const p = g.player, age = playerAge(g);
+  // 몸 나이: 오래 사는 종족은 늦게 늙어 병에도 오래 버틴다
+  const body = Math.round(bodyAgeOf(me(g)) ?? age);
   // 옮는다
   if (!L(g).travel && age >= 6) {
     for (const o of outbreaksIn(g, here(g))) if (rng.chance(catchChance(g, o, 'me'))) fallSick(g, o.kind, 'me', rng);
@@ -213,7 +215,7 @@ HOOKS.afterMonth.push((g) => {
     const K = KINDS[s.kind];
     const person = s.who === 'me' ? null : byId(g, s.who);
     if (s.who !== 'me' && (!person || !person.alive)) { H.sick = H.sick.filter((x) => x !== s); continue; }
-    const resist = s.who === 'me' ? (p.stats.str + p.stats.wil) / 25 + (age < 40 ? 2 : age >= 60 ? -3 : 0) + (L(g).home === 'street' ? -2 : 0) : (person.health ?? 70) / 14 - (ageYears(person) >= 65 ? 3 : 0);
+    const resist = s.who === 'me' ? (p.stats.str + p.stats.wil) / 25 + (body < 40 ? 2 : body >= 60 ? -3 : 0) + (L(g).home === 'street' ? -2 : 0) : (person.health ?? 70) / 14 - (bodyAgeOf(person) >= 65 ? 3 : 0);
     const tp = s.treat && s.treat.left > 0 ? s.treat.power : 0;
     // 병은 처음 몇 달 깊어지다가, 몸이 버티면 저절로 기운다
     const grow = K.grow * (s.months < K.last[0] ? 1 : s.months < K.last[1] ? 0.5 : 0.15);
@@ -236,7 +238,7 @@ HOOKS.afterMonth.push((g) => {
     // 고비: 병이 깊어지면 한 번, 목숨을 건 밤이 온다. 깊을수록, 맡긴 데가 없을수록 위태롭다.
     if (s.sev >= 70 && !s.crisis) {
       s.crisis = true;
-      const lethal = K.deadly * (1 - Math.max(0, tp)) * (s.sev / 85) * (s.who === 'me' ? 1 : 1.5);
+      const lethal = K.deadly * (1 - Math.max(0, tp)) * (s.sev / 85) * (s.who === 'me' ? (body < 40 ? 0.6 : body < 60 ? 1 : 1.5) : 1.5);
       if (s.who === 'me') {
         if (age >= 16 && rng.chance(lethal)) { L(g).pendingDeath = K.name; H.sick = H.sick.filter((x) => x !== s); chron(g, `${g.player.name}, ${J(K.name, '으로/로')} 쓰러지다.`, 100); return; }
       } else if (ageYears(person) >= 3 && rng.chance(lethal)) {
