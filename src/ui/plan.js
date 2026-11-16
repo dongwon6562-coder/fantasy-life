@@ -120,6 +120,7 @@ const GROUPS = [
   ['court', '궁정', /^court_/],
   ['army', '군대', /^army_/],
   ['people', '사람과 마을', /^(visit|play|wander|rel_|faction_door|bard|era_|kin_|love_|mentor_|village_|feud_reconcile|peoples_|repute_(boast|feast|clear))/],
+  ['health', '병과 몸', /^health_/],
   ['elder', '마지막 해들', /^elder_/],
   ['road', '길과 모험', /^(party_|gather_party|travel|on_road|housing|quest|delve|deep_|pol_|explore_|gear|pioneer|buy_title|tower_dare|wolves|goblins)/],
   ['beast', '짐승', /^beast_/],
