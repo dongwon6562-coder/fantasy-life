@@ -40,8 +40,15 @@ export function fallSick(g, kind, who, rng, sev = null) {
   H.sick.push(s);
   if (who === 'me') { note(g, `${J(K.name, '을/를')} 앓기 시작했다.`); hlog(g, `${J(K.name, '을/를')} 앓기 시작했다.`); }
   else hlog(g, `${byId(g, who)?.name ?? '식구'}, ${J(K.name, '을/를')} 앓다.`);
-  if (!sceneQueued(g, 'health_treat') && (who === 'me' ? playerAge(g) >= 12 : playerAge(g) >= 14)) queueScene(g, 'health_treat', { sid: s.id, quack: rng.chance(0.35) }, { first: who === 'me' });
+  askTreat(g, s, rng);
   return s;
+}
+// 병이 깊어지면 한 번 묻는다: 누구에게 맡길까 (가벼운 병은 묻지 않고 지나간다. 행동 '치료 구하기'로는 언제든 물을 수 있다)
+function askTreat(g, s, rng) {
+  if (s.asked || s.sev < 35 || sceneQueued(g, 'health_treat')) return;
+  if (s.who === 'me' ? playerAge(g) < 12 : playerAge(g) < 14) return;
+  s.asked = true;
+  queueScene(g, 'health_treat', { sid: s.id, quack: rng.chance(0.35) });
 }
 // 낫지 않는 것이 남는다
 export function addChronic(g, id, from = null) {
@@ -93,7 +100,6 @@ const TREAT_TEXT = {
   rest: '아무에게도 맡기지 않았다. 문을 닫고 누워 몸이 이기기를 기다렸다.',
 };
 defineScene('health_treat', {
-  keep: true,
   need: (g, s) => !!sickById(g, s.sid) && (sickById(g, s.sid).who === 'me' || !!byId(g, sickById(g, s.sid).who)?.alive),
   title: (g, s) => { const x = sickById(g, s.sid); return x.who === 'me' ? KINDS[x.kind].name : `${whoName(g, x)}의 ${KINDS[x.kind].name}`; },
   text: (g, s) => {
@@ -173,7 +179,7 @@ ACTIONS.push({
 const WOUND = /베인|물린|찢|상처|부러|화살|칼|창|발톱|이빨/;
 function catchChance(g, o, who) {
   const p = g.player;
-  let c = o.sev * 0.2;
+  let c = o.sev * 0.15;
   if (who === 'me') {
     c *= 1.25 - Math.min(0.6, p.stats.str / 160 + p.stats.wil / 300);
     if (L(g).home === 'street') c *= 1.7;
@@ -226,6 +232,7 @@ HOOKS.afterMonth.push((g) => {
       } else { person.health = Math.max(15, (person.health ?? 70) - Math.round(s.peak / 8)); hlog(g, `${person.name}, ${J(K.name, '을/를')} 이겨 내다.`); }
     };
     if (s.sev <= 0) { done(true); continue; }
+    if (!L(g).travel && (s.who === 'me' || closeKin(g).some((k) => k.id === s.who))) askTreat(g, s, rng);
     // 고비: 병이 깊어지면 한 번, 목숨을 건 밤이 온다. 깊을수록, 맡긴 데가 없을수록 위태롭다.
     if (s.sev >= 70 && !s.crisis) {
       s.crisis = true;

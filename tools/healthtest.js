@@ -112,7 +112,7 @@ check(!!tick, '병의 세계 흐름을 못 찾았다');
   faithState(g).devotion = 95; const t1 = healPower(g, 'temple', 'lung'); faithState(g).devotion = 5; const t2 = healPower(g, 'temple', 'lung');
   check(t1 > t2, '믿음이 깊어도 신전 치유가 더 낫지 않다');
   g.player.skills.healing = 70;
-  const s = fallSick(g, 'rot', 'me', makeRng({ s: 1 }), 30);
+  const s = fallSick(g, 'rot', 'me', makeRng({ s: 1 }), 40);
   scene(g, 'health_treat', 'self_heal');
   check(s.treat?.by === 'self_heal' && s.treat.power > 0.4, '의원 솜씨로 스스로 고치지 못한다');
 }
