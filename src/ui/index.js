@@ -365,12 +365,14 @@ function renderChronMe() {
 }
 
 // 카드가 많은 화면 맨 위의 '바로 가기' 줄: 있는 카드가 넷 이상이면 단다. 각 카드의 첫 <section>에 id를 붙인다.
-function withJump(parts) {
+// after: 앞의 몇 카드는 바로 가기 줄 위에 둔다(지도 화면은 지도가 먼저).
+function withJump(parts, { after = 0 } = {}) {
   const has = (html) => !!html && html.includes('<section');
-  const body = parts.map(([id, , html]) => (has(html) ? html.replace('<section', `<section id="jp-${id}"`) : html ?? '')).join('');
-  const have = parts.filter(([, , html]) => has(html));
-  if (have.length < 4) return body;
-  return `<nav class="act-jump view-jump" aria-label="바로 가기">${have.map(([id, name]) => `<button class="ghost sm" data-view-jump="${id}">${esc(name)}</button>`).join('')}</nav>${body}`;
+  const html = (list) => list.map(([id, , h]) => (has(h) ? h.replace('<section', `<section id="jp-${id}"`) : h ?? '')).join('');
+  const have = parts.slice(after).filter(([, , h]) => has(h));
+  if (have.length < 4) return html(parts);
+  const nav = `<nav class="act-jump view-jump" aria-label="바로 가기">${have.map(([id, name]) => `<button class="ghost sm" data-view-jump="${id}">${esc(name)}</button>`).join('')}</nav>`;
+  return html(parts.slice(0, after)) + nav + html(parts.slice(after));
 }
 
 function renderSave() {
@@ -450,7 +452,7 @@ function renderGame() {
   if (ui.view === 'month') main = game.over ? renderOver() : renderCrisis(game) + renderArmyNow(game) + renderExploreNow(game) + renderTradeNow(game) + renderNatureNow(game) + renderSummary(ui.summary) + renderNews() + renderYouthCard(game, ui) + renderWorkshop(game, ui) + renderPlan(game, ui);
   else if (ui.view === 'me') main = renderSheet();
   else if (ui.view === 'people') main = withJump([['love', '사랑', renderLove(game)], ['kin', '자식', renderKin(game)], ['village', '이웃', renderVillage(game)], ['mentor', '제자', renderMentor(game)], ['beasts', '짐승', renderBeasts(game)], ['feud', '원한', renderFeud(game)], ['peoples', '종족의 땅', renderPeoples(game)], ['party', '동료', renderParty(game)], ['notebook', '인물 수첩', renderPeople(game, ui)]]);
-  else if (ui.view === 'map') main = renderMap() + renderPolitics(game, ui) + renderTrade(game) + renderNature(game) + renderExplore(game) + renderSeal(game) + renderDeep(game) + renderSea(game) + renderWorldCard(); // 지도가 먼저 (폰에서 바로 보이게)
+  else if (ui.view === 'map') main = withJump([['map', '지도', renderMap()], ['pol', '대륙 정세', renderPolitics(game, ui)], ['trade', '장사 길', renderTrade(game)], ['nature', '하늘과 땅', renderNature(game)], ['explore', '미지의 땅', renderExplore(game)], ['seal', '봉인', renderSeal(game)], ['deep', '구렁', renderDeep(game)], ['sea', '바다', renderSea(game)], ['world', '레오니아', renderWorldCard()]], { after: 1 }); // 지도가 먼저 (폰에서 바로 보이게), 바로 가기는 지도 아래
   else if (ui.view === 'chron') main = renderChron();
   else if (ui.view === 'save') main = renderSave();
   root().innerHTML = `
