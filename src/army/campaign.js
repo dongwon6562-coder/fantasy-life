@@ -141,7 +141,7 @@ defineScene('army_march', {
   title: (g, s) => MARCH.find((e) => e.id === s.ev).title,
   text: (g, s) => `(${A(g).campaign.name}, 행군 ${A(g).campaign.month}달째) ${MARCH.find((e) => e.id === s.ev).text}`,
   choices: (g, s) => MARCH.find((e) => e.id === s.ev).choices,
-  resolve: (g, rng, s, key) => MARCH.find((e) => e.id === s.ev).resolve(g, rng, key),
+  resolve: (g, rng, s, key) => (onCampaign(g) ? MARCH.find((e) => e.id === s.ev).resolve(g, rng, key) : '행군은 이미 끝나 있었다.'),
 });
 
 /* ---------- 큰 싸움 ---------- */

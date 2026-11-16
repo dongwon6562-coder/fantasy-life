@@ -278,9 +278,20 @@ function expedition(g, rid, opt = {}) {
   // 찾아오는 사람: 넷 다
   for (const [id, who, re] of [['root_heart', 'elf', /돌려준다/], ['war_relic', 'church', /거절한다/], ['king_annals', 'scholar', /함께 연구한다/], ['first_crown', 'collector', /판다/]]) {
     if (!e.cache.some((f) => f.id === id)) e.cache.push({ id, region: 'ash', site: null, year: g.date.year });
+    // 저절로 찾아온 다른 사람(같은 장면 종류)이 줄에 있으면 그쪽이 먼저 떠서 엉뚱한 것을 내준다
+    L(g).queue = L(g).queue.filter((q) => q.kind !== 'explore_seek');
     scene(g, 'explore_seek', { id, who }, re);
   }
-  if (e.cache.some((f) => f.id === 'root_heart')) fail('elf did not take root heart');
+  // 병으로 일찍 죽으면(무작위) 장면이 뜨지 않으니 보지 않는다
+  if (!g.over && e.cache.some((f) => f.id === 'root_heart')) fail('elf did not take root heart');
+  if (g.over) {
+    // 새 판에서 엘프가 숲의 심장을 받아 가는지만 다시 본다
+    const g2 = adult(9100);
+    placeAt(g2, 'ern');
+    E(g2).cache.push({ id: 'root_heart', region: 'ash', site: null, year: g2.date.year });
+    scene(g2, 'explore_seek', { id: 'root_heart', who: 'elf' }, /돌려준다/);
+    if (!g2.over && E(g2).cache.some((f) => f.id === 'root_heart')) fail('elf did not take root heart (2)');
+  }
   console.log(`찾은 것: 판 값 ${e.sold}, 바친 것 ${e.given.length}, 숨긴 것 ${e.cache.length}, 이름값 ${e.fame}`);
 }
 

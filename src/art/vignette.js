@@ -117,9 +117,12 @@ const BY_SCENE = {
   // 12단계: 탐험 (가는 길과 깊은 곳은 아래에서 땅에 따라 고른다)
   explore_plan: 'seal:map', explore_home: 'road:return', explore_give: 'ritual:study',
   deep_descend: 'depths', deep_throne: 'depths:throne',
+  // 14단계: 장사 길과 상단 (trade_event는 아래에서 일에 따라 고른다)
+  trade_market: 'beastlife:market', trade_caravan: 'road', trade_bandits: 'feud:strike', trade_toll: 'square:guards', trade_house: 'mentor:found', trade_rival: 'feud:plot', trade_event: 'beastlife:market',
   // 14단계: 글과 예술 (기존 그림을 이어 붙임)
   arts_pick: 'ritual:study', arts_theme: 'ritual:study', arts_done: 'ritual:study', arts_patron: 'court', arts_ban: 'chapel:inquisition',
 };
+const TRADE_ART = { famine: 'famine', army: 'muster', smuggle: 'seal:alley', credit: 'court', guard_thief: 'square:flog', porter: 'road', rumor: 'trade:bard' };
 // 새 일(voc_path의 길 id, voc_event의 사건 id)마다의 그림. 없으면 지금 하는 일의 일터 그림
 const VOC_ART = {
   royal_physician: 'court', plague_doctor: 'plague', court_bard: 'court', ballad: 'trade:bard', school: 'trade:teacher', book: 'ritual:study', elixir: 'trade:alchemy', stone: 'trade:alchemy', build: 'trade:builder', white_stag: 'beast:stag', beast_slayer: 'beast:ash',
@@ -170,6 +173,7 @@ export function vignetteFor(g, { title = '', text = '', outcome = false } = {}) 
     if (kind === 'peoples_rite' && g.life.scene.id) pick = `peoples:${g.life.scene.id}`;
     if (id === 'peoples_name') pick = { silverleaf: 'peoples:elf_dew', hammer: 'peoples:dwarf_fire', fur: 'peoples:beast_totem' }[g.life?.place] ?? pick;
     if (kind === 'explore_leg' || kind === 'explore_heart' || kind === 'explore_name') { const rg = kind === 'explore_name' ? regionOfSite(g.life.scene.site) : g.explore?.exp?.region; if (rg) pick = kind === 'explore_leg' ? `explore:${rg}` : `explore:heart-${rg}`; }
+    if (kind === 'trade_event') pick = TRADE_ART[g.life.scene.ev] ?? pick;
     if (kind === 'voc_beast') pick = BEAST_ART[g.life.scene.beast] ?? 'beast:boar';
     if (!pick) pick = BY_TITLE.find(([re, , need]) => re.test(title) && (!need || kind || atSea(g)))?.[1] ?? null;
   }

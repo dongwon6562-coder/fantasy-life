@@ -184,9 +184,9 @@ function scene(g, kind, data, re, opt = {}) {
   const m0 = g.player.money;
   scene(g, 'beast_sell', {}, /서리늑대.*판다/);
   if (g.player.money < m0 + price - 15) fail('sell money', g.player.money, m0, price);
-  addAnimal(g, 'dog', { ageYears: 2, trained: 50 });
-  scene(g, 'beast_sell', {}, /놓아준다/);
-  if (alive(g).length) fail('release failed');
+  const dog = addAnimal(g, 'dog', { ageYears: 2, trained: 50 });
+  scene(g, 'beast_sell', {}, new RegExp(`${dog.name}.*놓아준다`));
+  if (dog.alive) fail('release failed');
 }
 
 /* ---------- 4) 날의 일, 죽음, 굶김 ---------- */

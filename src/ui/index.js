@@ -49,6 +49,7 @@ import { renderTowerBlock, renderArmyBlock, renderArmyNow, renderLove } from './
 import { renderFeud, renderExplore, renderExploreNow } from './realms12.js';
 import { renderPeoples } from './peoples.js';
 import { renderMentor } from './mentor.js';
+import { renderArtsBlock } from './arts.js';
 import { renderBeasts } from './beasts.js';
 import { renderNature, renderNatureNow, natureRow, NATURE_ALARM } from './nature.js';
 import { calamityAt } from '../nature/index.js';
@@ -271,6 +272,7 @@ function renderSheet() {
     ${renderCourtBlock(game)}
     ${renderArmyBlock(game)}
     ${renderVocBlock(game)}
+    ${renderArtsBlock(game)}
     ${renderEstateBlock(game)}
     ${renderResearchBlock(game)}
     <div class="block">
