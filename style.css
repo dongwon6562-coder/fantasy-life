@@ -1262,3 +1262,10 @@ details.act-group:not(.dark) > summary .note { font-size: 12px; }
 details.act-group[open] > .act-grid { margin-top: 2px; }
 [id^="jp-"] { scroll-margin-top: 60px; }
 .view-jump { position: sticky; top: 0; z-index: 3; background: var(--bg); padding: 6px 52px 6px 2px; margin: -6px -2px 0; }
+
+/* ---------- 14단계: 글과 예술 ---------- */
+.arts-block { display: grid; gap: 8px; }
+.arts-block > .note { margin: 0; }
+.ar-work.banned { border-color: rgba(179, 38, 30, .55); }
+.ar-works .top strong { overflow-wrap: anywhere; }
+.ar-works .wd-row.kn-row, .nt-regions .wd-row.kn-row { grid-template-columns: minmax(0, 1fr) auto; }

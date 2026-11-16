@@ -35,6 +35,7 @@ const PATHS = [
   { id: 'repute', name: '평판', what: '이름을 알리고, 잔치를 열고, 나쁜 소문을 바로잡는다.', acts: ['repute_boast', 'repute_feast', 'repute_clear'], lock: '고장 사람들이 나를 알아야 한다.' },
   { id: 'nature', name: '철마다 다른 살림', what: '봄에는 파종을 거들고, 장마 앞에 둑을 쌓고, 가을걷이를 하고, 겨울을 날 땔감과 먹을 것을 쟁인다. 가뭄·홍수·혹한 같은 재앙은 고장마다 찾아온다.', acts: ['nature_sow', 'nature_dike', 'nature_harvest', 'nature_winterprep'], lock: '철이 맞아야 한다: 파종 3~4월, 둑 6~7월, 가을걷이 9~10월, 겨울 준비 9~11월.' },
   { id: 'beasts', name: '짐승과 함께', what: '개·말·매를 기르고, 마수를 길들여 팔거나 곁에 두고, 마법사라면 사역마를 부른다. 길든 말은 길을 줄이고, 군마가 있으면 기병이 된다.', acts: ['beast_buy', 'beast_care', 'beast_ride', 'beast_hawking', 'beast_familiar', 'beast_sell'], lock: '장터에서 짐승을 들인다(아이는 열 살부터 개만). 사역마는 1서클부터.' },
+  { id: 'arts', name: '글과 예술', what: '역사서·마법서·여행기·시집·노래·그림·조각을 짓는다. 후원자를 찾고, 작품은 세상에 남아 대를 넘어 읽힌다. 풍자나 금기는 금서가 될 수 있다.', acts: ['arts_begin', 'arts_work', 'arts_seek_patron', 'arts_read'], lock: '열네 살부터, 글·마법·음악·그림 중 하나에 솜씨가 붙으면 작품을 구상할 수 있다. 후원자는 왕도·하르펜·솔라리스 같은 큰 도시에서 찾는다.' },
   { id: 'mentor', name: '제자와 문하', what: '솜씨가 무르익으면 제자를 들여 가르치고, 내 이름을 단 도장·학파·공방을 세운다. 문파는 대를 넘어 남는다.', acts: ['mentor_take', 'mentor_teach', 'mentor_found', 'mentor_heritage'], lock: '스무 살부터, 검술·마법(2서클)·글·약초·대장일·요리·장사 중 하나가 숙련(45)에 이르면 제자를 들일 수 있다.' },
   { id: 'feud', name: '원수와 복수', what: '나를, 내 집안을 미워하는 사람에게 복수를 꾸미거나 화해를 청한다. 원한은 대를 잇기도 한다.', acts: ['feud_plot', 'feud_reconcile'], lock: '원한을 품은 사람이 생기면 열린다. 원한은 다툼, 배신, 선대의 빚에서 생긴다.' },
   { id: 'war', name: '용병과 전쟁', what: '전쟁 중인 나라에 칼을 판다.', acts: ['pol_merc'], lock: '열여섯 살부터, 전쟁 중인 나라가 용병을 구할 때.' },

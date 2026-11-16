@@ -115,6 +115,7 @@ const GROUPS = [
   ['crisis', '나라의 큰일', /^crisis_/],
   ['work', '일과 벌이', /^(work|seek_job|day_labor|inn_kitchen|herbs|help_home|shop_manage|open_shop|domain_|realm_office|farmer|merchant|estate_|voc_|nature_)/],
   ['learn', '배움과 수련', /^(study|train_body|sword_|meditate|magic_|legend_lesson|research|seal_study|tower_(join|duty|exam|craft))/],
+  ['arts', '글과 예술', /^arts_/],
   ['faith', '믿음과 기도', /^(pray|worship|keep_feast|pilgrimage|faith_seek|holy_heal)$/],
   ['court', '궁정', /^court_/],
   ['army', '군대', /^army_/],
