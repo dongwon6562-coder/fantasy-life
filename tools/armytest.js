@@ -103,7 +103,7 @@ function soldier(seed, family = 'farmer', place = 'harfen') {
     if (g.player.money <= m0) fail('soldier earned nothing');
   }
   console.log(`평시 2년 3판: 오른 계급 합 ${ranks}`);
-  if (ranks < 3) fail('too slow promotion', ranks);
+  if (ranks < 2) fail('too slow promotion', ranks); // 판마다 0~2: 세상 사건이 더 자주 끼어든 뒤(헤드 15단계) 흔들림이 크다
   // 십인장 → 백인장: 평민은 임관금, 귀족은 그냥
   const g = soldier(41100);
   Object.assign(A(g).service, { rank: 2, merit: MERIT[3], months: 30 });

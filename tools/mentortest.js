@@ -122,7 +122,8 @@ const checkInfo = (g) => {
   const sc = mentorState(g).school;
   ok(sc && /공방$/.test(sc.name) && sc.headId == null, `school ${sc?.name}`);
   mentorState(g).grads.forEach((x) => { x.at -= 40; });
-  play(g, 60, ['mentor_take', 'mentor_teach', 'rest'], { mentor_pick: 2, mentor_graduate: 0 }, 1);
+  // 하산한 제자 소식은 달마다 3.5%라 몇 해가 걸릴 수 있다: 소식이 올 때까지(최대 20년) 본다
+  for (let i = 0; i < 20 && !mentorState(g).grads.some((x) => x.fate && x.id === p.id) && !g.over; i++) play(g, 12, ['mentor_take', 'mentor_teach', 'rest'], { mentor_pick: 2, mentor_graduate: 0 }, 1);
   ok(mentorState(g).grads.some((x) => x.fate && x.id === p.id), `grad fate ${JSON.stringify(mentorState(g).grads[0])}`);
   checkInfo(g);
 }

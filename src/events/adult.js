@@ -1,6 +1,6 @@
 // 열다섯 이후: 집을 떠날지, 늙어 가는 부모, 빚, 결투, 마법사 등록, 길 위의 일들, 나이 듦.
 // (직업·이사·소속은 다른 갈래가 맡는다. 여기 사건은 어디에 살든 일어날 수 있는 일 위주)
-import { gainStat, gainSkill, circleOf } from '../game.js';
+import { gainStat, gainSkill, circleOf, purse } from '../game.js';
 import { realm, nudge } from '../world.js';
 import { kill } from '../npc.js';
 import { startDuel } from '../duel/duel.js';
@@ -95,9 +95,9 @@ EVENTS.push(
     title: '해 질 녘 가도',
     text: () => '하르펜에서 돌아오는 길, 해가 졌다. 길가 바위 뒤에서 사내 둘이 나왔다. 하나는 녹슨 칼, 하나는 쇠스랑. 굶주린 농민 출신 강도다. "가진 거 다 내놔."',
     choices: [
-      { label: '싸운다', run: (g, rng) => { const power = skill(g, 'sword') + stat(g, 'agi') / 2 + circleOf(g) * 15; if (check(rng, power, 35)) { gainSkill(g, 'sword', 2.0, 'agi'); return '칼을 쳐내자 강도들은 생각보다 쉽게 무너졌다. 도망치는 등이 앙상했다. 쫓지 않았다.'; } injure(g, '칼에 베인 손바닥', 2); spend(g, Math.ceil(money(g) / 2)); return '손바닥을 베였다. 주머니 절반을 빼앗겼다.'; } },
-      { label: '가진 걸 내준다', run: (g) => { spend(g, money(g)); return '주머니를 털어 주었다. 강도 하나가 동전을 세다가, 동화 몇 닢을 다시 던져 주었다. "빵이나 사 먹어."'; } },
-      { label: '"나도 굶어 봐서 안다."', run: (g, rng) => { if (check(rng, stat(g, 'cha') + stat(g, 'wil'), 40)) { spend(g, 2); gainStat(g, 'cha', 1.0); setFlag(g, 'talked_down_bandits'); return '은화 둘을 내밀며 하르펜 남문 밖 막노동 자리를 알려 주었다. 사내들은 한참 서 있다가 칼을 내렸다. 사람이 강도가 되는 건 한순간이다.'; } spend(g, money(g)); return '"설교는 됐고." 주머니를 털렸다.'; } },
+      { label: '싸운다', run: (g, rng) => { const power = skill(g, 'sword') + stat(g, 'agi') / 2 + circleOf(g) * 15; if (check(rng, power, 35)) { gainSkill(g, 'sword', 2.0, 'agi'); return '칼을 쳐내자 강도들은 생각보다 쉽게 무너졌다. 도망치는 등이 앙상했다. 쫓지 않았다.'; } injure(g, '칼에 베인 손바닥', 2); spend(g, Math.ceil(purse(g) / 2)); return '손바닥을 베였다. 주머니 절반을 빼앗겼다.'; } },
+      { label: '가진 걸 내준다', run: (g) => { spend(g, purse(g)); return '주머니를 털어 주었다. 강도 하나가 동전을 세다가, 동화 몇 닢을 다시 던져 주었다. "빵이나 사 먹어."'; } },
+      { label: '"나도 굶어 봐서 안다."', run: (g, rng) => { if (check(rng, stat(g, 'cha') + stat(g, 'wil'), 40)) { spend(g, 2); gainStat(g, 'cha', 1.0); setFlag(g, 'talked_down_bandits'); return '은화 둘을 내밀며 하르펜 남문 밖 막노동 자리를 알려 주었다. 사내들은 한참 서 있다가 칼을 내렸다. 사람이 강도가 되는 건 한순간이다.'; } spend(g, purse(g)); return '"설교는 됐고." 주머니를 털렸다.'; } },
     ],
   },
   {
