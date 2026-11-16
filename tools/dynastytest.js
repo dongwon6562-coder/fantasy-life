@@ -51,12 +51,16 @@ const bad = (t) => typeof t !== 'string' || /undefined|NaN|\[object|null/.test(t
 
 // 자식 없이 죽으면 조카가 잇는다
 {
-  const h = newGame({ name: '삼촌', sex: 'm', familyId: 'farmer', mode: 'free', seed: seed + 5 });
-  for (let m = 0; m < 12 * 30; m++) { endMonth(h, [{ id: 'rest' }]); while (h.pendingEvent) resolveEvent(h, rngOf(h), 0); if (h.over) break; }
-  const P = me(h);
-  for (const id of P.childIds) { const c = h.people.find((p) => p.id === id); if (c) c.alive = false; }
-  const sib = h.people.find((p) => p.alive && !p.isPlayer && p.id !== P.id && (p.fatherId === P.fatherId && P.fatherId != null || p.motherId === P.motherId && P.motherId != null));
-  if (!sib) { console.log('형제가 없어 조카 점검 건너뜀'); }
+  // 다른 갈래가 늘어나면 씨앗마다 삶이 달라진다: 형제가 고향에 남아 있는 삶을 몇 개의 씨앗에서 찾는다
+  let h, P, sib = null;
+  for (let k = 0; k < 6 && !sib; k++) {
+    h = newGame({ name: '삼촌', sex: 'm', familyId: 'farmer', mode: 'free', seed: seed + 5 + k * 101 });
+    for (let m = 0; m < 12 * 30; m++) { endMonth(h, [{ id: 'rest' }]); while (h.pendingEvent) resolveEvent(h, rngOf(h), 0); if (h.over) break; }
+    P = me(h);
+    for (const id of P.childIds) { const c = h.people.find((p) => p.id === id); if (c) c.alive = false; }
+    sib = h.over ? null : h.people.find((p) => p.alive && !p.away && !p.isPlayer && p.id !== P.id && (p.fatherId === P.fatherId && P.fatherId != null || p.motherId === P.motherId && P.motherId != null));
+  }
+  if (!sib) { console.log(h.over ? '삼촌이 먼저 세상을 떠나 조카 점검 건너뜀' : '형제가 없어 조카 점검 건너뜀'); }
   else {
     const kid = h.people.find((p) => p.alive && p.id !== P.id && (p.fatherId === sib.id || p.motherId === sib.id));
     const heirs = heirsOf(h);
