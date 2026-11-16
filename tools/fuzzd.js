@@ -49,6 +49,7 @@ import { armyStatus } from '../src/army/index.js';
 import { A as ARMY } from '../src/army/core.js';
 import { exploreStatus } from '../src/explore/index.js';
 import { beastsStatus, B as BEASTS, KIND_IDS as BEAST_KINDS, addAnimal as addBeast } from '../src/beasts/index.js';
+import { tradeStatus, T as TRADE, GOOD_IDS as TRADE_GOODS } from '../src/trade/index.js';
 import { E as EXPL, REGION_IDS as EXPL_REGIONS, FINDS as EXPL_FINDS } from '../src/explore/core.js';
 import { V as VOC } from '../src/vocation/core.js';
 import { WORK as VWORK } from '../src/jobs.js';
@@ -70,7 +71,7 @@ function roundTrip(g, rng) {
 function chaos(g, rng) {
   const life = L(g);
   const adult = playerAge(g) >= 15;
-  const r = rng.int(0, 21);
+  const r = rng.int(0, 22);
   if (r === 0) return 'roundtrip';
   if (r === 1 && !CR(g).active) startCrisis(g, rng, rng.pick(Object.keys(CRISES)));
   else if (r === 2) { g.realm.balhart.war = true; g.realm.balhart.warMonths = 0; }
@@ -92,6 +93,7 @@ function chaos(g, rng) {
   else if (r === 19 && adult && !isJailed(g)) armyShake(g, rng);
   else if (r === 20 && adult && !isJailed(g)) exploreShake(g, rng);
   else if (r === 21) beastShake(g, rng);
+  else if (r === 22) tradeShake(g, rng);
   else if (r === 15 && adult && !life.travel && !isJailed(g)) { const port = rng.pick(['klein', 'portel', 'saltmare', 'saltrock']); life.place = port; const rt = rng.pick(seaRoutesFrom(g, port)); if (rt) setSail(g, rt.to, rt.months, { own: !!S(g).ship }); }
   return null;
 }
@@ -141,6 +143,18 @@ function beastShake(g, rng) {
   if (rng.chance(0.2)) b.debt = rng.int(0, 20);
   b.animals = b.animals.filter((a) => a.kind !== 'gone' || rng.chance(0.5));
   if (b.animals.some((a) => a.kind === 'gone')) runHooks('migrate', g);
+}
+// 장사 길을 흔든다 (src/trade/)
+function tradeShake(g, rng) {
+  const t = TRADE(g);
+  if (rng.chance(0.6)) { const k = rng.chance(0.1) ? 'gone' : rng.pick(TRADE_GOODS); t.cargo[k] = { qty: rng.int(0, 60), cost: rng.int(0, 2000) }; }
+  if (rng.chance(0.3)) Object.assign(t.caravan, { wagons: rng.int(0, 6), guards: rng.int(0, 12), porters: rng.int(0, 8) });
+  if (rng.chance(0.2)) t.house = { id: rng.chance(0.5) ? 'nope' : (g.history?.companies?.[0]?.id ?? 'nope'), name: '흔들 상회', level: rng.int(1, 5), branches: ['harfen'], since: 500 };
+  if (rng.chance(0.2) && g.history?.companies?.length) { const c = rng.pick(g.history.companies); t.rival = { id: rng.chance(0.8) ? c.id : 'nope', name: c.name, heat: rng.int(0, 5), since: 0, thugs: rng.chance(0.5) }; }
+  if (rng.chance(0.2)) t.debts.push({ who: '흔들 귀족', amt: rng.int(0, 300), cost: 10, due: 0 });
+  if (rng.chance(0.2)) { t.profit = rng.int(-500, 5000); t.volume = rng.int(0, 900); }
+  if (rng.chance(0.2)) t.banned[g.life?.place ?? 'ern'] = 99999;
+  if (rng.chance(0.3)) runHooks('migrate', g);
 }
 // 지도에 없는 땅을 흔든다 (src/explore/)
 function exploreShake(g, rng) {
@@ -193,7 +207,7 @@ function checkState(g, seed, m) {
   const p = g.player;
   for (const [k, v] of Object.entries({ money: p.money, fatigue: p.fatigue, stress: p.stress, renown: L(g).renown, notoriety: L(g).notoriety })) if (!Number.isFinite(v)) fail('NaN 값', k, seed, m);
   if (p.money < 0) fail('돈이 음수', p.money, seed, m);
-  for (const [name, fn] of [['partyStatus', partyStatus], ['crisisStatus', crisisStatus], ['craftStatus', craftStatus], ['domainReport', (x) => (x.domain ? domainReport(x) : null)], ['seaStatus', seaStatus], ['deepStatus', deepStatus], ['estateStatus', estateStatus], ['vocationStatus', vocationStatus], ['armyStatus', armyStatus], ['exploreStatus', exploreStatus], ['beastsStatus', beastsStatus]]) {
+  for (const [name, fn] of [['partyStatus', partyStatus], ['crisisStatus', crisisStatus], ['craftStatus', craftStatus], ['domainReport', (x) => (x.domain ? domainReport(x) : null)], ['seaStatus', seaStatus], ['deepStatus', deepStatus], ['estateStatus', estateStatus], ['vocationStatus', vocationStatus], ['armyStatus', armyStatus], ['exploreStatus', exploreStatus], ['beastsStatus', beastsStatus], ['tradeStatus', tradeStatus]]) {
     try { const r = deepBad(fn(g)); if (r) fail(`${name}에 나쁜 값`, r, seed, m); } catch (e) { fail(`${name} 예외`, e.stack, seed, m); }
   }
   if (partyOf(g).members.includes(g.player.id)) fail('내가 내 동료 명단에 있음', g.player.id, seed, m);

@@ -45,3 +45,4 @@ import './explore/index.js';
 import './peoples/index.js'; // 다른 종족의 땅에서 살기: 풍습·의식·받아들여짐, 종족끼리의 편견과 우정, 섞인 혈통 자식
 import './nature/index.js'; // 하늘과 땅의 재앙과 계절: 고장마다 재앙, 소출과 흉년, 철마다 다른 살림
 import './beasts/index.js';
+import './trade/index.js'; // 장사 길과 상단: 고장마다 다른 시세, 대상단, 도적과 통행세, 큰 상회, 맞수 상단
