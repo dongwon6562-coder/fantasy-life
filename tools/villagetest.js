@@ -72,7 +72,9 @@ const checkInfo = (g) => {
   play(h, 1, ['rest'], {}, 1, 'harfen');
   ok(belongAt(h, 'harfen') < 15, `newcomer belong ${belongAt(h, 'harfen')}`);
   const info = checkInfo(h);
-  ok(info.neighbors.length === 4 && info.belongWord === '뜨내기', `newcomer info ${info.neighbors.length} ${info.belongWord}`);
+  ok(info.neighbors.length === 0 && info.belongWord === '뜨내기', `newcomer info ${info.neighbors.length} ${info.belongWord}`);
+  play(h, 1, ['village_help'], {}, 1, 'harfen');
+  ok(villageInfo(h).neighbors.length === 4, `neighbors after help ${villageInfo(h).neighbors.length}`);
 }
 
 // 2) 품앗이: 우리 사람이 되고, 갚을 품이 쌓이고, 추수나 재앙 때 돌아온다
