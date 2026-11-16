@@ -61,7 +61,8 @@ const pickScene = (g, word) => {
   while (RS(g).project && months++ < 40) { endMonth(g, [{ id: 'research' }, { id: 'research' }]); g.player.fatigue = 0; g.player.injuries = []; for (let k = 0; k < 6 && g.pendingEvent && g.pendingEvent.id !== 'research_claim'; k++) resolveEvent(g, rngOf(g), 0); if (g.pendingEvent?.id === 'research_claim' || RS(g).claim) break; }
   check(RS(g).project?.id !== 'firestone', `40달이 지나도 화석 연구가 끝나지 않는다 (${researchLine(g)})`);
   let guard = 0;
-  while (!g.pendingEvent && RS(g).claim && guard++ < 6) endMonth(g, [{ id: 'rest' }]);
+  // 다른 장면(나라의 큰일 등)이 먼저 뜨면 넘긴다
+  while (g.pendingEvent?.id !== 'research_claim' && RS(g).claim && guard++ < 12) { if (g.pendingEvent) resolveEvent(g, rngOf(g), 0); else endMonth(g, [{ id: 'rest' }]); }
   check(g.pendingEvent?.id === 'research_claim', `발명에 이름 거는 사건이 안 뜬다 (${g.pendingEvent?.id})`);
   const tech0 = g.realm.tech;
   resolveEvent(g, rngOf(g), 0);

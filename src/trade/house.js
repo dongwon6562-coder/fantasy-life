@@ -184,7 +184,8 @@ defineScene('trade_rival', {
     const tail = gains([up('장사', sk)]);
     switch (`${s.ev}:${key}`) {
       case 'undercut:fight': {
-        g.player.money = Math.max(0, g.player.money - 40 * lv);
+        if (g.player.money < 40 * lv) return '걸 돈이 모자랐다. 값 싸움은 금고가 깊은 쪽이 이긴다.';
+        g.player.money -= 40 * lv;
         const ok = check(rng, tradeSkill(g) + lv * 6 + (mine?.fortune ?? 30) * 0.3, 40 + co.fortune * 0.4);
         if (ok) { hit(12); g.player.money += 30 * lv + rng.int(0, 40); logTrade(g, `${J(r.name, '과/와')}의 값 싸움에서 이겼다.`); return `석 달을 밑지며 버텼다. 먼저 손을 든 것은 ${r.name} 쪽이었다. 장터 상인들이 이제 내 값을 따른다.${tail}`; }
         hurt(6); heat(1); logTrade(g, `${J(r.name, '과/와')}의 값 싸움에서 밀렸다.`);
@@ -209,9 +210,9 @@ defineScene('trade_rival', {
         return `달 없는 밤, ${r.name}의 창고에서 불길이 올랐다. 누가 그랬는지는 다들 알지만 아무도 말하지 않는다.`;
       }
       case 'sabotage:endure': stress(g, 6); hurt(3); return '바퀴를 다시 끼우고 젖은 짐을 말렸다. 손해는 장부에 적었다. 갚을 날이 올 것이다.';
-      case 'poach:pay': g.player.money = Math.max(0, g.player.money - t.caravan.guards * 6); deed(g, 'generous', 3, '호위들에게 웃돈을 얹어 주었다.'); return '호위들에게 웃돈을 얹어 주었다. 우두머리가 내 어깨를 쳤다. "돈 주는 쪽에 칼이 서는 법이오."';
+      case 'poach:pay': if (g.player.money < t.caravan.guards * 6) { t.caravan.guards = Math.floor(t.caravan.guards / 2); return '얹어 줄 웃돈이 모자랐다. 호위 절반이 떠났다.'; } g.player.money -= t.caravan.guards * 6; deed(g, 'generous', 3, '호위들에게 웃돈을 얹어 주었다.'); return '호위들에게 웃돈을 얹어 주었다. 우두머리가 내 어깨를 쳤다. "돈 주는 쪽에 칼이 서는 법이오."';
       case 'poach:let': { const n = Math.ceil(t.caravan.guards / 2); t.caravan.guards -= n; logTrade(g, `호위 ${n}명이 ${J(r.name, '으로/로')} 갔다.`); return `호위 ${n}명이 짐을 챙겨 ${r.name}의 마구간으로 갔다.`; }
-      case 'guild:gift': g.player.money = Math.max(0, g.player.money - 60 * lv); return '원로들에게 포도주와 비단을 돌렸다. 안건은 다음 회의로, 그다음 회의로 미뤄지다 사라졌다.';
+      case 'guild:gift': if (g.player.money < 60 * lv) { t.banned[here(g)] = mi(g) + 6; return `돌릴 선물이 모자랐다. 반년 동안 ${placeName(here(g))} 장터에 좌판을 펼 수 없다.`; } g.player.money -= 60 * lv; return '원로들에게 포도주와 비단을 돌렸다. 안건은 다음 회의로, 그다음 회의로 미뤄지다 사라졌다.';
       case 'guild:argue': {
         const ok = check(rng, g.player.stats.cha * 0.6 + tradeSkill(g) * 0.5, 50);
         if (ok) { hit(6); deed(g, 'brave', 3, '길드 회의에서 큰 상단에 맞섰다.'); return `길드 회의에서 ${r.name}의 장부 장난을 짚었다. 원로들이 헛기침을 했다. 안건은 부결되었다.${tail}`; }
