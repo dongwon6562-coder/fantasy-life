@@ -51,6 +51,7 @@ import { renderPeoples } from './peoples.js';
 import { renderMentor } from './mentor.js';
 import { renderArtsBlock } from './arts.js';
 import { renderContestBlock } from './contest.js';
+import { renderElderBlock } from './elder.js';
 import { renderTrade, renderTradeNow } from './trade.js';
 import { renderVillage } from './village.js';
 import { renderBeasts } from './beasts.js';
@@ -269,6 +270,7 @@ function renderSheet() {
       ${lifeLines()}
     </div>
     ${renderYouthBlock(game)}
+    ${renderElderBlock(game)}
     ${renderReputeBlock(game)}
     ${renderTowerBlock(game)}
     ${renderFaithBlock(game)}

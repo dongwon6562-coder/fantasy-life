@@ -1294,3 +1294,10 @@ details.act-group[open] > .act-grid { margin-top: 2px; }
 /* ---------- 15단계: 내기와 겨루기 ---------- */
 .contest-block { display: grid; gap: 8px; }
 .contest-block > .note { margin: 0; }
+
+/* ---------- 15단계: 늙음과 마지막 해들 ---------- */
+.elder-block { display: grid; gap: 8px; }
+.elder-block > .note { margin: 0; }
+.el-epitaph { font-style: italic; }
+.el-graves li.bad { border-color: rgba(179, 38, 30, .55); }
+.el-graves .wd-row.kn-row { grid-template-columns: minmax(0, 1fr) auto; }
