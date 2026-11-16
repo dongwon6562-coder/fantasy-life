@@ -192,12 +192,18 @@ function soldier(seed, family = 'farmer', place = 'harfen') {
 {
   // 일을 그만두면 탈영
   const g = soldier(44000);
-  scene(g, 'seek_job', {}, /그만둔다/);
-  month(g, ['rest']);
-  if (A(g).service || !A(g).deserted) fail('quitting job should be desertion');
+  // 추적 장면은 탈영한 그달부터 뜰 수 있다: 처음부터 세고, 모병소에 제 발로 가서 잡히지는 않는다
   let hunted = 0;
+  const huntPick = (k, labels) => {
+    if (k === 'army_hunted') { hunted++; return idxOf(labels, hunted % 2 ? /달아난다/ : /손을 내민다/); }
+    if (k === 'army_enlist') return idxOf(labels, /돌아서서|아직은/);
+    return -1;
+  };
+  scene(g, 'seek_job', {}, /그만둔다/, { other: huntPick });
+  month(g, ['rest'], huntPick);
+  if (A(g).service || !A(g).deserted) fail('quitting job should be desertion');
   // 노숙하다 옥에 갇힐 수도 있다: 옥에서 나오면 다시 쫓긴다 (옥살이 동안은 기다린다)
-  for (let m = 0; m < 72 && !g.over; m++) { month(g, ['rest'], (k, labels) => { if (k === 'army_hunted') { hunted++; return idxOf(labels, hunted % 2 ? /달아난다/ : /손을 내민다/); } return -1; }); }
+  for (let m = 0; m < 72 && !g.over; m++) month(g, ['rest'], huntPick);
   if (!hunted) fail('deserter never hunted in 6 years at harfen', JSON.stringify(A(g).deserted), L(g).place, isJailed(g), g.over, JSON.stringify(L(g).queue), JSON.stringify(seen.scenes));
   // 병영을 석 달 비우면 탈영
   const h = soldier(44100);
