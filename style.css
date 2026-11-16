@@ -1269,3 +1269,15 @@ details.act-group[open] > .act-grid { margin-top: 2px; }
 .ar-work.banned { border-color: rgba(179, 38, 30, .55); }
 .ar-works .top strong { overflow-wrap: anywhere; }
 .ar-works .wd-row.kn-row, .nt-regions .wd-row.kn-row { grid-template-columns: minmax(0, 1fr) auto; }
+
+/* ---------- 14단계: 장사 길 ---------- */
+.trade-card, .trade-now { display: grid; gap: 10px; }
+.trade-card > .note, .trade-now > .note { margin: 0; }
+.trade-now.bad { border-color: rgba(179, 38, 30, .55); }
+.td-prices { list-style: none; margin: 6px 0 0; padding: 0; display: grid; gap: 4px; font-size: 14px; }
+.td-prices li { display: grid; grid-template-columns: minmax(0, 1fr) auto auto; gap: 4px 10px; align-items: baseline; padding: 4px 0; border-bottom: 1px dotted var(--line); }
+.td-prices li b { font-weight: 600; font-size: 12px; color: var(--muted); min-width: 3em; text-align: right; }
+.td-prices li.cheap b { color: #8fbf7f; }
+.td-prices li.dear b { color: #e3917f; }
+.td-rival { border-color: rgba(179, 38, 30, .45); }
+@media (max-width: 360px) { .td-prices li { grid-template-columns: minmax(0, 1fr) auto; } .td-prices li .note { grid-column: 1 / -1; grid-row: 2; } }

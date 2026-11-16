@@ -50,6 +50,7 @@ import { renderFeud, renderExplore, renderExploreNow } from './realms12.js';
 import { renderPeoples } from './peoples.js';
 import { renderMentor } from './mentor.js';
 import { renderArtsBlock } from './arts.js';
+import { renderTrade, renderTradeNow } from './trade.js';
 import { renderBeasts } from './beasts.js';
 import { renderNature, renderNatureNow, natureRow, NATURE_ALARM } from './nature.js';
 import { calamityAt } from '../nature/index.js';
@@ -445,10 +446,10 @@ function renderGame() {
   const p = game.player;
   const art = sceneImage({ year: game.date.year, month: game.date.month, famine: game.world?.famine, plague: game.world?.plague, place: L(game).place, calamity: calamityNow() });
   let main = '';
-  if (ui.view === 'month') main = game.over ? renderOver() : renderCrisis(game) + renderArmyNow(game) + renderExploreNow(game) + renderNatureNow(game) + renderSummary(ui.summary) + renderNews() + renderYouthCard(game, ui) + renderWorkshop(game, ui) + renderPlan(game, ui);
+  if (ui.view === 'month') main = game.over ? renderOver() : renderCrisis(game) + renderArmyNow(game) + renderExploreNow(game) + renderTradeNow(game) + renderNatureNow(game) + renderSummary(ui.summary) + renderNews() + renderYouthCard(game, ui) + renderWorkshop(game, ui) + renderPlan(game, ui);
   else if (ui.view === 'me') main = renderSheet();
   else if (ui.view === 'people') main = withJump([['love', '사랑', renderLove(game)], ['kin', '자식', renderKin(game)], ['mentor', '제자', renderMentor(game)], ['beasts', '짐승', renderBeasts(game)], ['feud', '원한', renderFeud(game)], ['peoples', '종족의 땅', renderPeoples(game)], ['party', '동료', renderParty(game)], ['notebook', '인물 수첩', renderPeople(game, ui)]]);
-  else if (ui.view === 'map') main = renderMap() + renderPolitics(game, ui) + renderNature(game) + renderExplore(game) + renderSeal(game) + renderDeep(game) + renderSea(game) + renderWorldCard(); // 지도가 먼저 (폰에서 바로 보이게)
+  else if (ui.view === 'map') main = renderMap() + renderPolitics(game, ui) + renderTrade(game) + renderNature(game) + renderExplore(game) + renderSeal(game) + renderDeep(game) + renderSea(game) + renderWorldCard(); // 지도가 먼저 (폰에서 바로 보이게)
   else if (ui.view === 'chron') main = renderChron();
   else if (ui.view === 'save') main = renderSave();
   root().innerHTML = `
