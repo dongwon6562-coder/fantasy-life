@@ -249,6 +249,7 @@ function pathGame(seed, id, setup) {
   const m0 = g.player.money;
   for (let m = 0; m < 12; m++) { if (L(g).place !== 'harfen') placeAt(g, 'harfen'); month(g, ['voc_busk']); }
   if (g.player.money <= m0) fail('busking earned nothing');
+  V(g).banned = {}; // 풍자 노래로 그 고장에서 쫓겨났을 수 있다 (운에 따라)
   if (!availableActions(g).some((a) => a.id === 'voc_busk')) fail('busk not available away from job');
   V(g).banned.harfen = g.date.year * 12 + g.date.month + 6;
   if (availableActions(g).some((a) => a.id === 'voc_busk')) fail('busk should be blocked where banned');

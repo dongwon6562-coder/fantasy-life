@@ -33,14 +33,20 @@ const fire = (g, id, choice = 0, seed = 9) => {
 const grown = (g, y = 24) => { for (const p of g.people) p.ageMonths += y * 12; g.date.year += y; (g.flags ??= {}).adult = true; };
 const stay = (g, place) => { L(g).place = place; L(g).travel = null; crimeState(g).jailed = null; g.player.fatigue = 0; g.pendingEvent = null; };
 const has = (g, id) => availableActions(g).some((a) => a.id === id);
+const queued = (g, kind) => L(g).queue.some((s) => s.kind === kind) || L(g).scene?.kind === kind;
 const act = (g, id, seed = 3) => { const a = ACTIONS.find((x) => x.id === id); const out = a.run(g, makeRng({ s: seed })); check(typeof out === 'string' && !BAD.test(out), `${id}: ${out}`); return out; };
 // 대기열의 장면 하나를 띄우고 고른다
 const scene = (g, kind, key, seed = 5) => {
   const q = L(g).queue, i = q.findIndex((s) => s.kind === kind);
-  if (i < 0) { check(false, `장면 ${kind}이 대기열에 없다`); return ''; }
-  const [s] = q.splice(i, 1);
-  g.pendingEvent = null;
-  if (!showScene(g, s, { force: true })) { check(false, `장면 ${kind}을 띄우지 못했다`); return ''; }
+  let s;
+  // 앞 장면을 고르면 이번 달 몫 안에서 다음 장면이 바로 뜬다
+  if (L(g).scene?.kind === kind && g.pendingEvent?.id === 'life_scene') s = L(g).scene;
+  else {
+    if (i < 0) { check(false, `장면 ${kind}이 대기열에 없다`); return ''; }
+    [s] = q.splice(i, 1);
+    g.pendingEvent = null; L(g).scene = null;
+    if (!showScene(g, s, { force: true })) { check(false, `장면 ${kind}을 띄우지 못했다`); return ''; }
+  }
   check(!BAD.test(g.pendingEvent.text) && !BAD.test(g.pendingEvent.title), `${kind} 글: ${g.pendingEvent.title} / ${g.pendingEvent.text}`);
   const idx = key == null ? 0 : s.choices.findIndex((c) => c.key === key);
   check(idx >= 0, `${kind}에 선택지 ${key}가 없다 (${s.choices.map((c) => c.key)})`);
@@ -57,7 +63,7 @@ const finish = (g, kind, theme, key = 'sell') => {
   scene(g, 'arts_pick', kind); scene(g, 'arts_theme', theme);
   const d = AS(g).draft;
   check(d && d.kind === kind && d.theme === theme, `${kind}/${theme} 원고가 안 생겼다`);
-  for (let i = 0; i < 40 && AS(g).draft && !L(g).queue.some((s) => s.kind === 'arts_done'); i++) { act(g, 'arts_work', i); g.player.fatigue = 0; }
+  for (let i = 0; i < 40 && AS(g).draft && !queued(g, 'arts_done'); i++) { act(g, 'arts_work', i); g.player.fatigue = 0; }
   const n = AS(g).works.length;
   scene(g, 'arts_done', key);
   check(AS(g).works.length === n + 1 && !AS(g).draft, `${kind} 작품이 세상에 안 나왔다`);
@@ -110,7 +116,7 @@ check(!!artsTick, '글과 예술의 세계 흐름을 못 찾았다');
   AS(g).fame = 40; g.player.stats.cha = 90;
   check(has(g, 'arts_seek_patron'), '이름난 작가가 후원자를 찾지 못한다');
   let ok = false;
-  for (let s = 0; s < 8 && !ok; s++) { AS(g).seekAt = 0; act(g, 'arts_seek_patron', s); ok = L(g).queue.some((x) => x.kind === 'arts_patron'); }
+  for (let s = 0; s < 8 && !ok; s++) { AS(g).seekAt = 0; act(g, 'arts_seek_patron', s); ok = queued(g, 'arts_patron'); }
   check(ok, '후원 제안이 오지 않는다');
   scene(g, 'arts_patron', 'p0');
   const P = AS(g).patron;
@@ -153,7 +159,7 @@ check(!!artsTick, '글과 예술의 세계 흐름을 못 찾았다');
     const w = publish(g, makeRng({ s }), { kind: 'grimoire', theme: 'heresy', title: '그늘진 술식', prog: 16, need: 16, q: 1100, n: 16, start: 0, place: 'solaris' });
     w.watch = 1; w.copies = 20;
     runHooks('afterMonth', g, makeRng({ s }));
-    if (L(g).queue.some((x) => x.kind === 'arts_ban')) hits++;
+    if (queued(g, 'arts_ban')) hits++;
   }
   check(hits >= 4 && hits <= 19, `성광국 금기 마법서의 금서 장면 횟수가 이상하다 (${hits}/20)`);
 }

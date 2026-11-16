@@ -151,6 +151,7 @@ export function publish(g, rng, d) {
   return w;
 }
 defineScene('arts_done', {
+  keep: true,
   need: (g) => !!AS(g).draft && AS(g).draft.prog >= AS(g).draft.need,
   title: (g) => `${Q(AS(g).draft.title)}`,
   text: (g) => {
