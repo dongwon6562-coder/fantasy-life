@@ -1246,3 +1246,19 @@ html:not(.motion) .pol-land .pol-ring { animation: none; }
 .bs-face svg { width: 48px; height: 48px; display: block; }
 .bs-animal.wild { border-color: rgba(179, 38, 30, .55); }
 .bs-face { cursor: default; }
+
+/* ---------- 14단계: 할 일 묶음 접기·바로 가기 ---------- */
+.act-jump { display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; margin: 0 -2px; padding: 2px; -webkit-overflow-scrolling: touch; }
+.act-jump::-webkit-scrollbar { display: none; }
+.act-jump button { flex: none; min-height: 40px; padding: 4px 12px; font-size: 13px; white-space: nowrap; }
+.act-jump small { color: var(--muted); margin-left: 2px; }
+.act-group[id] { scroll-margin-top: 12px; }
+details.act-group:not(.dark) > summary { cursor: pointer; list-style: none; display: flex; gap: 10px; align-items: baseline; min-height: 40px; padding-top: 4px; }
+details.act-group:not(.dark) > summary::-webkit-details-marker { display: none; }
+details.act-group:not(.dark) > summary::after { content: '접기'; margin-left: auto; font-size: 12px; color: var(--muted); }
+details.act-group:not(.dark):not([open]) > summary::after { content: '펼치기'; }
+details.act-group:not(.dark):not([open]) > summary { border-bottom: 1px dashed var(--line); padding-bottom: 6px; }
+details.act-group:not(.dark) > summary .note { font-size: 12px; }
+details.act-group[open] > .act-grid { margin-top: 2px; }
+[id^="jp-"] { scroll-margin-top: 60px; }
+.view-jump { position: sticky; top: 0; z-index: 3; background: var(--bg); padding: 6px 52px 6px 2px; margin: -6px -2px 0; }
