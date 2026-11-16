@@ -3,7 +3,7 @@
 // - 장면(scene): 고를 것이 있는 행동(일자리, 이사, 의뢰, 미궁…)을 사건 창으로 보여 주는 장치.
 //   사건 창(game.pendingEvent)과 resolveEvent를 그대로 쓰므로 화면 코드를 고칠 필요가 없다.
 import { HOOKS } from '../hooks.js';
-import { EVENTS } from '../events.js';
+import { EVENTS, AFTER_RESOLVE } from '../events.js';
 import { me, playerAge } from '../game.js';
 
 export function defaultLife() {
@@ -69,8 +69,9 @@ export const check = (rng, value, difficulty) => rng.chance(Math.max(0.05, Math.
 const SCENES = {};
 export const SCENE_ID = 'life_scene';
 export function defineScene(kind, def) { SCENES[kind] = def; }
+const monthNo = (g) => g.date.year * 12 + g.date.month;
 export function queueScene(g, kind, data = {}, { first = false } = {}) {
-  const s = { kind, at: kind === 'road' ? null : L(g).place, ...data };
+  const s = { kind, at: kind === 'road' ? null : L(g).place, t: monthNo(g), ...data };
   if (first) L(g).queue.unshift(s); else L(g).queue.push(s);
 }
 export const sceneQueued = (g, kind) => L(g).queue.some((s) => s.kind === kind) || L(g).scene?.kind === kind;
@@ -152,15 +153,38 @@ HOOKS.endOfMonth.push((g) => {
     // 불러온 저장 등에서 장면이 사건 창과 어긋났으면 다시 띄운다
     if (g.pendingEvent?.id !== SCENE_ID) { const s = life.scene; life.scene = null; life.queue.unshift(s); } else return;
   }
+  life.shown = { t: monthNo(g), n: 0 };
+  showNextQueued(g);
+});
+
+// 한 달에 띄우는 장면 수. 하나씩만 띄우면 여러 갈래 장면이 몇 달씩 밀려, 내가 고른 일의 결과가 늦게 왔다.
+export const SCENES_PER_MONTH = 3;
+// 이만큼 묵은 장면은 철 지난 일이라 버린다 (def.keep이면 남긴다)
+export const SCENE_STALE = 6;
+function showNextQueued(g) {
+  const life = L(g);
+  const now = monthNo(g);
   while (life.queue.length) {
     const s = life.queue[0];
     // 그 사이 다른 곳으로 떠났다면 그곳에서 고르려던 일은 없던 일이 된다
     if (!SCENES[s.kind] || (s.at && (s.at !== life.place || life.travel))) { life.queue.shift(); continue; }
+    if (s.t != null && now - s.t > SCENE_STALE && !SCENES[s.kind].keep && !s.keep) { life.queue.shift(); continue; }
     const r = tryShow(g, s);
     if (r === 'wait') break;
     life.queue.shift();
-    if (r === 'ok') break;
+    if (r === 'ok') { if (life.shown?.t === now) life.shown.n += 1; break; }
   }
+}
+
+// 장면이나 사건 하나를 끝내고 창이 비면, 이번 달 몫이 남았을 때 밀린 장면을 이어 띄운다
+AFTER_RESOLVE.push((g) => {
+  if (g.over || !g.life) return;
+  const life = L(g);
+  if (life.scene || !life.queue.length || life.heirPending) return;
+  const now = monthNo(g);
+  if (life.shown?.t !== now) life.shown = { t: now, n: 0 };
+  if (life.shown.n >= SCENES_PER_MONTH) return;
+  showNextQueued(g);
 });
 
 // 사건 창에 떠 있던 장면을 다른 사건이 덮어썼다면 장면 상태를 정리한다

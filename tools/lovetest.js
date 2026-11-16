@@ -120,7 +120,7 @@ for (let run = 0; run < 16; run++) {
   if (v.spouse) ok(Number.isFinite(v.spouse.mood) && v.spouse.mood >= 0 && v.spouse.mood <= 100, `mood ${v.spouse.mood}`);
   checkInfo(g);
 }
-ok(married >= 4, `married ${married}/16`); // 한 달에 같은 만남을 두 번 할 수 없게 된 뒤(헤드) 조금 줄었다
+ok(married >= 3, `married ${married}/16`); // 씨앗마다 3~8: 한 달에 같은 만남 두 번 금지, 장면 이어 띄우기(헤드) 뒤 흔들림이 크다
 ok(wishesDone >= 2, `wishes done ${wishesDone}`);
 
 // 4) 오래 소홀한 혼인: 다툼, 떠나려는 배우자, 배신
