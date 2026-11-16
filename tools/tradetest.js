@@ -9,7 +9,7 @@ import '../src/content.js';
 // 7) 대 잇기, 옛 저장, 저절로 살아 보기, tradeStatus.
 import { newGame, endMonth, availableActions, slotsFor, playerAge, rngOf } from '../src/game.js';
 import { resolveEvent } from '../src/events.js';
-import { run as runHooks } from '../src/hooks.js';
+import { run as runHooks, HOOKS } from '../src/hooks.js';
 import { L, queueScene, SCENE_STRICT } from '../src/adventure/core.js';
 import { PLACES, travelMonths } from '../src/places.js';
 import { realmState } from '../src/realms/index.js';
@@ -72,11 +72,15 @@ function placeAt(g, place) { const l = L(g); l.place = place; l.travel = null; l
 const heal = (g) => { g.player.injuries = []; g.player.fatigue = 0; g.player.stress = 10; };
 function scene(g, kind, data, re, opt = {}) {
   let done = false, chose = null;
+  // 달 안에서 세상 흐름이 형편을 바꿔도(전쟁이 끝나는 등) 장면을 띄울 때는 붙잡아 둔 형편으로 본다
+  const hold = (h) => { if (h === g) opt.each?.(h); };
+  if (opt.each) HOOKS.endOfMonth.unshift(hold);
   for (let i = 0; i < 6 && !done && !g.over; i++) {
     opt.each?.(g); // 장면이 뜰 때까지 형편(전쟁·흉년)을 붙잡아 둔다
     if (!L(g).queue.some((x) => x.kind === kind) && L(g).scene?.kind !== kind) queueScene(g, kind, data, { first: true });
     month(g, opt.want ?? ['rest'], (k, labels) => { if (k !== kind) return opt.other?.(k, labels) ?? -1; done = true; const i2 = idxOf(labels, re); chose = i2 >= 0 ? labels[i2] : null; return i2; });
   }
+  if (opt.each) HOOKS.endOfMonth.splice(HOOKS.endOfMonth.indexOf(hold), 1);
   if (!done && !g.over) fail('scene never shown', kind, JSON.stringify(data), L(g).place, playerAge(g), JSON.stringify(L(g).queue.map((q) => q.kind)));
   if (done && !chose && !g.over) fail('choice not found', kind, re, JSON.stringify(data));
   return chose;
@@ -216,8 +220,10 @@ function go(g, to, pick = null) {
     if (h.level !== 2) fail('level up', h.level);
     if (!(tollOf(g, 'verden', 'harfen') < (addCargo(g, 'wine', 5, 50), Math.round(cargoValue(g, 'verden') * 0.03)) + 1)) fail('branch toll discount');
     const m0 = g.player.money;
-    month(g, ['rest']);
+    // 상회 벌이만 본다: 그달 뜬 사건(빚 갚기 등)을 고르기 전에 잰다
+    endMonth(g, Array.from({ length: slotsFor(g) }, () => ({ id: 'rest' })));
     if (!(g.player.money > m0 - 5)) fail('no house income', m0, g.player.money);
+    g.pendingEvent = null; L(g).scene = null;
     // 망하기: 세상의 상단 목록에서 사라지면
     const list = H(g).companies;
     list.splice(list.indexOf(houseCompany(g)), 1);
@@ -293,8 +299,10 @@ function go(g, to, pick = null) {
   placeAt(g, 'harfen');
   T(g).debts.push({ who: '시험 귀족', amt: 100, cost: 50, due: 0, odds: 1 });
   const m0 = g.player.money;
-  month(g, ['rest']);
+  // 외상값만 본다: 그달 뜬 사건·장면을 고르기 전에 잰다
+  endMonth(g, Array.from({ length: slotsFor(g) }, () => ({ id: 'rest' })));
   if (!(g.player.money >= m0 + 90)) fail('credit not paid', m0, g.player.money);
+  g.pendingEvent = null; L(g).scene = null;
 }
 
 /* ---------- 7) 대 잇기, 옛 저장, 저절로 ---------- */
