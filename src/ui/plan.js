@@ -122,6 +122,7 @@ const GROUPS = [
   ['people', '사람과 마을', /^(visit|play|wander|rel_|faction_door|bard|era_|kin_|love_|mentor_|village_|feud_reconcile|peoples_|repute_(boast|feast|clear))/],
   ['road', '길과 모험', /^(party_|gather_party|travel|on_road|housing|quest|delve|deep_|pol_|explore_|gear|pioneer|buy_title|tower_dare|wolves|goblins)/],
   ['beast', '짐승', /^beast_/],
+  ['contest', '내기와 겨루기', /^contest_/],
   ['sea', '바다', /^(sail|sailing|at_sea|cargo|shipyard|sea_|serpent_lair|saltrock|pirate_)/],
   ['dark', '어두운 일', /^(crime_|gang_|dawn_rite|repute_slander|forbidden_rite|feud_plot)/],
   ['rest', '쉼', /^(rest|drift_years)$/],

@@ -1290,3 +1290,7 @@ details.act-group[open] > .act-grid { margin-top: 2px; }
 .vl-nb .kn-face { min-width: 44px; min-height: 44px; }
 .vl-nb-txt { display: grid; gap: 2px; min-width: 0; }
 .vl-nb-txt strong { overflow-wrap: anywhere; }
+
+/* ---------- 15단계: 내기와 겨루기 ---------- */
+.contest-block { display: grid; gap: 8px; }
+.contest-block > .note { margin: 0; }

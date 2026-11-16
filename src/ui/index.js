@@ -50,6 +50,7 @@ import { renderFeud, renderExplore, renderExploreNow } from './realms12.js';
 import { renderPeoples } from './peoples.js';
 import { renderMentor } from './mentor.js';
 import { renderArtsBlock } from './arts.js';
+import { renderContestBlock } from './contest.js';
 import { renderTrade, renderTradeNow } from './trade.js';
 import { renderVillage } from './village.js';
 import { renderBeasts } from './beasts.js';
@@ -275,6 +276,7 @@ function renderSheet() {
     ${renderArmyBlock(game)}
     ${renderVocBlock(game)}
     ${renderArtsBlock(game)}
+    ${renderContestBlock(game)}
     ${renderEstateBlock(game)}
     ${renderResearchBlock(game)}
     <div class="block">
