@@ -131,7 +131,11 @@ for (let run = 0; run < 8; run++) {
   for (let i = 0; i < 6; i++) { const p = makePerson(rngOf(g), { sex: me(g).sex === 'm' ? 'f' : 'm', ageMonths: (24 + i * 2) * 12 }); p.known = true; p.affection = 40; g.people.push(p); }
   play(g, 1, ['rest']);
   loveState(g).spouse.mood = 30;
-  play(g, 12 * 6, ['work', 'rest', 'love_date'], { love_temptation: 0, love_quarrel: run % 4, love_leave: run % 2 }, 1); // 배우자를 돌보지 않는다
+  // 배우자를 돌보지 않는다: 해마다 마음이 식은 채로 (다른 장면이 마음을 풀어 주어도 다시 식힌다)
+  for (let y = 0; y < 6 && !g.over; y++) {
+    if (loveState(g).spouse) loveState(g).spouse.mood = Math.min(loveState(g).spouse.mood, 22);
+    play(g, 12, ['work', 'rest', 'love_date'], { love_temptation: 0, love_quarrel: run % 4, love_leave: run % 2 }, 1);
+  }
   checkInfo(g);
 }
 

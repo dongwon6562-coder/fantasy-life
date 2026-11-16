@@ -322,7 +322,8 @@ HOOKS.afterMonth.push((g, rng) => {
     if (rng.chance(ch)) { r.rebelled += 1; return fire('kin_rebel', { id: p.id, kind2: rng.int(0, 3) }); }
   }
   // 형제 다툼
-  const big = kids.filter((p) => ageYears(p) >= 10);
+  // 같은 아이가 자식 목록에 두 번 들어간 옛 저장도 있다: 사람별로 한 번만
+  const big = [...new Map(kids.filter((p) => ageYears(p) >= 10).map((p) => [p.id, p])).values()];
   if (big.length >= 2 && rng.chance(0.025 * Math.max(...big.map((p) => TEMPERS[rec(g, p.id).temper].quarrel)))) {
     const a = rng.pick(big);
     const b = rng.pick(big.filter((x) => x.id !== a.id));

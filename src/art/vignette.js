@@ -110,6 +110,8 @@ const BY_SCENE = {
   feud_turned: 'feud:turned', feud_plot: 'feud:plot', feud_strike: 'feud:strike', feud_offer: 'feud:offer', feud_peace: 'feud:peace', feud_deathbed: 'bedside',
   // 13단계: 제자와 문하
   mentor_pick: 'mentor:lesson', mentor_lesson: 'mentor:lesson', mentor_graduate: 'mentor:bow', mentor_surpass: 'mentor:bow', mentor_found: 'mentor:found', mentor_betray: 'road', mentor_reclaim: 'feud:offer', mentor_succession: 'bedside:last',
+  // 14단계: 이웃과 마을 살이 (새 그림 없이 있는 판을 붙임)
+  village_meeting: 'square:herald', village_election: 'square:notice', village_task: 'trade:builder', village_judge: 'square:herald', village_snub: 'feud:turned', village_quarrel: 'feud:turned', village_stranger: 'muster:refugee',
   // 12단계: 다른 종족의 땅 (의식과 이름 받기는 아래에서 땅에 따라 고른다)
   peoples_friend: 'feud:peace', peoples_grudge: 'trade:bard', peoples_defend: 'square:herald', peoples_slavers: 'seal:alley', peoples_mixed_marriage: 'wedding', peoples_halfelf_years: 'funeral:visit',
   // 12단계: 탐험 (가는 길과 깊은 곳은 아래에서 땅에 따라 고른다)

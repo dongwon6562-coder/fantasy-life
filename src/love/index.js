@@ -281,7 +281,8 @@ HOOKS.afterMonth.push((g, rng) => {
       if (s && rng.chance(v.affair.risk / 250 + (has(byId(g, s.id), 'gossip') ? 0.01 : 0)) && !sceneQueued(g, 'love_caught') && ready(g)) { queueScene(g, 'love_caught', { id: af.id }, { first: true }); return; }
     }
   }
-  if (!ready(g) || L(g).queue.length || mi(g) - v.sceneAt < 5) return;
+  // 다른 갈래 장면이 한둘 기다리는 것은 괜찮다 (빈 대기열만 기다리면 사랑 장면이 굶는다)
+  if (!ready(g) || L(g).queue.some((x) => /^love_/.test(x.kind)) || L(g).queue.length > 2 || mi(g) - v.sceneAt < 5) return;
   const fire = (kind, data) => { v.sceneAt = mi(g); queueScene(g, kind, data); };
   const age = playerAge(g);
   if (s && sp) {

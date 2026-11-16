@@ -89,14 +89,17 @@ function soldier(seed, family = 'farmer', place = 'harfen') {
 
 /* ---------- 1) 입대와 진급 ---------- */
 {
-  let ranks = 0;
-  for (let run = 0; run < 3; run++) {
+  let ranks = 0, valid = 0;
+  for (let run = 0; valid < 3 && run < 6; run++) {
     const g = soldier(41000 + run);
     if (L(g).job?.id !== 'soldier' || L(g).home !== 'barracks') fail('soldier job/lodging', L(g).job, L(g).home);
     const m0 = g.player.money;
-    for (let m = 0; m < 24 && !g.over; m++) { peace(g); if (L(g).place !== A(g).service?.place) placeAt(g, A(g).service.place); month(g, ['work']); heal(g); }
+    const who = g.player.id;
+    for (let m = 0; m < 24 && !g.over && A(g).service; m++) { peace(g); if (L(g).place !== A(g).service.place) placeAt(g, A(g).service.place); month(g, ['work']); heal(g); }
+    // 병으로 죽어 대가 바뀐 삶은 복무 점검에서 뺀다 (다른 모듈이 늘어 난수가 밀리면 생길 수 있다)
+    if (g.player.id !== who || g.over) { console.log('복무 중 죽음, 이 판은 건너뜀', run); continue; }
     if (!A(g).service) { fail('lost service in peace', A(g).deserted); continue; }
-    ranks += A(g).service.rank;
+    ranks += A(g).service.rank; valid++;
     if (g.player.money <= m0) fail('soldier earned nothing');
   }
   console.log(`평시 2년 3판: 오른 계급 합 ${ranks}`);
@@ -189,11 +192,18 @@ function soldier(seed, family = 'farmer', place = 'harfen') {
 {
   // 일을 그만두면 탈영
   const g = soldier(44000);
-  scene(g, 'seek_job', {}, /그만둔다/);
-  month(g, ['rest']);
-  if (A(g).service || !A(g).deserted) fail('quitting job should be desertion');
+  // 추적 장면은 탈영한 그달부터 뜰 수 있다: 처음부터 세고, 모병소에 제 발로 가서 잡히지는 않는다
   let hunted = 0;
-  for (let m = 0; m < 72 && !g.over && !isJailed(g); m++) { month(g, ['rest'], (k, labels) => { if (k === 'army_hunted') { hunted++; return idxOf(labels, hunted % 2 ? /달아난다/ : /손을 내민다/); } return -1; }); }
+  const huntPick = (k, labels) => {
+    if (k === 'army_hunted') { hunted++; return idxOf(labels, hunted % 2 ? /달아난다/ : /손을 내민다/); }
+    if (k === 'army_enlist') return idxOf(labels, /돌아서서|아직은/);
+    return -1;
+  };
+  scene(g, 'seek_job', {}, /그만둔다/, { other: huntPick });
+  month(g, ['rest'], huntPick);
+  if (A(g).service || !A(g).deserted) fail('quitting job should be desertion');
+  // 노숙하다 옥에 갇힐 수도 있다: 옥에서 나오면 다시 쫓긴다 (옥살이 동안은 기다린다)
+  for (let m = 0; m < 72 && !g.over; m++) month(g, ['rest'], huntPick);
   if (!hunted) fail('deserter never hunted in 6 years at harfen', JSON.stringify(A(g).deserted), L(g).place, isJailed(g), g.over, JSON.stringify(L(g).queue), JSON.stringify(seen.scenes));
   // 병영을 석 달 비우면 탈영
   const h = soldier(44100);

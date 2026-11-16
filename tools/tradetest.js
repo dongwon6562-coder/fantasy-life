@@ -73,6 +73,7 @@ const heal = (g) => { g.player.injuries = []; g.player.fatigue = 0; g.player.str
 function scene(g, kind, data, re, opt = {}) {
   let done = false, chose = null;
   for (let i = 0; i < 6 && !done && !g.over; i++) {
+    opt.each?.(g); // 장면이 뜰 때까지 형편(전쟁·흉년)을 붙잡아 둔다
     if (!L(g).queue.some((x) => x.kind === kind) && L(g).scene?.kind !== kind) queueScene(g, kind, data, { first: true });
     month(g, opt.want ?? ['rest'], (k, labels) => { if (k !== kind) return opt.other?.(k, labels) ?? -1; done = true; const i2 = idxOf(labels, re); chose = i2 >= 0 ? labels[i2] : null; return i2; });
   }
@@ -281,7 +282,8 @@ function go(g, to, pick = null) {
       if (!TRADE_EVENTS[ev].need(g, data)) { fail('event need false', ev); break; }
       const labels = TRADE_EVENTS[ev].choices(g, data).map((c) => c.label);
       if (ci >= labels.length) break;
-      scene(g, 'trade_event', data, new RegExp(`^${labels[ci].split(' (')[0]}`));
+      // 다른 갈래 장면에 밀려 몇 달 늦게 뜨는 사이 전쟁이 끝나면 장면이 버려진다: 시험 동안은 형편을 붙잡아 둔다
+      scene(g, 'trade_event', data, new RegExp(`^${labels[ci].split(' (')[0]}`), { each: (h) => { if (ev === 'army') h.realm.balhart.war = true; if (ev === 'famine') h.realm.bread = Math.max(h.realm.bread, 1.4); } });
       g.realm.balhart.war = false;
     }
   }
