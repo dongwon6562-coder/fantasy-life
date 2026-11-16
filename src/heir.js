@@ -52,6 +52,8 @@ HOOKS.endOfMonth.push((g, rng) => {
   const meP = me(g);
   // 이번 달에 죽음이 정해졌다 (치명상, 노환 등)
   // 내 인물 기록이 다른 시뮬레이션 탓에 먼저 죽어 있어도, 정해진 죽음은 그대로 온다 (안 그러면 백 살 넘게 살았다)
+  // 죽음 앞에 한 달을 미루는 갈래가 있다 (임종: 마지막 말을 남길 틈). false를 돌려주면 이번 달은 넘긴다.
+  if (life.pendingDeath && g.player.alive !== false && meP.alive && (HOOKS.beforeDeath ?? []).some((f) => f(g, rng, life.pendingDeath) === false)) life.pendingDeath = null;
   if (life.pendingDeath && g.player.alive !== false) {
     g.player.alive = false;
     if (meP.alive) kill(g, meP, life.pendingDeath); else meP.deathCause ??= life.pendingDeath;
