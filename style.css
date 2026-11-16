@@ -1281,3 +1281,12 @@ details.act-group[open] > .act-grid { margin-top: 2px; }
 .td-prices li.dear b { color: #e3917f; }
 .td-rival { border-color: rgba(179, 38, 30, .45); }
 @media (max-width: 360px) { .td-prices li { grid-template-columns: minmax(0, 1fr) auto; } .td-prices li .note { grid-column: 1 / -1; grid-row: 2; } }
+
+/* ---------- 14단계: 이웃과 마을 ---------- */
+.village-card { display: grid; gap: 10px; }
+.village-card > .note { margin: 0; }
+.vl-nbs { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(min(150px, 100%), 1fr)); gap: 8px; }
+.vl-nb { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 8px; align-items: center; min-width: 0; }
+.vl-nb .kn-face { min-width: 44px; min-height: 44px; }
+.vl-nb-txt { display: grid; gap: 2px; min-width: 0; }
+.vl-nb-txt strong { overflow-wrap: anywhere; }
