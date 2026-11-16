@@ -1301,3 +1301,10 @@ details.act-group[open] > .act-grid { margin-top: 2px; }
 .el-epitaph { font-style: italic; }
 .el-graves li.bad { border-color: rgba(179, 38, 30, .55); }
 .el-graves .wd-row.kn-row { grid-template-columns: minmax(0, 1fr) auto; }
+
+/* ---------- 15단계: 병과 의술 ---------- */
+.health-block { display: grid; gap: 8px; }
+.health-block > .note, .health-now > .note { margin: 0; }
+.health-now { display: grid; gap: 8px; }
+.health-now.bad { border-color: rgba(179, 38, 30, .55); }
+.hl-sick .wd-row.kn-row { grid-template-columns: minmax(0, 1fr) auto; }
