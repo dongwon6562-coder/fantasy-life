@@ -118,14 +118,16 @@ EVENTS.push({
 EVENTS.push({
   id: 'peoples_slavers', cooldown: 48, weight: 6,
   chance: () => 0.3,
-  cond: (g) => free(g) && ['fur', 'silverleaf'].includes(here(g)),
+  cond: (g) => free(g) && ['fur', 'silverleaf'].includes(here(g)) && !!landAt(here(g)),
+  prepare: (g) => ({ k: landAt(here(g)) }), // 고르기 전에 다른 곳으로 옮겨져도 그 땅의 일로 남는다
   title: '사슬 소리',
   text: (g) => `한밤중에 ${here(g) === 'fur' ? '천막 사이로' : '나무 위 집들 아래로'} 사슬 소리가 들렸다. 노예 사냥꾼들이다. 남해로 가는 배가 강 하구에서 기다린다는 소문이 며칠 전부터 돌았다. ${here(g) === 'fur' ? '어린 수인 둘이 벌써 자루에 들어갔다.' : '엘프 아이 하나가 사라졌다.'}`,
   choices: [
     {
       label: '칼을 들고 뒤쫓는다',
-      run: (g, rng) => {
-        const k = landAt(here(g));
+      run: (g, rng, c) => {
+        const k = c?.k ?? landAt(here(g));
+        if (!LANDS[k]) return '날이 밝자 사슬 소리는 멀어져 있었다.';
         if (check(rng, playerPower(g), 45)) {
           shiftStanding(g, k, 12); L(g).renown = (L(g).renown ?? 0) + 3; g.player.money += rng.int(5, 15);
           shiftTie(g, LANDS[k].race, 'human', playerRace(g) === 'human' ? 2 : 0);
@@ -138,13 +140,13 @@ EVENTS.push({
     },
     {
       label: '사람들을 깨워 숨긴다',
-      run: (g, rng) => {
-        const k = landAt(here(g));
+      run: (g, rng, c) => {
+        const k = c?.k ?? landAt(here(g));
         shiftStanding(g, k, check(rng, g.player.stats.sen * 0.6 + g.player.stats.agi * 0.3, 40) ? 7 : 3);
         return '천막과 집을 돌며 사람들을 깨웠다. 아이들을 굴과 나무 구멍에 숨겼다. 사냥꾼들은 새벽까지 헤매다 빈손으로 물러났다. 이미 잡힌 아이들은 찾지 못했다.';
       },
     },
-    { label: '문을 걸고 숨는다', run: (g) => { stress(g, 8); shiftStanding(g, landAt(here(g)), -3); return '문을 걸고 이불을 뒤집어썼다. 아침에 이웃들이 나를 보는 눈이 차가웠다. 외지인은 결국 외지인이라는 눈이었다.'; } },
+    { label: '문을 걸고 숨는다', run: (g, rng, c) => { stress(g, 8); shiftStanding(g, c?.k ?? landAt(here(g)), -3); return '문을 걸고 이불을 뒤집어썼다. 아침에 이웃들이 나를 보는 눈이 차가웠다. 외지인은 결국 외지인이라는 눈이었다.'; } },
   ],
 });
 

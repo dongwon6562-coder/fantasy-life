@@ -16,6 +16,7 @@ export const landHere = (g) => landAt(here(g));
 
 // 그 종족이 나를 보는 눈: 처음 물을 때 정한다
 export function standingOf(g, k) {
+  if (!LANDS[k]) return 0; // 그 사이 다른 고장으로 옮겨 땅이 없을 수 있다
   const P = PS(g);
   if (P.standing[k] == null) {
     const mine = playerRace(g);
@@ -24,6 +25,7 @@ export function standingOf(g, k) {
   return P.standing[k];
 }
 export function shiftStanding(g, k, n) {
+  if (!LANDS[k]) return 0;
   const P = PS(g);
   P.standing[k] = clamp(standingOf(g, k) + n, 0, 100);
   return P.standing[k];
