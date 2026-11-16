@@ -39,7 +39,7 @@ function play(g, months, prefer = LOVE_ACTS, pick = {}, rate = 0.55) {
     const choices = [];
     for (let i = 0; i < slotsFor(g); i++) {
       const w = acts.filter((a) => prefer.includes(a.id) && !a.needsTarget);
-      let a = w.length && rng.chance(rate) ? rng.pick(w) : rng.pick(acts.filter((x) => !x.needsTarget && x.id !== 'travel'));
+      let a = w.length && rng.chance(rate) ? rng.pick(w) : rng.pick(acts.filter((x) => !x.needsTarget && x.id !== 'travel' && !/^trade_/.test(x.id))); // 장사 장면은 다달이 장면 줄을 채워 사랑 장면을 밀어낸다
       if (g.player.fatigue > 80) a = acts.find((x) => x.id === 'rest') ?? a;
       seen.acts[a.id] = (seen.acts[a.id] ?? 0) + 1;
       choices.push({ id: a.id });
@@ -103,7 +103,8 @@ const checkInfo = (g) => {
 
 // 3) 여러 삶: 젊어서부터 15년
 let married = 0, divorces = 0, affairs = 0, arranged = 0, wishesDone = 0;
-for (let run = 0; run < 16; run++) {
+// 배우자의 바람(love_betrayed)은 드물어 16판 안에 안 나올 수 있다: 나올 때까지 몇 판 더 (다른 갈래가 무작위 흐름을 바꿔도 버티게)
+for (let run = 0; run < 16 || (run < 40 && !seen.scenes.love_betrayed); run++) {
   const g = adult(1000 + run, ['farmer', 'merchant', 'fallen_knight'][run % 3], 17);
   // 아는 또래 몇 명
   for (let i = 0; i < 3; i++) { const p = makePerson(rngOf(g), { sex: me(g).sex === 'm' ? 'f' : 'm', ageMonths: (17 + i) * 12 }); p.known = true; p.affection = 30 + i * 10; p.romance = 20 + i * 15; g.people.push(p); }
