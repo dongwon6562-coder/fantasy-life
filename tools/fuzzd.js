@@ -154,6 +154,8 @@ function tradeShake(g, rng) {
   if (rng.chance(0.2)) t.debts.push({ who: '흔들 귀족', amt: rng.int(0, 300), cost: 10, due: 0 });
   if (rng.chance(0.2)) { t.profit = rng.int(-500, 5000); t.volume = rng.int(0, 900); }
   if (rng.chance(0.2)) t.banned[g.life?.place ?? 'ern'] = 99999;
+  if (rng.chance(0.1)) { t.seen.nowhere = { at: 0, p: { gone: 5, silk: 9 } }; t.rumor = { pl: 'nowhere', good: 'gone', at: 0 }; if (t.house) t.house.branches.push('nowhere'); }
+  if (rng.chance(0.1)) g.trade = JSON.parse(JSON.stringify(g.trade)); // 저장 왕복
   if (rng.chance(0.3)) runHooks('migrate', g);
 }
 // 지도에 없는 땅을 흔든다 (src/explore/)

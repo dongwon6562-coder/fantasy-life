@@ -106,8 +106,9 @@ export function logTrade(g, text) {
 /* ---------- 쓸 만한 도우미 ---------- */
 export const tradeSkill = (g) => g.player.skills.trade ?? 0;
 export const free = (g) => !L(g).travel && !isJailed(g) && !g.explore?.exp && !g.army?.campaign && !g.army?.captive && !g.over;
-export const cargoQty = (g) => Object.values(T(g).cargo).reduce((s, c) => s + (c?.qty ?? 0), 0);
-export const cargoList = (g) => Object.entries(T(g).cargo).filter(([, c]) => c && c.qty > 0);
+// 모르는 물건(옛 저장, 흔들린 상태)은 짐으로 치지 않는다
+export const cargoList = (g) => Object.entries(T(g).cargo ?? {}).filter(([k, c]) => GOODS[k] && c && c.qty > 0 && Number.isFinite(c.qty));
+export const cargoQty = (g) => cargoList(g).reduce((s, [, c]) => s + c.qty, 0);
 export const cargoValue = (g, place = null) => cargoList(g).reduce((s, [k, c]) => s + c.qty * (place && isMarket(place) ? priceAt(g, place, k) : GOODS[k].base), 0);
 const packHorses = (g) => (g.beasts?.animals ?? []).filter((a) => a.alive && (a.kind === 'horse' || a.kind === 'warhorse') && (a.trained ?? 0) >= 100).length;
 export function capacity(g) {
