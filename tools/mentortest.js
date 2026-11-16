@@ -122,7 +122,8 @@ const checkInfo = (g) => {
   const sc = mentorState(g).school;
   ok(sc && /공방$/.test(sc.name) && sc.headId == null, `school ${sc?.name}`);
   mentorState(g).grads.forEach((x) => { x.at -= 40; });
-  play(g, 60, ['mentor_take', 'mentor_teach', 'rest'], { mentor_pick: 2, mentor_graduate: 0 }, 1);
+  // 하산한 제자 소식은 달마다 3.5%라 몇 해가 걸릴 수 있다: 소식이 올 때까지(최대 20년) 본다
+  for (let i = 0; i < 20 && !mentorState(g).grads.some((x) => x.fate && x.id === p.id) && !g.over; i++) play(g, 12, ['mentor_take', 'mentor_teach', 'rest'], { mentor_pick: 2, mentor_graduate: 0 }, 1);
   ok(mentorState(g).grads.some((x) => x.fate && x.id === p.id), `grad fate ${JSON.stringify(mentorState(g).grads[0])}`);
   checkInfo(g);
 }
@@ -146,7 +147,7 @@ const checkInfo = (g) => {
   ok(g.player.skills.sword > before + 1, `learn from elder ${before} → ${g.player.skills.sword.toFixed(1)}`);
   g.player.skills.sword = 75; p.affection = 80; me(g).ageMonths = 30 * 12;
   // 앞서 쌓인 장면들이 있어 돌려받기 장면은 몇 달 뒤에 올 수 있다
-  play(g, 8, ['mentor_heritage'], { mentor_reclaim: 0 }, 1);
+  for (let i = 0; i < 24 && sc.headId != null && !g.over; i++) play(g, 1, ['mentor_heritage'], { mentor_reclaim: 0 }, 1);
   ok(sc.headId == null && sc.gens === 2, `reclaimed ${sc.headId} gens ${sc.gens}`);
   checkInfo(g);
   const old = JSON.parse(JSON.stringify(g)); delete old.mentor;

@@ -96,6 +96,8 @@ export function newGame({ name, sex, familyId, mode, seed }) {
 }
 
 export const me = (game) => byId(game, game.player.id);
+// 몸에 지닌 돈: 모은 돈을 다 들고 다니지는 않는다. 강도·소매치기·도망칠 때 잃는 건 이만큼이다 (헤드, 15단계)
+export const purse = (game) => Math.min(game.player.money, Math.round(30 + game.player.money * 0.12));
 export const playerAgeMonths = (game) => me(game).ageMonths;
 export const playerAge = (game) => Math.floor(playerAgeMonths(game) / 12);
 export const family = (game) => FAMILIES.find((f) => f.id === game.player.familyId);

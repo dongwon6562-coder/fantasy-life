@@ -85,7 +85,7 @@ function scene(g, kind, data, re, opt = {}) {
     scene(g, 'beast_buy', {}, re);
     const a = alive(g).find((x) => x.kind === kind);
     if (!a) { fail('buy failed', kind, place); continue; }
-    if (g.player.money > 500 - buyPrice(kind)) fail('price not paid', kind, g.player.money);
+    if (g.player.money > 500 - buyPrice(kind) + 60) fail('price not paid', kind, g.player.money); // 같은 달 다른 사건으로 들어온 돈(품삯 등)은 봐준다
     // 길들이기: 다 될 때까지
     const m0 = g.player.money;
     let months = 0;

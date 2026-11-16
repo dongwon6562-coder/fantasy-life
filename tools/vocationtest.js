@@ -182,7 +182,8 @@ function pathGame(seed, id, setup) {
     if (S.proj) {
       if (!V(g).project) { fail('project not started', id); continue; }
       const before = V(g).works.length;
-      for (let m = 0; m < 12 * 4 && V(g).project && !g.over; m++) { if (L(g).place !== S.place) placeAt(g, S.place); month(g, ['work']); healAll(g); if (g.army) { g.army.service = null; g.army.campaign = null; g.army.captive = null; } if (g.crime) g.crime.jailed = null; } // 군대에 끌려가거나 갇히면 일을 못 한다: 이 점검은 일만 본다
+      const job0 = L(g).job && { ...L(g).job };
+      for (let m = 0; m < 12 * 4 && V(g).project && !g.over; m++) { if (L(g).place !== S.place) placeAt(g, S.place); if (!L(g).job && job0) L(g).job = { ...job0 }; /* 무작위로 고른 사건(첩자 누명 등)으로 일을 잃으면 되돌린다: 이 점검은 큰일만 본다 */ month(g, ['work']); healAll(g); if (g.army) { g.army.service = null; g.army.campaign = null; g.army.captive = null; } if (g.crime) g.crime.jailed = null; } // 군대에 끌려가거나 갇히면 일을 못 한다: 이 점검은 일만 본다
       if (g.over) { console.log(`  (${id}: 일하다 병으로 죽은 판, 건너뜀)`); continue; } // 드물게 어른도 병사한다
       if (V(g).project) fail('project not finished in 4 years', id, V(g).project);
       if (id !== 'stone' && V(g).works.length <= before) fail('project left no work', id);

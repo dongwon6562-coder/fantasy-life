@@ -91,10 +91,9 @@ function tryShow(g, s, { force = false } = {}) {
   if (!def) return 'drop';
   const pe = g.pendingEvent;
   if (pe && !force) {
-    if (pe.id === SCENE_ID) return 'wait';
-    // 한 번뿐인 사건(성인식 등)은 먼저 보여 준다. 되풀이되는 사건은 내가 고른 일에 자리를 내준다.
-    const ev = EVENTS.find((e) => e.id === pe.id);
-    if (ev?.once) return 'wait';
+    // 떠 있는 사건이 먼저다. 장면은 그 사건을 고른 뒤 이어서 뜬다 (AFTER_RESOLVE).
+    // 예전에는 되풀이되는 사건이 장면에 자리를 내주어, 장면이 많은 어른 삶에서 세상 사건이 한 해 두 번도 안 나왔다.
+    return 'wait';
   }
   let choices, title, text;
   try {

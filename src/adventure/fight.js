@@ -1,7 +1,7 @@
 // 싸움 장면: 싸움 전 선택지 → 교전 → 결과(보상, 부상, 끝이 아닌 패배, 나를 기억하는 적).
 import { J } from '../narrative/text.js';
 import { HOOKS } from '../hooks.js';
-import { me, rngOf, circleOf } from '../game.js';
+import { me, rngOf, circleOf, purse } from '../game.js';
 import { living, byId, fullName, kill } from '../npc.js';
 import { L, defineScene, queueScene, note, chron, stress, tired } from './core.js';
 import { FOES, skirmish, playerPower, threatWord, describeFoes, leaderName } from './combat.js';
@@ -101,7 +101,7 @@ defineScene('fight', {
 function avoidFight(g, rng, s) {
   const life = L(g);
   stress(g, 6);
-  if (s.avoidCost) g.player.money -= Math.floor(g.player.money * s.avoidCost);
+  if (s.avoidCost) g.player.money -= Math.floor(purse(g) * s.avoidCost);
   if (s.reward?.merit) {
     const [fac] = s.reward.merit;
     if (life.fac[fac]) life.fac[fac].merit = Math.max(0, life.fac[fac].merit - Math.ceil(s.reward.merit[1] / 2));

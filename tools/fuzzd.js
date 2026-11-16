@@ -10,7 +10,7 @@ import { run as runHooks } from '../src/hooks.js';
 import { setNextId, makePerson } from '../src/npc.js';
 import { FAMILIES } from '../src/data.js';
 import { PLACES } from '../src/places.js';
-import { L, SCENES, SCENE_STRICT } from '../src/adventure/core.js';
+import { L, SCENES, SCENE_STRICT, queueScene } from '../src/adventure/core.js';
 SCENE_STRICT.on = true;
 import { jail, isJailed } from '../src/crime.js';
 import { grantFief } from '../src/domain/state.js';
@@ -50,6 +50,7 @@ import { A as ARMY } from '../src/army/core.js';
 import { exploreStatus } from '../src/explore/index.js';
 import { beastsStatus, B as BEASTS, KIND_IDS as BEAST_KINDS, addAnimal as addBeast } from '../src/beasts/index.js';
 import { tradeStatus, T as TRADE, GOOD_IDS as TRADE_GOODS } from '../src/trade/index.js';
+import { contestStatus, C as CONTEST, FAIR_IDS } from '../src/contest/index.js';
 import { E as EXPL, REGION_IDS as EXPL_REGIONS, FINDS as EXPL_FINDS } from '../src/explore/core.js';
 import { V as VOC } from '../src/vocation/core.js';
 import { WORK as VWORK } from '../src/jobs.js';
@@ -71,7 +72,7 @@ function roundTrip(g, rng) {
 function chaos(g, rng) {
   const life = L(g);
   const adult = playerAge(g) >= 15;
-  const r = rng.int(0, 22);
+  const r = rng.int(0, 23);
   if (r === 0) return 'roundtrip';
   if (r === 1 && !CR(g).active) startCrisis(g, rng, rng.pick(Object.keys(CRISES)));
   else if (r === 2) { g.realm.balhart.war = true; g.realm.balhart.warMonths = 0; }
@@ -94,6 +95,7 @@ function chaos(g, rng) {
   else if (r === 20 && adult && !isJailed(g)) exploreShake(g, rng);
   else if (r === 21) beastShake(g, rng);
   else if (r === 22) tradeShake(g, rng);
+  else if (r === 23) contestShake(g, rng);
   else if (r === 15 && adult && !life.travel && !isJailed(g)) { const port = rng.pick(['klein', 'portel', 'saltmare', 'saltrock']); life.place = port; const rt = rng.pick(seaRoutesFrom(g, port)); if (rt) setSail(g, rt.to, rt.months, { own: !!S(g).ship }); }
   return null;
 }
@@ -158,6 +160,19 @@ function tradeShake(g, rng) {
   if (rng.chance(0.1)) g.trade = JSON.parse(JSON.stringify(g.trade)); // 저장 왕복
   if (rng.chance(0.3)) runHooks('migrate', g);
 }
+// 내기와 겨루기를 흔든다 (src/contest/)
+function contestShake(g, rng) {
+  const c = CONTEST(g);
+  if (rng.chance(0.4)) c.itch = rng.int(0, 100);
+  if (rng.chance(0.3)) Object.assign(c.arena, { fame: rng.int(0, 90), wins: rng.int(0, 20), beastWins: rng.int(0, 12) });
+  if (rng.chance(0.3)) c.fixed.push({ kind: rng.pick(['arena', 'fair']), fair: rng.chance(0.2) ? 'gone' : rng.pick(FAIR_IDS), place: rng.chance(0.2) ? 'nowhere' : rng.pick(ALL_PLACES), year: g.date.year, exposed: false, at: rng.int(0, 99999) });
+  if (rng.chance(0.2)) c.banned[`${rng.pick(['gamble', 'arena', 'fair'])}:${g.life?.place ?? 'ern'}`] = 99999;
+  if (rng.chance(0.2)) c.titles.push({ id: rng.pick(FAIR_IDS), place: rng.pick(ALL_PLACES), year: g.date.year, text: '흔들린 우승' });
+  if (rng.chance(0.4)) { const k = rng.pick(['contest_gamble', 'contest_arena', 'contest_fair', 'contest_round', 'contest_urge']); queueScene(g, k, k === 'contest_fair' || k === 'contest_round' ? { fair: rng.chance(0.2) ? 'gone' : rng.pick(FAIR_IDS), round: rng.int(0, 2), foe: '흔들 상대', foeT: rng.int(0, 2) } : {}); }
+  if (rng.chance(0.1)) g.contest = JSON.parse(JSON.stringify(g.contest));
+  if (rng.chance(0.2)) { delete g.contest.arena; runHooks('migrate', g); }
+  if (rng.chance(0.3)) runHooks('migrate', g);
+}
 // 지도에 없는 땅을 흔든다 (src/explore/)
 function exploreShake(g, rng) {
   const e = EXPL(g);
@@ -209,7 +224,7 @@ function checkState(g, seed, m) {
   const p = g.player;
   for (const [k, v] of Object.entries({ money: p.money, fatigue: p.fatigue, stress: p.stress, renown: L(g).renown, notoriety: L(g).notoriety })) if (!Number.isFinite(v)) fail('NaN 값', k, seed, m);
   if (p.money < 0) fail('돈이 음수', p.money, seed, m);
-  for (const [name, fn] of [['partyStatus', partyStatus], ['crisisStatus', crisisStatus], ['craftStatus', craftStatus], ['domainReport', (x) => (x.domain ? domainReport(x) : null)], ['seaStatus', seaStatus], ['deepStatus', deepStatus], ['estateStatus', estateStatus], ['vocationStatus', vocationStatus], ['armyStatus', armyStatus], ['exploreStatus', exploreStatus], ['beastsStatus', beastsStatus], ['tradeStatus', tradeStatus]]) {
+  for (const [name, fn] of [['partyStatus', partyStatus], ['crisisStatus', crisisStatus], ['craftStatus', craftStatus], ['domainReport', (x) => (x.domain ? domainReport(x) : null)], ['seaStatus', seaStatus], ['deepStatus', deepStatus], ['estateStatus', estateStatus], ['vocationStatus', vocationStatus], ['armyStatus', armyStatus], ['exploreStatus', exploreStatus], ['beastsStatus', beastsStatus], ['tradeStatus', tradeStatus], ['contestStatus', contestStatus]]) {
     try { const r = deepBad(fn(g)); if (r) fail(`${name}에 나쁜 값`, r, seed, m); } catch (e) { fail(`${name} 예외`, e.stack, seed, m); }
   }
   if (partyOf(g).members.includes(g.player.id)) fail('내가 내 동료 명단에 있음', g.player.id, seed, m);
