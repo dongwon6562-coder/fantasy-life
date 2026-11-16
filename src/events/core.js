@@ -18,6 +18,8 @@ import { living as livingAll, byId, ageYears, fullName } from '../npc.js';
 import { HOOKS } from '../hooks.js';
 
 export const EVENTS = [];
+// 사건 하나를 고르고 난 뒤 창이 비었을 때 부르는 것들 (밀린 장면을 이어 띄우기 등)
+export const AFTER_RESOLVE = [];
 
 // ---------- 장소 ----------
 // 사람마다 place가 있다(없으면 에른). 사건에 나오는 사람은 지금 내가 있는 곳의 사람이다.
@@ -135,6 +137,7 @@ export function resolveEvent(game, rng, index) {
   if (e.once && !e.noFlag) setFlag(game, onceKey(e));
   // 선택지가 곧바로 다음 장면을 세웠으면(결투의 다음 합, 시험의 다음 관문) 그대로 둔다
   if (game.pendingEvent === pe) game.pendingEvent = null;
+  if (!game.pendingEvent) for (const f of AFTER_RESOLVE) { try { f(game); } catch (err) { console.error(err); } if (game.pendingEvent) break; }
   if (e.quiet) return out; // 결투 한 합 한 합은 기록에 남기지 않는다 (끝날 때 한 번만)
   const record = { y: game.date.year, m: game.date.month, text: `${pe.title}: ${out}`, rel: 100 };
   game.chronicle.push(record);
