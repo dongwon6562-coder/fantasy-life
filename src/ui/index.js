@@ -360,6 +360,15 @@ function renderChronMe() {
   </section>`;
 }
 
+// 카드가 많은 화면 맨 위의 '바로 가기' 줄: 있는 카드가 넷 이상이면 단다. 각 카드의 첫 <section>에 id를 붙인다.
+function withJump(parts) {
+  const has = (html) => !!html && html.includes('<section');
+  const body = parts.map(([id, , html]) => (has(html) ? html.replace('<section', `<section id="jp-${id}"`) : html ?? '')).join('');
+  const have = parts.filter(([, , html]) => has(html));
+  if (have.length < 4) return body;
+  return `<nav class="act-jump view-jump" aria-label="바로 가기">${have.map(([id, name]) => `<button class="ghost sm" data-view-jump="${id}">${esc(name)}</button>`).join('')}</nav>${body}`;
+}
+
 function renderSave() {
   return `${renderSlotsBlock(game, ui.saves)}${renderSettings()}`;
 }
@@ -436,7 +445,7 @@ function renderGame() {
   let main = '';
   if (ui.view === 'month') main = game.over ? renderOver() : renderCrisis(game) + renderArmyNow(game) + renderExploreNow(game) + renderNatureNow(game) + renderSummary(ui.summary) + renderNews() + renderYouthCard(game, ui) + renderWorkshop(game, ui) + renderPlan(game, ui);
   else if (ui.view === 'me') main = renderSheet();
-  else if (ui.view === 'people') main = renderLove(game) + renderKin(game) + renderMentor(game) + renderBeasts(game) + renderFeud(game) + renderPeoples(game) + renderParty(game) + renderPeople(game, ui);
+  else if (ui.view === 'people') main = withJump([['love', '사랑', renderLove(game)], ['kin', '자식', renderKin(game)], ['mentor', '제자', renderMentor(game)], ['beasts', '짐승', renderBeasts(game)], ['feud', '원한', renderFeud(game)], ['peoples', '종족의 땅', renderPeoples(game)], ['party', '동료', renderParty(game)], ['notebook', '인물 수첩', renderPeople(game, ui)]]);
   else if (ui.view === 'map') main = renderMap() + renderPolitics(game, ui) + renderNature(game) + renderExplore(game) + renderSeal(game) + renderDeep(game) + renderSea(game) + renderWorldCard(); // 지도가 먼저 (폰에서 바로 보이게)
   else if (ui.view === 'chron') main = renderChron();
   else if (ui.view === 'save') main = renderSave();
@@ -550,6 +559,7 @@ function bindGame() {
   $$('[data-ws-person]').forEach((b) => b.onclick = () => { ui.view = 'people'; ui.person = +b.dataset.wsPerson; renderGame(); window.scrollTo({ top: 0 }); });
   $$('[data-chron]').forEach((b) => b.onclick = () => { ui.chronTab = b.dataset.chron; renderGame(); });
   $$('[data-chronf]').forEach((b) => b.onclick = () => { ui.chronFilter = b.dataset.chronf; renderGame(); });
+  $$('[data-view-jump]').forEach((b) => b.onclick = () => document.getElementById(`jp-${b.dataset.viewJump}`)?.scrollIntoView({ block: 'start', behavior: reducedMotion() ? 'auto' : 'smooth' }));
   $$('[data-legacy]').forEach((b) => b.onclick = () => { ui.legacySel = b.dataset.legacy === 'close' ? null : +b.dataset.legacy; renderGame(); if (ui.legacySel != null) document.querySelector('.lr-detail')?.scrollIntoView({ block: 'start' }); });
   const la = $('[data-legacy-all]');
   if (la) la.onclick = () => { ui.legacyAll = true; renderGame(); };
