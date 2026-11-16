@@ -337,10 +337,11 @@ export const BEAST_EVENTS = {
     when: (g) => ['saltmare', 'portel', 'barka'].includes(here(g)) && isAdult(g) && alive(g).length < MAX_ANIMALS && g.player.money >= 80,
     pick: () => null,
     text: () => '부둣가 골목에서 밀매꾼이 소매를 끌었다. "와이번 알, 진짜요. 천룡 산맥에서 바로 왔지. 은화 80닢. 왕국 경비대 눈에만 안 띄면 되오."',
-    choices: () => [{ label: '산다 (은화 80닢)', key: 'buy' }, { label: '거절한다', key: 'no' }, { label: '경비대에 알린다', key: 'report' }],
+    choices: (g) => [...(g.player.money >= 80 ? [{ label: '산다 (은화 80닢)', key: 'buy' }] : []), { label: '거절한다', key: 'no' }, { label: '경비대에 알린다', key: 'report' }],
     run(g, rng, a, key) {
       if (key === 'no') return '고개를 젓자 밀매꾼은 골목 안쪽으로 사라졌다.';
       if (key === 'report') { L(g).renown += 1; return '경비대가 그날 밤 창고를 덮쳤다. 알 다섯 개가 나왔다. 둘은 이미 깨어 있었다.'; }
+      if (g.player.money < 80) return '주머니를 뒤져 보니 은화가 모자랐다. 밀매꾼은 혀를 차고 골목 안쪽으로 사라졌다.';
       g.player.money -= 80;
       if (rng.chance(0.3)) return '알을 품에 안고 돌아왔다. 한 달 뒤 깨 보니 칠한 돌이었다. 밀매꾼은 다시 보이지 않았다.';
       const w = addAnimal(g, 'wyvern', { ageYears: 0, trained: 0, bond: 15 });
