@@ -216,8 +216,10 @@ function go(g, to, pick = null) {
     if (h.level !== 2) fail('level up', h.level);
     if (!(tollOf(g, 'verden', 'harfen') < (addCargo(g, 'wine', 5, 50), Math.round(cargoValue(g, 'verden') * 0.03)) + 1)) fail('branch toll discount');
     const m0 = g.player.money;
-    month(g, ['rest']);
+    // 상회 벌이만 본다: 그달 뜬 사건(빚 갚기 등)을 고르기 전에 잰다
+    endMonth(g, Array.from({ length: slotsFor(g) }, () => ({ id: 'rest' })));
     if (!(g.player.money > m0 - 5)) fail('no house income', m0, g.player.money);
+    g.pendingEvent = null; L(g).scene = null;
     // 망하기: 세상의 상단 목록에서 사라지면
     const list = H(g).companies;
     list.splice(list.indexOf(houseCompany(g)), 1);

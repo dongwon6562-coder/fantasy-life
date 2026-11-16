@@ -48,3 +48,4 @@ import './nature/index.js'; // 하늘과 땅의 재앙과 계절: 고장마다 �
 import './beasts/index.js';
 import './trade/index.js'; // 장사 길과 상단: 고장마다 다른 시세, 대상단, 도적과 통행세, 큰 상회, 맞수 상단
 import './arts/index.js'; // 글과 예술: 책·노래·그림·조각 짓기, 후원자, 금서, 대를 넘어 남는 작품
+import './health/index.js'; // 병과 의술: 고장마다 도는 병, 누구에게 맡길지, 낫지 않는 병과 장애, 집안 내력
