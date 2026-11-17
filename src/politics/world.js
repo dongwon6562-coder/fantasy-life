@@ -157,6 +157,22 @@ function drift(g, rng) {
     const war = warsOf(g, id).length;
     P.stab[id] = clamp((P.stab[id] ?? 60) + (62 - (P.stab[id] ?? 60)) * 0.02 - war * 0.25 + rng.normal(0, 0.4), 0, 100);
   }
+  // 안에서 터지는 일 (17단계 헤드): 전쟁이 없어도 나라는 흔들린다. 한 나라에 스무 해쯤 한 번.
+  // 이것이 없으면 안정이 늘 60 근처라 60년을 돌려도 왕조가 한 번도 끊기지 않았다.
+  for (const id of ids) {
+    if (id === 'leonia' || !rng.chance(0.0045)) continue;
+    const hit = rng.int(16, 34);
+    P.stab[id] = clamp((P.stab[id] ?? 60) - hit, 0, 100);
+    tally(g, 'unrest');
+    const s = short(id), kind = NATURE[id].kind;
+    pnews(g, rng.pick([
+      ...(kind === 'dynasty' ? [`${s}의 큰 귀족 둘이 옥좌 앞에서 서로를 역적이라 불렀다. 궁정이 두 패로 갈렸다.`, `${s}의 ${J(rulerOf(g, id)?.title ?? '왕', '이/가')} 세금을 두 배로 올렸다. 지방마다 영주들이 사자를 돌려보냈다.`] : []),
+      ...(kind === 'elect' ? [`${s}의 다음 자리를 두고 표를 사고판 일이 드러났다. 거리에서 돌이 날았다.`] : []),
+      ...(kind === 'council' ? [`${s}의 회의가 빚 문제로 쪼개졌다. 한쪽 상인들이 성문을 닫아걸었다.`] : []),
+      `${s}에 흉년이 들어 곡창을 지키던 병사들이 굶주린 사람들에게 밀려났다.`,
+      `${s}의 국경 수비대가 석 달째 봉급을 받지 못해 무기를 내려놓았다.`,
+    ]));
+  }
   if (g.realm?.north?.fallen) P.stab.march = Math.min(P.stab.march, 20);
 }
 

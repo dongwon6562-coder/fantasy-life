@@ -133,6 +133,9 @@ export function simulateMonth(game, rng) {
       p.skill = Math.min(100, p.skill + gain * rng.float(0.5, 1.5));
       p.wealth += Math.round((JOBS[p.job]?.income ?? 2) * (0.6 + p.skill / 120)) - 3;
       if (has(p, 'drunkard')) p.wealth -= 1;
+      // 쌓인 돈은 쓰인다: 집을 늘리고 혼수를 대고 빚을 놓다 떼인다. 이것이 없으면 마을 사람 재산이 60년 내내 불기만 했다 (17단계 헤드)
+      if (p.wealth > 200) p.wealth -= Math.round((p.wealth - 200) * 0.006);
+      else if (p.wealth < -60) p.wealth += Math.max(1, Math.round(-p.wealth * 0.004)); // 빚은 친척이 갚아 주거나 일부 탕감된다
       if (Math.floor(before / 25) < Math.floor(p.skill / 25) && p.skill >= 50) {
         const t = `${JOBS[p.job].name}로서 솜씨가 늘어 마을에서 인정받기 시작했다.`;
         note(p, t);
@@ -220,8 +223,8 @@ export function simulateMonth(game, rng) {
     ev(`${fullName(h)}의 집에 ${baby.sex === 'm' ? '아들' : '딸'}이 태어났다. 이름은 ${baby.name}.`, [w.id, h.id, baby.id], 2);
   }
 
-  // 마을에 새 사람이 들어온다 (인구가 너무 줄지 않게)
-  if (living(game).length < 34 && rng.chance(0.03)) {
+  // 마을에 새 사람이 들어온다 (인구가 너무 줄지 않게. 60년을 돌리면 47명에서 36명까지 줄어 문턱을 40으로 올림, 17단계 헤드)
+  if (living(game).length < 40 && rng.chance(0.04)) {
     const p = makePerson(rng, { ageMonths: rng.int(18, 35) * 12, job: rng.pick(ADULT_JOB_CHOICES) });
     p.skill = rng.int(15, 50);
     game.people.push(p);
