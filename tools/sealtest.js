@@ -51,6 +51,7 @@ const rest = (g, n = 1) => { for (let i = 0; i < n; i++) { endMonth(g, [{ id: 'r
   check(S.stance.church === 'purge' && S.stance.crown === 'arm' && S.stance.tower === 'reinforce', `세력 대응이 안 바뀐다 ${JSON.stringify(S.stance)}`);
   check(S.known >= 1, '마물이 넘치는데 플레이어가 아무것도 모른다');
   // 3) 조사하기
+  crimeState(g).jailed = null; // 쉬는 동안 고발당해 옥에 갔을 수 있다: 조사는 옥 밖에서 잰다
   L(g).place = 'serenia'; g.player.stats.int = 60; g.player.skills.letters = 40;
   check(availableActions(g).some((a) => a.id === 'seal_study'), '세레니아에서 봉인 조사가 안 보인다');
   const st0 = S.study;

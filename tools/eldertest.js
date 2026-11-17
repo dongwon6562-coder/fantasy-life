@@ -157,9 +157,11 @@ for (let t = 0; t < 6; t++) {
   const db0 = seen.scenes.elder_deathbed ?? 0;
   play(g, 2, ['elder_funeral'], P, 1);
   ok(elderState(g).wish === 'family' || me(g).id === heir.id, `wish ${elderState(g).wish}`);
+  const wished = elderState(g).wish === 'family'; // 장례 뜻을 정하기 전에 떠났으면 가문 묘역을 따질 수 없다
   play(g, 6, ['elder_memoir'], P, 1);
   if (!g.over && me(g).id !== heir.id) L(g).pendingDeath = '노환';
-  for (let m = 0; m < 4 && me(g).id !== heir.id && !g.over; m++) { endMonth(g, Array.from({ length: slotsFor(g) }, () => ({ id: 'rest' }))); resolveAll(g, P); }
+  // 장례 값은 형편을 맞춰 두고 잰다 (그 사이 벌금·뇌물 같은 일로 돈이 빠졌을 수 있다)
+  for (let m = 0; m < 4 && me(g).id !== heir.id && !g.over; m++) { endMonth(g, Array.from({ length: slotsFor(g) }, () => ({ id: 'rest' }))); g.player.money = Math.max(g.player.money, 400); resolveAll(g, P); }
   if ((seen.scenes.elder_deathbed ?? 0) > db0) deathbeds++;
   const v = elderState(g);
   const gr = v.graves.find((x) => x.byPlayer);
@@ -167,7 +169,7 @@ for (let t = 0; t < 6; t++) {
   if (seen.scenes.elder_funeral) funerals++;
   ok(!gr || gr.epitaph != null, 'epitaph');
   if (me(g).id === heir.id) {
-    ok(gr && gr.kind === 'family', `family grave ${gr?.kind}`);
+    ok(!wished || (gr && gr.kind === 'family'), `family grave ${gr?.kind}`);
     play(g, 30, ['elder_tomb', 'rest', 'work'], { elder_grave_foe: t % 3 }, 0.6);
   }
   checkInfo(g);
