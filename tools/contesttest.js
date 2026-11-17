@@ -10,7 +10,8 @@ import { run as runHooks } from '../src/hooks.js';
 import { L, queueScene, SCENE_STRICT, SCENES } from '../src/adventure/core.js';
 import { PLACES, travelMonths } from '../src/places.js';
 import { realmState } from '../src/realms/index.js';
-import { addAnimal, alive } from '../src/beasts/index.js';
+import { addAnimal } from '../src/beasts/index.js';
+import { alive, beastPow } from '../src/beasts/core.js';
 import { E as estate } from '../src/estate/core.js';
 import { ENDS } from '../src/duel/registry.js';
 import { C, contestStatus, FAIRS, FAIR_IDS, fairHere, tierOf, bannedAt } from '../src/contest/index.js';
@@ -146,8 +147,12 @@ function drained(g, kind, data) {
   // 짐승
   addAnimal(g, 'dog', { ageYears: 3, trained: 100, bond: 60 });
   addAnimal(g, 'warhorse', { ageYears: 6, trained: 100, bond: 60 });
-  // 짐승은 지면 죽을 수 있다. 내보낼 짐승이 없으면 새로 들인다
-  for (let i = 0; i < 6; i++) { placeAt(g, 'leocast'); heal(g); g.player.money = 300; if (!alive(g).some((x) => x.kind === 'dog' || x.kind === 'warhorse')) addAnimal(g, 'dog', { ageYears: 3, trained: 100, bond: 60 }); scene(g, 'contest_arena', {}, /짐승 싸움판/); }
+  for (let i = 0; i < 6; i++) {
+    placeAt(g, 'leocast'); heal(g); g.player.money = 300;
+    // 싸움판에서 짐승이 죽거나 다칠 수 있다: 내보낼 짐승이 없으면 새로 들인다 (운에 따라 시험이 갈리지 않게)
+    if (!alive(g).some((a) => a.kind !== 'familiar' && beastPow(g, a) > 0)) addAnimal(g, 'dog', { ageYears: 3, trained: 100, bond: 60 });
+    scene(g, 'contest_arena', {}, /짐승 싸움판/);
+  }
   for (const re of [/이름난 쪽/, /약한 쪽/, /구경만/]) { placeAt(g, 'leocast'); heal(g); g.player.money = 300; scene(g, 'contest_arena', {}, re); }
   // 져 주기 제의
   C(g).arena.fame = 30;

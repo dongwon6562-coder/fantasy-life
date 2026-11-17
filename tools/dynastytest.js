@@ -8,7 +8,8 @@ import { encodeSave } from '../src/pack.js';
 import { heirsOf, becomeHeir, heirWord } from '../src/heir.js';
 
 const YEARS = +(process.argv[2] ?? 150);
-const seed = +(process.argv[3] ?? 73000);
+// 기본 씨앗: 첫 주인이 자식 없이 일찍 죽으면 대 잇기를 볼 수 없다. 새 갈래가 주사위 순서를 바꿀 때마다 운이 갈리므로 오래 사는 씨앗을 쓴다.
+const seed = +(process.argv[3] ?? 73001);
 const g = newGame({ name: '왕조', sex: 'm', familyId: 'merchant', mode: 'free', seed });
 let t0 = Date.now(), months = 0, lastGen = 1, evCount = {};
 const gens = [];

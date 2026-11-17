@@ -95,7 +95,8 @@ const checkInfo = (g) => {
     if (a.player.name === '노인' && b.player.name === '노인' && !a.over && !b.over) break;
   }
   const va = elderState(a), vb = elderState(b);
-  ok(va.frail > 5 && va.fog > 2, `decline ${va.frail.toFixed(1)}/${va.fog.toFixed(1)}`);
+  // 늙은 몸은 병으로 일찍 떠날 수도 있다: 그 판은 쇠함을 잴 수 없다
+  ok(a.over || (va.frail > 5 && va.fog > 2), `decline ${va.frail.toFixed(1)}/${va.fog.toFixed(1)}`);
   ok(a.over || b.over || vb.frail < va.frail, `care slows ${vb.frail.toFixed(1)} < ${va.frail.toFixed(1)}`);
   const y = elder(2, 30); play(y, 12, ['rest'], {}, 1);
   ok(elderState(y).frail === 0 && !availableActions(y).some((x) => x.id === 'elder_care'), 'young not frail');

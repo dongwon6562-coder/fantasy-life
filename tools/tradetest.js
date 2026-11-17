@@ -102,6 +102,7 @@ function go(g, to, pick = null) {
   if (!(priceAt(g, 'hammer', 'dwarfsteel') < priceAt(g, 'leocast', 'dwarfsteel'))) fail('dwarfsteel not cheaper at hammer');
   if (!(priceAt(g, 'fur', 'fur') < priceAt(g, 'eisen', 'fur'))) fail('fur not cheaper at fur market');
   for (const p of Object.keys(LOCAL).filter(isMarket)) for (const k of GOOD_IDS) if (!(buyAt(g, p, k) > sellAt(g, p, k))) fail('no spread', p, k);
+  g.realm.balhart.war = false; // 이미 전쟁 중인 판이면 오름을 볼 수 없다 (난수가 밀려 생김)
   const iron0 = priceAt(g, 'harfen', 'iron');
   g.realm.balhart.war = true;
   if (!(priceAt(g, 'harfen', 'iron') > iron0)) fail('war did not raise iron');

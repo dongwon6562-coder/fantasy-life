@@ -87,6 +87,7 @@ const BY_ID = {
   seal_dream: 'seal:dream', seal_scholar: 'seal:map', seal_spy_found: 'seal:alley', seal_demon_offer: 'seal:visitor', seal_wedge_raid: 'seal:stone', seal_fragment_buyer: 'seal:shard', seal_council_voice: 'court', seal_rite_call: 'seal:rite', seal_after_break: 'seal:broken',
   health_quack: 'square:notice', health_doctor: 'trade:healer', health_quarantine: 'plague', health_body: 'road',
   arts_critic: 'square:notice', arts_reader: 'ritual:study', arts_forger: 'trade:bard', arts_rival: 'court', arts_forbidden_find: 'ritual:dark', arts_burning: 'fire',
+  omen_false_prophet: 'square:herald', omen_witness: 'seal:dream', omen_faction: 'trade:bard', omen_hunter: 'seal:alley', omen_pilgrims: 'funeral:visit', omen_church: 'chapel:inquisition',
   research_buyer: 'ritual:study', research_claim: 'ritual:study', research_mentor: 'ritual:study', research_rival: 'ritual:study', research_spy_offer: 'ritual:study', research_sue: 'square:herald',
 };
 // 장면 종류(life.scene.kind)로 정해지는 것
@@ -129,6 +130,8 @@ const BY_SCENE = {
   elder_forget: 'road:return', elder_deathbed: 'bedside:last', elder_funeral: 'funeral', elder_grave_foe: 'funeral:visit', elder_grave_stranger: 'funeral:visit',
   // 15단계: 병과 의술
   health_treat: 'bedside',
+  // 16단계: 예언과 징조 (새 그림 없이 있는 판을 붙임)
+  omen_named: 'seal:visitor',
   arts_pick: 'ritual:study', arts_theme: 'ritual:study', arts_done: 'ritual:study', arts_patron: 'court', arts_ban: 'chapel:inquisition',
 
   // 15단계: 내기와 겨루기 (기존 그림을 이어 붙임)
