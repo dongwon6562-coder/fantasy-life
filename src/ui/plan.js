@@ -123,6 +123,7 @@ const GROUPS = [
   ['health', '병과 몸', /^health_/],
   ['oath', '맹세', /^oath_/],
   ['elder', '마지막 해들', /^elder_/],
+  ['house', '집과 살림', /^house_/],
   ['road', '길과 모험', /^(party_|gather_party|travel|on_road|housing|quest|delve|deep_|pol_|explore_|gear|pioneer|buy_title|tower_dare|wolves|goblins)/],
   ['beast', '짐승', /^beast_/],
   ['contest', '내기와 겨루기', /^contest_/],

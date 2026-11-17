@@ -1352,3 +1352,11 @@ details.act-group[open]:not(.dark) > summary { align-items: center; padding: 0; 
 .omen-now b { color: var(--brass); margin-right: 4px; }
 .om-more { display: block; font-size: 12px; }
 .om-pros .wd-row.kn-row { grid-template-columns: minmax(0, 1fr) auto; }
+
+/* ---------- 17단계: 내 집 마련 ---------- */
+.house-block { display: grid; gap: 8px; }
+.house-block > .note { margin: 0; }
+.hs-rooms { display: flex; flex-wrap: wrap; gap: 4px; align-items: center; }
+.hs-rooms .note { margin-left: 2px; }
+.hs-build .wd-row.kn-row { grid-template-columns: minmax(0, 1fr) auto; }
+.hs-homes li.here { border-color: var(--brass-dim); }

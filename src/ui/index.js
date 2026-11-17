@@ -56,6 +56,7 @@ import { renderHealthNow, renderHealthBlock } from './health.js';
 import { renderTrade, renderTradeNow } from './trade.js';
 import { renderVillage } from './village.js';
 import { renderOath } from './oath.js';
+import { renderHouseBlock } from './house.js';
 import { renderOmen, renderOmenNow } from './omen.js';
 import { renderMysteryNow, renderMysteryBlock } from './mystery.js';
 import { renderBeasts } from './beasts.js';
@@ -285,6 +286,7 @@ function renderSheet() {
     ${renderArtsBlock(game)}
     ${renderContestBlock(game)}
     ${renderMysteryBlock(game)}
+    ${renderHouseBlock(game)}
     ${renderEstateBlock(game)}
     ${renderResearchBlock(game)}
     <div class="block">
@@ -386,7 +388,7 @@ function withJump(parts, { after = 0 } = {}) {
 }
 
 // '나' 화면 바로 가기: 덩이가 여덟 넘으면 이름 줄 아래에 단다. 덩이의 첫 제목 글을 짧게 줄여 쓴다.
-const SHEET_SHORT = { '늙음과 마지막 해들': '늙음', '내기와 겨루기': '내기', '풀리지 않은 일': '미제', '연구와 발명': '연구', '글과 예술': '예술', '병과 의술': '병', '몸과 마음': '몸과 마음', '집과 재산': '재산', '어린 시절': '어린 시절' };
+const SHEET_SHORT = { '늙음과 마지막 해들': '늙음', '내기와 겨루기': '내기', '풀리지 않은 일': '미제', '연구와 발명': '연구', '글과 예술': '예술', '병과 의술': '병', '내 집 마련': '집', '몸과 마음': '몸과 마음', '집과 재산': '재산', '어린 시절': '어린 시절' };
 function sheetJump() {
   const sheet = document.querySelector('.sheet:not(.side)');
   if (!sheet || sheet.querySelector('.view-jump')) return;
