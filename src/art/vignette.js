@@ -88,6 +88,7 @@ const BY_ID = {
   health_quack: 'square:notice', health_doctor: 'trade:healer', health_quarantine: 'plague', health_body: 'road',
   arts_critic: 'square:notice', arts_reader: 'ritual:study', arts_forger: 'trade:bard', arts_rival: 'court', arts_forbidden_find: 'ritual:dark', arts_burning: 'fire',
   omen_false_prophet: 'square:herald', omen_witness: 'seal:dream', omen_faction: 'trade:bard', omen_hunter: 'seal:alley', omen_pilgrims: 'funeral:visit', omen_church: 'chapel:inquisition',
+  law_accused: 'square:herald', law_wrong: 'square:notice', law_witness: 'court', law_judge: 'court', law_pardon: 'prison', law_stain: 'road',
   research_buyer: 'ritual:study', research_claim: 'ritual:study', research_mentor: 'ritual:study', research_rival: 'ritual:study', research_spy_offer: 'ritual:study', research_sue: 'square:herald',
 };
 // 장면 종류(life.scene.kind)로 정해지는 것
@@ -135,6 +136,8 @@ const BY_SCENE = {
   health_treat: 'bedside',
   // 16단계: 예언과 징조 (새 그림 없이 있는 판을 붙임)
   omen_named: 'seal:visitor',
+  // 17단계: 법과 재판
+  law_trial: 'court',
   arts_pick: 'ritual:study', arts_theme: 'ritual:study', arts_done: 'ritual:study', arts_patron: 'court', arts_ban: 'chapel:inquisition',
 
   // 15단계: 내기와 겨루기 (기존 그림을 이어 붙임)

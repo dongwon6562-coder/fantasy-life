@@ -13,7 +13,7 @@ import { L, queueScene, SCENE_STRICT } from '../src/adventure/core.js';
 import { PLACES } from '../src/places.js';
 import { takeJob, jobRank } from '../src/jobs.js';
 import { realmState } from '../src/realms/index.js';
-import { isJailed } from '../src/crime.js';
+import { isJailed, crimeState } from '../src/crime.js';
 import { A, MERIT, addScar } from '../src/army/core.js';
 import { armyStatus, MARCH } from '../src/army/index.js';
 
@@ -70,6 +70,7 @@ function placeAt(g, place) { const l = L(g); l.place = place; l.travel = null; i
 function scene(g, kind, data, re, opt = {}) {
   let done = false, chose = null;
   for (let i = 0; i < 6 && !done && !g.over; i++) {
+    if (isJailed(g)) crimeState(g).jailed = null; // 고발당해 옥에 갔을 수 있다: 장면은 옥 밖에서 본다
     if (!L(g).queue.some((x) => x.kind === kind) && L(g).scene?.kind !== kind) queueScene(g, kind, data, { first: true });
     month(g, opt.want ?? ['rest'], (k, labels) => { if (k !== kind) return opt.other?.(k, labels) ?? -1; done = true; const i2 = idxOf(labels, re); chose = i2 >= 0 ? labels[i2] : null; return i2; });
   }

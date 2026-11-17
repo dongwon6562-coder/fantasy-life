@@ -161,7 +161,8 @@ for (let t = 0; t < 6; t++) {
   const wished = elderState(g).wish === 'family'; // 바람을 고르기 전에 먼저 죽은 판은 무덤이 수수하다 (난수가 밀려 생김)
   play(g, 6, ['elder_memoir'], P, 1);
   if (!g.over && me(g).id !== heir.id) L(g).pendingDeath = '노환';
-  for (let m = 0; m < 4 && me(g).id !== heir.id && !g.over; m++) { endMonth(g, Array.from({ length: slotsFor(g) }, () => ({ id: 'rest' }))); resolveAll(g, P); }
+  // 장례 값은 형편을 맞춰 두고 잰다 (그 사이 벌금·뇌물 같은 일로 돈이 빠졌을 수 있다)
+  for (let m = 0; m < 4 && me(g).id !== heir.id && !g.over; m++) { endMonth(g, Array.from({ length: slotsFor(g) }, () => ({ id: 'rest' }))); g.player.money = Math.max(g.player.money, 400); resolveAll(g, P); }
   if ((seen.scenes.elder_deathbed ?? 0) > db0) deathbeds++;
   const v = elderState(g);
   const gr = v.graves.find((x) => x.byPlayer);
@@ -213,6 +214,11 @@ for (let run = 0; run < 5; run++) {
 }
 
 for (const k of ['elder_care', 'elder_retire', 'elder_visit', 'elder_journey', 'elder_memoir', 'elder_funeral', 'elder_tomb']) ok(seen.acts[k] > 0, `action never used: ${k}`);
+// 기억이 흐려진 노인: 다른 장면에 밀려 한 번도 못 봤으면, 형편(흐림)을 맞춰 두고 다시 본다
+for (let t = 0; t < 3 && !seen.scenes.elder_forget; t++) {
+  const g = elder(300 + t, 78);
+  for (let m = 0; m < 36 && !seen.scenes.elder_forget && !g.over; m++) { elderState(g).fog = Math.max(elderState(g).fog, 60); L(g).queue = L(g).queue.filter((x) => /^elder_/.test(x.kind)); play(g, 1, ['rest'], {}, 1); }
+}
 for (const k of ['elder_retire', 'elder_amends', 'elder_journey', 'elder_memoir', 'elder_funeral_wish', 'elder_forget', 'elder_deathbed', 'elder_funeral', 'elder_grave_foe', 'elder_grave_stranger', 'elder_memoir_read']) ok(seen.scenes[k] > 0, `scene never seen: ${k}`);
 console.log('행동:', JSON.stringify(Object.fromEntries(Object.entries(seen.acts).filter(([k]) => k.startsWith('elder_')))));
 console.log('장면:', JSON.stringify(Object.fromEntries(Object.entries(seen.scenes).filter(([k]) => k.startsWith('elder_')))));
