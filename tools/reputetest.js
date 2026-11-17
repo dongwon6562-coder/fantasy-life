@@ -103,6 +103,8 @@ for (let run = 0; run < 14; run++) {
   const g = adult(1000 + run, ['farmer', 'merchant', 'fallen_knight'][run % 3]);
   // 미워하는 사람 몇
   for (let i = 0; i < 2; i++) { const p = makePerson(rngOf(g), { ageMonths: 30 * 12, job: 'farmer' }); p.known = true; p.affection = -30; g.people.push(p); }
+  // 혼담을 받아 보는 삶은 좋은 평 하나를 안고 시작한다 (다른 모듈의 장면이 늘어 운에 덜 기대도록)
+  if (run % 3) deed(g, 'kind', 25, '굶는 이웃에게 곡식을 나눠 주었다더라');
   play(g, 12 * 15, run % 2 ? REP_ACTS : REP_ACTS.filter((x) => x !== 'repute_slander'), { repute_lie: run % 4, repute_match: run % 3 === 0 ? 0 : 2 });
   const r = reputeState(g);
   if (r.nick) nicks++;

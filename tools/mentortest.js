@@ -135,6 +135,7 @@ const checkInfo = (g) => {
   const [p, d] = myDisciples(g)[0];
   d.skill = 60; p.ageMonths = 25 * 12; d.loyalty = 90; p.traits = ['kind'];
   mentorState(g).school = { name: '시험류', art: 'sword', place: 'ern', founded: 500, founder: '스승', prestige: 30, members: 5, headId: null, heads: [{ name: '스승', y: 500 }], gens: 1, closed: false, peak: 25 };
+  L(g).travel = null; L(g).place = 'ern'; // 앞선 넉 달의 사건으로 길을 떠났을 수 있다: 문파가 있는 고장에서 대를 잇게 한다
   runHooks('heir', g, rngOf(g));
   ok(Object.keys(mentorState(g).disciples).length === 0, 'heir clears disciples');
   ok(L(g).queue.some((s) => s.kind === 'mentor_succession'), 'succession queued');
