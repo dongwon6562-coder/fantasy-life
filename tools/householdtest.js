@@ -32,6 +32,7 @@ function adult(seed, { age = 30, place = 'ern', level = 2, house = true } = {}) 
   if (house) { if (!L(g).houses.includes(place)) L(g).houses.push(place); L(g).home = 'own'; homeOf(g, place).level = level; }
   else L(g).home = 'inn';
   g.player.money = 400;
+  homePlace.set(g, place);
   return g;
 }
 const idxOf = (re) => (pe) => Math.max(0, pe.choices.findIndex((c) => re.test(c)));
@@ -71,11 +72,23 @@ function play(g, months, prefer = ACTS, pick = {}, rate = 0.5) {
   }
 }
 // 장면 하나를 바로 띄우고 고른다 (다른 장면은 먼저 비운다)
+// 난수에 따라 다른 사건이 먼저 와서 고장을 옮기거나 형편을 바꿀 수 있으니, 형편을 되돌리고 세 번까지 띄운다
+const homePlace = new WeakMap();
+function settle(g) {
+  const pl = homePlace.get(g);
+  if (pl && !crimeState(g).jailed) { L(g).place = pl; L(g).travel = null; }
+}
 function scene(g, kind, data, pick) {
-  resolveAll(g);
-  L(g).queue = L(g).queue.filter((x) => x.kind === kind);
-  queueScene(g, kind, data, { first: true });
-  play(g, 1, ['rest'], { [kind]: pick }, 1);
+  for (let t = 0; t < 3; t++) {
+    resolveAll(g);
+    settle(g);
+    const n0 = seen.scenes[kind] ?? 0;
+    L(g).queue = L(g).queue.filter((x) => x.kind === kind);
+    queueScene(g, kind, data, { first: true });
+    play(g, 1, ['rest'], { [kind]: pick }, 1);
+    if ((seen.scenes[kind] ?? 0) > n0) return true;
+  }
+  return false;
 }
 const checkInfo = (g) => {
   const info = householdInfo(g);
@@ -84,6 +97,7 @@ const checkInfo = (g) => {
   return info;
 };
 const hireN = (g, n) => { for (let t = 0; t < 12 && householdState(g).staff.length < n; t++) play(g, 1, ['household_hire'], { household_hire: 0 }, 1); };
+const liveStaff = (g) => householdState(g).staff.filter((s) => g.people.find((p) => p.id === s.pid)?.alive);
 const named = (g) => householdState(g).staff.map((s) => ({ s, p: g.people.find((x) => x.id === s.pid) }));
 
 // 1) 하인 들이기: 저택이면 넷까지, 자리는 estate 하인 수 안에서
@@ -112,7 +126,7 @@ const named = (g) => householdState(g).staff.map((s) => ({ s, p: g.people.find((
   play(g, 1, ['rest'], {}, 1);
   ok(householdState(g).staff.length === 3, `reconcile ${householdState(g).staff.length}`);
   // 상 주기와 내보내기
-  const s0 = householdState(g).staff[0]; s0.grievance = 50;
+  const s0 = liveStaff(g)[0]; s0.grievance = 50;
   scene(g, 'household_manage', {}, idxOf(/상을 준다/));
   ok(s0.grievance <= 25, `gift ${s0.grievance}`);
   const before = householdState(g).staff.length;
@@ -127,8 +141,8 @@ const named = (g) => householdState(g).staff.map((s) => ({ s, p: g.people.find((
     const g = adult(10 + t);
     hireN(g, 3);
     const v = householdState(g);
-    if (v.staff.length < 2) continue;
-    const th = v.staff[0];
+    if (liveStaff(g).length < 2) continue;
+    const th = liveStaff(g)[0];
     th.trait = 'sly'; th.loyalty = 30;
     const m0 = g.player.money;
     scene(g, 'household_thief', { thief: th.id, what: '은촛대', worth: 10 }, t % 2 ? idxOf(/모두 뒤진다/) : 1);
@@ -146,15 +160,15 @@ const named = (g) => householdState(g).staff.map((s) => ({ s, p: g.people.find((
   const v = householdState(g);
   const lover = makePerson(rngOf(g), { ageMonths: 28 * 12 }); lover.known = true; lover.place = 'ern'; g.people.push(lover);
   loveState(g).affair = { id: lover.id, at: 0, risk: 0 };
-  const e = v.staff[0];
+  const e = liveStaff(g)[0];
   const m0 = g.player.money;
   scene(g, 'household_ears', { sid: e.id, secret: 'affair', warn: false }, idxOf(/스무 닢/));
   ok(e.knows === 'affair' && g.player.money <= m0 - 20, `hush ${g.player.money} ${m0}`);
-  const e2 = v.staff[1];
+  const e2 = liveStaff(g).find((x) => x !== e);
   e2.grievance = 70;
   scene(g, 'household_ears', { sid: e2.id, secret: 'affair', warn: false }, idxOf(/내쫓는다/));
   ok(!v.staff.includes(e2), 'ears out');
-  const e3 = v.staff.find((s) => s !== e);
+  const e3 = liveStaff(g).find((s) => s !== e);
   if (e3) { e3.loyalty = 85; scene(g, 'household_ears', { sid: e3.id, secret: 'affair', warn: true }, 0); ok(e3.loyalty >= 85, 'warn loyalty'); }
   // 비밀이 생기면 귀 밝은 하인이 저절로 알아챈다
   const h = adult(21);
@@ -179,12 +193,11 @@ const named = (g) => householdState(g).staff.map((s) => ({ s, p: g.people.find((
     ok(skimmed, 'skim scene');
   }
   const h = adult(31);
-  hireN(h, 2);
-  const s = householdState(h).staff[0];
+  hireN(h, 3);
+  const [s, s2] = liveStaff(h);
   s.grievance = 75;
   scene(h, 'household_grievance', { sid: s.id }, idxOf(/한 닢을 더/));
   ok(s.wage >= 1 && s.grievance < 50, `raise ${s.wage} ${s.grievance}`);
-  const s2 = householdState(h).staff[1];
   if (s2) { s2.grievance = 75; scene(h, 'household_grievance', { sid: s2.id }, idxOf(/거절/)); ok(!householdState(h).staff.includes(s2) && feudState(h).grudges[s2.pid], 'refuse → leave & grudge'); }
 }
 
@@ -228,32 +241,45 @@ const named = (g) => householdState(g).staff.map((s) => ({ s, p: g.people.find((
 {
   const g = adult(50, { age: 18, place: 'leocast', house: false });
   ok(liveHouses(g).some((h) => h.seat === 'leocast'), 'house in leocast');
-  play(g, 2, ['household_serve'], { household_serve: 0 }, 1);
   const v = householdState(g);
-  ok(!!v.service && L(g).job?.id === 'house_servant', `serve ${JSON.stringify(v.service)}`);
+  // 섬기는 자리를 형편대로 다시 세운다 (다른 사건이 일자리를 앗아 가도 점검이 갈리지 않게)
+  const ensure = () => {
+    settle(g);
+    if (v.service && L(g).job?.id === 'house_servant') return true;
+    v.service = null; if (L(g).job) L(g).job = null;
+    scene(g, 'household_serve', {}, 0);
+    settle(g);
+    return !!v.service && L(g).job?.id === 'house_servant';
+  };
+  play(g, 1, ['household_serve'], { household_serve: 0 }, 1);
+  ok(ensure(), `serve ${JSON.stringify(v.service)}`);
   ok(!availableActions(g).some((a) => a.id === 'household_serve'), 'serve hidden in service');
-  const t0 = v.service?.trust ?? 0;
-  play(g, 4, ['work'], {}, 1);
-  ok((v.service?.trust ?? 0) > t0, `trust ${t0} → ${v.service?.trust}`);
+  let grew = false;
+  for (let t = 0; t < 4 && !grew; t++) { ensure(); const sv = v.service, t0 = sv.trust; play(g, 2, ['work'], {}, 1); grew = v.service === sv && sv.trust > t0; }
+  ok(grew, 'trust grows by work');
+  ensure();
   // 심부름, 엿들은 비밀, 누명, 금고
   const sec0 = courtState(g).secrets.length;
-  v.service.suspicion = 0;
+  ensure(); v.service.suspicion = 0;
   scene(g, 'household_errand', { to: '슈테른 후작가' }, idxOf(/값을 받는다/));
   ok(courtState(g).secrets.length > sec0 && v.service.suspicion >= 15, 'sell letter');
-  v.service.suspicion = 0;
+  ensure(); v.service.suspicion = 0;
   scene(g, 'household_overheard', { what: '바깥에 진 엄청난 빚' }, idxOf(/적어 둔다/));
   ok(courtState(g).secrets.some((x) => x.what === '바깥에 진 엄청난 빚'), 'keep secret');
-  scene(g, 'household_framed', { who: '하녀 베르타' }, idxOf(/결백/));
-  scene(g, 'household_strongbox', {}, idxOf(/알린다/));
+  ensure(); scene(g, 'household_framed', { who: '하녀 베르타' }, idxOf(/결백/));
+  ensure(); scene(g, 'household_strongbox', {}, idxOf(/알린다/));
   ok(seen.scenes.household_framed > 0 && seen.scenes.household_strongbox > 0, 'serve scenes');
   // 신임이 오르면 몸종·집사 보좌·집사
-  v.service.trust = 85;
+  ensure(); v.service.trust = 85;
   play(g, 1, ['work'], {}, 1);
+  ensure();
   ok(/집사/.test(householdInfo(g).service?.rankName ?? ''), `rank ${householdInfo(g).service?.rankName}`);
   // 주인이 바뀌면
   const hs = liveHouses(g).find((h) => h.id === v.service.house);
   hs.head = '새 주인 오토';
+  v.service.trust = 50;
   play(g, 1, ['rest'], {}, 1);
+  settle(g);
   ok(v.service == null || v.service.head === '새 주인 오토', 'new head noticed');
   // 대를 이으면 자식에게 자리가 열린다
   if (v.service) {
@@ -262,7 +288,9 @@ const named = (g) => householdState(g).staff.map((s) => ({ s, p: g.people.find((
     ok(v.service == null && v.serviceLine?.house === hs.id, 'service line');
     ok(L(g).queue.some((x) => x.kind === 'household_serve'), 'heir serve offer');
     L(g).job = null;
+    settle(g);
     play(g, 1, ['rest'], { household_serve: 0 }, 1);
+    if (!v.service) scene(g, 'household_serve', { heir: true }, 0);
     ok(v.service?.line === 2 && v.service.trust >= 30, `second gen ${JSON.stringify(v.service)}`);
   }
   // 의심이 차면 쫓겨나고, 훔친 게 드러나면 죄
@@ -276,8 +304,9 @@ const named = (g) => householdState(g).staff.map((s) => ({ s, p: g.people.find((
   let jailed = 0;
   for (let t = 0; t < 6; t++) {
     const h = adult(60 + t, { age: 20, place: 'leocast', house: false });
-    play(h, 2, ['household_serve'], { household_serve: 0 }, 1);
-    if (!householdState(h).service) continue;
+    scene(h, 'household_serve', {}, 0);
+    settle(h);
+    if (!householdState(h).service || L(h).job?.id !== 'house_servant') continue;
     h.player.stats.agi = 5; h.player.stats.sen = 5; householdState(h).service.trust = 0;
     scene(h, 'household_strongbox', {}, idxOf(/챙긴다/));
     if (crimeState(h).jailed) { jailed++; ok(!householdState(h).service, 'jailed → no service'); }

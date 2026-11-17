@@ -178,6 +178,7 @@ defineScene('beast_familiar', {
   choices: () => [{ label: '먼 곳을 보는 눈을 청한다', key: 'raven' }, { label: '거짓을 가려내는 귀를 청한다', key: 'cat' }, { label: '글을 읽는 벗을 청한다', key: 'owl' }, { label: '위험을 먼저 아는 코를 청한다', key: 'fox' }, { label: '그만둔다', key: 'no' }],
   resolve(g, rng, s, key) {
     if (key === 'no') return '촛불을 껐다. 마법진은 지우지 않았다.';
+    if (g.player.money < 10) return '의식에 쓸 향과 은가루를 살 돈이 모자랐다. 마법진은 그대로 두었다.';
     g.player.money -= 10;
     tired(g, 15);
     const val = g.player.stats.int * 0.5 + g.player.stats.wil * 0.4 + (g.player.skills.magic ?? 0) * 0.5 + circleOf(g) * 5;
