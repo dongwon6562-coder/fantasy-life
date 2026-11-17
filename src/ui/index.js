@@ -385,6 +385,26 @@ function withJump(parts, { after = 0 } = {}) {
   return html(parts.slice(0, after)) + nav + html(parts.slice(after));
 }
 
+// '나' 화면 바로 가기: 덩이가 여덟 넘으면 이름 줄 아래에 단다. 덩이의 첫 제목 글을 짧게 줄여 쓴다.
+const SHEET_SHORT = { '늙음과 마지막 해들': '늙음', '내기와 겨루기': '내기', '풀리지 않은 일': '미제', '연구와 발명': '연구', '글과 예술': '예술', '병과 의술': '병', '몸과 마음': '몸과 마음', '집과 재산': '재산', '어린 시절': '어린 시절' };
+function sheetJump() {
+  const sheet = document.querySelector('.sheet:not(.side)');
+  if (!sheet || sheet.querySelector('.view-jump')) return;
+  const blocks = [...sheet.querySelectorAll(':scope > .block')].filter((b) => b.querySelector('h3'));
+  if (blocks.length < 8) return;
+  const items = blocks.map((b, i) => {
+    const h = b.querySelector('h3');
+    const t = (h.firstChild?.textContent ?? h.textContent).trim().replace(/\s+/g, ' ');
+    b.id = `jp-me${i}`;
+    return [`me${i}`, SHEET_SHORT[t] ?? (t.length > 6 ? t.split(' ')[0] : t)];
+  });
+  const nav = document.createElement('nav');
+  nav.className = 'act-jump view-jump sheet-jump';
+  nav.setAttribute('aria-label', '바로 가기');
+  nav.innerHTML = items.map(([id, name]) => `<button class="ghost sm" data-view-jump="${id}">${esc(name)}</button>`).join('');
+  sheet.querySelector('.who')?.after(nav);
+}
+
 function renderSave() {
   return `${renderSlotsBlock(game, ui.saves)}${renderSettings()}`;
 }
@@ -576,6 +596,7 @@ function bindGame() {
   $$('[data-ws-person]').forEach((b) => b.onclick = () => { ui.view = 'people'; ui.person = +b.dataset.wsPerson; renderGame(); window.scrollTo({ top: 0 }); });
   $$('[data-chron]').forEach((b) => b.onclick = () => { ui.chronTab = b.dataset.chron; renderGame(); });
   $$('[data-chronf]').forEach((b) => b.onclick = () => { ui.chronFilter = b.dataset.chronf; renderGame(); });
+  if (ui.view === 'me') sheetJump();
   $$('[data-view-jump]').forEach((b) => b.onclick = () => document.getElementById(`jp-${b.dataset.viewJump}`)?.scrollIntoView({ block: 'start', behavior: reducedMotion() ? 'auto' : 'smooth' }));
   $$('[data-legacy]').forEach((b) => b.onclick = () => { ui.legacySel = b.dataset.legacy === 'close' ? null : +b.dataset.legacy; renderGame(); if (ui.legacySel != null) document.querySelector('.lr-detail')?.scrollIntoView({ block: 'start' }); });
   const la = $('[data-legacy-all]');
