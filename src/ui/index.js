@@ -195,7 +195,7 @@ function renderSetup() {
 }
 
 function resetUi() {
-  ui.plan = []; ui.active = 0; ui.outcome = null; ui.person = null; ui.view = 'month';
+  ui.plan = []; ui.active = 0; ui.pickedAct = null; ui.outcome = null; ui.person = null; ui.view = 'month';
   ui.lastPlan = null; ui.summary = null; ui.tplNote = null; ui.tplEdit = false; ui.peopleQ = '';
 }
 
@@ -545,7 +545,7 @@ function advance(times = 1, untilEvent = false) {
     if (game.pendingEvent || game.over) break;
     if (untilEvent && slotsFor(game) > 0) break;
   }
-  ui.active = 0;
+  ui.active = 0; ui.pickedAct = null;
   try { ui.summary = snap && !game.over ? diffSummary(game, snap) : null; } catch (e) { console.error(e); ui.summary = null; }
   document.querySelectorAll('.month-card').forEach((x) => x.remove());
   showMonthCard(before, passed);
