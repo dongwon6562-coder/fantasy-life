@@ -228,7 +228,8 @@ defineScene('army_press', {
   ],
   resolve(g, rng, s, key) {
     A(g).pressCool = mi(g) + 24;
-    if (key === 'bribe') { g.player.money -= 20; return '징집관은 은화를 세어 보고 명부에서 내 이름을 지웠다. 대신 옆집 막내가 끌려갔다.'; }
+    // 고를 때 있던 돈이 없어졌으면 뇌물은 없던 일이 되고 끌려간다
+    if (key === 'bribe' && g.player.money >= 20) { g.player.money -= 20; return '징집관은 은화를 세어 보고 명부에서 내 이름을 지웠다. 대신 옆집 막내가 끌려갔다.'; }
     if (key === 'hide' && check(rng, g.player.stats.agi + g.player.stats.sen, 60)) return '사흘을 다락에서 숨죽였다. 징집관은 다음 마을로 떠났다. 내 몫은 누군가가 대신 갔을 것이다.';
     const place = L(g).place;
     if (!BARRACKS.includes(place)) { L(g).place = 'harfen'; }
@@ -343,6 +344,7 @@ defineScene('army_hunted', {
   ],
   resolve(g, rng, s, key) {
     const d = A(g).deserted;
+    if (key === 'bribe' && g.player.money < 30) return '탁자에 올릴 은화가 모자랐다. 헌병은 비웃으며 수배서를 다시 붙였다.';
     if (key === 'bribe') { g.player.money -= 30; return '헌병은 은화를 쓸어 담고 수배서를 떼어 갔다. 다음 고을에는 또 붙어 있을 것이다.'; }
     if (key === 'run') {
       if (check(rng, g.player.stats.agi + g.player.stats.sen / 2, 35)) { stress(g, 8); return '뒷문을 박차고 골목을 세 번 꺾었다. 숨이 턱에 닿았다. 따돌렸다.'; }
