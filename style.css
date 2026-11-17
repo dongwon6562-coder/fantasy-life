@@ -1326,3 +1326,9 @@ details.act-group[open]:not(.dark) > summary { align-items: center; padding: 0; 
   .acts.compact .act .ic { display: none; }
 }
 .acts.compact .act .nm { overflow-wrap: anywhere; }
+
+/* ---------- 16단계: 맹세와 의형제 ---------- */
+.oath-card { display: grid; gap: 10px; }
+.oath-card > .note { margin: 0; }
+.oa-bonds .oa-strain .note { color: #d08a7a; }
+.oa-vow { display: grid; gap: 2px; padding: 8px 10px; border: 1px solid var(--line); border-radius: 8px; background: var(--bg); }
