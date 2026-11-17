@@ -48,7 +48,7 @@ for (const [race, fam] of Object.entries(FAMS)) {
       const choices = [];
       for (let i = 0; i < slotsFor(g); i++) {
         const drift = acts.find((a) => a.id === 'drift_years');
-        const a = drift && rng.chance(0.3) ? drift : rng.pick(acts.filter((x) => !x.needsTarget && x.id !== 'travel'));
+        const a = drift && rng.chance(0.3) ? drift : rng.pick(acts.filter((x) => !x.needsTarget && x.id !== 'travel' && x.id !== 'house_move'));
         choices.push({ id: a.id });
       }
       endMonth(g, choices);

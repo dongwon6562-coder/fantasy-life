@@ -280,7 +280,7 @@ export const BEAST_EVENTS = {
     text: (g, a) => `${J(a.name, '이/가')} 이웃집 아이를 물었다. 다리에 이빨 자국이 났다. 아이 아버지가 몽둥이를 들고 문 앞에 섰다. "저 짐승을 내놓든지, 값을 치르든지."`,
     choices: (g) => [...(g.player.money >= 10 ? [{ label: '약값을 치른다 (은화 10닢)', key: 'pay' }] : []), { label: '아이가 먼저 돌을 던졌다고 맞선다', key: 'argue' }, { label: '짐승을 내준다', key: 'give' }],
     run(g, rng, a, key) {
-      if (key === 'pay' && g.player.money >= 10) { g.player.money -= 10; return '은화를 쥐여 주고 고개를 숙였다. 그날 밤 짐승을 단단히 묶어 두었다.'; }
+      if (key === 'pay') { if (g.player.money < 10) return '치를 돈이 없었다. 고개만 숙였다. 아이 아버지는 침을 뱉고 돌아갔다.'; g.player.money -= 10; return '은화를 쥐여 주고 고개를 숙였다. 그날 밤 짐승을 단단히 묶어 두었다.'; }
       if (key === 'give') { bury(g, a, '이웃의 몽둥이에 끌려갔다'); stress(g, 10); return `${J(a.name, '을/를')} 내주었다. 끌려가며 나를 돌아보았다. 그 눈을 잊지 못할 것이다.`; }
       if (check(rng, g.player.stats.cha + L(g).renown / 5, 45)) return '아이가 먼저 돌을 던졌다는 것을 본 사람이 나섰다. 아이 아버지는 투덜거리며 돌아갔다.';
       L(g).notoriety += 2; stress(g, 5); return '말다툼 끝에 그는 돌아갔다. 다음 날부터 마을 사람들이 내 짐승을 피해 다녔다.';
@@ -356,7 +356,7 @@ export const BEAST_EVENTS = {
     text: (g, a) => `${J(a.name, '이/가')} 우리를 부수고 나가 이웃의 양 세 마리를 물어 죽였다. 마을 사람들이 쇠스랑을 들고 모였다.`,
     choices: (g) => [...(g.player.money >= 15 ? [{ label: '양값을 물어 준다 (은화 15닢)', key: 'pay' }] : []), { label: '모른 척 숨긴다', key: 'hide' }, { label: '손수 끝낸다', key: 'end' }],
     run(g, rng, a, key) {
-      if (key === 'pay' && g.player.money >= 15) { g.player.money -= 15; a.trained = Math.max(0, a.trained - 10); return '양값을 치르고 우리를 쇠사슬로 다시 묶었다. 사람들은 돌아갔지만 눈빛은 그대로였다.'; }
+      if (key === 'pay') { if (g.player.money < 15) return '물어 줄 돈이 없었다. 우리를 쇠사슬로 묶는 것밖에 할 수 없었다. 사람들의 눈빛이 오래 따라왔다.'; g.player.money -= 15; a.trained = Math.max(0, a.trained - 10); return '양값을 치르고 우리를 쇠사슬로 다시 묶었다. 사람들은 돌아갔지만 눈빛은 그대로였다.'; }
       if (key === 'end') { bury(g, a, '사람을 해칠까 두려워 손수 끝냈다'); stress(g, 14); return '칼을 들었다. 마지막까지 나를 어미처럼 보았다.'; }
       L(g).notoriety += 3;
       if (rng.chance(0.4)) { bury(g, a, '마을 사람들의 쇠스랑에 쓰러졌다'); return `사흘 뒤, 사람들이 ${J(a.name, '을/를')} 찾아냈다. 숨긴 것이 더 나빴다.`; }

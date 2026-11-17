@@ -39,7 +39,7 @@ function play(g, months, prefer = LOVE_ACTS, pick = {}, rate = 0.55) {
     const choices = [];
     for (let i = 0; i < slotsFor(g); i++) {
       const w = acts.filter((a) => prefer.includes(a.id) && !a.needsTarget);
-      let a = w.length && rng.chance(rate) ? rng.pick(w) : rng.pick(acts.filter((x) => !x.needsTarget && x.id !== 'travel' && !/^trade_/.test(x.id))); // 장사 장면은 다달이 장면 줄을 채워 사랑 장면을 밀어낸다
+      let a = w.length && rng.chance(rate) ? rng.pick(w) : rng.pick(acts.filter((x) => !x.needsTarget && x.id !== 'travel' && x.id !== 'house_move' && !/^trade_/.test(x.id))); // 장사 장면은 다달이 장면 줄을 채워 사랑 장면을 밀어낸다
       if (g.player.fatigue > 80) a = acts.find((x) => x.id === 'rest') ?? a;
       seen.acts[a.id] = (seen.acts[a.id] ?? 0) + 1;
       choices.push({ id: a.id });
