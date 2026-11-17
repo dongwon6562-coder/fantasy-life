@@ -1360,3 +1360,12 @@ details.act-group[open]:not(.dark) > summary { align-items: center; padding: 0; 
 .hs-rooms .note { margin-left: 2px; }
 .hs-build .wd-row.kn-row { grid-template-columns: minmax(0, 1fr) auto; }
 .hs-homes li.here { border-color: var(--brass-dim); }
+
+/* ---------- 17단계: 하인과 식솔 ---------- */
+.household-card { display: grid; gap: 10px; }
+.household-card > .note { margin: 0; }
+.hh-staff { align-items: start; }
+.hh-bars { display: grid; gap: 2px; }
+.hh-bars .wd-row.kn-row, .hh-serve .wd-row.kn-row { grid-template-columns: minmax(0, 1fr) auto; }
+.hh-serve { display: grid; gap: 4px; padding: 8px 10px; border: 1px solid var(--line); border-radius: 8px; background: var(--bg); }
+.hh-serve .top { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 2px 8px; }
