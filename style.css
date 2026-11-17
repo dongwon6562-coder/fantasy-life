@@ -1341,3 +1341,14 @@ details.act-group[open]:not(.dark) > summary { align-items: center; padding: 0; 
 .my-suspects li.cleared { opacity: .6; }
 .my-clues { margin: 0; padding-left: 18px; display: grid; gap: 4px; font-size: 13px; color: var(--muted); }
 .my-cold li.bad { border-color: rgba(179, 38, 30, .55); }
+
+/* ---------- 16단계: 예언과 징조 ---------- */
+.omen-card { display: grid; gap: 10px; }
+.omen-card > .note { margin: 0; }
+.om-words { font-style: italic; color: var(--ink, inherit); }
+.om-read, .om-chosen { color: var(--brass); }
+.om-pros li.mine { border-color: var(--brass); }
+.omen-now p { margin: 0; line-height: 1.5; }
+.omen-now b { color: var(--brass); margin-right: 4px; }
+.om-more { display: block; font-size: 12px; }
+.om-pros .wd-row.kn-row { grid-template-columns: minmax(0, 1fr) auto; }

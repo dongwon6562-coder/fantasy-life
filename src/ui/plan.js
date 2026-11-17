@@ -116,7 +116,7 @@ const GROUPS = [
   ['work', '일과 벌이', /^(work|seek_job|day_labor|inn_kitchen|herbs|help_home|shop_manage|open_shop|domain_|realm_office|farmer|merchant|estate_|voc_|nature_|trade_)/],
   ['learn', '배움과 수련', /^(study|train_body|sword_|meditate|magic_|legend_lesson|research|seal_study|tower_(join|duty|exam|craft))/],
   ['arts', '글과 예술', /^arts_/],
-  ['faith', '믿음과 기도', /^(pray|worship|keep_feast|pilgrimage|faith_seek|holy_heal)$/],
+  ['faith', '믿음과 기도', /^(pray|worship|keep_feast|pilgrimage|faith_seek|holy_heal)$|^omen_/],
   ['court', '궁정', /^court_/],
   ['army', '군대', /^army_/],
   ['people', '사람과 마을', /^(visit|play|wander|rel_|faction_door|bard|era_|kin_|love_|mentor_|village_|mystery_|feud_reconcile|peoples_|repute_(boast|feast|clear))/],
