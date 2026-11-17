@@ -244,12 +244,13 @@ function scene(g, kind, data, re, opt = {}) {
 /* ---------- 5) 대 잇기, 옛 저장, 저절로 ---------- */
 {
   const g = adult(65000);
-  addAnimal(g, 'dog', { ageYears: 2, trained: 100, bond: 80 });
+  const dog = addAnimal(g, 'dog', { ageYears: 2, trained: 100, bond: 80 });
   const f = addAnimal(g, 'familiar', { trained: 100, bond: 80, form: '흰 올빼미' });
   runHooks('heir', g, rngOf(g), g.player);
   if (!alive(g).some((a) => a.kind === 'dog')) fail('heir lost dog');
   if (f.alive) fail('familiar outlived owner');
-  if (alive(g)[0].bond !== 40) fail('heir bond', alive(g)[0].bond);
+  // 어릴 때부터 기르던 짐승이 먼저 있을 수 있어 방금 들인 개를 본다
+  if (dog.bond !== 40) fail('heir bond', dog.bond);
   const o = adult(65100);
   delete o.beasts; delete o.player.skills.animals;
   runHooks('migrate', o);
