@@ -1332,3 +1332,12 @@ details.act-group[open]:not(.dark) > summary { align-items: center; padding: 0; 
 .oath-card > .note { margin: 0; }
 .oa-bonds .oa-strain .note { color: #d08a7a; }
 .oa-vow { display: grid; gap: 2px; padding: 8px 10px; border: 1px solid var(--line); border-radius: 8px; background: var(--bg); }
+
+/* ---------- 16단계: 풀리지 않은 일 ---------- */
+.mystery-now, .mystery-block { display: grid; gap: 8px; }
+.mystery-now > .note, .mystery-block > .note, .my-title { margin: 0; }
+.my-suspects li.pointed { border-color: rgba(179, 38, 30, .65); }
+.my-suspects li.pointed .top .note { color: #d08a7a; }
+.my-suspects li.cleared { opacity: .6; }
+.my-clues { margin: 0; padding-left: 18px; display: grid; gap: 4px; font-size: 13px; color: var(--muted); }
+.my-cold li.bad { border-color: rgba(179, 38, 30, .55); }
