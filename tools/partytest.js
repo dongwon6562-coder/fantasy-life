@@ -4,7 +4,7 @@ import '../src/content.js';
 import { newGame, endMonth, availableActions, slotsFor, playerAge, rngOf } from '../src/game.js';
 import { resolveEvent } from '../src/events.js';
 import { run as runHooks } from '../src/hooks.js';
-import { setNextId, byId } from '../src/npc.js';
+import { setNextId, getNextId, byId } from '../src/npc.js';
 import { L } from '../src/adventure/core.js';
 import { P, members, partyStatus, MAX_COMPANIONS } from '../src/party/core.js';
 import { STORIES } from '../src/party/stories.js';
@@ -90,7 +90,7 @@ for (let run = 0; run < PLACES_RUN.length; run++) {
     // 반쯤은 이야기 줄기가 있는 다른 고장으로 옮겨 다닌다
     if (m % 40 === 39 && !L(g).travel) L(g).place = PLACES_RUN[(run + 1 + Math.floor(m / 40)) % PLACES_RUN.length];
     if (m % 37 === 0) {
-      const copy = JSON.parse(JSON.stringify(g)); setNextId(copy.nextId); runHooks('migrate', copy);
+      const copy = JSON.parse(JSON.stringify(g)); setNextId(Math.max(copy.nextId ?? 0, getNextId())); // 장면이 만든 사람 때문에 g.nextId가 늦을 수 있다 runHooks('migrate', copy);
       if (!copy.party || !Array.isArray(copy.party.members) || copy.party.members.length !== P(g).members.length) { problems++; console.log('migrate lost party'); }
     }
   }

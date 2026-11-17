@@ -314,6 +314,8 @@ ACTIONS.push({
 });
 
 defineScene('housing', {
+  // 그 사이 입대해 병영에 들었으면 잠자리를 고를 일이 없다 (같은 달에 장면이 이어 뜨며 병영을 나가 버리던 것, 헤드 16단계)
+  need: (g) => L(g).home !== 'barracks',
   title: (g) => `${placeOf(g).name}에서 지낼 곳`,
   text: (g) => `지금 잠자리는 ${HOME_NAMES[L(g).home]}. 내 돈은 은화 ${g.player.money}닢이다.`,
   choices: (g) => {

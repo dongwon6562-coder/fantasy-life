@@ -111,7 +111,7 @@ EVENTS.push({
       },
     },
     { label: '곡물상과 값을 흥정한다', run: (g, rng) => { const t = gainSkill(g, 'trade', 1.2, 'cha'); if (check(rng, g.player.stats.cha * 0.5 + (g.player.skills.trade ?? 0) * 0.5, 50)) { fame(g, 2); return `"지금 반값에 풀면, 이 사람들이 봄에 당신 곳간에 불을 지르지 않을 거요." 곡물상은 한참 이를 갈다가 곳간의 반을 열었다.${t > 0.04 ? ` (장사 +${t.toFixed(1)})` : ''}`; } return `곡물상은 내 말을 끝까지 듣지도 않았다. 문이 닫혔다. 등 뒤에서 횃불이 하나 더 켜졌다.${t > 0.04 ? ` (장사 +${t.toFixed(1)})` : ''}`; } },
-    { label: '곡물상에게 밀을 사 둔다', show: (g) => g.player.money >= 30, run: (g) => { g.player.money -= 30; NS(g).ready = g.date.month >= 10 ? g.date.year : g.date.year - 1; stress(g, 3); note(g, '흉년에 비싼 밀을 사 들였다.'); return '뒷문으로 들어가 은화 서른 닢에 밀 두 자루를 샀다. 평년 값의 세 배다. 이 겨울은 굶지 않는다. 앞문에서는 아직 고함 소리가 들렸다.'; } },
+    { label: '곡물상에게 밀을 사 둔다', show: (g) => g.player.money >= 30, run: (g) => { if (g.player.money < 30) return '주머니를 뒤져 보니 은화가 모자랐다. 곡물상은 뒷문을 닫았다.'; g.player.money -= 30; NS(g).ready = g.date.month >= 10 ? g.date.year : g.date.year - 1; stress(g, 3); note(g, '흉년에 비싼 밀을 사 들였다.'); return '뒷문으로 들어가 은화 서른 닢에 밀 두 자루를 샀다. 평년 값의 세 배다. 이 겨울은 굶지 않는다. 앞문에서는 아직 고함 소리가 들렸다.'; } },
     { label: '자리를 뜬다', run: () => '골목을 돌아 나왔다. 그날 밤 곡물상의 곳간에 불이 났다는 소식을 들었다. 밀은 다 타 버렸다고 한다. 아무도 먹지 못했다.' },
   ],
 });

@@ -133,6 +133,8 @@ const BY_SCENE = {
 
   // 15단계: 내기와 겨루기 (기존 그림을 이어 붙임)
   contest_gamble: 'trade:bard', contest_urge: 'trade:bard', contest_arena: 'feud:strike', contest_fair: 'festival', contest_round: 'festival',
+  // 16단계: 풀리지 않은 일 (기존 그림을 이어 붙임)
+  mystery_case: 'square:notice', mystery_offer: 'feud:plot', mystery_revenge: 'feud:strike', mystery_old: 'ritual:study',
 };
 const TRADE_ART = { famine: 'famine', army: 'muster', smuggle: 'seal:alley', credit: 'court', guard_thief: 'square:flog', porter: 'road', rumor: 'trade:bard' };
 // 새 일(voc_path의 길 id, voc_event의 사건 id)마다의 그림. 없으면 지금 하는 일의 일터 그림

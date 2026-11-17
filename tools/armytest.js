@@ -45,6 +45,8 @@ function month(g, want = [], pick = null) {
     let idx = rngOf(g).int(0, pe.choices.length - 1);
     // 기본으로는 탈영하지 않는다 (탈영은 따로 시험한다)
     if (s?.kind === 'army_muster') idx = 0;
+    // 일자리 게시판에서 병사 일을 '그만둔다'를 무작위로 고르면 탈영이 된다: 이 점검은 군 생활을 보므로 고르지 않는다
+    if (s?.kind === 'seek_job' && /그만둔다/.test(pe.choices[idx])) idx = pe.choices.length - 1;
     if (s?.kind === 'army_clash' && /달아난다/.test(pe.choices[idx])) idx = 0;
     if (s?.kind === 'army_march' && /같이 간다/.test(pe.choices[idx])) idx = 0;
     if (pick && s) { const k = pick(s.kind, pe.choices, s); if (k != null && k >= 0) idx = k; }
@@ -64,7 +66,7 @@ function adult(seed, family = 'farmer') {
     if (!g.over) return g;
   }
 }
-function placeAt(g, place) { const l = L(g); l.place = place; l.travel = null; l.home = 'inn'; l.queue = []; l.scene = null; g.pendingEvent = null; const R = realmState(g); R.cur = PLACES[place].realm ?? 'leonia'; R.last = place; }
+function placeAt(g, place) { const l = L(g); l.place = place; l.travel = null; if (l.home !== 'barracks') l.home = 'inn'; /* 어른이 되며 이미 입대했으면 병영 그대로 */ l.queue = []; l.scene = null; g.pendingEvent = null; const R = realmState(g); R.cur = PLACES[place].realm ?? 'leonia'; R.last = place; }
 function scene(g, kind, data, re, opt = {}) {
   let done = false, chose = null;
   for (let i = 0; i < 6 && !done && !g.over; i++) {
@@ -98,7 +100,11 @@ function soldier(seed, family = 'farmer', place = 'harfen') {
     for (let m = 0; m < 24 && !g.over && A(g).service; m++) { peace(g); if (L(g).place !== A(g).service.place) placeAt(g, A(g).service.place); month(g, ['work']); heal(g); }
     // 병으로 죽어 대가 바뀐 삶은 복무 점검에서 뺀다 (다른 모듈이 늘어 난수가 밀리면 생길 수 있다)
     if (g.player.id !== who || g.over) { console.log('복무 중 죽음, 이 판은 건너뜀', run); continue; }
-    if (!A(g).service) { fail('lost service in peace', A(g).deserted); continue; }
+    // 군과 상관없는 일(이단 심문 같은 사건)로 옥에 갇혀 쫓겨난 판도 뺀다
+    if (!A(g).service && (A(g).log ?? []).some((l) => /옥에 갇히며/.test(l.text))) { console.log('복무 중 옥살이, 이 판은 건너뜀', run); continue; }
+    // 어른이 되며 일찍 입대해 이 두 해 안에 복무 기한이 끝나 물러난 판도 뺀다 (16단계: 난수가 밀려 생긴다)
+    if (!A(g).service && (A(g).log ?? []).some((l) => /물러났다/.test(l.text))) { console.log('복무 기한 끝, 이 판은 건너뜀', run); continue; }
+    if (!A(g).service) { fail('lost service in peace', A(g).deserted, run, JSON.stringify((A(g).log ?? []).slice(-3)), L(g).job?.id, L(g).home); continue; }
     ranks += A(g).service.rank; valid++;
     if (g.player.money <= m0) fail('soldier earned nothing');
   }
