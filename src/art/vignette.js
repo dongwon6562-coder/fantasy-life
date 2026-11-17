@@ -121,6 +121,9 @@ const BY_SCENE = {
   // 14단계: 장사 길과 상단 (trade_event는 아래에서 일에 따라 고른다)
   trade_market: 'beastlife:market', trade_caravan: 'road', trade_bandits: 'feud:strike', trade_toll: 'square:guards', trade_house: 'mentor:found', trade_rival: 'feud:plot', trade_event: 'beastlife:market',
   // 14단계: 글과 예술 (기존 그림을 이어 붙임)
+  // 16단계: 맹세와 의형제 (새 그림 없이 있는 판을 붙임)
+  oath_blood: 'feud:peace', oath_blood_call: 'feud:strike', oath_blood_mourn: 'funeral:visit', oath_liege_offer: 'court', oath_liege_call: 'muster', oath_liege_gone: 'court',
+  oath_man: 'mentor:bow', oath_man_turn: 'road', oath_vow: 'chapel', oath_vow_test: 'chapel', oath_pact: 'feud:offer', oath_pact_call: 'square:herald', oath_pact_due: 'wedding',
   // 15단계: 늙음과 마지막 해들 (새 그림 없이 있는 판을 붙임)
   elder_retire: 'mentor:bow', elder_amends: 'feud:peace', elder_journey: 'road', elder_memoir: 'ritual:study', elder_memoir_read: 'ritual:study', elder_funeral_wish: 'chapel',
   elder_forget: 'road:return', elder_deathbed: 'bedside:last', elder_funeral: 'funeral', elder_grave_foe: 'funeral:visit', elder_grave_stranger: 'funeral:visit',

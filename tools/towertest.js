@@ -75,6 +75,7 @@ const mage = (g, magic = 25, mana = 30) => { g.player.manaAwakened = true; g.pla
   const T = TS(g), M = T.member;
   check(M?.tower === 'blue' && M.master?.alive && M.rank === 0, `탑에 든 상태가 이상하다 ${JSON.stringify(M)}`);
   check(has(g, 'tower_duty') && !has(g, 'tower_join'), '들어간 뒤 탑 일 행동이 이상하다');
+  const master0 = { ...M.master }; // 마도구를 만드는 몇 달 사이 스승이 세상을 떠날 수도 있어, 스승 사건 점검 전에 되살린다
   const money0 = g.player.money, merit0 = M.merit;
   stay(g);
   endMonth(g, [{ id: 'tower_duty' }, { id: 'tower_duty' }, { id: 'tower_duty' }]);
@@ -107,6 +108,7 @@ const mage = (g, magic = 25, mana = 30) => { g.player.manaAwakened = true; g.pla
   check(info.member.towerName === '푸른 탑' && info.items[0].name === '보호 부적' && info.member.next && !BAD.test(JSON.stringify(info.log)), '화면 정보가 이상하다');
   check(!BAD.test(towerLine(g)) && towerLine(g).includes('푸른 탑'), `한 줄이 이상하다: ${towerLine(g)}`);
   // 스승 사건
+  if (!M.master) M.master = { ...master0, alive: true };
   M.master.bond = 40; stay(g);
   check(cond(g, 'tower_master_lesson'), '스승의 가르침이 안 뜬다');
   fire(g, 'tower_master_lesson', 0); fire(g, 'tower_master_lesson', 1);
