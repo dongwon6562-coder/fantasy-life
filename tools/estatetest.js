@@ -189,7 +189,8 @@ for (let attempt = 0; attempt < 4; attempt++) {
 // 5) 불과 도둑, 옛 저장, 대 잇기, 저절로
 {
   let fires = 0, thefts = 0;
-  for (let run = 0; run < 6; run++) {
+  // 불과 도둑은 드문 일이라 판이 적으면 다른 갈래가 늘 때마다 0이 나오기도 했다: 열 판을 본다
+  for (let run = 0; run < 10; run++) {
     const g = adult(91500 + run);
     placeAt(g, 'harfen');
     L(g).houses.push('harfen'); L(g).home = 'own';
@@ -205,7 +206,7 @@ for (let attempt = 0; attempt < 4; attempt++) {
     fires += (notes.match(/불이 났다|불에 타/g) ?? []).length;
     thefts += (notes.match(/도둑이 들었다/g) ?? []).length;
   }
-  console.log(`10년 6판: 불 ${fires} · 도둑 ${thefts}`);
+  console.log(`10년 10판: 불 ${fires} · 도둑 ${thefts}`);
   if (!fires) fail('no fire in 60 years of old houses');
   if (!thefts) fail('no theft in 60 years of rich homes');
   const g = adult(91601);
