@@ -33,7 +33,7 @@ function play(g, months, prefer = COURT_ACTS, pick = {}, rate = 0.85) {
     const choices = [];
     for (let i = 0; i < slotsFor(g); i++) {
       const w = acts.filter((a) => prefer.includes(a.id));
-      let a = w.length && rng.chance(rate) ? rng.pick(w) : rng.pick(acts.filter((x) => !x.needsTarget && x.id !== 'travel' && !x.id.startsWith('contest_')));
+      let a = w.length && rng.chance(rate) ? rng.pick(w) : rng.pick(acts.filter((x) => !x.needsTarget && x.id !== 'travel' && x.id !== 'house_move' && !x.id.startsWith('contest_')));
       if (g.player.fatigue > 80) a = acts.find((x) => x.id === 'rest') ?? a;
       seen.acts[a.id] = (seen.acts[a.id] ?? 0) + 1;
       choices.push({ id: a.id });
