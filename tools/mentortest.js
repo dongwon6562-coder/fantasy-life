@@ -147,7 +147,8 @@ const checkInfo = (g) => {
   ok(g.player.skills.sword > before + 1, `learn from elder ${before} → ${g.player.skills.sword.toFixed(1)}`);
   g.player.skills.sword = 75; p.affection = 80; me(g).ageMonths = 30 * 12;
   // 앞서 쌓인 장면들이 있어 돌려받기 장면은 몇 달 뒤에 올 수 있다
-  for (let i = 0; i < 24 && sc.headId != null && !g.over; i++) play(g, 1, ['mentor_heritage'], { mentor_reclaim: 0 }, 1);
+  // 한 번 거절당하면 원한이 쌓여 마음이 식는다. 판정이 운에 덜 흔들리게 달마다 마음을 되돌려 둔다
+  for (let i = 0; i < 24 && sc.headId != null && !g.over; i++) { p.affection = 80; play(g, 1, ['mentor_heritage'], { mentor_reclaim: 0 }, 1); }
   ok(sc.headId == null && sc.gens === 2, `reclaimed ${sc.headId} gens ${sc.gens}`);
   checkInfo(g);
   const old = JSON.parse(JSON.stringify(g)); delete old.mentor;

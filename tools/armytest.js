@@ -98,6 +98,8 @@ function soldier(seed, family = 'farmer', place = 'harfen') {
     for (let m = 0; m < 24 && !g.over && A(g).service; m++) { peace(g); if (L(g).place !== A(g).service.place) placeAt(g, A(g).service.place); month(g, ['work']); heal(g); }
     // 병으로 죽어 대가 바뀐 삶은 복무 점검에서 뺀다 (다른 모듈이 늘어 난수가 밀리면 생길 수 있다)
     if (g.player.id !== who || g.over) { console.log('복무 중 죽음, 이 판은 건너뜀', run); continue; }
+    // 군과 상관없는 일(이단 심문 같은 사건)로 옥에 갇혀 쫓겨난 판도 뺀다
+    if (!A(g).service && (A(g).log ?? []).some((l) => /옥에 갇히며/.test(l.text))) { console.log('복무 중 옥살이, 이 판은 건너뜀', run); continue; }
     if (!A(g).service) { fail('lost service in peace', A(g).deserted); continue; }
     ranks += A(g).service.rank; valid++;
     if (g.player.money <= m0) fail('soldier earned nothing');

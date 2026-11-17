@@ -51,6 +51,7 @@ import { exploreStatus } from '../src/explore/index.js';
 import { beastsStatus, B as BEASTS, KIND_IDS as BEAST_KINDS, addAnimal as addBeast } from '../src/beasts/index.js';
 import { tradeStatus, T as TRADE, GOOD_IDS as TRADE_GOODS } from '../src/trade/index.js';
 import { contestStatus, C as CONTEST, FAIR_IDS } from '../src/contest/index.js';
+import { mysteryStatus, M as MYSTERY, makeCase, KIND_IDS as MYSTERY_KINDS } from '../src/mystery/index.js';
 import { E as EXPL, REGION_IDS as EXPL_REGIONS, FINDS as EXPL_FINDS } from '../src/explore/core.js';
 import { V as VOC } from '../src/vocation/core.js';
 import { WORK as VWORK } from '../src/jobs.js';
@@ -72,7 +73,7 @@ function roundTrip(g, rng) {
 function chaos(g, rng) {
   const life = L(g);
   const adult = playerAge(g) >= 15;
-  const r = rng.int(0, 23);
+  const r = rng.int(0, 24);
   if (r === 0) return 'roundtrip';
   if (r === 1 && !CR(g).active) startCrisis(g, rng, rng.pick(Object.keys(CRISES)));
   else if (r === 2) { g.realm.balhart.war = true; g.realm.balhart.warMonths = 0; }
@@ -96,6 +97,7 @@ function chaos(g, rng) {
   else if (r === 21) beastShake(g, rng);
   else if (r === 22) tradeShake(g, rng);
   else if (r === 23) contestShake(g, rng);
+  else if (r === 24) mysteryShake(g, rng);
   else if (r === 15 && adult && !life.travel && !isJailed(g)) { const port = rng.pick(['klein', 'portel', 'saltmare', 'saltrock']); life.place = port; const rt = rng.pick(seaRoutesFrom(g, port)); if (rt) setSail(g, rt.to, rt.months, { own: !!S(g).ship }); }
   return null;
 }
@@ -173,6 +175,17 @@ function contestShake(g, rng) {
   if (rng.chance(0.2)) { delete g.contest.arena; runHooks('migrate', g); }
   if (rng.chance(0.3)) runHooks('migrate', g);
 }
+// 풀리지 않은 일을 흔든다 (src/mystery/)
+function mysteryShake(g, rng) {
+  const m = MYSTERY(g);
+  if (rng.chance(0.5) && g.life?.place) { const c = makeCase(g, rng, g.life.place, rng.pick(MYSTERY_KINDS)); c.heat = rng.int(0, 4); if (rng.chance(0.3)) c.clues.push('흔들린 단서'); if (rng.chance(0.2)) c.at -= rng.int(0, 60); }
+  if (rng.chance(0.2) && m.cases.length) { const c = rng.pick(m.cases); c.state = rng.pick(['wrong', 'framed', 'cold']); c.accused = c.suspects[0].name; c.ancestor = true; c.at -= 200; c.closedAt = 0; m.cases = m.cases.filter((x) => x !== c); m.cold.push(c); }
+  if (rng.chance(0.2)) m.grudge = { gang: rng.pick(['rats', 'glove', 'gone']), at: 0 };
+  if (rng.chance(0.2)) m.cold.push({ kind: 'gone', suspects: [] });
+  if (rng.chance(0.3)) { const k = rng.pick(['mystery_case', 'mystery_offer', 'mystery_revenge', 'mystery_old']); queueScene(g, k, rng.chance(0.3) ? { gang: rng.pick(['rats', 'gone']) } : { id: rng.chance(0.2) ? 999 : (m.cases[0]?.id ?? m.cold[0]?.id ?? 1) }); }
+  if (rng.chance(0.1)) g.mystery = JSON.parse(JSON.stringify(g.mystery));
+  runHooks('migrate', g);
+}
 // 지도에 없는 땅을 흔든다 (src/explore/)
 function exploreShake(g, rng) {
   const e = EXPL(g);
@@ -224,7 +237,7 @@ function checkState(g, seed, m) {
   const p = g.player;
   for (const [k, v] of Object.entries({ money: p.money, fatigue: p.fatigue, stress: p.stress, renown: L(g).renown, notoriety: L(g).notoriety })) if (!Number.isFinite(v)) fail('NaN 값', k, seed, m);
   if (p.money < 0) fail('돈이 음수', p.money, seed, m);
-  for (const [name, fn] of [['partyStatus', partyStatus], ['crisisStatus', crisisStatus], ['craftStatus', craftStatus], ['domainReport', (x) => (x.domain ? domainReport(x) : null)], ['seaStatus', seaStatus], ['deepStatus', deepStatus], ['estateStatus', estateStatus], ['vocationStatus', vocationStatus], ['armyStatus', armyStatus], ['exploreStatus', exploreStatus], ['beastsStatus', beastsStatus], ['tradeStatus', tradeStatus], ['contestStatus', contestStatus]]) {
+  for (const [name, fn] of [['partyStatus', partyStatus], ['crisisStatus', crisisStatus], ['craftStatus', craftStatus], ['domainReport', (x) => (x.domain ? domainReport(x) : null)], ['seaStatus', seaStatus], ['deepStatus', deepStatus], ['estateStatus', estateStatus], ['vocationStatus', vocationStatus], ['armyStatus', armyStatus], ['exploreStatus', exploreStatus], ['beastsStatus', beastsStatus], ['tradeStatus', tradeStatus], ['contestStatus', contestStatus], ['mysteryStatus', mysteryStatus]]) {
     try { const r = deepBad(fn(g)); if (r) fail(`${name}에 나쁜 값`, r, seed, m); } catch (e) { fail(`${name} 예외`, e.stack, seed, m); }
   }
   if (partyOf(g).members.includes(g.player.id)) fail('내가 내 동료 명단에 있음', g.player.id, seed, m);

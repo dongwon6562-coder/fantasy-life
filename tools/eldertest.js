@@ -86,9 +86,14 @@ const checkInfo = (g) => {
 
 // 1) 몸과 기억이 쇠한다, 돌보면 늦어진다
 {
-  const a = elder(1, 72), b = elder(1, 72);
-  play(a, 24, ['rest'], {}, 1);
-  play(b, 24, ['elder_care'], {}, 1);
+  // 72살은 두 해 안에 죽을 수도 있다. 죽어 대가 바뀌면 쇠함이 처음부터라 비교가 안 되니, 둘 다 살아남은 판으로 본다
+  let a, b;
+  for (let seed = 1; seed < 9; seed++) {
+    a = elder(seed, 72); b = elder(seed, 72);
+    play(a, 24, ['rest'], {}, 1);
+    play(b, 24, ['elder_care'], {}, 1);
+    if (a.player.name === '노인' && b.player.name === '노인' && !a.over && !b.over) break;
+  }
   const va = elderState(a), vb = elderState(b);
   ok(va.frail > 5 && va.fog > 2, `decline ${va.frail.toFixed(1)}/${va.fog.toFixed(1)}`);
   ok(a.over || b.over || vb.frail < va.frail, `care slows ${vb.frail.toFixed(1)} < ${va.frail.toFixed(1)}`);
