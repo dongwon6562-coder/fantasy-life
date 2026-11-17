@@ -178,6 +178,7 @@ defineScene('beast_familiar', {
   choices: () => [{ label: '먼 곳을 보는 눈을 청한다', key: 'raven' }, { label: '거짓을 가려내는 귀를 청한다', key: 'cat' }, { label: '글을 읽는 벗을 청한다', key: 'owl' }, { label: '위험을 먼저 아는 코를 청한다', key: 'fox' }, { label: '그만둔다', key: 'no' }],
   resolve(g, rng, s, key) {
     if (key === 'no') return '촛불을 껐다. 마법진은 지우지 않았다.';
+    if (g.player.money < 10) return '의식에 쓸 향과 은가루를 살 돈이 모자랐다. 마법진은 그대로 두었다.';
     g.player.money -= 10;
     tired(g, 15);
     const val = g.player.stats.int * 0.5 + g.player.stats.wil * 0.4 + (g.player.skills.magic ?? 0) * 0.5 + circleOf(g) * 5;
@@ -293,7 +294,7 @@ export const BEAST_EVENTS = {
     choices: (g) => [{ label: '약초로 직접 고친다', key: 'herb' }, ...(g.player.money >= 6 ? [{ label: '말 의원을 부른다 (은화 6닢)', key: 'vet' }] : []), { label: '편히 보내 준다', key: 'end' }],
     run(g, rng, a, key) {
       if (key === 'end') { bury(g, a, '다리를 다쳐 편히 보내 주었다'); return `${a.name}의 목을 쓸어 주고, 눈을 가렸다.`; }
-      if (key === 'vet') { g.player.money -= 6; a.trained = Math.max(60, a.trained - 5); return '말 의원이 곪은 곳을 째고 고름을 뺐다. 한 달 뒤 다시 달렸다.'; }
+      if (key === 'vet') { if (g.player.money < 6) return '말 의원을 부를 돈이 모자랐다. 밤새 곁에서 상처를 닦아 주었다.'; g.player.money -= 6; a.trained = Math.max(60, a.trained - 5); return '말 의원이 곪은 곳을 째고 고름을 뺐다. 한 달 뒤 다시 달렸다.'; }
       if (check(rng, (g.player.skills.herbs ?? 0) + (g.player.skills.animals ?? 0) + g.player.stats.sen / 2, 40)) { gainSkill(g, 'animals', 0.8, 'sen'); return '쑥과 소금으로 상처를 씻고 매일 붕대를 갈았다. 보름 뒤 절뚝임이 멎었다.'; }
       a.trained = Math.max(0, a.trained - 30); return '상처는 아물었지만 다리가 예전 같지 않다. 다시 길들여야 한다.';
     },
