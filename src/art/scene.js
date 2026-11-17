@@ -46,6 +46,15 @@ export function sceneImage({ year, month, famine = false, plague = false, place 
   return url;
 }
 
+// 다음 달 풍경을 미리 그려 둔다 (헤드 16단계). 풍경 한 장을 그리고 JPEG로 굳히는 데 폰에서 0.1초 가까이 걸려,
+// '한 달 보내기'를 누를 때마다 그만큼 멈췄다. 화면을 다 그린 뒤 쉬는 틈에 다음 달 것을 그려 두면 누를 때는 꺼내 쓰기만 한다.
+let warmTimer = null;
+export function prewarmScene(args) {
+  if (typeof document === 'undefined' || typeof setTimeout === 'undefined') return;
+  if (warmTimer) clearTimeout(warmTimer);
+  warmTimer = setTimeout(() => { warmTimer = null; try { sceneImage(args); } catch { /* 미리 못 그려도 그만 */ } }, 120);
+}
+
 function draw(year, month, famine, plague, place, calamity) {
   const D = describe(place), k = year * 12 + month;
   const c0 = conditions(year, month);
