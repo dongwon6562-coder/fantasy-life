@@ -69,7 +69,8 @@ for (const [race, fam] of Object.entries(FAMS)) {
       if (L(g).ancestors.length) break; // 첫 삶만 본다
     }
     const first = L(g).ancestors[0];
-    if (first) S.died.push(first.age);
+    // 종족과 상관없이 아무 때나 오는 갑작스런 병(game.js)은 타고난 수명을 재는 데서 뺀다
+    if (first && first.cause !== '병') S.died.push(first.age);
     S.farewells += raceState(g).farewells;
     S.drifted += raceState(g).drifted;
   }

@@ -23,7 +23,7 @@ const busy = (g) => openCases(g).some((c) => c.place === here(g));
 
 // ---------- 고발당하다 ----------
 EVENTS.push({
-  id: 'law_accused', cooldown: 48, weight: 4,
+  id: 'law_accused', cooldown: 72, weight: 3,
   chance: (g) => 0.2 + LS(g).stain / 300 + (L(g).notoriety ?? 0) / 400,
   cond: (g) => free(g) && townOf(here(g)) && !busy(g),
   prepare: (g, rng) => {
@@ -70,7 +70,7 @@ const WRONGS = {
   contract: (o) => `${J(o, '은/는')} 약속한 날에 물건을 넘기지 않았다. 손으로 쓴 약조가 내 품에 있다.`,
 };
 EVENTS.push({
-  id: 'law_wrong', cooldown: 36, weight: 5,
+  id: 'law_wrong', cooldown: 60, weight: 4,
   chance: () => 0.35,
   cond: (g) => free(g) && townOf(here(g)) && !LS(g).grievances.some((x) => x.place === here(g)),
   prepare: (g, rng) => ({ charge: rng.pick(Object.keys(WRONGS)), other: localOther(g, rng), proof: rng.int(30, 75) }),
@@ -103,7 +103,7 @@ EVENTS.push({
 
 // ---------- 증인으로 불려 가다 ----------
 EVENTS.push({
-  id: 'law_witness', cooldown: 36, weight: 4,
+  id: 'law_witness', cooldown: 60, weight: 3,
   chance: () => 0.3,
   cond: (g) => free(g) && townOf(here(g)),
   prepare: (g, rng) => {

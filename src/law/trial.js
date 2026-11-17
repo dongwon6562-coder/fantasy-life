@@ -114,7 +114,7 @@ export function verdict(g, rng, c, win, how) {
       return `벌금과 배상금 은화 ${fine}닢. 못 낸 ${left}닢 때문에 그 고장 경비대가 내 이름을 벽에 붙였다.`;
     }
     if (paid < fine) {
-      const months = Math.max(1, Math.ceil((fine - paid) / 10));
+      const months = clamp(Math.ceil((fine - paid) / 10), 1, 3);
       jail(g, months);
       c.verdict = `벌금과 옥살이 ${months}달`;
       return `판결이 났다. 벌금과 배상금 은화 ${fine}닢. 가진 ${paid}닢을 다 내고도 모자라 ${months}달을 옥에서 갚아야 한다.`;

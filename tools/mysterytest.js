@@ -169,6 +169,7 @@ function crack(g, c) {
   // 이름난 사람의 도움
   const { g, c } = fresh(82900, 'harfen', 'theft');
   const lg = LG(g).list.find((x) => x.id === 'kairen'); lg.alive = true; lg.at = 'harfen';
+  for (const x of LG(g).list) if (x !== lg && x.at === 'harfen') x.at = 'serenia'; // 하르펜에 다른 이름난 사람이 와 있으면 그쪽이 돕는다
   const r = direct(g, 'mystery_case', { id: c.id }, 'legend');
   if (r.missing || !lg.met) fail('legend help', r.keys);
   // 조직의 일을 덮는다
