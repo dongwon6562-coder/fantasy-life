@@ -1369,3 +1369,11 @@ details.act-group[open]:not(.dark) > summary { align-items: center; padding: 0; 
 .hh-bars .wd-row.kn-row, .hh-serve .wd-row.kn-row { grid-template-columns: minmax(0, 1fr) auto; }
 .hh-serve { display: grid; gap: 4px; padding: 8px 10px; border: 1px solid var(--line); border-radius: 8px; background: var(--bg); }
 .hh-serve .top { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 2px 8px; }
+
+/* ---------- 17단계: 법과 재판 ---------- */
+.law-now, .law-block { display: grid; gap: 8px; }
+.law-now > .note, .law-block > .note { margin: 0; }
+.law-now.bad { border-color: rgba(179, 38, 30, .55); }
+.lw-cases li.bad { border-color: rgba(179, 38, 30, .55); }
+.lw-here { display: grid; gap: 4px; }
+.lw-here .note { margin: 0; }
