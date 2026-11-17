@@ -7,7 +7,7 @@ import { resolveEvent } from '../events.js';
 import { FAMILIES, STATS, SKILLS, skillGrade, VILLAGE, REGION } from '../data.js';
 import { autosave, summary } from '../save.js';
 import { portrait } from '../art/portrait.js';
-import { sceneImage, conditionText } from '../art/scene.js';
+import { sceneImage, conditionText, prewarmScene } from '../art/scene.js';
 import { icon } from '../art/icons.js';
 import { mountMap } from '../art/map.js';
 import { L, traveling } from '../adventure/core.js';
@@ -481,6 +481,7 @@ function renderGame() {
     </div>
     ${game.over ? '' : renderEvent()}`;
   lastArt = art; lastView = ui.view;
+  if (!game.over) { const ny = game.date.month === 12 ? game.date.year + 1 : game.date.year, nm = game.date.month === 12 ? 1 : game.date.month + 1; prewarmScene({ year: ny, month: nm, famine: game.world?.famine, plague: game.world?.plague, place: L(game).place, calamity: calamityNow() }); }
   bindGame();
   if (ui.view === 'map') {
     const host = $('#map-host');
