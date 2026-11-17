@@ -1308,3 +1308,47 @@ details.act-group[open] > .act-grid { margin-top: 2px; }
 .health-now { display: grid; gap: 8px; }
 .health-now.bad { border-color: rgba(179, 38, 30, .55); }
 .hl-sick .wd-row.kn-row { grid-template-columns: minmax(0, 1fr) auto; }
+
+/* ---------- 16단계: 할 일 짧게 보기 ---------- */
+.act-tools { display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
+.act-tools .note { margin: 0; }
+.act-tools button { min-height: 40px; }
+.act-now { margin: 0; font-size: 13px; line-height: 1.5; }
+.act-now b { color: var(--brass); margin-right: 4px; }
+.acts.compact .act-grid { gap: 6px; }
+.acts.compact .act { grid-template-columns: auto minmax(0, 1fr); grid-template-rows: auto; align-items: center; min-height: 52px; padding: 7px 26px 7px 8px; column-gap: 8px; }
+.acts.compact .act .ic { width: 30px; height: 30px; }
+.acts.compact .act .nm { grid-row: 1; font-size: 14.5px; }
+.acts.compact .act .ds { display: none; }
+details.act-group[open]:not(.dark) > summary { align-items: center; padding: 0; }
+@media (max-width: 380px) {
+  .acts.compact .act { grid-template-columns: minmax(0, 1fr); padding-left: 10px; }
+  .acts.compact .act .ic { display: none; }
+}
+.acts.compact .act .nm { overflow-wrap: anywhere; }
+
+/* ---------- 16단계: 맹세와 의형제 ---------- */
+.oath-card { display: grid; gap: 10px; }
+.oath-card > .note { margin: 0; }
+.oa-bonds .oa-strain .note { color: #d08a7a; }
+.oa-vow { display: grid; gap: 2px; padding: 8px 10px; border: 1px solid var(--line); border-radius: 8px; background: var(--bg); }
+
+/* ---------- 16단계: 풀리지 않은 일 ---------- */
+.mystery-now, .mystery-block { display: grid; gap: 8px; }
+.mystery-now > .note, .mystery-block > .note, .my-title { margin: 0; }
+.my-suspects li.pointed { border-color: rgba(179, 38, 30, .65); }
+.my-suspects li.pointed .top .note { color: #d08a7a; }
+.my-suspects li.cleared { opacity: .6; }
+.my-clues { margin: 0; padding-left: 18px; display: grid; gap: 4px; font-size: 13px; color: var(--muted); }
+.my-cold li.bad { border-color: rgba(179, 38, 30, .55); }
+
+/* ---------- 16단계: 예언과 징조 ---------- */
+.omen-card { display: grid; gap: 10px; }
+.omen-card > .note { margin: 0; }
+.om-words { font-style: italic; color: var(--ink, inherit); }
+.om-read, .om-chosen { color: var(--brass); }
+.om-pros li.mine { border-color: var(--brass); }
+.omen-now p { margin: 0; line-height: 1.5; }
+.omen-now b { color: var(--brass); margin-right: 4px; }
+.om-more { display: block; font-size: 12px; }
+.om-pros .wd-row.kn-row { grid-template-columns: minmax(0, 1fr) auto; }

@@ -116,11 +116,12 @@ const GROUPS = [
   ['work', '일과 벌이', /^(work|seek_job|day_labor|inn_kitchen|herbs|help_home|shop_manage|open_shop|domain_|realm_office|farmer|merchant|estate_|voc_|nature_|trade_)/],
   ['learn', '배움과 수련', /^(study|train_body|sword_|meditate|magic_|legend_lesson|research|seal_study|tower_(join|duty|exam|craft))/],
   ['arts', '글과 예술', /^arts_/],
-  ['faith', '믿음과 기도', /^(pray|worship|keep_feast|pilgrimage|faith_seek|holy_heal)$/],
+  ['faith', '믿음과 기도', /^(pray|worship|keep_feast|pilgrimage|faith_seek|holy_heal)$|^omen_/],
   ['court', '궁정', /^court_/],
   ['army', '군대', /^army_/],
-  ['people', '사람과 마을', /^(visit|play|wander|rel_|faction_door|bard|era_|kin_|love_|mentor_|village_|feud_reconcile|peoples_|repute_(boast|feast|clear))/],
+  ['people', '사람과 마을', /^(visit|play|wander|rel_|faction_door|bard|era_|kin_|love_|mentor_|village_|mystery_|feud_reconcile|peoples_|repute_(boast|feast|clear))/],
   ['health', '병과 몸', /^health_/],
+  ['oath', '맹세', /^oath_/],
   ['elder', '마지막 해들', /^elder_/],
   ['road', '길과 모험', /^(party_|gather_party|travel|on_road|housing|quest|delve|deep_|pol_|explore_|gear|pioneer|buy_title|tower_dare|wolves|goblins)/],
   ['beast', '짐승', /^beast_/],
@@ -166,6 +167,11 @@ export function renderPlan(game, ui) {
   ui.plan.forEach((c) => { counts[c.id] = (counts[c.id] ?? 0) + 1; });
   const groups = groupActs(acts);
   const folded = Array.isArray(prefs().foldActs) ? prefs().foldActs : [];
+  // 짧게 보기: 할 일 카드에서 설명을 빼고 이름만(이 기기에 기억). 고른 칸의 설명은 칸 줄 아래에 한 줄로.
+  const many = acts.length > 12;
+  const compact = many && !!prefs().actCompact;
+  // 방금 누른 일의 설명을 먼저(칸이 다음으로 넘어가도), 칸을 고르면 그 칸의 일
+  const nowAct = (ui.pickedAct && ACTIONS.find((a) => a.id === ui.pickedAct)) || activeAct;
 
   return `
   <section class="card plan">
@@ -183,6 +189,7 @@ export function renderPlan(game, ui) {
         </button>`;
       }).join('')}
     </div>
+    ${compact && nowAct ? `<p class="note act-now"><b>${nowAct === activeAct ? `${esc(labels[ui.active])} · ` : ''}${esc(nowAct.name)}</b> ${esc(nowAct.desc ?? '')}</p>` : ''}
     ${activeAct?.needsTarget ? `
       <div class="targets">
         <p class="note">${labels[ui.active]}: 누구를 찾아갈까</p>
@@ -194,7 +201,8 @@ export function renderPlan(game, ui) {
           </button>`).join('')}
         </div>
       </div>` : ''}
-    <div class="acts">
+    <div class="acts${compact ? ' compact' : ''}">
+      ${many ? `<div class="act-tools"><span class="note">할 일 ${acts.length}가지</span><button class="ghost sm" id="act-compact" aria-pressed="${compact}">${compact ? '설명까지 보기' : '이름만 짧게 보기'}</button></div>` : ''}
       ${groups.length > 3 && acts.length > 12 ? `<nav class="act-jump" aria-label="할 일 묶음으로 가기">${groups.map(([gid, name, list]) => `<button class="ghost sm" data-act-jump="${gid}">${esc(name)} <small>${list.length}</small></button>`).join('')}</nav>` : ''}
       ${groups.map(([gid, name, list]) => {
         const cards = list.map((a) => actCard(gid === 'crisis' ? crisisActDesc(game, a) : a, ui, counts)).join('');
@@ -215,10 +223,11 @@ export function renderPlan(game, ui) {
 }
 
 export function bindPlan(game, ui, rerender) {
-  document.querySelectorAll('[data-slot-i]').forEach((b) => b.onclick = () => { ui.active = +b.dataset.slotI; rerender(); });
+  document.querySelectorAll('[data-slot-i]').forEach((b) => b.onclick = () => { ui.active = +b.dataset.slotI; ui.pickedAct = null; rerender(); });
   document.querySelectorAll('[data-act]').forEach((b) => b.onclick = () => {
     const c = ui.plan[ui.active];
     c.id = b.dataset.act;
+    ui.pickedAct = c.id;
     const act = ACTIONS.find((a) => a.id === c.id);
     if (act?.needsTarget) {
       if (!c.target) c.target = visitable(game)[0]?.id;
@@ -247,6 +256,8 @@ export function bindPlan(game, ui, rerender) {
     if (g.tagName === 'DETAILS' && !g.open) g.open = true;
     g.scrollIntoView({ block: 'start', behavior: 'smooth' });
   });
+  const cmp = document.getElementById('act-compact');
+  if (cmp) cmp.onclick = () => { setPref('actCompact', !prefs().actCompact); rerender(); };
   bindTpl(game, ui, rerender);
   const fill = document.getElementById('fill');
   if (fill) fill.onclick = () => {
