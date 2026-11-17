@@ -141,6 +141,8 @@ const BY_SCENE = {
   contest_gamble: 'trade:bard', contest_urge: 'trade:bard', contest_arena: 'feud:strike', contest_fair: 'festival', contest_round: 'festival',
   // 16단계: 풀리지 않은 일 (기존 그림을 이어 붙임)
   mystery_case: 'square:notice', mystery_offer: 'feud:plot', mystery_revenge: 'feud:strike', mystery_old: 'ritual:study',
+  // 17단계: 내 집 마련과 살림 (기존 그림을 이어 붙임)
+  house_build: 'trade:builder', house_work: 'trade:builder', house_warm: 'festival', house_room: 'trade:builder', house_event: 'square:notice', house_heir: 'funeral:visit', house_move: 'road', house_move_house: 'road',
 };
 const TRADE_ART = { famine: 'famine', army: 'muster', smuggle: 'seal:alley', credit: 'court', guard_thief: 'square:flog', porter: 'road', rumor: 'trade:bard' };
 // 새 일(voc_path의 길 id, voc_event의 사건 id)마다의 그림. 없으면 지금 하는 일의 일터 그림
@@ -191,6 +193,7 @@ export function vignetteFor(g, { title = '', text = '', outcome = false } = {}) 
     if (kind === 'sea_event') pick = /폭풍|풍랑/.test(title) ? 'voyage:storm' : /해적|검은 돛/.test(title) ? 'voyage:pirate' : /뱀|괴물|촉수/.test(title + text) ? 'voyage:serpent' : 'voyage';
     if (kind === 'voc_path' || kind === 'voc_event') { const sc = g.life.scene; pick = VOC_ART[sc.path ?? sc.ev] ?? JOB_ART[g.life?.job?.id] ?? null; }
     if (kind === 'peoples_rite' && g.life.scene.id) pick = `peoples:${g.life.scene.id}`;
+    if (kind === 'house_event') pick = { fire: 'fire', thief: 'seal:alley', neighbor: 'feud:offer' }[g.life.scene.ev] ?? pick;
     if (id === 'peoples_name') pick = { silverleaf: 'peoples:elf_dew', hammer: 'peoples:dwarf_fire', fur: 'peoples:beast_totem' }[g.life?.place] ?? pick;
     if (kind === 'explore_leg' || kind === 'explore_heart' || kind === 'explore_name') { const rg = kind === 'explore_name' ? regionOfSite(g.life.scene.site) : g.explore?.exp?.region; if (rg) pick = kind === 'explore_leg' ? `explore:${rg}` : `explore:heart-${rg}`; }
     if (kind === 'trade_event') pick = TRADE_ART[g.life.scene.ev] ?? pick;

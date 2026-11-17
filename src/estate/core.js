@@ -65,7 +65,9 @@ export function homeOf(g, place) {
 }
 export const ownHomes = (g) => L(g).houses.filter((p) => PLACES[p]).map((p) => ({ place: p, ...homeOf(g, p) }));
 // 집 값: 집값 × 넓이 × 낡은 정도
-export const homeWorth = (g, place) => { const h = homeOf(g, place); return h ? Math.round(houseValue(place) * LEVEL_MUL[h.level] * (0.4 + h.cond / 166)) : 0; };
+// 집값에 얹는 배수 (17단계 src/house/: 오두막은 4할). 함수마다 (g, place) → 배수
+export const WORTH_HOOKS = [];
+export const homeWorth = (g, place) => { const h = homeOf(g, place); return h ? Math.round(houseValue(place) * LEVEL_MUL[h.level] * (0.4 + h.cond / 166) * WORTH_HOOKS.reduce((m, f) => m * (f(g, place) ?? 1), 1)) : 0; };
 export const rentedOut = (g, place) => E(g).rentals.some((r) => r.kind === 'house' && r.place === place);
 export const debtTotal = (g) => E(g).loans.reduce((a, l) => a + l.principal, 0);
 export const depositTotal = (g) => E(g).deposits.reduce((a, d) => a + d.amount, 0);
