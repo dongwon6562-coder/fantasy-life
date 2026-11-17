@@ -104,6 +104,8 @@ const mage = (g, magic = 25, mana = 30) => { g.player.manaAwakened = true; g.pla
   check(pickScene(g, '보호 부적') != null && T.craft?.id === 'charm', '부적을 고를 수 없다');
   for (let i = 0; i < 8 && T.craft; i++) { stay(g); g.player.money = 500; endMonth(g, [{ id: 'tower_craft' }, { id: 'tower_craft' }]); for (let k = 0; k < 8 && g.pendingEvent; k++) resolveEvent(g, rngOf(g), 0); }
   check(T.items.includes('charm') && T.made >= 1, '부적을 끝내 못 만든다');
+  // 첫째 선택지만 고르다 보면 검은 탑 모임에 들어 쫓겨나는 판이 있다 (난수가 밀려 생김): 화면 정보만 보려고 자리를 되돌린다
+  if (!T.member) { T.member = M; T.expelled = false; }
   const info = towerInfo(g);
   check(info.member.towerName === '푸른 탑' && info.items[0].name === '보호 부적' && info.member.next && !BAD.test(JSON.stringify(info.log)), '화면 정보가 이상하다');
   check(!BAD.test(towerLine(g)) && towerLine(g).includes('푸른 탑'), `한 줄이 이상하다: ${towerLine(g)}`);
