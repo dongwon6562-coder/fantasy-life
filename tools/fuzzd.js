@@ -53,6 +53,7 @@ import { tradeStatus, T as TRADE, GOOD_IDS as TRADE_GOODS } from '../src/trade/i
 import { contestStatus, C as CONTEST, FAIR_IDS } from '../src/contest/index.js';
 import { houseStatus, H as HOUSE, ROOM_IDS as HOUSE_ROOMS } from '../src/house/index.js';
 import { poorStatus, poorLine, P as POOR } from '../src/poor/index.js';
+import { innStatus, innLine, I as INN, ROLE_IDS as INN_ROLES, REGULAR_IDS as INN_REGS } from '../src/inn/index.js';
 import { mysteryStatus, M as MYSTERY, makeCase, KIND_IDS as MYSTERY_KINDS } from '../src/mystery/index.js';
 import { E as EXPL, REGION_IDS as EXPL_REGIONS, FINDS as EXPL_FINDS } from '../src/explore/core.js';
 import { V as VOC } from '../src/vocation/core.js';
@@ -75,7 +76,7 @@ function roundTrip(g, rng) {
 function chaos(g, rng) {
   const life = L(g);
   const adult = playerAge(g) >= 15;
-  const r = rng.int(0, 26);
+  const r = rng.int(0, 27);
   if (r === 0) return 'roundtrip';
   if (r === 1 && !CR(g).active) startCrisis(g, rng, rng.pick(Object.keys(CRISES)));
   else if (r === 2) { g.realm.balhart.war = true; g.realm.balhart.warMonths = 0; }
@@ -102,6 +103,7 @@ function chaos(g, rng) {
   else if (r === 24) mysteryShake(g, rng);
   else if (r === 25) houseShake(g, rng);
   else if (r === 26) poorShake(g, rng);
+  else if (r === 27) innShake(g, rng);
   else if (r === 15 && adult && !life.travel && !isJailed(g)) { const port = rng.pick(['klein', 'portel', 'saltmare', 'saltrock']); life.place = port; const rt = rng.pick(seaRoutesFrom(g, port)); if (rt) setSail(g, rt.to, rt.months, { own: !!S(g).ship }); }
   return null;
 }
@@ -203,6 +205,25 @@ function houseShake(g, rng) {
   if (rng.chance(0.1)) g.house = JSON.parse(JSON.stringify(g.house));
   runHooks('migrate', g);
 }
+// 내 가게를 흔든다 (src/inn/)
+function innShake(g, rng) {
+  const s = INN(g), life = L(g);
+  if (rng.chance(0.4) && !s.inn) s.inn = { place: rng.chance(0.15) ? 'nowhere' : rng.chance(0.7) ? life.place ?? 'ern' : rng.pick(ALL_PLACES), kind: rng.pick(['tavern', 'inn', 'odd']), name: rng.chance(0.1) ? 7 : '흔들 가게', rooms: rng.int(-1, 5), fame: rng.int(-10, 120), workers: [], regulars: [], backroom: rng.chance(0.2) ? null : {} };
+  const inn = s.inn;
+  if (inn && typeof inn === 'object') {
+    if (rng.chance(0.4)) inn.workers = [...(Array.isArray(inn.workers) ? inn.workers : []), rng.chance(0.2) ? { role: 'gone' } : { id: rng.int(1, 9), name: '흔들 일꾼', role: rng.pick(INN_ROLES), skill: rng.int(0, 90), loyal: rng.int(0, 100), since: 0, honest: rng.chance(0.5) }];
+    if (rng.chance(0.4)) inn.regulars = [...(Array.isArray(inn.regulars) ? inn.regulars : []), { id: rng.pick([...INN_REGS, 'gone']), mood: rng.int(0, 100), tab: rng.int(0, 60) }];
+    if (rng.chance(0.3)) Object.assign(inn, { price: rng.pick(['cheap', 'fair', 'dear', 'odd']), arrears: rng.int(0, 120), taxOwed: rng.int(0, 80), dodged: rng.int(0, 80), heat: rng.int(0, 100), clean: rng.int(0, 100) });
+    if (rng.chance(0.2)) inn.rival = rng.chance(0.2) ? { name: 3 } : { name: '흔들 경쟁', power: rng.int(-5, 100) };
+    if (rng.chance(0.2)) inn.gang = rng.chance(0.2) ? 'x' : { id: rng.pick(['rats', 'glove', 'gone']), state: rng.pick(['paid', 'refused', 'stood']) };
+    if (rng.chance(0.2) && inn.backroom && typeof inn.backroom === 'object') Object.assign(inn.backroom, { gamble: rng.chance(0.5), smuggle: rng.chance(0.5) });
+  }
+  if (rng.chance(0.2)) s.inn = null;
+  if (rng.chance(0.2)) s.lost.push(rng.chance(0.2) ? null : { place: rng.pick(ALL_PLACES), name: '흔들 옛 가게', kind: rng.pick(['tavern', 'inn']), year: 500, how: 'x', gens: 2 });
+  if (rng.chance(0.3)) { const k = rng.pick(['inn_open', 'inn_work', 'inn_manage', 'inn_price', 'inn_hire', 'inn_fire', 'inn_event']); queueScene(g, k, { ev: rng.pick(['arrears', 'tax', 'brawl', 'rumor', 'guest', 'newreg', 'regular', 'worker', 'poach', 'guard', 'gang', 'gamble', 'smuggle', 'rival_open', 'rival', 'gone']), reg: rng.pick([...INN_REGS, 'gone']) }); }
+  if (rng.chance(0.1)) g.inn = JSON.parse(JSON.stringify(g.inn));
+  runHooks('migrate', g);
+}
 // 밑바닥 살이를 흔든다 (src/poor/)
 function poorShake(g, rng) {
   const p = POOR(g), life = L(g);
@@ -271,7 +292,7 @@ function checkState(g, seed, m) {
   const p = g.player;
   for (const [k, v] of Object.entries({ money: p.money, fatigue: p.fatigue, stress: p.stress, renown: L(g).renown, notoriety: L(g).notoriety })) if (!Number.isFinite(v)) fail('NaN 값', k, seed, m);
   if (p.money < 0) fail('돈이 음수', p.money, seed, m);
-  for (const [name, fn] of [['partyStatus', partyStatus], ['crisisStatus', crisisStatus], ['craftStatus', craftStatus], ['domainReport', (x) => (x.domain ? domainReport(x) : null)], ['seaStatus', seaStatus], ['deepStatus', deepStatus], ['estateStatus', estateStatus], ['vocationStatus', vocationStatus], ['armyStatus', armyStatus], ['exploreStatus', exploreStatus], ['beastsStatus', beastsStatus], ['tradeStatus', tradeStatus], ['contestStatus', contestStatus], ['mysteryStatus', mysteryStatus], ['houseStatus', houseStatus], ['poorStatus', poorStatus], ['poorLine', poorLine]]) {
+  for (const [name, fn] of [['partyStatus', partyStatus], ['crisisStatus', crisisStatus], ['craftStatus', craftStatus], ['domainReport', (x) => (x.domain ? domainReport(x) : null)], ['seaStatus', seaStatus], ['deepStatus', deepStatus], ['estateStatus', estateStatus], ['vocationStatus', vocationStatus], ['armyStatus', armyStatus], ['exploreStatus', exploreStatus], ['beastsStatus', beastsStatus], ['tradeStatus', tradeStatus], ['contestStatus', contestStatus], ['mysteryStatus', mysteryStatus], ['houseStatus', houseStatus], ['poorStatus', poorStatus], ['poorLine', poorLine], ['innStatus', innStatus], ['innLine', innLine]]) {
     try { const r = deepBad(fn(g)); if (r) fail(`${name}에 나쁜 값`, r, seed, m); } catch (e) { fail(`${name} 예외`, e.stack, seed, m); }
   }
   if (partyOf(g).members.includes(g.player.id)) fail('내가 내 동료 명단에 있음', g.player.id, seed, m);
