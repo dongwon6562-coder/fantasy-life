@@ -1389,3 +1389,13 @@ details.act-group[open]:not(.dark) > summary { align-items: center; padding: 0; 
   .acts:not(.compact) .act { grid-template-columns: minmax(0, 1fr); }
   .acts:not(.compact) .act .ic { display: none; }
 }
+
+/* ---------- 18단계: 학원과 시험 ---------- */
+.school-block { display: grid; gap: 8px; }
+.school-block > .note { margin: 0; }
+.sc-acad { display: grid; gap: 4px; padding: 8px 10px; border: 1px solid var(--line); border-radius: 8px; background: var(--bg); }
+.sc-acad .top { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 2px 8px; }
+.sc-acad .wd-row.kn-row { grid-template-columns: minmax(0, 1fr) auto; }
+.sc-name { background: none; border: 0; padding: 0; min-height: 0; color: var(--brass); font: inherit; text-decoration: underline; text-underline-offset: 2px; cursor: pointer; }
+.school-now p { margin: 0; line-height: 1.5; }
+.school-now b { color: var(--brass); margin-right: 4px; }
