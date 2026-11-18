@@ -62,6 +62,7 @@ import { renderPoorNow, renderPoorBlock } from './poor.js';
 import { renderSchoolBlock, renderSchoolNow } from './school.js';
 import { renderLawNow, renderLawBlock } from './law.js';
 import { renderHousehold } from './household.js';
+import { renderAftermath, renderAftermathBlock, renderAftermathNow } from './aftermath.js';
 import { renderOmen, renderOmenNow } from './omen.js';
 import { renderMysteryNow, renderMysteryBlock } from './mystery.js';
 import { renderBeasts } from './beasts.js';
@@ -288,6 +289,7 @@ function renderSheet() {
     ${renderFaithBlock(game)}
     ${renderCourtBlock(game)}
     ${renderArmyBlock(game)}
+    ${renderAftermathBlock(game)}
     ${renderVocBlock(game)}
     ${renderArtsBlock(game)}
     ${renderContestBlock(game)}
@@ -489,9 +491,9 @@ function renderGame() {
   const p = game.player;
   const art = sceneImage({ year: game.date.year, month: game.date.month, famine: game.world?.famine, plague: game.world?.plague, place: L(game).place, calamity: calamityNow() });
   let main = '';
-  if (ui.view === 'month') main = game.over ? renderOver() : renderCrisis(game) + renderLawNow(game) + renderPoorNow(game) + renderArmyNow(game) + renderExploreNow(game) + renderTradeNow(game) + renderNatureNow(game) + renderHealthNow(game) + renderMysteryNow(game) + renderOmenNow(game) + renderSchoolNow(game) + renderSummary(ui.summary) + renderNews() + renderYouthCard(game, ui) + renderWorkshop(game, ui) + renderPlan(game, ui);
+  if (ui.view === 'month') main = game.over ? renderOver() : renderCrisis(game) + renderLawNow(game) + renderPoorNow(game) + renderArmyNow(game) + renderAftermathNow(game) + renderExploreNow(game) + renderTradeNow(game) + renderNatureNow(game) + renderHealthNow(game) + renderMysteryNow(game) + renderOmenNow(game) + renderSchoolNow(game) + renderSummary(ui.summary) + renderNews() + renderYouthCard(game, ui) + renderWorkshop(game, ui) + renderPlan(game, ui);
   else if (ui.view === 'me') main = renderSheet();
-  else if (ui.view === 'people') main = withJump([['love', '사랑', renderLove(game)], ['kin', '자식', renderKin(game)], ['oath', '맹세', renderOath(game)], ['household', '식솔', renderHousehold(game)], ['letters', '편지', renderLetters(game)], ['village', '이웃', renderVillage(game)], ['mentor', '제자', renderMentor(game)], ['beasts', '짐승', renderBeasts(game)], ['feud', '원한', renderFeud(game)], ['peoples', '종족의 땅', renderPeoples(game)], ['party', '동료', renderParty(game)], ['notebook', '인물 수첩', renderPeople(game, ui)]]);
+  else if (ui.view === 'people') main = withJump([['love', '사랑', renderLove(game)], ['kin', '자식', renderKin(game)], ['oath', '맹세', renderOath(game)], ['household', '식솔', renderHousehold(game)], ['letters', '편지', renderLetters(game)], ['village', '이웃', renderVillage(game)], ['aftermath', '전쟁 뒤', renderAftermath(game)], ['mentor', '제자', renderMentor(game)], ['beasts', '짐승', renderBeasts(game)], ['feud', '원한', renderFeud(game)], ['peoples', '종족의 땅', renderPeoples(game)], ['party', '동료', renderParty(game)], ['notebook', '인물 수첩', renderPeople(game, ui)]]);
   else if (ui.view === 'map') main = withJump([['map', '지도', renderMap()], ['pol', '대륙 정세', renderPolitics(game, ui)], ['trade', '장사 길', renderTrade(game)], ['nature', '하늘과 땅', renderNature(game)], ['explore', '미지의 땅', renderExplore(game)], ['seal', '봉인', renderSeal(game)], ['omen', '예언', renderOmen(game)], ['deep', '구렁', renderDeep(game)], ['sea', '바다', renderSea(game)], ['world', '레오니아', renderWorldCard()]], { after: 1 }); // 지도가 먼저 (폰에서 바로 보이게), 바로 가기는 지도 아래
   else if (ui.view === 'chron') main = renderChron();
   else if (ui.view === 'save') main = renderSave();

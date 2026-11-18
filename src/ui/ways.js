@@ -17,6 +17,7 @@ const PATHS = [
   { id: 'tower', name: '마탑', what: '마탑에 들어가 견습 마도사로 산다. 탑 일을 하며 공을 쌓고, 서클 공인을 받고, 마도구를 만든다.', acts: ['tower_join', 'tower_duty', 'tower_exam', 'tower_craft'], lock: '열네 살부터, 마력을 깨닫고 마법 솜씨를 15쯤 쌓으면 마탑이 있는 고장에서 문을 두드릴 수 있다.' },
   { id: 'sword', name: '검술 유파', what: '유파에 들어가 검을 배우고 단을 딴다. 겨루기와 결투도 있다.', acts: ['sword_school_join', 'sword_school_train', 'sword_rank_test', 'sword_spar', 'sword_father', 'sword_guard'], lock: '여덟 살부터, 유파의 사범이 있는 고장에서 들어갈 수 있다.' },
   { id: 'army', name: '왕국군', what: '모병소에서 입대해 세 해 동안 창을 든다. 공을 세우면 십인장, 백인장으로 오르고, 원정을 떠난다.', acts: ['army_enlist', 'army_resign'], lock: '열여섯 살부터 마흔두 살까지, 병영이 있는 고장의 모병소에서 입대할 수 있다.' },
+  { id: 'aftermath', name: '전쟁 뒤의 삶', what: '전쟁이 끝나면 끌려간 사람이 돌아오거나 돌아오지 못한다. 불탄 고장을 다시 세우고, 전쟁 과부와 고아를 돕고, 술과 악몽을 이겨 내고, 상처를 증명해 연금을 청한다.', acts: ['aftermath_rebuild', 'aftermath_aid', 'aftermath_sober', 'aftermath_petition'], lock: '다시 세우기는 열네 살부터 불탄 고장에서, 돕기는 열다섯 살부터 과부나 고아가 있는 고장에서, 술 끊기는 술에 기댈 때, 청원은 열여섯 살부터 몸에 상처가 있을 때 왕도·하르펜·베르덴에서 한 번.' },
   { id: 'guild', name: '소속 (기사단·교단·상단·길드)', what: '큰 무리에 들어가 그 안에서 오른다. 소속이 있어야 하는 일자리도 있다.', acts: ['faction_door'], lock: '어른(열다섯 살)이 되면 찾아갈 수 있다.' },
   { id: 'adventure', name: '모험과 동료', what: '동료를 모아 의뢰를 받고, 폐허와 미궁에 들어간다.', acts: ['gather_party', 'party_manage', 'party_quest', 'quest', 'delve', 'gear'], lock: '어른이 되면 동료를 모을 수 있다. 의뢰는 모험가 길드에 들어가야 받는다.' },
   { id: 'deep', name: '깊은 구렁', what: '끝이 없다는 구렁으로 내려간다. 아래로 갈수록 값진 것과 위험한 것이 함께 있다.', acts: ['deep_descend', 'deep_tavern', 'deep_market', 'deep_throne'], lock: '어른이 되어 구렁목까지 가야 한다.' },

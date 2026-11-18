@@ -120,6 +120,7 @@ const GROUPS = [
   ['faith', '믿음과 기도', /^(pray|worship|keep_feast|pilgrimage|faith_seek|holy_heal)$|^omen_/],
   ['court', '궁정', /^court_/],
   ['army', '군대', /^army_/],
+  ['aftermath', '전쟁 뒤', /^aftermath_/],
   ['people', '사람과 마을', /^(visit|play|wander|rel_|faction_door|bard|era_|kin_|love_|mentor_|village_|mystery_|letters_|feud_reconcile|peoples_|repute_(boast|feast|clear))/],
   ['health', '병과 몸', /^health_/],
   ['oath', '맹세', /^oath_/],
@@ -134,12 +135,12 @@ const GROUPS = [
   ['dark', '어두운 일', /^(crime_|gang_|dawn_rite|repute_slander|forbidden_rite|feud_plot)/],
   ['rest', '쉼', /^(rest|drift_years)$/],
 ];
-// 고장마다 따로 있는 일(이름이 고장 이름으로 시작)은 하는 일에 맞는 묶음으로 보낸다.
+// 고장마다 따로 있는 일(이름이 고장 이름으로 시작)과 어린아이 일은 하는 일에 맞는 묶음으로 보낸다.
 const PLACE_ACTS = {
   work: ['harfen_market', 'barka_exchange', 'graubel_forge', 'silverleaf_trade', 'spell_work'],
   learn: ['harfen_dojo', 'harfen_library', 'verden_yard', 'leocast_library', 'leocast_tower', 'leocast_dojo', 'eisen_academy', 'serenia_lecture', 'silverleaf_tree', 'graubel_watch', 'spell_study', 'circle_exam'],
   faith: ['solaris_mass', 'solaris_pilgrims'],
-  people: ['serenia_teahouse', 'barka_harbor'],
+  people: ['serenia_teahouse', 'barka_harbor', 'tag_along', 'beg_story', 'mud_play'],
   contest: ['eisen_arena', 'fur_trial'],
   dark: ['slums'],
 };
