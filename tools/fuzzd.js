@@ -52,6 +52,7 @@ import { beastsStatus, B as BEASTS, KIND_IDS as BEAST_KINDS, addAnimal as addBea
 import { tradeStatus, T as TRADE, GOOD_IDS as TRADE_GOODS } from '../src/trade/index.js';
 import { contestStatus, C as CONTEST, FAIR_IDS } from '../src/contest/index.js';
 import { houseStatus, H as HOUSE, ROOM_IDS as HOUSE_ROOMS } from '../src/house/index.js';
+import { poorStatus, poorLine, P as POOR } from '../src/poor/index.js';
 import { mysteryStatus, M as MYSTERY, makeCase, KIND_IDS as MYSTERY_KINDS } from '../src/mystery/index.js';
 import { E as EXPL, REGION_IDS as EXPL_REGIONS, FINDS as EXPL_FINDS } from '../src/explore/core.js';
 import { V as VOC } from '../src/vocation/core.js';
@@ -74,7 +75,7 @@ function roundTrip(g, rng) {
 function chaos(g, rng) {
   const life = L(g);
   const adult = playerAge(g) >= 15;
-  const r = rng.int(0, 25);
+  const r = rng.int(0, 26);
   if (r === 0) return 'roundtrip';
   if (r === 1 && !CR(g).active) startCrisis(g, rng, rng.pick(Object.keys(CRISES)));
   else if (r === 2) { g.realm.balhart.war = true; g.realm.balhart.warMonths = 0; }
@@ -100,6 +101,7 @@ function chaos(g, rng) {
   else if (r === 23) contestShake(g, rng);
   else if (r === 24) mysteryShake(g, rng);
   else if (r === 25) houseShake(g, rng);
+  else if (r === 26) poorShake(g, rng);
   else if (r === 15 && adult && !life.travel && !isJailed(g)) { const port = rng.pick(['klein', 'portel', 'saltmare', 'saltrock']); life.place = port; const rt = rng.pick(seaRoutesFrom(g, port)); if (rt) setSail(g, rt.to, rt.months, { own: !!S(g).ship }); }
   return null;
 }
@@ -201,6 +203,23 @@ function houseShake(g, rng) {
   if (rng.chance(0.1)) g.house = JSON.parse(JSON.stringify(g.house));
   runHooks('migrate', g);
 }
+// 밑바닥 살이를 흔든다 (src/poor/)
+function poorShake(g, rng) {
+  const p = POOR(g), life = L(g);
+  if (rng.chance(0.3)) life.home = rng.pick(['street', 'inn', 'rent', 'family', 'own']);
+  if (rng.chance(0.3)) g.player.money = rng.int(0, 400);
+  p.hunger = rng.int(0, 4); p.lowMonths = rng.int(0, 10);
+  if (rng.chance(0.3)) p.boss[life.place ?? 'ern'] = rng.pick(['paid', 'refused', 'joined']);
+  if (rng.chance(0.3)) p.friends[rng.pick(['king', 'hag', 'kid', 'knight', 'widow', 'gone'])] = rng.int(0, 100);
+  if (rng.chance(0.2)) p.bond = rng.chance(0.2) ? { owed: 'x', place: 'nowhere' } : { owed: rng.int(-5, 200), place: rng.chance(0.7) ? life.place ?? 'ern' : rng.pick(ALL_PLACES), master: '흔들 감독', start: 0, kind: rng.pick(['salt', 'quarry', 'gone']) };
+  if (rng.chance(0.2)) p.bondsmen.push(rng.chance(0.2) ? { bad: 1 } : { name: rng.pick(['흔들 일꾼', '흔들 둘']), place: rng.chance(0.7) ? life.place ?? 'ern' : rng.pick(ALL_PLACES), since: 0, owed: rng.int(-3, 60) });
+  if (rng.chance(0.2)) p.built[rng.pick(ALL_PLACES)] = 500;
+  if (rng.chance(0.2)) p.lowest = { y: 500, place: rng.pick([...ALL_PLACES, 'nowhere']) };
+  if (rng.chance(0.2) && g.estate) g.estate.loans.push({ id: g.estate.seq++, lender: 'shark', principal: rng.int(10, 200), due: 0, missed: rng.int(0, 4), from: 'harfen' });
+  if (rng.chance(0.3)) { const k = rng.pick(['poor_boss', 'poor_slum', 'poor_chance', 'poor_rise', 'poor_bond', 'poor_bond_work', 'poor_alms', 'poor_hire', 'poor_bondsman']); queueScene(g, k, { ev: rng.pick(['share', 'kid', 'winter', 'gang', 'sick', 'porter', 'scribe', 'old', 'flee', 'beg', 'gone']), loan: rng.int(0, 5), name: p.bondsmen[0]?.name ?? '없는 이' }); }
+  if (rng.chance(0.1)) g.poor = JSON.parse(JSON.stringify(g.poor));
+  runHooks('migrate', g);
+}
 // 지도에 없는 땅을 흔든다 (src/explore/)
 function exploreShake(g, rng) {
   const e = EXPL(g);
@@ -252,7 +271,7 @@ function checkState(g, seed, m) {
   const p = g.player;
   for (const [k, v] of Object.entries({ money: p.money, fatigue: p.fatigue, stress: p.stress, renown: L(g).renown, notoriety: L(g).notoriety })) if (!Number.isFinite(v)) fail('NaN 값', k, seed, m);
   if (p.money < 0) fail('돈이 음수', p.money, seed, m);
-  for (const [name, fn] of [['partyStatus', partyStatus], ['crisisStatus', crisisStatus], ['craftStatus', craftStatus], ['domainReport', (x) => (x.domain ? domainReport(x) : null)], ['seaStatus', seaStatus], ['deepStatus', deepStatus], ['estateStatus', estateStatus], ['vocationStatus', vocationStatus], ['armyStatus', armyStatus], ['exploreStatus', exploreStatus], ['beastsStatus', beastsStatus], ['tradeStatus', tradeStatus], ['contestStatus', contestStatus], ['mysteryStatus', mysteryStatus], ['houseStatus', houseStatus]]) {
+  for (const [name, fn] of [['partyStatus', partyStatus], ['crisisStatus', crisisStatus], ['craftStatus', craftStatus], ['domainReport', (x) => (x.domain ? domainReport(x) : null)], ['seaStatus', seaStatus], ['deepStatus', deepStatus], ['estateStatus', estateStatus], ['vocationStatus', vocationStatus], ['armyStatus', armyStatus], ['exploreStatus', exploreStatus], ['beastsStatus', beastsStatus], ['tradeStatus', tradeStatus], ['contestStatus', contestStatus], ['mysteryStatus', mysteryStatus], ['houseStatus', houseStatus], ['poorStatus', poorStatus], ['poorLine', poorLine]]) {
     try { const r = deepBad(fn(g)); if (r) fail(`${name}에 나쁜 값`, r, seed, m); } catch (e) { fail(`${name} 예외`, e.stack, seed, m); }
   }
   if (partyOf(g).members.includes(g.player.id)) fail('내가 내 동료 명단에 있음', g.player.id, seed, m);
