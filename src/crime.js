@@ -604,7 +604,7 @@ ACTIONS.push(
 // ---------- 체포 장면 ----------
 defineScene('arrest', {
   title: () => '체포',
-  text: (g, s) => T.ARREST_TEXT(watchName(g), sentenceAt(g), fineAt(g), notoriety(g)),
+  text: (g, s) => T.ARREST_TEXT(watchName(g), sentenceAt(g), fineAt(g), notoriety(g), g.date.year * 12 + g.date.month),
   choices: (g) => {
     const out = [];
     const fine = fineAt(g);
@@ -734,7 +734,7 @@ const wbCost = (g, s) => Math.round(8 + (CRIMES[s.crime]?.sev ?? 1) * 6);
 
 defineScene('thugs', {
   title: () => '골목의 사내들',
-  text: (g, s) => T.THUGS_TEXT(byId(g, s.id)),
+  text: (g, s) => T.THUGS_TEXT(byId(g, s.id), g.date.year * 12 + g.date.month),
   choices: () => [
     { label: '맞서 싸운다', key: 'charge' },
     { label: '기습해서 먼저 친다', key: 'ambush' },
