@@ -91,7 +91,7 @@ ok(holy >= 2, `holy power awakened ${holy}/20`);
 
 // 4) 이단 심문: 대지의 어머니를 깊이 믿으며 성도에 살면 심문관이 온다
 let inq = 0;
-const INQ_RUNS = 16; // 판이 적으면 다른 모듈의 무작위 흐름에 흔들린다
+const INQ_RUNS = 24; // 판이 적으면 다른 모듈의 무작위 흐름에 흔들린다 (19단계: 16판에서 24판으로)
 for (let run = 0; run < INQ_RUNS; run++) {
   const g = newGame({ name: '이단', sex: 'f', familyId: 'farmer', mode: 'free', seed: 8100 + run });
   play(g, 12 * 20, ['rest', 'work']);
@@ -99,6 +99,7 @@ for (let run = 0; run < INQ_RUNS; run++) {
   const f = faithState(g);
   f.god = 'earth'; f.devotion = 70;
   L(g).place = 'solaris'; L(g).travel = null; crimeState(g).jailed = null; L(g).job = null;
+  L(g).queue = L(g).queue.filter((s) => !['travel', 'border', 'road'].includes(s.kind)); // 앞선 스무 해에 받아 둔 길 떠나기는 이 점검과 상관없다
   ok(faithLine(g, 'holy').includes('이단'), 'holy border line for heretic');
   const before = seen.scenes.faith_inquisition ?? 0;
   play(g, 12 * 6, ['rest', 'pray'], { faith_inquisition: 0, realm_inquisitor: 0, border: 0 }, 1);
