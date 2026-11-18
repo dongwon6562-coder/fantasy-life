@@ -57,6 +57,9 @@ import { renderTrade, renderTradeNow } from './trade.js';
 import { renderVillage } from './village.js';
 import { renderOath } from './oath.js';
 import { renderHouseBlock } from './house.js';
+import { renderLetters } from './letters.js';
+import { renderPoorNow, renderPoorBlock } from './poor.js';
+import { renderSchoolBlock, renderSchoolNow } from './school.js';
 import { renderLawNow, renderLawBlock } from './law.js';
 import { renderHousehold } from './household.js';
 import { renderOmen, renderOmenNow } from './omen.js';
@@ -277,6 +280,7 @@ function renderSheet() {
       ${lifeLines()}
     </div>
     ${renderYouthBlock(game)}
+    ${renderSchoolBlock(game)}
     ${renderElderBlock(game)}
     ${renderHealthBlock(game)}
     ${renderReputeBlock(game)}
@@ -289,6 +293,7 @@ function renderSheet() {
     ${renderContestBlock(game)}
     ${renderMysteryBlock(game)}
     ${renderLawBlock(game)}
+    ${renderPoorBlock(game)}
     ${renderHouseBlock(game)}
     ${renderEstateBlock(game)}
     ${renderResearchBlock(game)}
@@ -391,7 +396,7 @@ function withJump(parts, { after = 0 } = {}) {
 }
 
 // '나' 화면 바로 가기: 덩이가 여덟 넘으면 이름 줄 아래에 단다. 덩이의 첫 제목 글을 짧게 줄여 쓴다.
-const SHEET_SHORT = { '늙음과 마지막 해들': '늙음', '내기와 겨루기': '내기', '풀리지 않은 일': '미제', '연구와 발명': '연구', '글과 예술': '예술', '병과 의술': '병', '내 집 마련': '집', '법과 재판': '법', '몸과 마음': '몸과 마음', '집과 재산': '재산', '어린 시절': '어린 시절' };
+const SHEET_SHORT = { '늙음과 마지막 해들': '늙음', '내기와 겨루기': '내기', '풀리지 않은 일': '미제', '연구와 발명': '연구', '글과 예술': '예술', '병과 의술': '병', '내 집 마련': '집', '법과 재판': '법', '학원과 시험': '학원', '밑바닥 삶': '밑바닥', '몸과 마음': '몸과 마음', '집과 재산': '재산', '어린 시절': '어린 시절' };
 function sheetJump() {
   const sheet = document.querySelector('.sheet:not(.side)');
   if (!sheet || sheet.querySelector('.view-jump')) return;
@@ -484,9 +489,9 @@ function renderGame() {
   const p = game.player;
   const art = sceneImage({ year: game.date.year, month: game.date.month, famine: game.world?.famine, plague: game.world?.plague, place: L(game).place, calamity: calamityNow() });
   let main = '';
-  if (ui.view === 'month') main = game.over ? renderOver() : renderCrisis(game) + renderLawNow(game) + renderArmyNow(game) + renderExploreNow(game) + renderTradeNow(game) + renderNatureNow(game) + renderHealthNow(game) + renderMysteryNow(game) + renderOmenNow(game) + renderSummary(ui.summary) + renderNews() + renderYouthCard(game, ui) + renderWorkshop(game, ui) + renderPlan(game, ui);
+  if (ui.view === 'month') main = game.over ? renderOver() : renderCrisis(game) + renderLawNow(game) + renderPoorNow(game) + renderArmyNow(game) + renderExploreNow(game) + renderTradeNow(game) + renderNatureNow(game) + renderHealthNow(game) + renderMysteryNow(game) + renderOmenNow(game) + renderSchoolNow(game) + renderSummary(ui.summary) + renderNews() + renderYouthCard(game, ui) + renderWorkshop(game, ui) + renderPlan(game, ui);
   else if (ui.view === 'me') main = renderSheet();
-  else if (ui.view === 'people') main = withJump([['love', '사랑', renderLove(game)], ['kin', '자식', renderKin(game)], ['oath', '맹세', renderOath(game)], ['household', '식솔', renderHousehold(game)], ['village', '이웃', renderVillage(game)], ['mentor', '제자', renderMentor(game)], ['beasts', '짐승', renderBeasts(game)], ['feud', '원한', renderFeud(game)], ['peoples', '종족의 땅', renderPeoples(game)], ['party', '동료', renderParty(game)], ['notebook', '인물 수첩', renderPeople(game, ui)]]);
+  else if (ui.view === 'people') main = withJump([['love', '사랑', renderLove(game)], ['kin', '자식', renderKin(game)], ['oath', '맹세', renderOath(game)], ['household', '식솔', renderHousehold(game)], ['letters', '편지', renderLetters(game)], ['village', '이웃', renderVillage(game)], ['mentor', '제자', renderMentor(game)], ['beasts', '짐승', renderBeasts(game)], ['feud', '원한', renderFeud(game)], ['peoples', '종족의 땅', renderPeoples(game)], ['party', '동료', renderParty(game)], ['notebook', '인물 수첩', renderPeople(game, ui)]]);
   else if (ui.view === 'map') main = withJump([['map', '지도', renderMap()], ['pol', '대륙 정세', renderPolitics(game, ui)], ['trade', '장사 길', renderTrade(game)], ['nature', '하늘과 땅', renderNature(game)], ['explore', '미지의 땅', renderExplore(game)], ['seal', '봉인', renderSeal(game)], ['omen', '예언', renderOmen(game)], ['deep', '구렁', renderDeep(game)], ['sea', '바다', renderSea(game)], ['world', '레오니아', renderWorldCard()]], { after: 1 }); // 지도가 먼저 (폰에서 바로 보이게), 바로 가기는 지도 아래
   else if (ui.view === 'chron') main = renderChron();
   else if (ui.view === 'save') main = renderSave();

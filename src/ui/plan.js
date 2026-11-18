@@ -114,12 +114,12 @@ function bindTpl(game, ui, rerender) {
 const GROUPS = [
   ['crisis', '나라의 큰일', /^crisis_/],
   ['work', '일과 벌이', /^(work|seek_job|day_labor|inn_kitchen|herbs|help_home|shop_manage|open_shop|domain_|realm_office|farmer|merchant|estate_|voc_|nature_|trade_)/],
-  ['learn', '배움과 수련', /^(study|train_body|sword_|meditate|magic_|legend_lesson|research|seal_study|tower_(join|duty|exam|craft))/],
+  ['learn', '배움과 수련', /^(school_|study|train_body|sword_|meditate|magic_|legend_lesson|research|seal_study|tower_(join|duty|exam|craft))/],
   ['arts', '글과 예술', /^arts_/],
   ['faith', '믿음과 기도', /^(pray|worship|keep_feast|pilgrimage|faith_seek|holy_heal)$|^omen_/],
   ['court', '궁정', /^court_/],
   ['army', '군대', /^army_/],
-  ['people', '사람과 마을', /^(visit|play|wander|rel_|faction_door|bard|era_|kin_|love_|mentor_|village_|mystery_|feud_reconcile|peoples_|repute_(boast|feast|clear))/],
+  ['people', '사람과 마을', /^(visit|play|wander|rel_|faction_door|bard|era_|kin_|love_|mentor_|village_|mystery_|letters_|feud_reconcile|peoples_|repute_(boast|feast|clear))/],
   ['health', '병과 몸', /^health_/],
   ['oath', '맹세', /^oath_/],
   ['elder', '마지막 해들', /^elder_/],
@@ -129,6 +129,7 @@ const GROUPS = [
   ['law', '법과 재판', /^law_/],
   ['contest', '내기와 겨루기', /^contest_/],
   ['sea', '바다', /^(sail|sailing|at_sea|cargo|shipyard|sea_|serpent_lair|saltrock|pirate_)/],
+  ['poor', '밑바닥', /^poor_/],
   ['dark', '어두운 일', /^(crime_|gang_|dawn_rite|repute_slander|forbidden_rite|feud_plot)/],
   ['rest', '쉼', /^(rest|drift_years)$/],
 ];
