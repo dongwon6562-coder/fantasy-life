@@ -111,7 +111,8 @@ const checkInfo = (g) => {
     takeJob(g, 'farmer');
     kid(g, 32);
     play(g, 6, ['elder_retire'], { elder_retire: idxOf(t % 2 ? /물려준다/ : /은화를 받는다/) }, 1);
-    if (elderState(g).retired && !L(g).job) retired++;
+    // 물러난 뒤 무작위로 고른 일자리 게시판에서 다른 일을 얻을 수 있다: 농사에서 물러났는지만 본다
+    if (elderState(g).retired && L(g).job?.id !== 'farmer') retired++;
     checkInfo(g);
   }
   ok(retired >= 3, `retired ${retired}/4`);
