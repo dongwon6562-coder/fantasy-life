@@ -71,6 +71,7 @@ function scene(g, kind, data, re, opt = {}) {
   let done = false, chose = null;
   for (let i = 0; i < 6 && !done && !g.over; i++) {
     if (isJailed(g)) crimeState(g).jailed = null; // 고발당해 옥에 갔을 수 있다: 장면은 옥 밖에서 본다
+    opt.ensure?.(g); // 다른 사건(위기 싸움에서 달아남 등)으로 형편이 바뀌었으면 되돌린다
     if (!L(g).queue.some((x) => x.kind === kind) && L(g).scene?.kind !== kind) queueScene(g, kind, data, { first: true });
     month(g, opt.want ?? ['rest'], (k, labels) => { if (k !== kind) return opt.other?.(k, labels) ?? -1; done = true; const i2 = idxOf(labels, re); chose = i2 >= 0 ? labels[i2] : null; return i2; });
   }
@@ -135,7 +136,9 @@ function soldier(seed, family = 'farmer', place = 'harfen') {
     if (officer) { A(g).service.rank = 3; Object.assign(g.player.stats, { int: 45, cha: 45, wil: 45 }); }
     g.player.skills.sword = 30 + run * 2;
     war(g);
-    scene(g, 'army_muster', { war: { key: 'balhart', name: '발하르트 전선', kind: 'realm' } }, /대열에 선다/);
+    // 소집을 기다리는 사이 다른 사건으로 군을 떠났으면 다시 입대한다 (난수에 따라 갈리지 않게)
+    const reenlist = (h) => { if (A(h).service) return; placeAt(h, 'harfen'); peace(h); scene(h, 'army_enlist', {}, /서명한다/); if (officer && A(h).service) A(h).service.rank = 3; war(h); };
+    scene(g, 'army_muster', { war: { key: 'balhart', name: '발하르트 전선', kind: 'realm' } }, /대열에 선다/, { ensure: reenlist });
     if (!A(g).campaign) { fail('campaign not started'); continue; }
     // 원정 중에는 할 수 있는 일이 줄어든다
     const ids = availableActions(g).map((a) => a.id);

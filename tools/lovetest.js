@@ -3,7 +3,7 @@ import '../src/content.js';
 // 사랑과 혼인 점검: 눈길·만남·짝사랑·나를 마음에 둔 사람, 정략혼과 혼례, 배우자의 바람·다툼, 바람과 들킴, 배신, 이혼·재혼, 사별 뒤, 대 잇기, 옛 저장.
 import { newGame, endMonth, availableActions, slotsFor, playerAge, rngOf, me } from '../src/game.js';
 import { resolveEvent } from '../src/events.js';
-import { L } from '../src/adventure/core.js';
+import { L, queueScene } from '../src/adventure/core.js';
 import { run as runHooks } from '../src/hooks.js';
 import { loveState, loveInfo, divorce } from '../src/love/index.js';
 import { makePerson, byId, kill } from '../src/npc.js';
@@ -120,6 +120,17 @@ for (let run = 0; run < 16 || (run < 40 && !seen.scenes.love_betrayed); run++) {
   if (v.spouse?.wishDone) wishesDone++;
   if (v.spouse) ok(Number.isFinite(v.spouse.mood) && v.spouse.mood >= 0 && v.spouse.mood <= 100, `mood ${v.spouse.mood}`);
   checkInfo(g);
+}
+// 저절로 안 나왔으면 형편을 맞추고 직접 띄운다 (배우자의 기분이 바닥일 때의 바람)
+for (let t = 0; t < 3 && !seen.scenes.love_betrayed; t++) {
+  const g = adult(3000 + t, 'farmer', 30);
+  const sp = spouseFor(g);
+  sp.traits = (sp.traits ?? []).filter((x) => x !== 'pious');
+  play(g, 1, ['rest'], {}, 1); // 혼인 기록(spouse)은 달이 넘어가야 생긴다
+  if (!loveState(g).spouse || !sp.alive) continue;
+  loveState(g).spouse.mood = 20;
+  queueScene(g, 'love_betrayed', { id: sp.id, other: '떠돌이 악사' }, { first: true });
+  play(g, 2, ['rest'], { love_betrayed: 0 }, 1);
 }
 ok(married >= 3, `married ${married}/16`); // 씨앗마다 3~8: 한 달에 같은 만남 두 번 금지, 장면 이어 띄우기(헤드) 뒤 흔들림이 크다
 ok(wishesDone >= 2, `wishes done ${wishesDone}`);

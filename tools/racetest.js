@@ -31,7 +31,7 @@ const samples = [];
 
 // 2) 종족마다 삶 (쉬엄쉬엄 아무거나 하며)
 for (const [race, fam] of Object.entries(FAMS)) {
-  stat[race] = { died: [], mana: 0, runs: 0, farewells: 0, drifted: 0, kids: {} };
+  stat[race] = { died: [], all: [], mana: 0, runs: 0, farewells: 0, drifted: 0, kids: {} };
   for (let run = 0; run < 6; run++) {
     const g = newGame({ name: '아이', sex: run % 2 ? 'm' : 'f', familyId: fam, mode: 'once', seed: 4400 + run * 13 + race.length });
     const S = stat[race];
@@ -71,6 +71,7 @@ for (const [race, fam] of Object.entries(FAMS)) {
     const first = L(g).ancestors[0];
     // 종족과 상관없이 아무 때나 오는 갑작스런 병(game.js)은 타고난 수명을 재는 데서 뺀다
     if (first && first.cause !== '병') S.died.push(first.age);
+    if (first) S.all.push(first.age); // 병으로 죽은 것까지 (병 아닌 죽음이 하나도 없을 때 쓴다)
     S.farewells += raceState(g).farewells;
     S.drifted += raceState(g).drifted;
   }
@@ -98,7 +99,9 @@ for (const [race, S] of Object.entries(stat)) {
 }
 console.log('장면:', JSON.stringify(scenes));
 for (const s of samples) console.log(' -', s.slice(0, 300));
-const avgDied = (r) => stat[r].died.reduce((a, b) => a + b, 0) / Math.max(1, stat[r].died.length);
+// 난수에 따라 한 종족의 첫 삶이 모두 병으로 끝나기도 한다. 그때는 병으로 죽은 나이까지 넣어 잰다.
+const ages = (r) => (stat[r].died.length ? stat[r].died : stat[r].all);
+const avgDied = (r) => ages(r).reduce((a, b) => a + b, 0) / Math.max(1, ages(r).length);
 ok(avgDied('elf') > avgDied('human') * 1.8, 'elves live much longer');
 ok(avgDied('dwarf') > avgDied('human') * 1.4, 'dwarves live longer');
 ok(stat.elf.mana / stat.elf.runs > stat.dwarf.mana / stat.dwarf.runs, 'elves have more mana than dwarves');

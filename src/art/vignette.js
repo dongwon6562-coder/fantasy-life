@@ -123,6 +123,8 @@ const BY_SCENE = {
   // 14단계: 장사 길과 상단 (trade_event는 아래에서 일에 따라 고른다)
   trade_market: 'beastlife:market', trade_caravan: 'road', trade_bandits: 'feud:strike', trade_toll: 'square:guards', trade_house: 'mentor:found', trade_rival: 'feud:plot', trade_event: 'beastlife:market',
   // 14단계: 글과 예술 (기존 그림을 이어 붙임)
+  // 18단계: 편지와 먼 인연 (새 그림 없이 있는 판을 붙임)
+  letters_write: 'ritual:study', letters_send: 'road', letters_arrive: 'road:return', letters_found: 'road', letters_forge: 'ritual:study', letters_bundle: 'funeral:visit',
   // 17단계: 하인과 식솔 (새 그림 없이 있는 판을 붙임)
   household_hire: 'mentor:bow', household_manage: 'mentor:bow', household_thief: 'square:guards', household_ears: 'seal:alley', household_skim: 'ritual:study', household_grievance: 'mentor:bow',
   household_old: 'bedside', household_heir: 'mentor:bow', household_serve: 'court', household_errand: 'road', household_overheard: 'seal:alley', household_framed: 'square:guards', household_strongbox: 'seal:alley',
