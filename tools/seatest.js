@@ -59,8 +59,10 @@ function month(g, want = [], pick = null) {
 // 장면 하나를 띄워 고른다 (다른 사건이 먼저 뜨면 몇 달 기다린다)
 function scene(g, kind, re, data = {}) {
   let done = false;
+  const pl0 = L(g).place;
   for (let i = 0; i < 6 && !done && !g.over; i++) {
     crimeState(g).jailed = null; // 다른 갈래 사건으로 갇히면 부두에 못 나간다: 이 점검은 배 타기 자체만 본다
+    if (L(g).place !== pl0 && !L(g).travel) L(g).place = pl0; // 다른 사건으로 고장을 옮겼으면 부두로 되돌린다 (난수에 따라 갈리지 않게)
     if (!L(g).queue.some((x) => x.kind === kind) && L(g).scene?.kind !== kind) queueScene(g, kind, data, { first: true });
     month(g, ['rest'], (k, labels) => { if (k !== kind) return -1; done = true; return labels.findIndex((l) => re.test(l)); });
   }
@@ -146,7 +148,10 @@ if (!seen.arrived.has('saltrock') && !seen.arrived.has('saltmare')) fail('never 
   scene(g, 'shipyard', /쌍돛 상선.*산다/);
   if (S(g).ship?.kind !== 'brig') fail('could not buy brig', S(g).ship);
   const before = g.player.money;
+  const toPort = () => { if (L(g).place !== 'klein') { L(g).place = 'klein'; L(g).travel = null; } }; // 배를 산 달에 다른 사건으로 고장을 옮겼을 수 있다
+  toPort();
   scene(g, 'cargo', /^밀 /);
+  toPort();
   if (S(g).cargo?.good !== 'grain' || S(g).cargo.qty !== 50) fail('cargo not loaded', S(g).cargo);
   scene(g, 'sail', /포르텔/);
   if (!L(g).travel?.own) fail('own ship not used', L(g).travel);
