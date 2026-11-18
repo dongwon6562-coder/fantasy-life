@@ -78,9 +78,9 @@ EVENTS.push(
   },
   {
     id: 'adult_old_friend_returns', once: true,
-    cond: (g) => age(g) >= 18 && g.people.some((p) => p.away && p.alive && p.known && p.affection >= 10),
+    cond: (g) => age(g) >= 18 && g.people.some((p) => p.away && !p.drafted && p.alive && p.known && p.affection >= 10),
     chance: () => 0.04, weight: 55,
-    prepare: (g, rng) => ({ id: rng.pick(g.people.filter((p) => p.away && p.alive && p.known && p.affection >= 10)).id }),
+    prepare: (g, rng) => ({ id: rng.pick(g.people.filter((p) => p.away && !p.drafted && p.alive && p.known && p.affection >= 10)).id }),
     title: '돌아온 얼굴',
     text: (g, c) => { const p = byId(g, c.id); return `마을 어귀에 낯익은 얼굴이 섰다. ${p.name}이다. 몇 년 전 떠났던. 얼굴엔 흉터가, 눈엔 피로가 들어앉았다. "...오랜만이야."`; },
     choices: [

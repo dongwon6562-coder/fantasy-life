@@ -130,7 +130,7 @@ function yearOf(g, rng, n, say, record) {
   // 은퇴: 늙은 사람은 칼을 놓는다. 에른 출신은 고향으로 돌아온다.
   if ((n.age > (n.kind === 'scholar' ? 64 : 58) && rng.chance(0.18)) || n.fame <= 3) {
     drop(g, n);
-    if (p && n.home === 'ern' && p.alive) {
+    if (p && n.home === 'ern' && p.alive && !p.drafted) {
       p.away = false; p.place = 'ern';
       p.history.push({ y: g.date.year, m: g.date.month, text: '오랜 떠돌이 생활을 접고 에른으로 돌아왔다.' });
       say(`${J(fullName(p), '이/가')} 오랜 세월 끝에 에른으로 돌아왔다. ${n.fame >= 45 ? `${J(notableTitle(n), '으로/로')} 이름을 날리던 사람이다.` : '떠날 때보다 많이 늙었다.'}`, rel >= 60, Math.max(rel, 45));
@@ -156,7 +156,7 @@ function succeed(g, rng, place, role, old, say, record) {
   const job = old?.job ?? role;
   const cand = HEIR_OF[role] ? H(g).notables.filter(HEIR_OF[role]).sort((a, b) => b.fame - a.fame)[0] : null;
   let p;
-  if (cand && cand.pid && byId(g, cand.pid)?.alive) {
+  if (cand && cand.pid && byId(g, cand.pid)?.alive && !byId(g, cand.pid).drafted) {
     p = byId(g, cand.pid);
     p.away = false;
   } else {
