@@ -1,6 +1,7 @@
 // 9단계 갈래 화면: 자식 기르기(src/kin)와 집과 재산(src/estate). 읽기만 한다.
 import { kinInfo } from '../kin/index.js';
 import { estateStatus } from '../estate/index.js';
+import { houseStatus } from '../house/index.js';
 import { byId } from '../game.js';
 import { portrait } from '../art/portrait.js';
 import { esc } from './util.js';
@@ -53,7 +54,9 @@ export function renderEstateBlock(game) {
   const L = s.ledger;
   const led = [['세 받은 돈', L.rent, 1], ['투자 오르내림', L.invest, 1], ['하인 삯', L.wages, -1], ['빚 이자', L.interest, -1], ['고친 값', L.upkeep, -1]]
     .filter(([, v]) => v).map(([k, v, sg]) => `<span class="sm-chip ${sg * v > 0 ? 'up' : 'down'}"><span>${k}</span><b>${signed(sg * v)}</b></span>`).join('');
-  const homes = s.homes.map((h) => `<li><div class="top"><strong>${esc(h.name)}의 ${esc(h.levelName)}</strong><span class="note">${h.living ? '여기 산다' : h.rented ? `세놓음 · 달마다 ${coin(h.rent)}` : '비어 있다'}</span></div>
+  // '내 집 마련' 덩이가 그린 집은 거기서 낡음·세·하인까지 보여 준다. 여기서는 나머지만.
+  const shown = new Set((safe(() => houseStatus(game))?.homes ?? []).map((h) => h.place));
+  const homes = s.homes.filter((h) => !shown.has(h.place)).map((h) => `<li><div class="top"><strong>${esc(h.name)}의 ${esc(h.levelName)}</strong><span class="note">${h.living ? '여기 산다' : h.rented ? `세놓음 · 달마다 ${coin(h.rent)}` : '비어 있다'}</span></div>
       <div class="wd-row"><span>상태</span>${bar(h.cond, h.cond < 40 ? 'low' : '')}<span class="v">${esc(h.condWord)}</span></div>
       <span class="note">값 ${coin(h.worth)}${h.servants ? ` · 하인 ${h.servants}명 (달마다 ${coin(h.servantWage)})` : ''}</span></li>`).join('');
   const rentals = s.rentals.filter((r) => r.kind !== 'house').map((r) => `<li><div class="top"><strong>${esc(r.name)}의 ${esc(r.kindName)}</strong><span class="note">${r.tenant ? `${esc(r.tenant)}에게 세놓음` : '빌릴 사람을 찾는 중'}</span></div>

@@ -113,18 +113,22 @@ function bindTpl(game, ui, rerender) {
 // 행동 묶음: 고르기 쉽게 성격별로 나눈다. 어두운 일은 접어 둔다(고르면 펼쳐진 채로).
 const GROUPS = [
   ['crisis', '나라의 큰일', /^crisis_/],
+  ['jail', '감옥', /^jail_/],
   ['work', '일과 벌이', /^(work|seek_job|day_labor|inn_kitchen|herbs|help_home|shop_manage|open_shop|domain_|realm_office|farmer|merchant|estate_|voc_|nature_|trade_)/],
+  ['inn', '내 가게', /^inn_(open|work|manage)$/],
   ['learn', '배움과 수련', /^(school_|study|train_body|sword_|meditate|magic_|legend_lesson|research|seal_study|tower_(join|duty|exam|craft))/],
   ['arts', '글과 예술', /^arts_/],
   ['faith', '믿음과 기도', /^(pray|worship|keep_feast|pilgrimage|faith_seek|holy_heal)$|^omen_/],
   ['court', '궁정', /^court_/],
   ['army', '군대', /^army_/],
+  ['aftermath', '전쟁 뒤', /^aftermath_/],
   ['people', '사람과 마을', /^(visit|play|wander|rel_|faction_door|bard|era_|kin_|love_|mentor_|village_|mystery_|letters_|feud_reconcile|peoples_|repute_(boast|feast|clear))/],
   ['health', '병과 몸', /^health_/],
   ['oath', '맹세', /^oath_/],
   ['elder', '마지막 해들', /^elder_/],
   ['house', '집과 살림', /^(house_|household_)/],
   ['road', '길과 모험', /^(party_|gather_party|travel|on_road|housing|quest|delve|deep_|pol_|explore_|gear|pioneer|buy_title|tower_dare|wolves|goblins)/],
+  ['wilds', '마물 사냥', /^wilds_/],
   ['beast', '짐승', /^beast_/],
   ['law', '법과 재판', /^law_/],
   ['contest', '내기와 겨루기', /^contest_/],
@@ -133,12 +137,23 @@ const GROUPS = [
   ['dark', '어두운 일', /^(crime_|gang_|dawn_rite|repute_slander|forbidden_rite|feud_plot)/],
   ['rest', '쉼', /^(rest|drift_years)$/],
 ];
-export const groupNameOf = (id) => GROUPS.find(([, , re]) => re.test(id))?.[1] ?? '그 밖';
+// 고장마다 따로 있는 일(이름이 고장 이름으로 시작)과 어린아이 일은 하는 일에 맞는 묶음으로 보낸다.
+const PLACE_ACTS = {
+  work: ['harfen_market', 'barka_exchange', 'graubel_forge', 'silverleaf_trade', 'spell_work'],
+  learn: ['harfen_dojo', 'harfen_library', 'verden_yard', 'leocast_library', 'leocast_tower', 'leocast_dojo', 'eisen_academy', 'serenia_lecture', 'silverleaf_tree', 'graubel_watch', 'spell_study', 'circle_exam'],
+  faith: ['solaris_mass', 'solaris_pilgrims'],
+  people: ['serenia_teahouse', 'barka_harbor', 'tag_along', 'beg_story', 'mud_play'],
+  contest: ['eisen_arena', 'fur_trial'],
+  dark: ['slums'],
+};
+const PLACE_GROUP = Object.fromEntries(Object.entries(PLACE_ACTS).flatMap(([g, ids]) => ids.map((id) => [id, g])));
+const groupIndex = (id) => (PLACE_GROUP[id] ? GROUPS.findIndex(([g]) => g === PLACE_GROUP[id]) : GROUPS.findIndex(([, , re]) => re.test(id)));
+export const groupNameOf = (id) => GROUPS[groupIndex(id)]?.[1] ?? '그 밖';
 function groupActs(acts) {
   const out = GROUPS.map(([id, name]) => [id, name, []]);
   const etc = ['etc', '그 밖', []];
   for (const a of acts) {
-    const i = GROUPS.findIndex(([, , re]) => re.test(a.id));
+    const i = groupIndex(a.id);
     (i >= 0 ? out[i][2] : etc[2]).push(a);
   }
   return [...out, etc].filter(([, , l]) => l.length);

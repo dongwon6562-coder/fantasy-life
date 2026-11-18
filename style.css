@@ -1358,7 +1358,7 @@ details.act-group[open]:not(.dark) > summary { align-items: center; padding: 0; 
 .house-block > .note { margin: 0; }
 .hs-rooms { display: flex; flex-wrap: wrap; gap: 4px; align-items: center; }
 .hs-rooms .note { margin-left: 2px; }
-.hs-build .wd-row.kn-row { grid-template-columns: minmax(0, 1fr) auto; }
+.hs-build .wd-row.kn-row, .hs-homes .wd-row.kn-row { grid-template-columns: minmax(0, 1fr) auto; }
 .hs-homes li.here { border-color: var(--brass-dim); }
 
 /* ---------- 17단계: 하인과 식솔 ---------- */
@@ -1405,6 +1405,14 @@ details.act-group[open]:not(.dark) > summary { align-items: center; padding: 0; 
 .poor-now > .note, .poor-block > .note { margin: 0; }
 .poor-now.bad { border-color: rgba(179, 38, 30, .55); }
 .pr-folk .wd-row.kn-row { grid-template-columns: minmax(0, 1fr) auto; }
+/* 19단계 전쟁 뒤 */
+.am-list .wd-row.kn-row { grid-template-columns: minmax(0, 1fr) auto; }
+.am-now .note { margin: 0; }
+/* 19단계 내 가게 */
+.inn-list .wd-row.kn-row { grid-template-columns: minmax(0, 1fr) auto; }
+/* 19단계 마물의 땅 */
+.wl-list { list-style: none; margin: 0 0 8px; padding: 0; display: grid; gap: 6px; }
+.wl-list .wd-row.kn-row { grid-template-columns: minmax(0, 1fr) 64px; align-items: center; }
 .pr-folk li { grid-template-columns: minmax(0, 1fr); }
 
 /* ---------- 18단계: 편지와 먼 인연 ---------- */

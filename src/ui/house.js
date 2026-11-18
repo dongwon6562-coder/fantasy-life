@@ -1,12 +1,14 @@
 // 17단계 '내 집 마련과 살림' 화면(src/house). 읽기만 한다. '나' 화면 덩이 ('집과 재산' 장부 바로 위).
 // 잠자리, 짓는 중인 집, 가진 집(이름·내력·방과 살림), 이웃, 이사, 판 집·불탄 집, 기록.
 import { houseStatus } from '../house/index.js';
+import { estateStatus } from '../estate/index.js';
 import { HOME_NAMES } from '../places.js';
 import { esc } from './util.js';
 
 const safe = (fn, d = null) => { try { return fn() ?? d; } catch (e) { console.error(e); return d; } };
 const bar = (v, cls = '') => `<span class="wd-bar ${cls}"><i style="width:${Math.max(0, Math.min(100, v))}%"></i></span>`;
 const BUILD_MONTHS = { hut: 3, house: 6, rebuild: 4 }; // src/house/build.js BUILDS의 months
+const coin = (n) => `은화 ${Math.round(n)}닢`;
 const moodWord = (m) => (m >= 25 ? '사이가 좋다' : m >= 8 ? '인사를 나눈다' : m > -8 ? '데면데면하다' : m > -25 ? '껄끄럽다' : '원수 같다');
 
 export function renderHouseBlock(game) {
@@ -15,12 +17,17 @@ export function renderHouseBlock(game) {
   if (!s.homes.length && !s.build && !s.lost.length && !s.moving && !s.log.length) return '';
   const B = s.build;
   const total = B ? BUILD_MONTHS[B.kind] ?? Math.max(1, B.monthsLeft) : 1;
+  // 낡음·세·하인은 '집과 재산'(estate)이 맡는다. 같은 집을 두 번 그리지 않게 여기에 함께 싣는다.
+  const est = Object.fromEntries((safe(() => estateStatus(game))?.homes ?? []).map((e) => [e.place, e]));
   const home = (h) => {
-    const bits = [`${esc(h.placeName)}${h.here ? ' · 여기' : ''}`];
+    const e = est[h.place];
+    const bits = [`${esc(h.kindWord)} · ${esc(h.placeName)}${h.here && !e ? ' · 여기' : ''}`];
     if (h.built) bits.push(`${h.built}년부터${h.by ? ` (${esc(h.by)})` : ''}`);
     if (h.gens > 1) bits.push(`${h.gens}대째`);
-    return `<li class="${h.here ? 'here' : ''}"><div class="top"><strong>${esc(h.name)}</strong><span class="note">${esc(h.kindWord)}</span></div>
-      <span class="note">${bits.join(' · ')}${h.worth ? ` · 값 은화 ${h.worth}닢` : ''}</span>
+    const state = e ? (e.living ? '여기 산다' : e.rented ? `세놓음 · 달마다 ${coin(e.rent)}` : '비어 있다') : h.kindWord;
+    return `<li class="${h.here ? 'here' : ''}"><div class="top"><strong>${esc(h.name)}</strong><span class="note">${esc(state)}</span></div>
+      <span class="note">${bits.join(' · ')}${h.worth ? ` · 값 은화 ${h.worth}닢` : ''}${e?.servants ? ` · 하인 ${e.servants}명 (달마다 ${coin(e.servantWage)})` : ''}</span>
+      ${e ? `<div class="wd-row kn-row"><span>${esc(e.condWord)}</span>${bar(e.cond, e.cond < 40 ? 'low' : '')}</div>` : ''}
       ${h.rooms.length ? `<div class="hs-rooms">${h.rooms.map((r) => `<span class="chip" title="${esc(r.desc)}">${esc(r.name)}</span>`).join('')}<span class="note">${h.rooms.length}/${h.roomCap}칸</span></div>` : `<span class="note">들인 살림이 없다 (${h.roomCap}칸까지)</span>`}
       ${h.marks.length ? `<span class="note">집에 남은 흔적: ${h.marks.map(esc).join(', ')}</span>` : ''}</li>`;
   };
