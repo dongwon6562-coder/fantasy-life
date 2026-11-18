@@ -119,7 +119,7 @@ const GROUPS = [
   ['faith', '믿음과 기도', /^(pray|worship|keep_feast|pilgrimage|faith_seek|holy_heal)$|^omen_/],
   ['court', '궁정', /^court_/],
   ['army', '군대', /^army_/],
-  ['people', '사람과 마을', /^(visit|play|wander|rel_|faction_door|bard|era_|kin_|love_|mentor_|village_|mystery_|feud_reconcile|peoples_|repute_(boast|feast|clear))/],
+  ['people', '사람과 마을', /^(visit|play|wander|rel_|faction_door|bard|era_|kin_|love_|mentor_|village_|mystery_|letters_|feud_reconcile|peoples_|repute_(boast|feast|clear))/],
   ['health', '병과 몸', /^health_/],
   ['oath', '맹세', /^oath_/],
   ['elder', '마지막 해들', /^elder_/],

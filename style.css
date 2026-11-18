@@ -1406,3 +1406,10 @@ details.act-group[open]:not(.dark) > summary { align-items: center; padding: 0; 
 .poor-now.bad { border-color: rgba(179, 38, 30, .55); }
 .pr-folk .wd-row.kn-row { grid-template-columns: minmax(0, 1fr) auto; }
 .pr-folk li { grid-template-columns: minmax(0, 1fr); }
+
+/* ---------- 18단계: 편지와 먼 인연 ---------- */
+.letters-card { display: grid; gap: 10px; }
+.letters-card > .note { margin: 0; }
+.lt-corr .wd-row.kn-row { grid-template-columns: minmax(0, 1fr) auto; }
+.lt-corr li.gone { opacity: .65; }
+.lt-kept span { font-size: 13px; }
