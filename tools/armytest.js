@@ -117,7 +117,7 @@ function soldier(seed, family = 'farmer', place = 'harfen') {
   Object.assign(A(g).service, { rank: 2, merit: MERIT[3], months: 30 });
   Object.assign(g.player.stats, { int: 50, cha: 50, wil: 50 }); g.player.skills.letters = 30; g.player.money = 120;
   scene(g, 'army_promote', { to: 3 }, /임관금/);
-  if (A(g).service.rank !== 3 || g.player.money > 55) fail('commission not bought', A(g).service.rank, g.player.money);
+  if (A(g).service.rank !== 3 || g.player.money > 80) /* 임관금 65닢. 그달 녹봉·사건으로 조금 들어올 수 있다 */ fail('commission not bought', A(g).service.rank, g.player.money);
   const n = soldier(41200, 'fallen_knight');
   Object.assign(A(n).service, { rank: 2, merit: MERIT[3], months: 30 });
   Object.assign(n.player.stats, { int: 50, cha: 50, wil: 50 }); n.player.skills.letters = 30;
