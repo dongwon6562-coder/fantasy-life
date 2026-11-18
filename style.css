@@ -1408,6 +1408,8 @@ details.act-group[open]:not(.dark) > summary { align-items: center; padding: 0; 
 /* 19단계 전쟁 뒤 */
 .am-list .wd-row.kn-row { grid-template-columns: minmax(0, 1fr) auto; }
 .am-now .note { margin: 0; }
+/* 19단계 내 가게 */
+.inn-list .wd-row.kn-row { grid-template-columns: minmax(0, 1fr) auto; }
 .pr-folk li { grid-template-columns: minmax(0, 1fr); }
 
 /* ---------- 18단계: 편지와 먼 인연 ---------- */
