@@ -1,5 +1,6 @@
 // 세 살에서 여덟 살 사이의 작은 날들 (헤드). 처음 한 시간 동안 이 나이에 넉 달 중 세 달이 아무 일 없이 지나가서,
 // 집과 마을과 계절 속의 작은 장면을 채운다. 큰 갈림길이 아니라, 어떤 아이로 자랄지 조금씩 기울이는 일들이다.
+import './toddler.js';
 import { gainStat, gainSkill } from '../game.js';
 import { EVENTS, flag, setFlag, stress, tire, like, check, nm, age, fam, father, mother, alive, siblings, peers, findJob, season, inVillage, onRoad, byId, spendFamily } from '../events/core.js';
 
