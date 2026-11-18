@@ -1358,7 +1358,7 @@ details.act-group[open]:not(.dark) > summary { align-items: center; padding: 0; 
 .house-block > .note { margin: 0; }
 .hs-rooms { display: flex; flex-wrap: wrap; gap: 4px; align-items: center; }
 .hs-rooms .note { margin-left: 2px; }
-.hs-build .wd-row.kn-row { grid-template-columns: minmax(0, 1fr) auto; }
+.hs-build .wd-row.kn-row, .hs-homes .wd-row.kn-row { grid-template-columns: minmax(0, 1fr) auto; }
 .hs-homes li.here { border-color: var(--brass-dim); }
 
 /* ---------- 17단계: 하인과 식솔 ---------- */

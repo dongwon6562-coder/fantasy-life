@@ -113,6 +113,7 @@ function bindTpl(game, ui, rerender) {
 // 행동 묶음: 고르기 쉽게 성격별로 나눈다. 어두운 일은 접어 둔다(고르면 펼쳐진 채로).
 const GROUPS = [
   ['crisis', '나라의 큰일', /^crisis_/],
+  ['jail', '감옥', /^jail_/],
   ['work', '일과 벌이', /^(work|seek_job|day_labor|inn_kitchen|herbs|help_home|shop_manage|open_shop|domain_|realm_office|farmer|merchant|estate_|voc_|nature_|trade_)/],
   ['learn', '배움과 수련', /^(school_|study|train_body|sword_|meditate|magic_|legend_lesson|research|seal_study|tower_(join|duty|exam|craft))/],
   ['arts', '글과 예술', /^arts_/],
@@ -133,12 +134,23 @@ const GROUPS = [
   ['dark', '어두운 일', /^(crime_|gang_|dawn_rite|repute_slander|forbidden_rite|feud_plot)/],
   ['rest', '쉼', /^(rest|drift_years)$/],
 ];
-export const groupNameOf = (id) => GROUPS.find(([, , re]) => re.test(id))?.[1] ?? '그 밖';
+// 고장마다 따로 있는 일(이름이 고장 이름으로 시작)은 하는 일에 맞는 묶음으로 보낸다.
+const PLACE_ACTS = {
+  work: ['harfen_market', 'barka_exchange', 'graubel_forge', 'silverleaf_trade', 'spell_work'],
+  learn: ['harfen_dojo', 'harfen_library', 'verden_yard', 'leocast_library', 'leocast_tower', 'leocast_dojo', 'eisen_academy', 'serenia_lecture', 'silverleaf_tree', 'graubel_watch', 'spell_study', 'circle_exam'],
+  faith: ['solaris_mass', 'solaris_pilgrims'],
+  people: ['serenia_teahouse', 'barka_harbor'],
+  contest: ['eisen_arena', 'fur_trial'],
+  dark: ['slums'],
+};
+const PLACE_GROUP = Object.fromEntries(Object.entries(PLACE_ACTS).flatMap(([g, ids]) => ids.map((id) => [id, g])));
+const groupIndex = (id) => (PLACE_GROUP[id] ? GROUPS.findIndex(([g]) => g === PLACE_GROUP[id]) : GROUPS.findIndex(([, , re]) => re.test(id)));
+export const groupNameOf = (id) => GROUPS[groupIndex(id)]?.[1] ?? '그 밖';
 function groupActs(acts) {
   const out = GROUPS.map(([id, name]) => [id, name, []]);
   const etc = ['etc', '그 밖', []];
   for (const a of acts) {
-    const i = GROUPS.findIndex(([, , re]) => re.test(a.id));
+    const i = groupIndex(a.id);
     (i >= 0 ? out[i][2] : etc[2]).push(a);
   }
   return [...out, etc].filter(([, , l]) => l.length);
