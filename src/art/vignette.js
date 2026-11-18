@@ -88,6 +88,7 @@ const BY_ID = {
   health_quack: 'square:notice', health_doctor: 'trade:healer', health_quarantine: 'plague', health_body: 'road',
   arts_critic: 'square:notice', arts_reader: 'ritual:study', arts_forger: 'trade:bard', arts_rival: 'court', arts_forbidden_find: 'ritual:dark', arts_burning: 'fire',
   omen_false_prophet: 'square:herald', omen_witness: 'seal:dream', omen_faction: 'trade:bard', omen_hunter: 'seal:alley', omen_pilgrims: 'funeral:visit', omen_church: 'chapel:inquisition',
+  school_call: 'square:notice', school_dorm: 'night', school_noble: 'court', school_alum_help: 'road:return', school_alum_plea: 'dusk', school_alum_rival: 'square:guards', school_reunion: 'festival', school_parent_alum: 'road:return',
   law_accused: 'square:herald', law_wrong: 'square:notice', law_witness: 'court', law_judge: 'court', law_pardon: 'prison', law_stain: 'road',
   research_buyer: 'ritual:study', research_claim: 'ritual:study', research_mentor: 'ritual:study', research_rival: 'ritual:study', research_spy_offer: 'ritual:study', research_sue: 'square:herald',
 };
@@ -138,6 +139,8 @@ const BY_SCENE = {
   omen_named: 'seal:visitor',
   // 17단계: 법과 재판
   law_trial: 'court',
+  // 18단계: 학원과 시험
+  school_exam: 'square:notice', school_take: 'ritual:study', school_appoint: 'court', school_fee: 'ritual:study', school_finals: 'ritual:study',
   arts_pick: 'ritual:study', arts_theme: 'ritual:study', arts_done: 'ritual:study', arts_patron: 'court', arts_ban: 'chapel:inquisition',
 
   // 15단계: 내기와 겨루기 (기존 그림을 이어 붙임)
