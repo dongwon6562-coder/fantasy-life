@@ -99,11 +99,13 @@ export const URGENT = 80;
 export function pickEvent(game, rng) {
   const now = monthIndex(game);
   const last = (game.evLast ??= {});
+  const seen = (game.evSeen ??= {});
   const cands = EVENTS.filter((e) => {
     if (e.once && flag(game, onceKey(e))) return false;
     if (e.village && !inVillage(game)) return false;
     if (onRoad(game) && !e.road && !e.id.startsWith('chain_')) return false;
-    if (!e.once && last[e.id] != null && now - last[e.id] < (e.cooldown ?? 24)) return false;
+    // 이미 여러 번 본 사건은 다시 나오기까지 더 오래 걸린다 (18단계 헤드: 한 집안이 백 년 사는 동안 같은 글을 서른 번 넘게 보던 것)
+    if (!e.once && last[e.id] != null && now - last[e.id] < (e.cooldown ?? 24) * (e.weight >= URGENT ? 1 : 1 + 0.5 * Math.min(6, seen[e.id] ?? 0))) return false;
     let ok = false;
     try { ok = !!e.cond(game); } catch { ok = false; }
     if (!ok) return false;
@@ -115,11 +117,12 @@ export function pickEvent(game, rng) {
   let e = urgent[0];
   if (!e) {
     if (!rng.chance(EVENT_RATE)) return null;
-    e = rng.weighted(cands, (x) => x.weight);
+    e = rng.weighted(cands, (x) => x.weight / (1 + 0.25 * Math.min(8, seen[x.id] ?? 0)));
   }
   const ctx = e.prepare ? e.prepare(game, rng) ?? {} : {};
   const shown = e.choices.map((c, i) => ({ c, i })).filter(({ c }) => !c.show || c.show(game, ctx));
   last[e.id] = now;
+  if (!e.once && e.weight < URGENT) seen[e.id] = (seen[e.id] ?? 0) + 1;
   return {
     id: e.id, title: e.title, text: e.text(game, ctx),
     choices: shown.map(({ c }) => (typeof c.label === 'function' ? c.label(game, ctx) : c.label)), choiceIdx: shown.map(({ i }) => i), ctx,
@@ -146,4 +149,4 @@ export function resolveEvent(game, rng, index) {
 }
 
 // 대를 이으면 사건 줄기는 새로 시작한다 (부모의 병, 빚 같은 건 그 사람의 이야기였으니)
-HOOKS.heir?.push((g) => { g.chains = {}; });
+HOOKS.heir?.push((g) => { g.chains = {}; if (g.evSeen) for (const k in g.evSeen) { g.evSeen[k] = Math.floor(g.evSeen[k] / 2); if (!g.evSeen[k]) delete g.evSeen[k]; } }); // 대가 바뀌면 본 횟수는 반으로 (새 사람에게는 새 일이지만 같은 글이 바로 또 뜨지 않게)
