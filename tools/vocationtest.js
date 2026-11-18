@@ -148,6 +148,7 @@ const SETUP = {
 function pathGame(seed, id, setup) {
   const g = adult(seed);
   placeAt(g, setup.place);
+  L(g).queue = L(g).queue.filter((s) => s.kind !== 'travel'); // 자라는 동안 받아 둔 길 떠나기(시험 공고 등)는 이 점검과 상관없다
   Object.assign(g.player.stats, { str: 35, int: 40, cha: 35, sen: 30 });
   for (const k of ['healing', 'music', 'letters', 'alchemy', 'building', 'hunting', 'herbs', 'magic']) g.player.skills[k] = 85;
   g.player.money = 500;

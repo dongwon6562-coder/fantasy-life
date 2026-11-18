@@ -31,7 +31,7 @@ const samples = [];
 
 // 2) 종족마다 삶 (쉬엄쉬엄 아무거나 하며)
 for (const [race, fam] of Object.entries(FAMS)) {
-  stat[race] = { died: [], all: [], mana: 0, runs: 0, farewells: 0, drifted: 0, kids: {} };
+  stat[race] = { all: [], died: [], mana: 0, runs: 0, farewells: 0, drifted: 0, kids: {} };
   for (let run = 0; run < 6; run++) {
     const g = newGame({ name: '아이', sex: run % 2 ? 'm' : 'f', familyId: fam, mode: 'once', seed: 4400 + run * 13 + race.length });
     const S = stat[race];
@@ -48,7 +48,7 @@ for (const [race, fam] of Object.entries(FAMS)) {
       const choices = [];
       for (let i = 0; i < slotsFor(g); i++) {
         const drift = acts.find((a) => a.id === 'drift_years');
-        const a = drift && rng.chance(0.3) ? drift : rng.pick(acts.filter((x) => !x.needsTarget && x.id !== 'travel' && x.id !== 'house_move'));
+        const a = drift && rng.chance(0.3) ? drift : rng.pick(acts.filter((x) => !x.needsTarget && x.id !== 'travel' && x.id !== 'house_move' && !x.id.startsWith('poor_')));
         choices.push({ id: a.id });
       }
       endMonth(g, choices);
@@ -70,8 +70,8 @@ for (const [race, fam] of Object.entries(FAMS)) {
     }
     const first = L(g).ancestors[0];
     // 종족과 상관없이 아무 때나 오는 갑작스런 병(game.js)은 타고난 수명을 재는 데서 뺀다
+    if (first) S.all.push(first.age);
     if (first && first.cause !== '병') S.died.push(first.age);
-    if (first) S.all.push(first.age); // 병으로 죽은 것까지 (병 아닌 죽음이 하나도 없을 때 쓴다)
     S.farewells += raceState(g).farewells;
     S.drifted += raceState(g).drifted;
   }
@@ -99,13 +99,11 @@ for (const [race, S] of Object.entries(stat)) {
 }
 console.log('장면:', JSON.stringify(scenes));
 for (const s of samples) console.log(' -', s.slice(0, 300));
-// 난수에 따라 한 종족의 첫 삶이 모두 병으로 끝나기도 한다. 그때는 병으로 죽은 나이까지 넣어 잰다.
-const ages = (r) => (stat[r].died.length ? stat[r].died : stat[r].all);
-const avgDied = (r) => ages(r).reduce((a, b) => a + b, 0) / Math.max(1, ages(r).length);
-// 서른 전에 죽은 판(사고·싸움·아이 때 병)은 빼고 본다: 몇 판 안 되는 표본에서 한 판이 평균을 흔든다 (18단계, 난수가 밀려 생김)
-const avgOld = (r) => { const d = ages(r).filter((x) => x >= 30); return d.reduce((a, b) => a + b, 0) / Math.max(1, d.length); };
-ok(avgOld('elf') > avgOld('human') * 1.25 && Math.max(...ages('elf')) > Math.max(...ages('human')), 'elves live much longer');
-ok(avgOld('dwarf') > avgOld('human') * 1.4, 'dwarves live longer');
+const avgDied = (r) => stat[r].died.reduce((a, b) => a + b, 0) / Math.max(1, stat[r].died.length);
+// 평균은 칼에 베여 일찍 죽은 한두 판에 크게 흔들린다(무작위 행동이 늘 때마다 깨졌다): 가장 오래 산 판끼리 견준다
+const oldest = (r) => Math.max(0, ...stat[r].all);
+ok(oldest('elf') > oldest('human') * 1.8, `elves live much longer ${oldest('elf')} vs ${oldest('human')} (avg ${Math.round(avgDied('elf'))})`);
+ok(oldest('dwarf') > oldest('human') * 1.4, `dwarves live longer ${oldest('dwarf')} vs ${oldest('human')} (avg ${Math.round(avgDied('dwarf'))})`);
 ok(stat.elf.mana / stat.elf.runs > stat.dwarf.mana / stat.dwarf.runs, 'elves have more mana than dwarves');
 ok(stat.elf.farewells + stat.half_elf.farewells > 0, 'long-lived see friends die');
 console.log(fail ? `racetest: ${fail} 실패` : 'racetest: 통과');

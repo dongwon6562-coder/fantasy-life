@@ -88,6 +88,7 @@ const BY_ID = {
   health_quack: 'square:notice', health_doctor: 'trade:healer', health_quarantine: 'plague', health_body: 'road',
   arts_critic: 'square:notice', arts_reader: 'ritual:study', arts_forger: 'trade:bard', arts_rival: 'court', arts_forbidden_find: 'ritual:dark', arts_burning: 'fire',
   omen_false_prophet: 'square:herald', omen_witness: 'seal:dream', omen_faction: 'trade:bard', omen_hunter: 'seal:alley', omen_pilgrims: 'funeral:visit', omen_church: 'chapel:inquisition',
+  school_call: 'square:notice', school_dorm: 'night', school_noble: 'court', school_alum_help: 'road:return', school_alum_plea: 'dusk', school_alum_rival: 'square:guards', school_reunion: 'festival', school_parent_alum: 'road:return',
   law_accused: 'square:herald', law_wrong: 'square:notice', law_witness: 'court', law_judge: 'court', law_pardon: 'prison', law_stain: 'road',
   research_buyer: 'ritual:study', research_claim: 'ritual:study', research_mentor: 'ritual:study', research_rival: 'ritual:study', research_spy_offer: 'ritual:study', research_sue: 'square:herald',
 };
@@ -140,6 +141,8 @@ const BY_SCENE = {
   omen_named: 'seal:visitor',
   // 17단계: 법과 재판
   law_trial: 'court',
+  // 18단계: 학원과 시험
+  school_exam: 'square:notice', school_take: 'ritual:study', school_appoint: 'court', school_fee: 'ritual:study', school_finals: 'ritual:study',
   arts_pick: 'ritual:study', arts_theme: 'ritual:study', arts_done: 'ritual:study', arts_patron: 'court', arts_ban: 'chapel:inquisition',
 
   // 15단계: 내기와 겨루기 (기존 그림을 이어 붙임)
@@ -148,6 +151,9 @@ const BY_SCENE = {
   mystery_case: 'square:notice', mystery_offer: 'feud:plot', mystery_revenge: 'feud:strike', mystery_old: 'ritual:study',
   // 17단계: 내 집 마련과 살림 (기존 그림을 이어 붙임)
   house_build: 'trade:builder', house_work: 'trade:builder', house_warm: 'festival', house_room: 'trade:builder', house_event: 'square:notice', house_heir: 'funeral:visit', house_move: 'road', house_move_house: 'road',
+  // 18단계: 밑바닥에서 살기 (기존 그림을 이어 붙임)
+  poor_boss: 'seal:alley', poor_slum: 'seal:alley', poor_chance: 'road:return', poor_rise: 'road:return', poor_bond: 'square:notice', poor_bond_work: 'trade:builder',
+  poor_alms: 'chapel', poor_hire: 'trade:builder', poor_bondsman: 'seal:alley',
 };
 const TRADE_ART = { famine: 'famine', army: 'muster', smuggle: 'seal:alley', credit: 'court', guard_thief: 'square:flog', porter: 'road', rumor: 'trade:bard' };
 // 새 일(voc_path의 길 id, voc_event의 사건 id)마다의 그림. 없으면 지금 하는 일의 일터 그림
@@ -198,6 +204,7 @@ export function vignetteFor(g, { title = '', text = '', outcome = false } = {}) 
     if (kind === 'sea_event') pick = /폭풍|풍랑/.test(title) ? 'voyage:storm' : /해적|검은 돛/.test(title) ? 'voyage:pirate' : /뱀|괴물|촉수/.test(title + text) ? 'voyage:serpent' : 'voyage';
     if (kind === 'voc_path' || kind === 'voc_event') { const sc = g.life.scene; pick = VOC_ART[sc.path ?? sc.ev] ?? JOB_ART[g.life?.job?.id] ?? null; }
     if (kind === 'peoples_rite' && g.life.scene.id) pick = `peoples:${g.life.scene.id}`;
+    if (kind === 'poor_slum') pick = { winter: 'famine', share: 'seal:alley', sick: 'famine', kid: 'seal:alley', gang: 'feud:plot' }[g.life.scene.ev] ?? pick;
     if (kind === 'house_event') pick = { fire: 'fire', thief: 'seal:alley', neighbor: 'feud:offer' }[g.life.scene.ev] ?? pick;
     if (id === 'peoples_name') pick = { silverleaf: 'peoples:elf_dew', hammer: 'peoples:dwarf_fire', fur: 'peoples:beast_totem' }[g.life?.place] ?? pick;
     if (kind === 'explore_leg' || kind === 'explore_heart' || kind === 'explore_name') { const rg = kind === 'explore_name' ? regionOfSite(g.life.scene.site) : g.explore?.exp?.region; if (rg) pick = kind === 'explore_leg' ? `explore:${rg}` : `explore:heart-${rg}`; }
