@@ -128,6 +128,7 @@ const GROUPS = [
   ['elder', '마지막 해들', /^elder_/],
   ['house', '집과 살림', /^(house_|household_)/],
   ['road', '길과 모험', /^(party_|gather_party|travel|on_road|housing|quest|delve|deep_|pol_|explore_|gear|pioneer|buy_title|tower_dare|wolves|goblins)/],
+  ['wilds', '마물 사냥', /^wilds_/],
   ['beast', '짐승', /^beast_/],
   ['law', '법과 재판', /^law_/],
   ['contest', '내기와 겨루기', /^contest_/],
