@@ -1399,3 +1399,10 @@ details.act-group[open]:not(.dark) > summary { align-items: center; padding: 0; 
 .sc-name { background: none; border: 0; padding: 0; min-height: 0; color: var(--brass); font: inherit; text-decoration: underline; text-underline-offset: 2px; cursor: pointer; }
 .school-now p { margin: 0; line-height: 1.5; }
 .school-now b { color: var(--brass); margin-right: 4px; }
+
+/* ---------- 18단계: 밑바닥에서 살기 ---------- */
+.poor-now, .poor-block { display: grid; gap: 8px; }
+.poor-now > .note, .poor-block > .note { margin: 0; }
+.poor-now.bad { border-color: rgba(179, 38, 30, .55); }
+.pr-folk .wd-row.kn-row { grid-template-columns: minmax(0, 1fr) auto; }
+.pr-folk li { grid-template-columns: minmax(0, 1fr); }
