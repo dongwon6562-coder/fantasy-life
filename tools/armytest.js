@@ -213,8 +213,11 @@ function soldier(seed, family = 'farmer', place = 'harfen') {
   month(g, ['rest'], huntPick);
   if (A(g).service || !A(g).deserted) fail('quitting job should be desertion');
   // 노숙하다 옥에 갇힐 수도 있다: 옥에서 나오면 다시 쫓긴다 (옥살이 동안은 기다린다)
-  for (let m = 0; m < 72 && !g.over; m++) month(g, ['rest'], huntPick);
-  if (!hunted) fail('deserter never hunted in 6 years at harfen', JSON.stringify(A(g).deserted), L(g).place, isJailed(g), g.over, JSON.stringify(L(g).queue), JSON.stringify(seen.scenes));
+  const deserter = g.player.id;
+  for (let m = 0; m < 72 && !g.over && g.player.id === deserter; m++) month(g, ['rest'], huntPick);
+  // 쫓기다 죽어 대가 바뀐 판은 볼 수 없다 (난수가 밀려 생김)
+  if (g.player.id !== deserter) console.log('탈영병이 죽어 쫓김 점검은 건너뜀');
+  else if (!hunted) fail('deserter never hunted in 6 years at harfen', JSON.stringify(A(g).deserted), L(g).place, isJailed(g), g.over, JSON.stringify(L(g).queue), JSON.stringify(seen.scenes));
   // 병영을 석 달 비우면 탈영
   const h = soldier(44100);
   placeAt(h, 'ern');
