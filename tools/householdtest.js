@@ -272,7 +272,7 @@ const named = (g) => householdState(g).staff.map((s) => ({ s, p: g.people.find((
   // 신임이 오르면 몸종·집사 보좌·집사
   ensure(); v.service.trust = 85;
   play(g, 1, ['work'], {}, 1);
-  ensure();
+  ensure(); v.service.trust = Math.max(v.service.trust, 85); // 그 달에 다른 사건으로 자리를 잃었다가 다시 들어갔을 수 있다
   ok(/집사/.test(householdInfo(g).service?.rankName ?? ''), `rank ${householdInfo(g).service?.rankName}`);
   // 주인이 바뀌면
   const hs = liveHouses(g).find((h) => h.id === v.service.house);

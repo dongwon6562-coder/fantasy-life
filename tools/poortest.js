@@ -235,6 +235,7 @@ function HOOKS_HEIR() { return HOOKS.heir.filter((f) => /poor|bond|P\(g\)/.test(
   g.player.money = 1000;
   for (const k of ['fair', 'squeeze', 'bind', 'bind']) direct(g, 'poor_hire', {}, k);
   if (P(g).bondsmen.length !== 2 || P(g).squeezed !== 1) fail('hire', P(g).bondsmen.length);
+  if (g.beasts) g.beasts.animals = []; // 데리고 있는 짐승 먹이값이 같은 달에 빠지면 셈이 어긋난다 (난수에 따라 짐승이 생김)
   const m = g.player.money; clearQ(g); tick(g);
   if (g.player.money !== m + 8) fail('bondsmen income', g.player.money - m);
   for (const [ev, keys] of Object.entries({ flee: ['hunt', 'let'], sick: ['heal', 'cast'], beg: ['yes', 'free', 'no'] })) for (const k of keys) {

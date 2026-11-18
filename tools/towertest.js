@@ -144,10 +144,15 @@ const mage = (g, magic = 25, mana = 30) => { g.player.manaAwakened = true; g.pla
   const T = TS(g);
   check(T.black === 2 && has(g, 'forbidden_rite'), '검은 탑에 들었는데 금지 마법이 없다');
   for (const k of ['죽은 자의 술', '피의 술', '정신의 술']) {
-    stay(g, 'harfen');
-    endMonth(g, [{ id: 'forbidden_rite' }]);
-    T.pendingExpose = false;
-    check(pickScene(g, `${k}을 더 깊이`, 'harfen') != null, `${k}을 익힐 수 없다`);
+    // 다른 사건(심문관 등)이 먼저 와서 고장을 옮기면 장면이 사라진다. 형편을 되돌려 세 번까지 다시 연다.
+    let got = null;
+    for (let t = 0; t < 3 && got == null; t++) {
+      stay(g, 'harfen');
+      endMonth(g, [{ id: 'forbidden_rite' }]);
+      T.pendingExpose = false;
+      got = pickScene(g, `${k}을 더 깊이`, 'harfen');
+    }
+    check(got != null, `${k}을 익힐 수 없다`);
   }
   check(T.forbidden.necro === 1 && T.forbidden.blood === 1 && T.forbidden.mind === 1 && T.taint > 10, `금지 마법을 익힌 흔적이 이상하다 ${JSON.stringify(T.forbidden)} ${T.taint}`);
   g.player.skills.magic = 90;

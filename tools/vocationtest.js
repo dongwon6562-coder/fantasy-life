@@ -249,7 +249,9 @@ function pathGame(seed, id, setup) {
   placeAt(g, 'barka'); g.player.stats.cha = 35; g.player.skills.music = 30; takeJob(g, 'bard');
   placeAt(g, 'harfen');
   const m0 = g.player.money;
-  for (let m = 0; m < 12; m++) { if (L(g).place !== 'harfen') placeAt(g, 'harfen'); month(g, ['voc_busk']); }
+  // 떠돌이 한 해 동안 다른 사건(징집·현상금 사냥꾼 등)으로 일을 잃을 수 있다. 그러면 바르카에서 다시 맡고 떠난다.
+  for (let m = 0; m < 12; m++) { if (L(g).job?.id !== 'bard') { placeAt(g, 'barka'); takeJob(g, 'bard'); } if (L(g).place !== 'harfen') placeAt(g, 'harfen'); month(g, ['voc_busk']); }
+  if (L(g).job?.id !== 'bard') { placeAt(g, 'barka'); takeJob(g, 'bard'); placeAt(g, 'harfen'); }
   if (g.player.money <= m0) fail('busking earned nothing');
   V(g).banned = {}; // 풍자 노래로 그 고장에서 쫓겨났을 수 있다 (운에 따라)
   if (!availableActions(g).some((a) => a.id === 'voc_busk')) fail('busk not available away from job');
