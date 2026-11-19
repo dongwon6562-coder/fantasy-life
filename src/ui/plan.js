@@ -117,6 +117,7 @@ const GROUPS = [
   ['jail', '감옥', /^jail_/],
   ['work', '일과 벌이', /^(work|seek_job|day_labor|inn_kitchen|herbs|help_home|shop_manage|open_shop|domain_|realm_office|farmer|merchant|estate_|voc_|nature_|trade_)/],
   ['inn', '내 가게', /^inn_(open|work|manage)$/],
+  ['mine', '광산', /^mine_/],
   ['learn', '배움과 수련', /^(school_|study|train_body|sword_|meditate|magic_|legend_lesson|research|seal_study|tower_(join|duty|exam|craft))/],
   ['arts', '글과 예술', /^arts_/],
   ['troupe', '유랑극단', /^troupe_/],

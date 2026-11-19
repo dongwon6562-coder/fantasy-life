@@ -1432,3 +1432,5 @@ details.act-group[open]:not(.dark) > summary { align-items: center; padding: 0; 
 .now-notes .note { line-height: 1.5; }
 .now-notes .note > b:first-child { color: var(--brass); margin-right: 4px; }
 .now-notes .note b.warn { color: #e3917f; }
+/* 21단계 광산·용병단·사슬 */
+.mn-list b.warn, .co-contract b.warn, .bondage-now b.warn, .secret-block b.warn, .dragon-card b.warn { color: #e3917f; }
