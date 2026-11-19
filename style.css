@@ -1425,3 +1425,12 @@ details.act-group[open]:not(.dark) > summary { align-items: center; padding: 0; 
 .lt-corr .wd-row.kn-row { grid-template-columns: minmax(0, 1fr) auto; }
 .lt-corr li.gone { opacity: .65; }
 .lt-kept span { font-size: 13px; }
+/* 21단계 다듬기: 한 줄 알림 모음 */
+.now-notes { display: grid; gap: 8px; }
+.now-notes .note { margin: 0; }
+.now-notes .note + .note { border-top: 1px dashed var(--line); padding-top: 8px; }
+.now-notes .note { line-height: 1.5; }
+.now-notes .note > b:first-child { color: var(--brass); margin-right: 4px; }
+.now-notes .note b.warn { color: #e3917f; }
+/* 21단계 광산·용병단·사슬 */
+.mn-list b.warn, .co-contract b.warn, .bondage-now b.warn, .secret-block b.warn, .dragon-card b.warn { color: #e3917f; }
