@@ -239,7 +239,7 @@ const named = (g) => householdState(g).staff.map((s) => ({ s, p: g.people.find((
 
 // 6) 내가 큰 집안의 하인으로 산다
 {
-  const g = adult(50, { age: 18, place: 'leocast', house: false });
+  const g = adult(51, { age: 18, place: 'leocast', house: false }); // 50번 판은 사건 굴림에 따라 옥살이·악명으로 하인 자리를 못 얻는다
   ok(liveHouses(g).some((h) => h.seat === 'leocast'), 'house in leocast');
   const v = householdState(g);
   // 섬기는 자리를 형편대로 다시 세운다 (다른 사건이 일자리를 앗아 가도 점검이 갈리지 않게)
