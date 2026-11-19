@@ -85,6 +85,8 @@ const checkInfo = (g) => {
   ok(r.belong >= 25, `help raises belong ${r.belong.toFixed(1)}`);
   ok(r.owed > 0 || r.favors > 0, `favors ${r.favors}/${r.owed}`);
   checkInfo(g);
+  // 텃세는 뜨내기 시절 몇 달에만 드물게 온다: 한 판에 안 보이면 판을 더 돌린다 (사건 굴림에 갈리지 않게)
+  for (let k = 0; k < 6 && !(seen.scenes.village_snub > 0); k++) play(adult(13 + k * 10, 'farmer', 25, 'harfen'), 24, ['rest'], { village_snub: 0 }, 1, 'harfen');
 }
 
 // 3) 마을 일: 다리를 놓으면 고장에 남는다
