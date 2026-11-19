@@ -134,6 +134,7 @@ const GROUPS = [
   ['contest', '내기와 겨루기', /^contest_/],
   ['sea', '바다', /^(sail|sailing|at_sea|cargo|shipyard|sea_|serpent_lair|saltrock|pirate_)/],
   ['poor', '밑바닥', /^poor_/],
+  ['secret', '비밀과 이중생활', /^secret_/],
   ['dark', '어두운 일', /^(crime_|gang_|dawn_rite|repute_slander|forbidden_rite|feud_plot)/],
   ['rest', '쉼', /^(rest|drift_years)$/],
 ];

@@ -1410,6 +1410,8 @@ details.act-group[open]:not(.dark) > summary { align-items: center; padding: 0; 
 .am-now .note { margin: 0; }
 .am-rows { list-style: none; margin: 0 0 10px; padding: 0; display: grid; gap: 6px; }
 .am-rows li.gone strong { opacity: .7; }
+/* 20단계 비밀 */
+.sr-list .wd-row.kn-row { grid-template-columns: minmax(0, 1fr) auto; }
 /* 19단계 내 가게 */
 .inn-list .wd-row.kn-row { grid-template-columns: minmax(0, 1fr) auto; }
 /* 19단계 마물의 땅 */
