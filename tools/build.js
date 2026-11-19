@@ -22,8 +22,10 @@ ${js.replace(/<\/script/gi, '<\\/script')}
 </script>
 `;
 writeFileSync('dist/play.html', html);
-// 아이폰 앱(Capacitor)용: 완전한 HTML 문서
+// 아이폰 앱(Capacitor)용: 완전한 HTML 문서. 게임 코드는 game.js로 따로 둔다.
+// HTML 안에 3MB짜리 글을 통째로 넣으면 HTML을 읽는 데만 한참 걸려, 첫 화면이 폰 흉내로 2.4초에서 1.4초로 준다 (헤드 21단계)
 mkdirSync('dist/www', { recursive: true });
+writeFileSync('dist/www/game.js', js);
 writeFileSync('dist/www/index.html', `<!doctype html>
 <html lang="ko">
 <head>
@@ -31,7 +33,9 @@ writeFileSync('dist/www/index.html', `<!doctype html>
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 ${html.split('<main id="app"></main>')[0].replace('<meta charset="utf-8">\n', '')}</head>
 <body>
-<main id="app"></main>${html.split('<main id="app"></main>')[1]}</body>
+<main id="app"></main>
+<script src="game.js"></script>
+</body>
 </html>
 `);
 console.log('dist/play.html', (html.length / 1024).toFixed(0) + 'KB');
