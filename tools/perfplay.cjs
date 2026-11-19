@@ -1,4 +1,4 @@
-// 폰 흉내(CPU 4배 느리게)로 켜는 시간·한 달 넘기기·사건 고르기를 잰다 (헤드 16단계). 사용법: node tools/perfplay.cjs
+// 폰 흉내(CPU 4배 느리게), 아이폰 앱과 같은 dist/www로 켜는 시간·한 달 넘기기·사건 고르기를 잰다 (헤드 16단계). 사용법: node tools/perfplay.cjs
 const { chromium } = require('playwright');
 (async () => {
   const b = await chromium.launch();
@@ -7,7 +7,7 @@ const { chromium } = require('playwright');
   await cdp.send('Emulation.setCPUThrottlingRate', { rate: 4 });
   await p.addInitScript(() => localStorage.setItem('fantasy-life:prefs', JSON.stringify({ monthCard: false, guideSeen: { all: 1 } })));
   let t0 = Date.now();
-  await p.goto('file://' + process.cwd() + '/dist/play.html');
+  await p.goto('file://' + process.cwd() + '/dist/www/index.html');
   await p.waitForSelector('[data-family="merchant"]');
   console.log('첫 화면까지', Date.now() - t0, 'ms (CPU 4배 느리게)');
   await p.click('[data-family="merchant"]'); await p.fill('#pname', '레나');
