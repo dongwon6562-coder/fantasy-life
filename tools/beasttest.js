@@ -148,6 +148,8 @@ function scene(g, kind, data, re, opt = {}) {
   const m0 = g.player.money;
   for (let i = 0; i < 3; i++) month(g, ['beast_hawking']);
   if (g.player.money <= m0 - 10) fail('hawking earned nothing');
+  // 그사이 다른 사건이 말을 앗아 갔으면 다시 들인다 (점검이 사건 굴림에 갈리지 않게)
+  if (!alive(g).some((a) => a.kind === 'warhorse')) addAnimal(g, 'warhorse', { ageYears: 5, trained: 100, bond: 70 });
   const agi0 = g.player.stats.agi;
   for (let i = 0; i < 3; i++) { month(g, ['beast_ride']); heal(g); }
   if (g.player.stats.agi <= agi0) fail('riding no agi');
@@ -176,7 +178,7 @@ function scene(g, kind, data, re, opt = {}) {
   console.log(`사역마: ${got}/6 (의식 ${tries}번)`);
   if (got < 3) fail('familiar too hard', got);
   // 팔기
-  const g = adult(63100);
+  const g = adult(63101);
   placeAt(g, 'leocast');
   const w = addAnimal(g, 'direwolf', { ageYears: 4, trained: 100, bond: 50 });
   const price = sellPrice(g, w);

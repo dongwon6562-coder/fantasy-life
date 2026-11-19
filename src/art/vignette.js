@@ -88,6 +88,7 @@ const BY_ID = {
   health_quack: 'square:notice', health_doctor: 'trade:healer', health_quarantine: 'plague', health_body: 'road',
   arts_critic: 'square:notice', arts_reader: 'ritual:study', arts_forger: 'trade:bard', arts_rival: 'court', arts_forbidden_find: 'ritual:dark', arts_burning: 'fire',
   omen_false_prophet: 'square:herald', omen_witness: 'seal:dream', omen_faction: 'trade:bard', omen_hunter: 'seal:alley', omen_pilgrims: 'funeral:visit', omen_church: 'chapel:inquisition',
+  dragon_seekers: 'trade:bard', dragon_dream: 'seal:dream', dragon_shadow: 'dragon', dragon_preacher: 'square:herald', dragon_cult_revenge: 'seal:alley', dragon_cult_tithe: 'ritual:dark',
   wilds_herd: 'monsters', wilds_refugees: 'muster:refugee', wilds_settle: 'trade:builder', wilds_buyer: 'trade:alchemy',
   school_call: 'square:notice', school_dorm: 'night', school_noble: 'court', school_alum_help: 'road:return', school_alum_plea: 'dusk', school_alum_rival: 'square:guards', school_reunion: 'festival', school_parent_alum: 'road:return',
   law_accused: 'square:herald', law_wrong: 'square:notice', law_witness: 'court', law_judge: 'court', law_pardon: 'prison', law_stain: 'road',
@@ -95,6 +96,7 @@ const BY_ID = {
 };
 // 장면 종류(life.scene.kind)로 정해지는 것
 const BY_SCENE = {
+  dragon_climb: 'dragon', dragon_bones: 'dragon', dragon_cult: 'ritual:dark', dragon_lair: 'dragon', dragon_talk: 'dragon', dragon_young: 'dragon', dragon_fire: 'fire',
   nature_drought: 'nature:drought', nature_flood: 'nature:flood', nature_winter: 'nature:winter', nature_quake: 'nature:quake', nature_locust: 'nature:locust', nature_storm: 'nature:storm', nature_granary: 'nature:granary',
   beast_buy: 'beastlife:market', beast_sell: 'beastlife:market', beast_event: 'beastlife:care', beast_familiar: 'beastlife:bond', beast_death: 'beastlife:grave',
   heir: 'bedside:last',

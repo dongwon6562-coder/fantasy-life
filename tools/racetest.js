@@ -61,6 +61,7 @@ for (const [race, fam] of Object.entries(FAMS)) {
         let idx = rngOf(g).int(0, pe.choices.length - 1);
         if (kind === 'drift') idx = 2; // 열 해
         if (kind === 'heir') idx = 0;
+        if (kind === 'dragon_fire') idx = 0; // 용이 덮친 밤에는 달아난다 (타고난 수명을 재는 점검이라 용에게 맞서 죽는 판을 빼려고)
         const out = resolveEvent(g, rngOf(g), idx);
         ok(!bad(typeof out === 'string' ? out : ''), `bad outcome ${kind}: ${out}`);
         if (['farewell', 'drift', 'race_slight'].includes(kind) && samples.length < 14) samples.push(`${race} ${kind}: ${pe.text.slice(0, 120)} → ${String(out).slice(0, 160)}`);
