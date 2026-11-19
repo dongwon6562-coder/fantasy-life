@@ -101,7 +101,30 @@ export function generateVillage(rng) {
   return people;
 }
 
-export const byId = (game, id) => game.people.find((p) => p.id === id);
+// 사람 찾기: 백 년 넘게 이어 하면 사람이 수백 명이라 매번 처음부터 훑는 게 한 달 시간의 큰 몫이었다 (20단계 헤드).
+// id → 자리 번호를 기억해 두고, 그 자리에 그 사람이 그대로 있는지 확인한 뒤 돌려준다. 어긋나면 다시 만든다.
+const PIDX = new WeakMap();
+function reindex(game) {
+  const m = new Map();
+  game.people.forEach((p, i) => { if (p && !m.has(p.id)) m.set(p.id, i); });
+  const c = { arr: game.people, m, n: game.people.length, last: game.people[game.people.length - 1] };
+  PIDX.set(game, c);
+  return c;
+}
+export const byId = (game, id) => {
+  if (id == null || !game.people) return undefined;
+  let c = PIDX.get(game);
+  const P = game.people;
+  // 배열이 바뀌었거나, 사람이 늘거나 빠졌으면(끝 사람이 달라짐) 다시 만든다
+  if (!c || c.arr !== P || c.n !== P.length || c.last !== P[P.length - 1]) c = reindex(game);
+  let i = c.m.get(id);
+  if (i != null && game.people[i]?.id === id) return game.people[i];
+  if (i == null) return undefined;
+  // 가운데서 빠지고 끝에 들어와 자리가 밀린 경우
+  c = reindex(game);
+  i = c.m.get(id);
+  return i != null ? game.people[i] : undefined;
+};
 export const living = (game) => game.people.filter((p) => p.alive && !p.away);
 
 // 관계 점수: 소식을 고를 때 쓴다. 가족 > 친구 > 아는 사람 > 모르는 사람
