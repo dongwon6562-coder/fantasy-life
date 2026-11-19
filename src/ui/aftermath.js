@@ -32,8 +32,9 @@ export function renderAftermath(game) {
   const sub = [];
   if (s.atWar.length) sub.push(`${s.atWar.map((w) => esc(w.name)).join(', ')} 중`);
   else if (s.wars.length) sub.push(`${esc(s.wars[s.wars.length - 1].name)} 뒤`);
-  const row = (name, note, cls = '') => `<li class="${cls}"><div class="top"><strong>${esc(name)}</strong></div><span class="note">${note}</span></li>`;
-  const sec = (title, items) => (items.length ? `<h4 class="ct-h">${title}</h4><ul class="ct-houses am-list">${items.join('')}</ul>` : '');
+  // 사람은 한 줄씩 (상자 없이), 막대가 있는 고장·이웃만 상자로
+  const row = (name, note, cls = '') => `<li class="${cls}"><strong>${esc(name)}</strong> <span class="note">${note}</span></li>`;
+  const sec = (title, items, boxed = false) => (items.length ? `<h4 class="ct-h">${title}</h4><ul class="${boxed ? 'ct-houses am-list' : 'am-rows'}">${items.join('')}</ul>` : '');
   const drafted = s.drafted.map((d) => row(d.name, `${esc(d.home)} 사람 · ${esc(d.war)}에 끌려감 · ${d.months ? `${d.months}달째` : '이번 달'}`));
   const widows = s.widows.map((w) => row(w.name, `${esc(w.war)}에서 남편 ${esc(J(w.husband, '을/를'))} 잃음 · ${w.y}년${w.remarried ? ' · 다시 혼인함' : ''}`));
   const orphans = s.orphans.map((o) => row(o.name, `${o.age}살 · 아버지 ${esc(J(o.father, '이/가'))} 전사함${o.adopted ? ' · <b class="ok">내가 거둔 아이</b>' : ''}`, o.adopted ? 'here' : ''));
@@ -51,11 +52,11 @@ export function renderAftermath(game) {
   return `<section class="card aftermath-card">
     <h2>전쟁 뒤 <small>${sub.join('')}</small></h2>
     ${sec(`끌려간 사람 ${s.drafted.length}명`, drafted)}
-    ${sec(`불탄 고장 ${s.ruins.length}곳`, ruins)}
+    ${sec(`불탄 고장 ${s.ruins.length}곳`, ruins, true)}
     ${sec(`전쟁 과부 ${s.widows.length}명`, widows)}
     ${sec(`전쟁 고아 ${s.orphans.length}명`, orphans)}
     ${sec(`돌아오지 못한 사람 ${s.missing.length}명`, missing)}
-    ${sec(`적국에서 온 이웃 ${s.foreign.length}명`, foreign)}
+    ${sec(`적국에서 온 이웃 ${s.foreign.length}명`, foreign, true)}
     ${wars.length ? `<details class="pl-more"><summary>끝난 전쟁 ${wars.length}번</summary><ul class="pl-news">${wars.join('')}</ul></details>` : ''}
   </section>`;
 }

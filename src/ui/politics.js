@@ -9,6 +9,12 @@ const safe = (fn, d = null) => { try { return fn() ?? d; } catch (e) { console.e
 const NS = 'http://www.w3.org/2000/svg';
 const colorOf = (id) => { const n = MAP_NATIONS.find((x) => x.id === id); return n ? `rgb(${n.c.join(',')})` : '#7a6a55'; };
 const KIND = { alliance: '동맹', trade: '교역 조약', truce: '휴전', marriage: '혼인', vassal: '신종' };
+// 조약을 갈래마다 한 줄로: '동맹  가·나, 다·라'
+const pactRows = (pacts) => {
+  const by = {};
+  for (const p of pacts) (by[p.kind] ??= []).push(`${short(p.a)}·${short(p.b)}`);
+  return Object.entries(by).map(([k, l]) => `<li><time>${esc(KIND[k] ?? k)}</time><span>${l.map(esc).join(', ')}</span></li>`).join('');
+};
 
 /* ---------- 지도 위 겹 ---------- */
 function el(tag, attrs, parent) {
@@ -94,8 +100,8 @@ export function renderPolitics(game, ui) {
     <div class="pl-legend"><label class="pl-toggle"><input type="checkbox" id="pol-layer"${ui.polLayer === false ? '' : ' checked'}> 지도에 국경·전쟁 표시</label>
       <span class="note"><span class="lg-ring war"></span>싸우는 곳 <span class="lg-ring changed"></span>주인이 바뀐 땅 (깃발 색이 새 주인)</span></div>
     ${wars ? `<ul class="pl-list">${wars}</ul>` : '<p class="note">지금 대륙에는 나라끼리 맞붙은 전쟁이 없다.</p>'}
-    ${changed.length ? `<p class="note">주인이 바뀐 땅: ${changed.map((l) => `${esc(l.name)} → ${esc(short(l.owner))}`).join(', ')}</p>` : ''}
-    ${m.pacts.length ? `<p class="note">조약: ${m.pacts.map((p) => `${esc(short(p.a))}·${esc(short(p.b))} ${KIND[p.kind] ?? ''}`).join(', ')}</p>` : ''}
+    ${changed.length ? `<details class="pl-more"><summary>주인이 바뀐 땅 ${changed.length}곳</summary><ul class="pl-news pl-owned">${changed.map((l) => `<li><time>${esc(l.name)}</time><span>→ ${esc(short(l.owner))}</span></li>`).join('')}</ul></details>` : ''}
+    ${m.pacts.length ? `<details class="pl-more"><summary>나라 사이 조약 ${m.pacts.length}건</summary><ul class="pl-news pl-owned">${pactRows(m.pacts)}</ul></details>` : ''}
     ${news.length ? `<h3 class="sub">대륙 소식</h3><ul class="pl-news">${news.map((n) => `<li><time>${n.y}년 ${n.m}월</time><span>${esc(n.text)}</span></li>`).join('')}</ul>` : ''}
     <details class="pl-more"><summary>나라들 ${m.realms.length}곳과 레오니아와의 사이</summary>
       <ul class="pl-list pl-realms">${m.realms.map(realmRow).join('')}</ul>
