@@ -120,6 +120,7 @@ const GROUPS = [
   ['inn', '내 가게', /^inn_(open|work|manage)$/],
   ['mine', '광산', /^mine_/],
   ['herd', '목축과 유목', /^herd_/],
+  ['frontier', '개척', /^frontier_/],
   ['learn', '배움과 수련', /^(school_|study|train_body|sword_|meditate|magic_|legend_lesson|research|seal_study|tower_(join|duty|exam|craft))/],
   ['arts', '글과 예술', /^arts_/],
   ['troupe', '유랑극단', /^troupe_/],
