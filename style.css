@@ -974,7 +974,7 @@ html:not(.motion) .pol-land .pol-ring { animation: none; }
 .ct-tag.heir { color: var(--brass); border-color: currentColor; }
 .ct-tag.gift { color: var(--mana); border-color: currentColor; }
 .ct-tag.flaw { color: #e3917f; border-color: currentColor; }
-.lineage-block b.warn, .lineage-now b.warn { color: #e3917f; }
+.lineage-block b.warn, .lineage-now b.warn, .haunt-card b.warn, .haunt-block b.warn { color: #e3917f; }
 .estate-block { display: grid; gap: 8px; }
 .es-sum { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; }
 .es-sum > div { display: grid; gap: 2px; padding: 8px; background: var(--bg); border: 1px solid var(--line); border-radius: 8px; min-width: 0; }
