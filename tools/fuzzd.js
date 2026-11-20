@@ -55,6 +55,7 @@ import { houseStatus, H as HOUSE, ROOM_IDS as HOUSE_ROOMS } from '../src/house/i
 import { poorStatus, poorLine, P as POOR } from '../src/poor/index.js';
 import { troupeStatus, troupeLine, T as TROUPE, ACT_IDS as TROUPE_ACTS } from '../src/troupe/index.js';
 import { companyStatus, companyLine, companyState as COMPANY } from '../src/company/index.js';
+import { heistStatus, heistLine, heistState as HEIST } from '../src/heist/index.js';
 import { innStatus, innLine, I as INN, ROLE_IDS as INN_ROLES, REGULAR_IDS as INN_REGS } from '../src/inn/index.js';
 import { mysteryStatus, M as MYSTERY, makeCase, KIND_IDS as MYSTERY_KINDS } from '../src/mystery/index.js';
 import { E as EXPL, REGION_IDS as EXPL_REGIONS, FINDS as EXPL_FINDS } from '../src/explore/core.js';
@@ -78,7 +79,7 @@ function roundTrip(g, rng) {
 function chaos(g, rng) {
   const life = L(g);
   const adult = playerAge(g) >= 15;
-  const r = rng.int(0, 29);
+  const r = rng.int(0, 30);
   if (r === 0) return 'roundtrip';
   if (r === 1 && !CR(g).active) startCrisis(g, rng, rng.pick(Object.keys(CRISES)));
   else if (r === 2) { g.realm.balhart.war = true; g.realm.balhart.warMonths = 0; }
@@ -108,6 +109,7 @@ function chaos(g, rng) {
   else if (r === 27) innShake(g, rng);
   else if (r === 28) troupeShake(g, rng);
   else if (r === 29) companyShake(g, rng);
+  else if (r === 30) heistShake(g, rng);
   else if (r === 15 && adult && !life.travel && !isJailed(g)) { const port = rng.pick(['klein', 'portel', 'saltmare', 'saltrock']); life.place = port; const rt = rng.pick(seaRoutesFrom(g, port)); if (rt) setSail(g, rt.to, rt.months, { own: !!S(g).ship }); }
   return null;
 }
@@ -224,6 +226,21 @@ function troupeShake(g, rng) {
   if (rng.chance(0.1)) g.troupe = JSON.parse(JSON.stringify(g.troupe));
   runHooks('migrate', g);
 }
+// 한탕을 흔든다 (src/heist/)
+function heistShake(g, rng) {
+  const s = HEIST(g), life = L(g);
+  if (rng.chance(0.4) && !s.plan) s.plan = { kind: rng.pick(['vault', 'manor', 'temple', 'tax', 'gone']), place: rng.chance(0.15) ? 'nowhere' : rng.chance(0.7) ? life.place ?? 'ern' : rng.pick(ALL_PLACES), name: rng.chance(0.1) ? 3 : '흔들 금고', owner: '흔들 상단', guard: rng.int(-5, 120), prize: rng.int(-10, 900), crew: [], intel: rng.int(-5, 120), prep: rng.chance(0.2) ? null : { tools: rng.chance(0.5), escape: 1 }, alarm: rng.int(-5, 120), day: rng.pick([null, 'x', rng.int(6000, 6100)]) };
+  const p = s.plan;
+  if (p && typeof p === 'object' && rng.chance(0.5)) p.crew = [...(Array.isArray(p.crew) ? p.crew : []), rng.chance(0.2) ? { role: 'gone' } : { id: rng.int(1, 9), name: '흔들 일행', role: rng.pick(['lock', 'muscle', 'inside', 'lookout', 'driver', 'forger']), skill: rng.int(0, 90), greed: rng.int(0, 100), loyal: rng.int(0, 100), fee: 10 }];
+  if (rng.chance(0.2)) s.loot = rng.chance(0.2) ? { value: 'x' } : { value: rng.int(0, 500), kind: rng.pick(['vault', 'gone']), from: '흔들 금고', owner: '흔들', at: 0, hot: rng.int(0, 100) };
+  if (rng.chance(0.2)) s.hunt = rng.chance(0.2) ? { by: 3 } : { by: '흔들 추적자', pow: rng.int(10, 70), clue: rng.int(-5, 120), until: rng.int(0, 7000), target: '흔들 금고', place: rng.pick([life.place ?? 'ern', 'nowhere']), kind: 'vault' };
+  if (rng.chance(0.15)) s.split = rng.chance(0.3) ? null : { value: rng.int(0, 300), crew: [], name: '흔들' };
+  if (rng.chance(0.1)) s.grudge = { names: ['흔들 일행'], at: rng.int(0, 7000) };
+  if (rng.chance(0.2)) s.plan = null;
+  if (rng.chance(0.3)) { const k = rng.pick(['heist_target', 'heist_crew', 'heist_scout', 'heist_day', 'heist_twist', 'heist_split', 'heist_event']); queueScene(g, k, { ev: rng.pick(['caught', 'close', 'rat', 'blab', 'greed', 'informant', 'gone']), a: rng.int(0, 9), who: rng.pick(['흔들 일행', 3]), twist: rng.pick(['shift', 'lock', 'witness', 'rival', 'panic', 'guard', 'papers', 'gone']), app: rng.pick(['quiet', 'loud', 'gone']), base: rng.pick([40, 'x']) }); }
+  if (rng.chance(0.1)) g.heist = JSON.parse(JSON.stringify(g.heist));
+  runHooks('migrate', g);
+}
 // 용병단을 흔든다 (src/company/)
 function companyShake(g, rng) {
   const s = COMPANY(g), life = L(g);
@@ -328,7 +345,7 @@ function checkState(g, seed, m) {
   const p = g.player;
   for (const [k, v] of Object.entries({ money: p.money, fatigue: p.fatigue, stress: p.stress, renown: L(g).renown, notoriety: L(g).notoriety })) if (!Number.isFinite(v)) fail('NaN 값', k, seed, m);
   if (p.money < 0) fail('돈이 음수', p.money, seed, m);
-  for (const [name, fn] of [['partyStatus', partyStatus], ['crisisStatus', crisisStatus], ['craftStatus', craftStatus], ['domainReport', (x) => (x.domain ? domainReport(x) : null)], ['seaStatus', seaStatus], ['deepStatus', deepStatus], ['estateStatus', estateStatus], ['vocationStatus', vocationStatus], ['armyStatus', armyStatus], ['exploreStatus', exploreStatus], ['beastsStatus', beastsStatus], ['tradeStatus', tradeStatus], ['contestStatus', contestStatus], ['mysteryStatus', mysteryStatus], ['houseStatus', houseStatus], ['poorStatus', poorStatus], ['poorLine', poorLine], ['innStatus', innStatus], ['innLine', innLine], ['troupeStatus', troupeStatus], ['troupeLine', troupeLine], ['companyStatus', companyStatus], ['companyLine', companyLine]]) {
+  for (const [name, fn] of [['partyStatus', partyStatus], ['crisisStatus', crisisStatus], ['craftStatus', craftStatus], ['domainReport', (x) => (x.domain ? domainReport(x) : null)], ['seaStatus', seaStatus], ['deepStatus', deepStatus], ['estateStatus', estateStatus], ['vocationStatus', vocationStatus], ['armyStatus', armyStatus], ['exploreStatus', exploreStatus], ['beastsStatus', beastsStatus], ['tradeStatus', tradeStatus], ['contestStatus', contestStatus], ['mysteryStatus', mysteryStatus], ['houseStatus', houseStatus], ['poorStatus', poorStatus], ['poorLine', poorLine], ['innStatus', innStatus], ['innLine', innLine], ['troupeStatus', troupeStatus], ['troupeLine', troupeLine], ['companyStatus', companyStatus], ['companyLine', companyLine], ['heistStatus', heistStatus], ['heistLine', heistLine]]) {
     try { const r = deepBad(fn(g)); if (r) fail(`${name}에 나쁜 값`, r, seed, m); } catch (e) { fail(`${name} 예외`, e.stack, seed, m); }
   }
   if (partyOf(g).members.includes(g.player.id)) fail('내가 내 동료 명단에 있음', g.player.id, seed, m);
