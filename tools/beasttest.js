@@ -62,7 +62,8 @@ function adult(seed, family = 'farmer') {
   }
 }
 function placeAt(g, place) { const l = L(g); l.place = place; l.travel = null; l.home = 'inn'; l.queue = []; l.scene = null; g.pendingEvent = null; const R = realmState(g); R.cur = PLACES[place].realm ?? 'leonia'; R.last = place; if (g.army) Object.assign(g.army, { service: null, campaign: null, captive: null }); if (l.job?.id === 'soldier') l.job = null; if (g.crime) g.crime.jailed = null; if (g.explore) g.explore.exp = null; }
-const heal = (g) => { g.player.injuries = []; g.player.fatigue = 0; g.player.stress = 10; };
+// 길들이기를 재는 동안 남해에서 노예로 붙잡혀 가면(bondage) 짐승을 돌볼 수 없으니 풀어 둔다
+const heal = (g) => { g.player.injuries = []; g.player.fatigue = 0; g.player.stress = 10; if (g.bondage?.slave) { g.bondage.slave = null; g.bondage.fugitive = null; } };
 function scene(g, kind, data, re, opt = {}) {
   let done = false, chose = null;
   for (let i = 0; i < 6 && !done && !g.over; i++) {

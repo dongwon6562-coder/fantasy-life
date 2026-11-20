@@ -133,6 +133,9 @@ const BY_SCENE = {
   // 14단계: 장사 길과 상단 (trade_event는 아래에서 일에 따라 고른다)
   trade_market: 'beastlife:market', trade_caravan: 'road', trade_bandits: 'feud:strike', trade_toll: 'square:guards', trade_house: 'mentor:found', trade_rival: 'feud:plot', trade_event: 'beastlife:market',
   // 14단계: 글과 예술 (기존 그림을 이어 붙임)
+  // 23단계: 봉기와 반란 (새 그림 없이 있는 판을 붙임)
+  revolt_call: 'seal:alley', revolt_quarrel: 'feud:plot', revolt_betray: 'seal:alley', revolt_parley: 'square:herald', revolt_crushed: 'feud:strike',
+  revolt_gallows: 'square:guards', revolt_won: 'square:herald', revolt_rot: 'feud:plot', revolt_hunted: 'seal:alley', revolt_legacy: 'funeral:visit',
   // 22단계: 가문의 내력과 가풍 (새 그림 없이 있는 판을 붙임)
   lineage_motto: 'ritual:study', lineage_crest: 'square:herald', lineage_forge: 'seal:map',
   lineage_exposed: 'square:guards', lineage_blacksheep: 'bedside', lineage_branch_ev: 'road:return',
