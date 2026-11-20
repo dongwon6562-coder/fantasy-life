@@ -64,7 +64,7 @@ ACTIONS.push({
     p.prog = Math.min(1, p.prog + stepOf(g, p, rng));
     if (p.prog >= 1) return finish(g, rng);
     const pct = p.prog < 0.3 ? '아직 무엇이 문제인지도 다 보이지 않는다' : p.prog < 0.6 ? '시제품 하나가 돌아가다 멈췄다. 왜 멈췄는지는 알 것 같다' : p.prog < 0.85 ? '시제품이 사흘을 버텼다. 거의 다 왔다' : '마지막 하나만 맞추면 된다. 잠이 오지 않는다';
-    return `${nameOf(p)}을(를) 연구했다. ${pct}. (재료값 은화 ${cost}닢)`;
+    return `${J(nameOf(p), '을/를')} 연구했다. ${pct}. (재료값 은화 ${cost}닢)`;
   },
 });
 
@@ -76,7 +76,7 @@ function finish(g, rng) {
     r.made.push(p.id);
     r.fame += 3;
     L(g).renown = (L(g).renown ?? 0) + 3;
-    g.chronicle.push({ y: g.date.year, m: g.date.month, text: `${g.player.name}, ${DESIGNS[p.id].name}을(를) 만들다.`, rel: 100 });
+    g.chronicle.push({ y: g.date.year, m: g.date.month, text: `${g.player.name}, ${J(DESIGNS[p.id].name, '을/를')} 만들다.`, rel: 100 });
     return `마침내 ${DESIGNS[p.id].name}이(가) 제대로 돌아갔다. ${DESIGNS[p.id].desc} 세상에 하나뿐인 물건이다. 아직은.`;
   }
   // 발명은 이름을 어떻게 걸지 고르는 사건으로 넘어간다
