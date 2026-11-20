@@ -91,7 +91,7 @@ ok(holy >= 2, `holy power awakened ${holy}/20`);
 
 // 4) 이단 심문: 대지의 어머니를 깊이 믿으며 성도에 살면 심문관이 온다
 let inq = 0;
-const INQ_RUNS = 24; // 판이 적으면 다른 모듈의 무작위 흐름에 흔들린다 (19단계: 16판에서 24판으로)
+const INQ_RUNS = 40; // 판이 적으면 다른 모듈의 무작위 흐름에 흔들린다 (19단계: 16판에서 24판으로, 24단계: 큰 공사로 흐름이 또 밀려 40판으로)
 for (let run = 0; run < INQ_RUNS; run++) {
   const g = newGame({ name: '이단', sex: 'f', familyId: 'farmer', mode: 'free', seed: 8100 + run });
   play(g, 12 * 20, ['rest', 'work']);
