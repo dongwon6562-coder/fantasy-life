@@ -1,5 +1,6 @@
 // 10단계 평판과 소문 화면: '나' 화면의 평판 덩이. src/repute의 reputeInfo만 읽는다.
 import { reputeInfo } from '../repute/index.js';
+import { J } from '../narrative/text.js';
 import { esc } from './util.js';
 
 const safe = (fn, d = null) => { try { return fn() ?? d; } catch (e) { console.error(e); return d; } };
@@ -27,6 +28,6 @@ export function renderReputeBlock(game) {
     ${r.rumors.length ? `<h4 class="ct-h">여기서 도는 내 소문</h4><ul class="rp-rumors">${r.rumors.map(rumor).join('')}</ul>` : ''}
     ${others.length ? `<details class="rp-more"><summary>다른 고장에서의 평 ${others.length}곳</summary><ul class="rp-places">${others.map((p) => `<li><div class="top"><strong>${esc(p.name)}</strong><span class="note">${esc(p.fameWord)}</span></div>
         <div class="wd-row"><span>아는 정도</span>${bar(p.fame, 'court')}<span class="v">${p.fame}</span></div>
-        ${p.word ? `<span class="note ${p.good < 0 ? 'neg' : ''}">“${esc(p.word)}”는 말이 돈다</span>` : ''}</li>`).join('')}</ul></details>` : ''}
+        ${p.word ? `<span class="note ${p.good < 0 ? 'neg' : ''}">“${esc(p.word)}”${J(p.word, '이/가').slice(p.word.length) === '이' ? '이라는' : '라는'} 말이 돈다</span>` : ''}</li>`).join('')}</ul></details>` : ''}
   </div>`;
 }
