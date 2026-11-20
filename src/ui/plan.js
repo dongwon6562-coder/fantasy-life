@@ -1,4 +1,5 @@
 // 이번 달 계획: 위에 칸(주), 아래에 행동 카드. 칸을 누르고 카드를 누르면 들어간다.
+import { J } from '../narrative/text.js';
 import { availableActions, slotsFor, knownPeople, fullName } from '../game.js';
 import { ACTIONS } from '../actions.js';
 import { actionIcon } from '../art/icons.js';
@@ -240,7 +241,7 @@ export function renderPlan(game, ui) {
     </div>
     ${renderTpl(game, ui)}
     <div class="actions-row plan-tools">
-      <button class="ghost sm" id="fill">${esc(`모든 칸을 '${activeAct?.name ?? ''}'(으)로`)}</button>
+      <button class="ghost sm" id="fill">${esc(`모든 칸을 '${activeAct?.name ?? ''}'${J(activeAct?.name ?? '', '으로/로').slice((activeAct?.name ?? '').length)}`)}</button>
       <button class="ghost sm" id="skip3">같은 계획으로 석 달 보내기</button>
     </div>
     <div class="sticky-go"><button class="primary go-btn" id="go">이 달을 보낸다</button></div>

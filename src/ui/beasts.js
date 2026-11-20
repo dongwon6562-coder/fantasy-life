@@ -1,4 +1,5 @@
 // 13단계 '짐승과 함께' 화면(src/beasts). 읽기만 한다. '사람들' 화면 카드.
+import { J } from '../narrative/text.js';
 import { beastsStatus, FAMILIAR_FORMS } from '../beasts/index.js';
 import { beastPortrait } from '../art/beastPortrait.js';
 import { esc } from './util.js';
@@ -41,7 +42,7 @@ export function renderBeasts(game) {
     ${s.animals.length ? `<ul class="kn-list">${s.animals.map(row).join('')}</ul>` : ''}
     ${chips.length ? `<div class="sm-chips">${chips.map(([k, v, down]) => `<span class="sm-chip${down ? ' down' : ''}"><span>${esc(k)}</span><b>${esc(v)}</b></span>`).join('')}</div>` : ''}
     ${s.hungry ? '<p class="note warn">먹이를 대지 못한 달이 있다. 석 달을 굶기면 달아난다.</p>' : ''}
-    ${s.mount ? `<p class="note">${esc(s.mount.name)}을(를) 타고 다녀 길 위의 달이 준다.</p>` : ''}
+    ${s.mount ? `<p class="note">${esc(J(s.mount.name, '을/를'))} 타고 다녀 길 위의 달이 준다.</p>` : ''}
     ${s.shop.length && s.animals.length < s.max ? `<p class="note">이 고장 장터에서 파는 짐승: ${s.shop.map((x) => `${esc(x.name)}${x.cub ? ' 새끼' : ''} (은화 ${x.price}닢)`).join(', ')}</p>` : ''}
     ${s.lost.length ? `<details class="pl-more"><summary>떠나보낸 짐승 ${s.lost.length}마리</summary><ul class="pl-news">${s.lost.slice().reverse().map((x) => `<li><time>${x.year}년</time><span>${esc(x.name)}${x.how ? ` · ${esc(x.how)}` : ''}${x.years ? ` (${x.years}년을 함께)` : ''}</span></li>`).join('')}</ul></details>` : ''}
     ${s.log.length ? `<details class="pl-more"><summary>짐승과 있었던 일 ${s.log.length}가지</summary><ul class="pl-news">${s.log.slice().reverse().map((n) => `<li><time>${n.y}년${n.m ? ` ${n.m}월` : ''}</time><span>${esc(n.text)}</span></li>`).join('')}</ul></details>` : ''}

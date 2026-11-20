@@ -16,7 +16,7 @@ import { jobTitle } from '../jobs.js';
 import { memberships } from '../factions.js';
 import { lineage } from '../heir.js';
 import { worldSummary } from '../world.js';
-import { splitResult } from '../narrative/text.js';
+import { splitResult, J } from '../narrative/text.js';
 import { $, $$, esc, root } from './util.js';
 import { renderPlan, bindPlan } from './plan.js';
 import { snapshot, diffSummary, renderSummary } from './summary.js';
@@ -496,7 +496,7 @@ function renderOver() {
   return `
   <section class="card over">
     <h2>삶이 끝났다</h2>
-    <p>${esc(`${game.player.name}은(는)`)} ${rec?.age ?? playerAge(game)}살에 세상을 떠났다. ${esc(me(game).deathCause ?? '')}</p>
+    <p>${esc(J(game.player.name, '은/는'))} ${rec?.age ?? playerAge(game)}살에 세상을 떠났다. ${esc(me(game).deathCause ?? '')}</p>
     <p class="note">${lineage(game).length > 2 ? `${L(game).gen}대에 걸친 집안의 이야기가 여기서 끝난다.` : ''} 뒤를 이을 핏줄이 없어 대가 끊겼다.</p>
     ${review}
     <div class="actions-row"><button class="ghost" id="to-house">가문 기록 보기</button><button class="primary" id="to-title">처음 화면으로</button></div>

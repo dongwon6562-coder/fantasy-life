@@ -1,4 +1,5 @@
 // 7단계 갈래 화면: 신앙(src/faith), 세계의 큰 인물(src/legends), 바다(src/sea). 읽기만 한다.
+import { J } from '../narrative/text.js';
 import { faithInfo, FEASTS } from '../faith/index.js';
 import { tenGreats, legendsOf, legendName, playerRank, playerScore, legend } from '../legends/index.js';
 import { PLACES } from '../places.js';
@@ -20,7 +21,7 @@ export function renderFaithBlock(game) {
   if (f.title || f.sect) rows.push(['자리', [f.title, f.sect].filter(Boolean).join(' · ')]);
   if (f.holy > 0) rows.push(['신성력', String(f.holy)]);
   if (f.shrine) rows.push(['여기', f.shrine]);
-  if (f.pilgrim) rows.push(['순례 길', `${f.pilgrim}(으)로 가는 중`]);
+  if (f.pilgrim) rows.push(['순례 길', `${J(f.pilgrim, '으로/로')} 가는 중`]);
   if (f.pilgrimages.length) rows.push(['다녀온 순례', f.pilgrimages.join(', ')]);
   if (f.dawn) rows.push(['검은 새벽', `${f.dawn} (아무도 알아서는 안 된다)`]);
   return `<div class="block faith-block">
@@ -70,7 +71,7 @@ export function renderSea(game) {
   const show = s.port || s.voyage || s.ship || s.cargo || s.pirate || s.voyages;
   if (!show) return '';
   const parts = [];
-  if (s.voyage) parts.push(`<div class="sea-voy"><span class="lbl">바다 위</span><strong>${esc(s.voyage.toName)}(으)로 가는 중</strong><span class="note">${s.voyage.left}달 남음 · ${s.voyage.own ? '내 배' : s.voyage.work ? '뱃일을 거들며' : '손님으로'}</span></div>`);
+  if (s.voyage) parts.push(`<div class="sea-voy"><span class="lbl">바다 위</span><strong>${esc(J(s.voyage.toName, '으로/로'))} 가는 중</strong><span class="note">${s.voyage.left}달 남음 · ${s.voyage.own ? '내 배' : s.voyage.work ? '뱃일을 거들며' : '손님으로'}</span></div>`);
   if (s.port && s.routes.length) parts.push(`<h3 class="sub">${esc(s.port.name)}에서 떠나는 배</h3><ul class="sea-routes">${s.routes.map((r) => `<li><strong>${esc(r.name)}</strong><span class="note">${r.months}달 · 뱃삯 은화 ${r.fare}닢</span></li>`).join('')}</ul><p class="note">할 일의 '배 타기'로 부두에 나가 고른다. 뱃일을 거들면 공짜로 탈 수 있다.</p>`);
   if (s.ship) parts.push(`<div class="sea-ship"><span class="lbl">내 배</span><strong>${esc(s.ship.name)}</strong><span class="note">${esc(s.ship.kindName)} · 짐칸 ${s.ship.hold} · 선원 품삯 달마다 은화 ${s.ship.crewWage}닢${s.ship.unpaid ? ` · <b class="warn">밀린 품삯 ${s.ship.unpaid}달</b>` : ''}</span>
     <div class="wd-row"><span>선체</span>${bar(s.ship.hull, s.ship.hull < 40 ? 'low' : '')}<span class="v">${Math.round(s.ship.hull)}</span></div></div>`);

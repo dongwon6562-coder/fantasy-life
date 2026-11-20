@@ -1,4 +1,5 @@
 // 13단계 '제자와 문하' 화면(src/mentor). 읽기만 한다. '사람들' 화면 카드.
+import { J } from '../narrative/text.js';
 import { mentorInfo } from '../mentor/index.js';
 import { byId } from '../game.js';
 import { portrait } from '../art/portrait.js';
@@ -42,7 +43,7 @@ export function renderMentor(game) {
     <h2>제자와 문하 <small>${head}</small></h2>
     ${school}
     ${s.disciples.length ? `<ul class="kn-list">${s.disciples.map(row).join('')}</ul>` : ''}
-    ${!s.disciples.length && s.canTeach ? `<p class="note">${esc(s.arts.map((a) => a.name).join(', '))}을(를) 가르칠 만큼 솜씨가 익었다. 할 일의 '제자 들이기'로 제자를 받을 수 있다.</p>` : ''}
+    ${!s.disciples.length && s.canTeach ? `<p class="note">${esc(J(s.arts.map((a) => a.name).join(', '), '을/를'))} 가르칠 만큼 솜씨가 익었다. 할 일의 '제자 들이기'로 제자를 받을 수 있다.</p>` : ''}
     ${s.shopApprentices.length ? `<p class="note">가게에서 일 배우는 아이: ${esc(s.shopApprentices.join(', '))}</p>` : ''}
     ${s.grads.length ? `<details class="pl-more"><summary>떠나보낸 제자 ${s.grads.length}명</summary><ul class="ct-houses mt-grads">${s.grads.slice().reverse().map((x) => `<li><div class="top"><strong>${esc(x.name)}</strong><span class="note">${esc(x.artName)} · ${x.y}년</span></div><span class="note">${esc(x.fate)}</span></li>`).join('')}</ul></details>` : ''}
     ${sum.length ? `<p class="note">${sum.join(' · ')}</p>` : ''}
