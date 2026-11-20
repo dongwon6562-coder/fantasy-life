@@ -33,6 +33,6 @@ const { chromium } = require('playwright');
     }
   }
   // 다시 켜서 저장 불러오기
-  t0 = Date.now(); await p.reload(); await p.waitForSelector('#app *'); console.log('다시 켜기(저장 있음)', Date.now() - t0, 'ms');
+  t0 = Date.now(); await p.reload(); await p.waitForSelector('#go, [data-choice], [data-family], #ev-close'); console.log('다시 켜기(저장 있음)', Date.now() - t0, 'ms');
   await b.close();
 })();

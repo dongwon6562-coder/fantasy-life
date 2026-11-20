@@ -185,6 +185,7 @@ const BY_SCENE = {
   // 20단계: 유랑극단 (기존 그림을 이어 붙임)
   troupe_arrive: 'festival', troupe_show: 'trade:bard', troupe_manage: 'road', troupe_fire: 'road', troupe_move: 'road', troupe_event: 'road',
   herd_market: 'beastlife:market', herd_tend: 'herd:pasture', herd_steed: 'herd:steed', herd_band: 'herd:camp', herd_band_life: 'herd:camp', herd_event: 'herd:pasture',
+  cuisine_taste: 'beastlife:market', cuisine_kitchen: 'court', cuisine_post: 'night', cuisine_create: 'mentor:lesson', cuisine_contest: 'festival', cuisine_feast: 'court', cuisine_event: 'court',
   heist_target: 'heist:plan', heist_crew: 'heist:plan', heist_scout: 'heist:roof', heist_day: 'heist:roof', heist_twist: 'heist:vault-twist', heist_split: 'heist:split', heist_event: 'heist:plan',
   company_found: 'muster', company_board: 'army:camp', company_fight: 'army:clash', company_manage: 'army:camp', company_rules: 'army:camp', company_take: 'muster', company_event: 'army:camp',
   inn_open: 'trade:builder', inn_work: 'trade:bard', inn_manage: 'ritual:study', inn_price: 'ritual:study', inn_hire: 'trade:builder', inn_fire: 'trade:builder', inn_event: 'trade:bard',
@@ -239,6 +240,7 @@ export function vignetteFor(g, { title = '', text = '', outcome = false } = {}) 
     if (kind === 'voc_path' || kind === 'voc_event') { const sc = g.life.scene; pick = VOC_ART[sc.path ?? sc.ev] ?? JOB_ART[g.life?.job?.id] ?? null; }
     if (kind === 'peoples_rite' && g.life.scene.id) pick = `peoples:${g.life.scene.id}`;
     if (kind === 'herd_event') pick = { sick: 'herd:pasture', wolves: 'monsters', rustlers: 'herd:rustle', neighbor: 'feud:offer', dealer: 'beastlife:market', raid: 'herd:rustle', race: 'herd:steed', dzud: 'nature:winter' }[g.life.scene.ev] ?? pick;
+    if (kind === 'cuisine_event') pick = { plot: 'feud:plot', suspect: 'square:guards', taster: 'bedside', rival: 'feud:offer', shortage: 'famine', guest: 'square:herald', apprentice: 'mentor:lesson', spoiled: 'beastlife:market' }[g.life.scene.ev] ?? pick;
     if (kind === 'law_trial') pick = safe(() => g.law.cases.find((c) => c.id === g.life.scene.cid)?.role) === 'accused' ? 'trial:dock' : 'trial:plead';
     if (kind === 'heist_event') pick = { caught: 'square:guards', close: 'heist:roof', rat: 'feud:turned', blab: 'feud:plot', greed: 'feud:offer', informant: 'square:guards' }[g.life.scene.ev] ?? pick;
     if (kind === 'company_event') pick = { maimed: 'bedside', sack: 'fire', unpaid: 'feud:plot', turn: 'feud:turned', ransom: 'prison', rival: 'feud:offer', mutiny: 'feud:strike', widow: 'funeral:visit', desert: 'road' }[g.life.scene.ev] ?? pick;

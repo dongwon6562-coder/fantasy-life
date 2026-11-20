@@ -29,7 +29,7 @@ const safe = (fn, fb = null) => { try { return fn(); } catch { return fb; } };
 const wake = () => safe(() => engine.ctx.resume()?.catch?.(() => {}));
 const rest = () => safe(() => engine.ctx.suspend()?.catch?.(() => {}));
 
-const settings = { on: true, music: 0.7, sfx: 0.8, ...(hasDom ? safe(() => JSON.parse(localStorage.getItem(KEY))) ?? {} : {}) };
+const settings = { on: true, music: 0.7, sfx: 0.8, mix: false, ...(hasDom ? safe(() => JSON.parse(localStorage.getItem(KEY))) ?? {} : {}) };
 // 음량은 설정 화면(src/ui/settings.js)의 음악·효과음 칸과 같은 값을 쓴다. 켜기·끄기만 여기 따로 둔다.
 safe(() => { settings.music = prefs().music; settings.sfx = prefs().sfx; });
 onPrefs((p, k) => { if ((k === 'music' || k === 'sfx') && p[k] !== settings[k]) set({ [k]: p[k] }); });
@@ -41,6 +41,17 @@ let pendingFight = false, lastWhere = null;
 const home = (w) => (/^village_|^cradle$/.test(w ?? '') ? 'ern' : w);
 const sameGround = (a, b) => a != null && home(a) === home(b);
 const listeners = new Set();
+// 다른 앱 소리(음악, 유튜브)와 함께: 아이폰은 '재생' 종류로 소리를 내면 다른 앱 소리를 끊는다.
+// 함께 듣기일 때는 '배경' 종류로 바꿔 섞어 내고, 게임 음악은 쉬게 한다(효과음과 주변 소리는 그대로).
+// 앱이 앞으로 올 때 아이폰 쪽(AppDelegate)이 다른 소리가 흐르는지 window.__flOther로 알려 준다. (24단계, 동원 요청)
+let otherAudio = false;
+const mixing = () => settings.mix || otherAudio;
+function applySession() { safe(() => { if (navigator.audioSession) navigator.audioSession.type = mixing() ? 'ambient' : 'playback'; }); }
+if (hasDom) {
+  const readOther = () => { const v = !!window.__flOther; if (v !== otherAudio) { otherAudio = v; applySession(); applyVolume(); listeners.forEach((f) => f()); } };
+  safe(() => window.addEventListener('fl-other-audio', readOther));
+  readOther();
+}
 
 /* ---------- 게임 상태 받아 두기 ---------- */
 const keep = (g) => { game = g; };
@@ -70,7 +81,8 @@ function unlock() {
     if (!AC) return;
     // 아이폰: 무음 스위치가 켜져 있으면 스피커로는 소리가 안 나고 이어폰으로만 난다.
     // 소리 종류를 '재생'으로 알려 주면 스위치와 상관없이 난다. (끄고 싶으면 게임 안 소리 설정으로)
-    safe(() => { if (navigator.audioSession) navigator.audioSession.type = 'playback'; });
+    // 다른 앱 소리와 함께 들을 때는 '배경'으로 (무음 스위치를 따르고, 다른 소리를 끊지 않는다)
+    applySession();
     const ctx = safe(() => new AC({ latencyHint: 'interactive' }));
     if (!ctx) return;
     engine = new Engine(ctx);
@@ -88,7 +100,7 @@ function unlock() {
 }
 function applyVolume() {
   if (!engine) return;
-  engine.setVolume('music', settings.on ? settings.music ** 1.6 : 0);
+  engine.setVolume('music', settings.on && !mixing() ? settings.music ** 1.6 : 0);
   engine.setVolume('sfx', settings.on ? settings.sfx ** 1.6 : 0);
   // 환경음은 효과음 크기를 따라간다 (조금 작게)
   engine.setVolume('amb', settings.on ? settings.sfx ** 1.6 * 0.7 : 0);
@@ -255,20 +267,24 @@ function mountSettings(host, { floating = false } = {}) {
     <div class="onoff"><span>소리</span><button type="button" data-a="on"></button></div>
     <label class="row"><span>음악</span><input type="range" min="0" max="100" step="5" data-a="music" aria-label="음악 크기"><output></output></label>
     <label class="row"><span>효과음</span><input type="range" min="0" max="100" step="5" data-a="sfx" aria-label="효과음 크기"><output></output></label>
+    <div class="onoff"><span>다른 앱 소리와 함께<small style="display:block;font-size:11px;opacity:.7">음악·유튜브를 들으며 할 때. 게임 음악은 쉬고 효과음만 난다.</small></span><button type="button" data-a="mix"></button></div>
     <p class="now"></p></div>`;
   const q = (s) => host.querySelector(s);
   const draw = () => {
     if (!host.isConnected) { listeners.delete(draw); return; }
     const b = q('[data-a="on"]'); b.textContent = settings.on ? '켜짐' : '꺼짐'; b.setAttribute('aria-pressed', String(settings.on));
+    const mb = q('[data-a="mix"]'); mb.textContent = settings.mix ? '켜짐' : otherAudio ? '저절로 켜짐' : '꺼짐'; mb.setAttribute('aria-pressed', String(mixing()));
     for (const k of ['music', 'sfx']) {
       const i = q(`[data-a="${k}"]`); const v = Math.round(settings[k] * 100);
       if (document.activeElement !== i) i.value = v;
-      i.disabled = !settings.on; i.parentElement.querySelector('output').textContent = v;
+      i.disabled = !settings.on || (k === 'music' && mixing()); i.parentElement.querySelector('output').textContent = v;
     }
     const tr = TRACKS.find((t) => t.id === player?.playing);
-    q('.now').innerHTML = settings.on && tr ? `지금 흐르는 곡: <b>${tr.name}</b>` : settings.on ? (engine ? '곡 사이. 지금은 주변 소리만 흐른다.' : '화면을 누르면 음악이 시작된다.') : '소리가 꺼져 있다.';
+    q('.now').innerHTML = settings.on && mixing() ? '다른 앱 소리와 함께 듣는 중. 게임 음악은 쉰다.' : settings.on && tr ? `지금 흐르는 곡: <b>${tr.name}</b>` : settings.on ? (engine ? '곡 사이. 지금은 주변 소리만 흐른다.' : '화면을 누르면 음악이 시작된다.') : '소리가 꺼져 있다.';
   };
   q('[data-a="on"]').onclick = () => { set({ on: !settings.on }); unlock(); if (settings.on) sfx('confirm'); };
+  // 저절로 켜진 상태에서 누르면 이번에는 끈다(다시 앞으로 올 때 새로 본다)
+  q('[data-a="mix"]').onclick = () => { if (!settings.mix && otherAudio) otherAudio = false; else set({ mix: !settings.mix }); applySession(); applyVolume(); listeners.forEach((f) => f()); };
   for (const k of ['music', 'sfx']) {
     q(`[data-a="${k}"]`).oninput = (e) => set({ [k]: e.target.value / 100 });
     q(`[data-a="${k}"]`).onchange = () => { if (k === 'sfx') sfx('confirm'); };
