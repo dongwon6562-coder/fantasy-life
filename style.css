@@ -974,7 +974,7 @@ html:not(.motion) .pol-land .pol-ring { animation: none; }
 .ct-tag.heir { color: var(--brass); border-color: currentColor; }
 .ct-tag.gift { color: var(--mana); border-color: currentColor; }
 .ct-tag.flaw { color: #e3917f; border-color: currentColor; }
-.lineage-block b.warn, .lineage-now b.warn, .haunt-card b.warn, .haunt-block b.warn, .herd-card b.warn, .herd-block b.warn, .herd-now b.warn, .frontier-card b.warn, .frontier-block b.warn, .revolt-card b.warn, .revolt-block b.warn, .cu-card b.warn, .cuisine-block b.warn, .works-card b.warn, .works-now b.warn { color: #e3917f; }
+.lineage-block b.warn, .lineage-now b.warn, .haunt-card b.warn, .haunt-block b.warn, .herd-card b.warn, .herd-block b.warn, .herd-now b.warn, .frontier-card b.warn, .frontier-block b.warn, .revolt-card b.warn, .revolt-block b.warn, .cu-card b.warn, .cuisine-block b.warn, .works-card b.warn, .works-now b.warn, .exile-now b.warn, .exile-block b.warn { color: #e3917f; }
 .wk-list .wd-row.kn-row { grid-template-columns: minmax(0, 1fr); gap: 4px; }
 .estate-block { display: grid; gap: 8px; }
 .es-sum { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; }

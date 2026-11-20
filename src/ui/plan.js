@@ -114,6 +114,7 @@ function bindTpl(game, ui, rerender) {
 // 행동 묶음: 고르기 쉽게 성격별로 나눈다. 어두운 일은 접어 둔다(고르면 펼쳐진 채로).
 const GROUPS = [
   ['bondage', '사슬', /^bondage_(serve|escape|ransom)$/],
+  ['exile', '유배와 망명', /^exile_/],
   ['crisis', '나라의 큰일', /^crisis_/],
   ['jail', '감옥', /^jail_/],
   ['work', '일과 벌이', /^(work|seek_job|day_labor|inn_kitchen|herbs|help_home|shop_manage|open_shop|domain_|realm_office|farmer|merchant|estate_|voc_|nature_|trade_)/],
