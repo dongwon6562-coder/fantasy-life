@@ -125,6 +125,7 @@ const GROUPS = [
   ['arts', '글과 예술', /^arts_/],
   ['troupe', '유랑극단', /^troupe_/],
   ['faith', '믿음과 기도', /^(pray|worship|keep_feast|pilgrimage|faith_seek|holy_heal)$|^omen_/],
+  ['revolt', '봉기와 반란', /^revolt_/],
   ['court', '궁정', /^court_/],
   ['army', '군대', /^army_/],
   ['company', '용병단', /^company_/],
