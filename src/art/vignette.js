@@ -90,6 +90,7 @@ const BY_ID = {
   omen_false_prophet: 'square:herald', omen_witness: 'seal:dream', omen_faction: 'trade:bard', omen_hunter: 'seal:alley', omen_pilgrims: 'funeral:visit', omen_church: 'chapel:inquisition',
   dragon_seekers: 'trade:bard', dragon_dream: 'seal:dream', dragon_shadow: 'dragon', dragon_preacher: 'square:herald', dragon_cult_revenge: 'seal:alley', dragon_cult_tithe: 'ritual:dark',
   mine_strike_owner: 'square:herald', mine_dispute: 'court', mine_widow: 'funeral:visit', mine_knocking: 'depths', mine_found_out: 'square:guards',
+  haunt_fraud: 'square:herald', haunt_cursed_buy: 'trade:bard', haunt_dying_curse: 'funeral:visit', haunt_night: 'seal:alley', haunt_ancestor: 'funeral:visit', haunt_wraith_call: 'square:guards', haunt_curse_strike: 'seal:dream',
   wilds_herd: 'monsters', wilds_refugees: 'muster:refugee', wilds_settle: 'trade:builder', wilds_buyer: 'trade:alchemy',
   school_call: 'square:notice', school_dorm: 'night', school_noble: 'court', school_alum_help: 'road:return', school_alum_plea: 'dusk', school_alum_rival: 'square:guards', school_reunion: 'festival', school_parent_alum: 'road:return',
   law_accused: 'square:herald', law_wrong: 'square:notice', law_witness: 'court', law_judge: 'court', law_pardon: 'prison', law_stain: 'road',
@@ -99,6 +100,7 @@ const BY_ID = {
 const BY_SCENE = {
   dragon_climb: 'dragon', dragon_bones: 'dragon', dragon_cult: 'ritual:dark', dragon_lair: 'dragon', dragon_talk: 'dragon', dragon_young: 'dragon', dragon_fire: 'fire',
   mine_claim: 'road', mine_manage: 'depths', mine_deep: 'depths', mine_collapse: 'depths', mine_picket: 'square:herald',
+  haunt_spot: 'seal:alley', haunt_medium: 'ritual:dark', haunt_rite: 'ritual:dark', haunt_item: 'seal:dream', haunt_lift: 'chapel:inquisition',
   nature_drought: 'nature:drought', nature_flood: 'nature:flood', nature_winter: 'nature:winter', nature_quake: 'nature:quake', nature_locust: 'nature:locust', nature_storm: 'nature:storm', nature_granary: 'nature:granary',
   beast_buy: 'beastlife:market', beast_sell: 'beastlife:market', beast_event: 'beastlife:care', beast_familiar: 'beastlife:bond', beast_death: 'beastlife:grave',
   heir: 'bedside:last',
