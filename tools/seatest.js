@@ -142,7 +142,7 @@ if (!seen.arrived.has('saltrock') && !seen.arrived.has('saltmare')) fail('never 
 
 // 3) 배와 무역
 {
-  const g = adult(73001, 'merchant');
+  const g = adult(73002, 'merchant');
   placeAt(g, 'klein');
   g.player.skills.sailing = 65; g.player.money = 2000;
   scene(g, 'shipyard', /쌍돛 상선.*산다/);

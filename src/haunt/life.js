@@ -21,7 +21,7 @@ import {
 import { hauntRng, laySpot } from './world.js';
 
 const here = (g) => L(g).place;
-export const free = (g) => isAdult(g) && !L(g).travel && !isJailed(g) && !g.over && !g.explore?.exp && !g.army?.campaign && !g.army?.captive;
+export const free = (g) => isAdult(g) && !L(g).travel && !isJailed(g) && !g.bondage?.slave && !g.over && !g.explore?.exp && !g.army?.campaign && !g.army?.captive;
 const renown = (g, n) => { L(g).renown = (L(g).renown ?? 0) + n; };
 const st = (g, k) => g.player.stats[k] ?? 0;
 const spot = (g, id) => HS(g).spots[id] ?? null;
