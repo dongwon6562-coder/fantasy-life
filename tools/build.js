@@ -24,6 +24,7 @@ ${js.replace(/<\/script/gi, '<\\/script')}
 writeFileSync('dist/play.html', html);
 // 아이폰 앱(Capacitor)용: 완전한 HTML 문서. 게임 코드는 game.js로 따로 둔다.
 // HTML 안에 3MB짜리 글을 통째로 넣으면 HTML을 읽는 데만 한참 걸려, 첫 화면이 폰 흉내로 2.4초에서 1.4초로 준다 (헤드 21단계)
+// 게임 코드가 3.6MB로 커져 읽는 데만 폰에서 1초 넘게 걸린다. 가벼운 첫 장(제목)을 먼저 그린 뒤 game.js를 붙인다 (헤드 24단계)
 mkdirSync('dist/www', { recursive: true });
 writeFileSync('dist/www/game.js', js);
 writeFileSync('dist/www/index.html', `<!doctype html>
@@ -33,8 +34,8 @@ writeFileSync('dist/www/index.html', `<!doctype html>
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 ${html.split('<main id="app"></main>')[0].replace('<meta charset="utf-8">\n', '')}</head>
 <body>
-<main id="app"></main>
-<script src="game.js"></script>
+<main id="app"><div style="min-height:80vh;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;color:var(--brass);font-family:'Gowun Batang',serif"><div style="font-size:28px;letter-spacing:.2em">에른 마을</div><div style="font-size:13px;color:var(--brass-dim)">세상을 펼치는 중</div></div></main>
+<script>requestAnimationFrame(function(){setTimeout(function(){var s=document.createElement('script');s.src='game.js';document.body.appendChild(s);},0);});</script>
 </body>
 </html>
 `);
