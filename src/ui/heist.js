@@ -53,7 +53,9 @@ export function renderHeistBlock(game) {
   const any = s.done.length || s.total || s.betrayed || s.caught || s.crewBook.length || s.log.length || s.plan;
   if (!any) return '';
   const chips = [];
-  if (s.done.length) chips.push(['해낸 한탕', `${s.done.filter((x) => x.take > 0).length}번`]);
+  const won = s.done.filter((x) => x.take > 0).length;
+  if (won) chips.push(['해낸 한탕', `${won}번`]);
+  if (s.done.length > won) chips.push(['틀어진 한탕', `${s.done.length - won}번`, 'down']);
   if (s.total) chips.push(['손에 쥔 돈', `은화 ${s.total}닢`, 'up']);
   if (s.betrayed) chips.push(['배신당함', `${s.betrayed}번`, 'down']);
   if (s.caught) chips.push(['붙잡힘', `${s.caught}번`, 'down']);

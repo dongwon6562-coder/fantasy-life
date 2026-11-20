@@ -42,7 +42,7 @@ export function renderWorkshop(game, ui = {}) {
   const dcls = s.demand >= 1.1 ? 'up' : s.demand < 0.9 ? 'down' : '';
   const now = monthIndex(game);
   const head = `${s.name} · ${s.grade} · ${s.fameWord} ${s.maker}`;
-  return `<details class="card workshop"${ui.wsOpen ? " open" : ""}>
+  return `<details class="card workshop ws-own"${ui.wsOpen ? " open" : ""}>
     <summary>
       <span class="ws-title"><span class="lbl">${s.shop ? '내 가게' : '일터'}</span><strong>${esc(head)}</strong></span>
       <span class="ws-demand ${dcls}">${esc(s.season)} · ${esc(s.demandWord)}</span>

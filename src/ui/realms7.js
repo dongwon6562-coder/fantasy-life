@@ -22,7 +22,7 @@ export function renderFaithBlock(game) {
   if (f.holy > 0) rows.push(['신성력', String(f.holy)]);
   if (f.shrine) rows.push(['여기', f.shrine]);
   if (f.pilgrim) rows.push(['순례 길', `${J(f.pilgrim, '으로/로')} 가는 중`]);
-  if (f.pilgrimages.length) rows.push(['다녀온 순례', f.pilgrimages.join(', ')]);
+  if (f.pilgrimages.length) { const n = new Map(); for (const x of f.pilgrimages) n.set(x, (n.get(x) ?? 0) + 1); rows.push(['다녀온 순례', [...n].map(([x, k]) => (k > 1 ? `${x} ×${k}` : x)).join(', ')]); }
   if (f.dawn) rows.push(['검은 새벽', `${f.dawn} (아무도 알아서는 안 된다)`]);
   return `<div class="block faith-block">
     <h3>신앙</h3>

@@ -43,7 +43,9 @@ export function renderCompanyBlock(game) {
   const s = safe(() => companyStatus(game));
   if (!s) return '';
   const B = s.banner;
-  const any = B || s.rivals.length || s.families.length || s.contracts || s.past.length || s.log.length || s.hunted.length;
+  // 내 용병단이 없었으면 맞수도 없다
+  const mine = !!(B || s.contracts || s.past.length || s.company);
+  const any = B || (mine && s.rivals.length) || s.families.length || s.contracts || s.past.length || s.log.length || s.hunted.length;
   if (!any) return '';
   const chips = [];
   if (s.contracts) chips.push(['맺은 계약', `${s.contracts}번`]);
@@ -59,7 +61,7 @@ export function renderCompanyBlock(game) {
       <span class="note">${esc(B.sign)} · "${esc(B.motto)}" · ${esc(J(B.founder, '이/가'))} 처음 올림${B.holder ? ` · 지금 ${esc(B.holder)}` : ''}${B.stains ? ` · <b class="warn">깃발의 얼룩 ${B.stains}</b>` : ''}</span>
       ${B.honors.length ? `<span class="note">영예: ${B.honors.slice(0, 3).map((h) => `${h.y}년 ${esc(h.text)}`).join(' · ')}</span>` : ''}</div>` : ''}
     ${chips.length ? `<div class="sm-chips">${chips.map(chip).join('')}</div>` : ''}
-    ${s.rivals.length ? `<h4 class="ct-h">맞수 용병단</h4><ul class="wl-list co-list">${s.rivals.map((r) => `<li><div class="wd-row kn-row"><span><strong>${esc(r.name)}</strong> · 단장 ${esc(r.captain)} · ${esc(r.fameWord)}${r.grudge >= 40 ? ' · <b class="warn">원한이 깊다</b>' : ''}</span>${bar(r.fame, 'low')}</div></li>`).join('')}</ul>` : ''}
+    ${mine && s.rivals.length ? `<h4 class="ct-h">맞수 용병단</h4><ul class="wl-list co-list">${s.rivals.map((r) => `<li><div class="wd-row kn-row"><span><strong>${esc(r.name)}</strong> · 단장 ${esc(r.captain)} · ${esc(r.fameWord)}${r.grudge >= 40 ? ' · <b class="warn">원한이 깊다</b>' : ''}</span>${bar(r.fame, 'low')}</div></li>`).join('')}</ul>` : ''}
     ${s.families.length ? `<h4 class="ct-h">단원의 식구 ${s.families.length}집${s.waiting ? ` · 도움을 기다리는 집 ${s.waiting}` : ''}</h4><ul class="am-rows">${s.families.map(fam).join('')}</ul>` : ''}
     ${s.hunted.length ? `<p class="note warn">나를 쫓는 나라: ${s.hunted.map((h) => `${esc(h.realm)} (${h.monthsLeft}달)`).join(', ')}</p>` : ''}
     ${s.past.length ? `<details class="pl-more"><summary>지난 용병단 ${s.past.length}곳</summary><ul class="pl-news">${s.past.map((x) => `<li><time>${x.year}년</time><span>${esc(x.name)} · ${esc(x.how)} · 싸움 ${x.battles}번, 이김 ${x.won}번${x.dead ? `, 잃은 단원 ${x.dead}명` : ''}</span></li>`).join('')}</ul></details>` : ''}

@@ -17,6 +17,8 @@ MAP_ACTIONS.push((g, place) => {
   if (!place.id || !PLACES[place.id] || g.over) return [];
   const life = L(g);
   if (place.id === life.place) return [];
+  // 아직 열리지 않은 숨은 고장(개척 전의 빈 땅 등)은 길로 갈 수 없다: 개척단이나 그 갈래의 장면으로만 들어간다
+  if (PLACES[place.id].hidden && !PLACES[place.id].open?.(g)) return [];
   if (!isAdult(g)) return [{ label: '열다섯 살이 되면 떠날 수 있다', run: () => {} }];
   if (traveling(g) || g.pendingEvent) return [];
   const m = travelMonths(life.place, place.id);
