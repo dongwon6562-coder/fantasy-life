@@ -613,8 +613,9 @@ HOOKS.afterMonth.push((g, rng) => {
   const fire = (kind, data) => { v.sceneAt = now; queueScene(g, kind, data); };
   if (r.months < 6 && !r.birth) return; // 막 옮겨 온 곳에서는 아직 이웃을 모른다
   const list = fillNeighbors(g, rng, pl);
-  if (now - (v.meetingAt[pl] ?? -999) >= 10 && playerAge(g) >= 18 && rng.chance(0.25)) {
-    v.meetingAt[pl] = now;
+  // 마을 회의는 주제가 몇 개뿐이라, 여러 번 나갈수록 다음 회의까지 사이를 늘린다 (23단계 헤드: 한 삶에 마흔 번 가까이 뜨던 것)
+  if (now - (v.meetingAt[pl] ?? -999) >= 10 + 4 * Math.min(6, v.meetN ?? 0) && playerAge(g) >= 18 && rng.chance(0.25)) {
+    v.meetingAt[pl] = now; v.meetN = (v.meetN ?? 0) + 1;
     const pool = ['bridge', 'festival', 'watch', 'stranger', ...(cal ? ['granary', 'granary', 'water'] : []), ...(g.date.month >= 5 && g.date.month <= 8 ? ['water'] : [])];
     return fire('village_meeting', { topic: rng.pick(pool) });
   }
@@ -646,7 +647,7 @@ HOOKS.heir.push((g) => {
     r.neighbors = r.neighbors.filter((id) => !g.player.familyIds.includes(id) && byId(g, id) && !byId(g, id).isPlayer);
   }
   if (v.office) { log(g, `${placeName(v.office.place)}의 ${HEAD(v.office.place)} 자리가 비었다.`); v.office = null; }
-  v.sceneAt = 0;
+  v.sceneAt = 0; v.meetN = Math.floor((v.meetN ?? 0) / 2);
   v.log.push({ y: g.date.year, m: g.date.month, text: '마을 사람들이 이제 부모 대신 나를 본다.' });
 });
 HOOKS.newGame.push((g) => { V(g); placeRec(g, 'ern'); });
