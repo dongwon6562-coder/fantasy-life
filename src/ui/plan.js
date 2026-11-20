@@ -119,6 +119,7 @@ const GROUPS = [
   ['work', '일과 벌이', /^(work|seek_job|day_labor|inn_kitchen|herbs|help_home|shop_manage|open_shop|domain_|realm_office|farmer|merchant|estate_|voc_|nature_|trade_)/],
   ['cuisine', '요리사의 길', /^cuisine_/],
   ['inn', '내 가게', /^inn_(open|work|manage)$/],
+  ['works', '큰 공사', /^works_/],
   ['mine', '광산', /^mine_/],
   ['herd', '목축과 유목', /^herd_/],
   ['frontier', '개척', /^frontier_/],
