@@ -117,6 +117,7 @@ const GROUPS = [
   ['crisis', '나라의 큰일', /^crisis_/],
   ['jail', '감옥', /^jail_/],
   ['work', '일과 벌이', /^(work|seek_job|day_labor|inn_kitchen|herbs|help_home|shop_manage|open_shop|domain_|realm_office|farmer|merchant|estate_|voc_|nature_|trade_)/],
+  ['cuisine', '요리사의 길', /^cuisine_/],
   ['inn', '내 가게', /^inn_(open|work|manage)$/],
   ['mine', '광산', /^mine_/],
   ['herd', '목축과 유목', /^herd_/],
