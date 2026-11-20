@@ -178,6 +178,7 @@ const BY_SCENE = {
   // 19단계: 주점과 여관 꾸리기 (기존 그림을 이어 붙임)
   // 20단계: 유랑극단 (기존 그림을 이어 붙임)
   troupe_arrive: 'festival', troupe_show: 'trade:bard', troupe_manage: 'road', troupe_fire: 'road', troupe_move: 'road', troupe_event: 'road',
+  herd_market: 'beastlife:market', herd_tend: 'beastlife:care', herd_steed: 'beastlife:bond', herd_band: 'festival', herd_band_life: 'road', herd_event: 'beastlife:care',
   heist_target: 'seal:alley', heist_crew: 'seal:alley', heist_scout: 'night', heist_day: 'night', heist_twist: 'night', heist_split: 'feud:plot', heist_event: 'seal:alley',
   company_found: 'muster', company_board: 'army:camp', company_fight: 'army:clash', company_manage: 'army:camp', company_rules: 'army:camp', company_take: 'muster', company_event: 'army:camp',
   inn_open: 'trade:builder', inn_work: 'trade:bard', inn_manage: 'ritual:study', inn_price: 'ritual:study', inn_hire: 'trade:builder', inn_fire: 'trade:builder', inn_event: 'trade:bard',
@@ -231,6 +232,7 @@ export function vignetteFor(g, { title = '', text = '', outcome = false } = {}) 
     if (kind === 'sea_event') pick = /폭풍|풍랑/.test(title) ? 'voyage:storm' : /해적|검은 돛/.test(title) ? 'voyage:pirate' : /뱀|괴물|촉수/.test(title + text) ? 'voyage:serpent' : 'voyage';
     if (kind === 'voc_path' || kind === 'voc_event') { const sc = g.life.scene; pick = VOC_ART[sc.path ?? sc.ev] ?? JOB_ART[g.life?.job?.id] ?? null; }
     if (kind === 'peoples_rite' && g.life.scene.id) pick = `peoples:${g.life.scene.id}`;
+    if (kind === 'herd_event') pick = { sick: 'plague', wolves: 'monsters', rustlers: 'seal:alley', neighbor: 'feud:offer', dealer: 'beastlife:market', raid: 'feud:strike', race: 'festival', dzud: 'nature:winter' }[g.life.scene.ev] ?? pick;
     if (kind === 'heist_event') pick = { caught: 'square:guards', close: 'seal:alley', rat: 'feud:turned', blab: 'feud:plot', greed: 'feud:offer', informant: 'square:guards' }[g.life.scene.ev] ?? pick;
     if (kind === 'company_event') pick = { maimed: 'bedside', sack: 'fire', unpaid: 'feud:plot', turn: 'feud:turned', ransom: 'prison', rival: 'feud:offer', mutiny: 'feud:strike', widow: 'funeral:visit', desert: 'road' }[g.life.scene.ev] ?? pick;
     if (kind === 'troupe_event') pick = { censor: 'square:trial', quarrel: 'feud:offer', love: 'festival', lover: 'road', feast: 'court', theft: 'seal:alley' }[g.life.scene.ev] ?? pick;

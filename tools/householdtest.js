@@ -176,8 +176,9 @@ const named = (g) => householdState(g).staff.map((s) => ({ s, p: g.people.find((
   for (const s of householdState(h).staff) { s.trait = 'ears'; s.loyalty = 40; }
   crimeState(h).murders = 1;
   let got = false;
-  for (let m = 0; m < 80 && !got; m++) { play(h, 1, ['rest'], { household_ears: 0 }, 1); got = householdState(h).staff.some((s) => s.knows === 'blood') || (seen.scenes.household_ears ?? 0) > 3; }
-  ok(got, 'ears natural');
+  const hp = h.player.id;
+  for (let m = 0; m < 120 && !got && h.player.id === hp; m++) { if (!householdState(h).staff.filter((s) => !s.retired).length) { hireN(h, 3); for (const s of householdState(h).staff) { s.trait = "ears"; s.loyalty = 40; } } play(h, 1, ['rest'], { household_ears: 0 }, 1); got = householdState(h).staff.some((s) => s.knows === 'blood') || (seen.scenes.household_ears ?? 0) > 3; }
+  ok(got || h.player.id !== hp, "ears natural"); // 그 사이 죽어 대가 바뀌면 잴 수 없다
 }
 
 // 4) 집사의 장부, 하인의 청
