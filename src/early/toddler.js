@@ -2,12 +2,13 @@
 // 부모 따라다니기, 이야기 조르기, 흙장난을 더해 걸음마 뗀 아이의 하루를 고를 수 있게 한다. 3~5살.
 import { ACTIONS } from '../actions.js';
 import { playerAge, gainStat, gainSkill } from '../game.js';
-import { JOBS } from '../data.js';
+import { JOBS, SKILLS } from '../data.js';
 import { stress, tire, father, mother } from '../events/core.js';
 import { up, gains, join, J } from '../narrative/text.js';
 
 const small = (g) => playerAge(g) >= 3 && playerAge(g) < 6;
-const SKILL_NAME = { sword: '검술', magic: '마법', letters: '글과 학문', farming: '농사', cooking: '요리', trade: '장사', herbs: '약초', smithing: '대장일' };
+// 기술 이름은 SKILLS에서 (다른 갈래가 더한 기술도 있다: 뱃일·고기잡이 등)
+const skillName = (id) => SKILLS.find((s) => s.id === id)?.name ?? null;
 // 일하는 부모 쪽을 따라간다. 둘 다 기술 없는 일이면 그냥 곁에 붙어 있는다.
 function guide(g) {
   const ps = [father(g), mother(g)].filter((p) => p?.alive && !p.away && p.job !== 'child');
@@ -23,7 +24,7 @@ ACTIONS.push({
     tire(g, 5); stress(g, -6);
     const p = guide(g);
     const sk = JOBS[p.job]?.skill;
-    const t = sk ? gainSkill(g, sk, 0.35, 'sen') : 0;
+    const t = sk && skillName(sk) && g.player.skills[sk] != null ? gainSkill(g, sk, 0.35, 'sen') : 0;
     const s = gainStat(g, 'sen', 0.4);
     const who = p.sex === 'f' ? '엄마' : '아빠';
     const job = JOBS[p.job]?.name ?? '일';
@@ -33,7 +34,7 @@ ACTIONS.push({
       `${who}가 일하다 말고 내 손에 연장을 쥐여 주었다. 너무 무거워 두 손으로 들었다. ${who}가 손등을 감싸 함께 움직여 주었다.`,
       `${who}를 따라갔다가 처음 보는 어른들 틈에서 낯을 가렸다. 그래도 해 질 무렵엔 그 사람들 이름을 하나씩 따라 불렀다.`,
     ]);
-    return join(line, gains(sk ? up(SKILL_NAME[sk], t) : null, up('감각', s)));
+    return join(line, gains(sk && skillName(sk) ? up(skillName(sk), t) : null, up('감각', s)));
   },
 });
 

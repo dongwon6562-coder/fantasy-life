@@ -259,7 +259,7 @@ function drained(g, kind, data) {
   let games = 0, fights = 0;
   const f0 = seen.scenes.contest_fair ?? 0;
   for (let run = 0; run < 4; run++) {
-    const a = adult(95000 + run);
+    const a = adult(95020 + run);
     placeAt(a, ['harfen', 'leocast', 'verden', 'eisen'][run]);
     for (let m = 0; m < 120 && !a.over; m++) {
       const acts = availableActions(a);

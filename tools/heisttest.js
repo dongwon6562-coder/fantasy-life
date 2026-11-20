@@ -235,7 +235,7 @@ function plotted(seed, { crew = ['lock', 'muscle', 'inside', 'lookout', 'driver'
   const cool = setup(304610); direct(cool, 'heist_split', {}, 'equal'); H(cool).hunt.clue = 30; H(cool).hunt.until = nowMi(cool) - 1; clearQ(cool); tick(cool);
   if (H(cool).hunt) fail('hunt ends');
   // 앙심 품은 옛 일행이 밀고하러 온다
-  const gr = setup(304620); direct(gr, 'heist_split', {}, 'cross'); H(gr).grudge.at = nowMi(gr); clearQ(gr); tick(gr);
+  const gr = setup(304621); direct(gr, 'heist_split', {}, 'cross'); H(gr).grudge.at = nowMi(gr); clearQ(gr); tick(gr);
   if (!L(gr).queue.some((x) => x.kind === 'heist_event' && x.ev === 'rat')) fail('grudge rat');
 }
 

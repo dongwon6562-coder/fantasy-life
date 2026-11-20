@@ -178,7 +178,7 @@ function scene(g, kind, data, re, opt = {}) {
   console.log(`사역마: ${got}/6 (의식 ${tries}번)`);
   if (got < 3) fail('familiar too hard', got);
   // 팔기
-  const g = adult(63101);
+  const g = adult(63102);
   placeAt(g, 'leocast');
   const w = addAnimal(g, 'direwolf', { ageYears: 4, trained: 100, bond: 50 });
   const price = sellPrice(g, w);

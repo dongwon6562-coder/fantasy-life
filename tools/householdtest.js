@@ -171,7 +171,7 @@ const named = (g) => householdState(g).staff.map((s) => ({ s, p: g.people.find((
   const e3 = liveStaff(g).find((s) => s !== e);
   if (e3) { e3.loyalty = 85; scene(g, 'household_ears', { sid: e3.id, secret: 'affair', warn: true }, 0); ok(e3.loyalty >= 85, 'warn loyalty'); }
   // 비밀이 생기면 귀 밝은 하인이 저절로 알아챈다
-  const h = adult(21);
+  const h = adult(22);
   hireN(h, 3);
   for (const s of householdState(h).staff) { s.trait = 'ears'; s.loyalty = 40; }
   crimeState(h).murders = 1;

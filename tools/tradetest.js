@@ -96,7 +96,7 @@ function go(g, to, pick = null) {
 
 /* ---------- 1) 시세 ---------- */
 {
-  const g = adult(71000);
+  const g = adult(71001);
   const spread = GOOD_IDS.map((k) => { const ps = Object.keys(LOCAL).filter(isMarket).map((p) => priceAt(g, p, k)); return Math.max(...ps) / Math.min(...ps); });
   if (spread.some((x) => x < 1.4)) fail('price spread too flat', spread.map((x) => x.toFixed(2)).join(' '));
   if (!(priceAt(g, 'hammer', 'dwarfsteel') < priceAt(g, 'leocast', 'dwarfsteel'))) fail('dwarfsteel not cheaper at hammer');
@@ -183,7 +183,7 @@ function go(g, to, pick = null) {
   }
   if (Object.keys(outs).length < 4) fail('bandit choices', JSON.stringify(outs));
   for (const re of [/통행세를 낸다/, /따진다/, /소매에/, /개구멍/]) {
-    const g = adult(73500 + Object.keys(outs).length);
+    const g = adult(73510 + Object.keys(outs).length);
     outs[re.source] = 1;
     placeAt(g, 'leocast');
     g.player.money = 500;
