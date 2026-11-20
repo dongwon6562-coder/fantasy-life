@@ -1,4 +1,5 @@
 // 이번 달 계획: 위에 칸(주), 아래에 행동 카드. 칸을 누르고 카드를 누르면 들어간다.
+import { J } from '../narrative/text.js';
 import { availableActions, slotsFor, knownPeople, fullName } from '../game.js';
 import { ACTIONS } from '../actions.js';
 import { actionIcon } from '../art/icons.js';
@@ -130,10 +131,12 @@ const GROUPS = [
   ['health', '병과 몸', /^health_/],
   ['oath', '맹세', /^oath_/],
   ['elder', '마지막 해들', /^elder_/],
+  ['lineage', '가문', /^lineage_/],
   ['house', '집과 살림', /^(house_|household_)/],
   ['road', '길과 모험', /^(party_|gather_party|travel|on_road|housing|quest|delve|deep_|pol_|explore_|gear|pioneer|buy_title|tower_dare|wolves|goblins)/],
   ['wilds', '마물 사냥', /^wilds_/],
   ['dragon', '용의 땅', /^dragon_/],
+  ['haunt', '망자와 저주', /^haunt_/],
   ['beast', '짐승', /^beast_/],
   ['law', '법과 재판', /^law_/],
   ['contest', '내기와 겨루기', /^contest_/],
@@ -141,6 +144,7 @@ const GROUPS = [
   ['poor', '밑바닥', /^poor_/],
   ['secret', '비밀과 이중생활', /^secret_/],
   ['slavery', '노예와 자유', /^bondage_/],
+  ['heist', '큰 한탕', /^heist_/],
   ['dark', '어두운 일', /^(crime_|gang_|dawn_rite|repute_slander|forbidden_rite|feud_plot)/],
   ['rest', '쉼', /^(rest|drift_years)$/],
 ];
@@ -240,7 +244,7 @@ export function renderPlan(game, ui) {
     </div>
     ${renderTpl(game, ui)}
     <div class="actions-row plan-tools">
-      <button class="ghost sm" id="fill">${esc(`모든 칸을 '${activeAct?.name ?? ''}'(으)로`)}</button>
+      <button class="ghost sm" id="fill">${esc(`모든 칸을 '${activeAct?.name ?? ''}'${J(activeAct?.name ?? '', '으로/로').slice((activeAct?.name ?? '').length)}`)}</button>
       <button class="ghost sm" id="skip3">같은 계획으로 석 달 보내기</button>
     </div>
     <div class="sticky-go"><button class="primary go-btn" id="go">이 달을 보낸다</button></div>

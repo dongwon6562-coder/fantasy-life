@@ -1,5 +1,6 @@
 // 14단계 '장사 길과 상단' 화면(src/trade). 읽기만 한다.
 // 지도 화면 카드: 이 장터의 시세, 진 짐, 대상단, 상회, 맞수, 장부. 짐을 지고 길에 있을 때 '이번 달' 화면에 작은 카드.
+import { J } from '../narrative/text.js';
 import { tradeStatus, GOODS } from '../trade/index.js';
 import { esc } from './util.js';
 
@@ -47,7 +48,7 @@ export function renderTrade(game) {
       <div class="top"><strong>${esc(H.name)}</strong><span class="note">${esc(H.rank)}${H.income ? ` · 지점 벌이 달마다 ${H.income}닢` : ''}</span></div>
       ${H.fortune != null ? `<div class="wd-row kn-row"><span>형편 ${H.fortune}</span>${bar(H.fortune, H.fortune < 25 ? 'low' : 'kin')}</div>` : ''}
       <span class="note">지점 ${H.branches.length}곳${H.branches.length ? `: ${esc(H.branches.map((b) => b.name).join(', '))}` : ''}</span>
-      ${H.nextRank ? `<span class="note">${esc(H.nextRank)}${H.canLevel ? '(으)로 키울 수 있다' : '(으)로 키우려면'}: 밑천 ${H.levelCost}닢, 장사로 남긴 돈 ${H.levelProfit}닢</span>` : ''}
+      ${H.nextRank ? `<span class="note">${esc(J(H.nextRank, '으로/로'))}${H.canLevel ? ' 키울 수 있다' : ' 키우려면'}: 밑천 ${H.levelCost}닢, 장사로 남긴 돈 ${H.levelProfit}닢</span>` : ''}
     </div>` : s.canFound ? `<p class="note">장사로 ${s.foundProfit}닢을 넘게 남겼다. 밑천 ${s.foundCost}닢이 있으면 상회를 세울 수 있다.</p>` : '';
   const R = s.rival;
   const rival = R ? `<div class="tw-mem td-rival">
