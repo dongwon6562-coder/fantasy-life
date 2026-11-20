@@ -14,8 +14,16 @@ const out = process.argv[2] || 'shot';
   await p.fill('#pname', '레나');
   await p.click('#begin');
   let months = 0;
-  for (let i = 0; i < 4000 && months < 360; i++) {
+  // 글에 새는 것: 빈 값, 덜 다듬은 조사, 틀 글자 (헤드 22단계)
+  const LEAK = /undefined|NaN|\[object |\bnull\b|이\(가\)|을\(를\)|은\(는\)|와\(과\)|\(으\)로|\$\{/;
+  const leaks = new Map();
+  const scan = async () => {
+    const t = await p.evaluate(() => document.body.innerText).catch(() => '');
+    for (const line of t.split('\n')) if (LEAK.test(line) && !leaks.has(line.slice(0, 160))) leaks.set(line.slice(0, 160), months);
+  };
+  for (let i = 0; i < 4000 && months < (+process.env.UI_MONTHS || 360); i++) {
     const all = await p.$$('[data-choice]');
+    if (all.length || i % 7 === 0) await scan();
     if (all.length) {
       await all[i % all.length].click();
       const c = await p.$('#ev-close');
@@ -30,11 +38,19 @@ const out = process.argv[2] || 'shot';
     if (!go) { console.log("no #go at i=" + i, (await p.textContent("#app").catch(() => "")).replace(/\s+/g, " ").slice(0, 300)); break; }
     await go.click();
     months++;
+    // UI_TABS=1이면 예순 달마다 다른 탭도 열어 글이 새는지 본다 (느려서 기본은 끔)
+    if (process.env.UI_TABS && months % 60 === 0) {
+      const views = await p.$$eval('[data-view]', (bs) => bs.map((b) => b.dataset.view));
+      for (const v of views) { await p.click(`[data-view="${v}"]`).catch(() => {}); await scan(); }
+      await p.click('[data-view="month"]').catch(() => {});
+    }
     if (months === 200) await p.screenshot({ path: out + '-mid.png' });
   }
   await p.screenshot({ path: out + '-end.png' });
   const top = await p.textContent('header').catch(() => '');
   console.log('months~', months, 'header:', (top || '').replace(/\s+/g, ' ').slice(0, 120));
+  console.log('leaks:', leaks.size);
+  for (const [l, m] of [...leaks].slice(0, 30)) console.log('  ', m, l);
   console.log('errors:', errs.slice(0, 5));
   await b.close();
 })();
