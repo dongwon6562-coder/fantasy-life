@@ -70,6 +70,7 @@ import { renderDragon, renderDragonNow, renderDragonBlock } from './dragon.js';
 import { renderBondageNow, renderBondageBlock } from './bondage.js';
 import { renderCompanyNow, renderCompanyBlock } from './company.js';
 import { renderMines, renderMineNow, renderMineBlock } from './mine.js';
+import { renderHeistNow, renderHeistBlock } from './heist.js';
 import { renderWilds, renderWildsNow, renderWildsBlock } from './wilds.js';
 import { renderOmen, renderOmenNow } from './omen.js';
 import { renderMysteryNow, renderMysteryBlock } from './mystery.js';
@@ -309,6 +310,7 @@ function renderSheet() {
     ${renderMysteryBlock(game)}
     ${renderLawBlock(game)}
     ${renderSecretBlock(game)}
+    ${renderHeistBlock(game)}
     ${renderBondageBlock(game)}
     ${renderPoorBlock(game)}
     ${renderHouseBlock(game)}
@@ -518,7 +520,7 @@ function renderGame() {
   const p = game.player;
   const art = sceneImage({ year: game.date.year, month: game.date.month, famine: game.world?.famine, plague: game.world?.plague, place: L(game).place, calamity: calamityNow() });
   let main = '';
-  if (ui.view === 'month') main = game.over ? renderOver() : nowCards([renderBondageNow(game), renderCrisis(game), renderLawNow(game), renderSecretNow(game), renderPoorNow(game), renderArmyNow(game), renderAftermathNow(game), renderDragonNow(game), renderExploreNow(game), renderWildsNow(game), renderMineNow(game), renderTradeNow(game), renderNatureNow(game), renderHealthNow(game), renderMysteryNow(game), renderOmenNow(game), renderSchoolNow(game), renderTroupeNow(game)]) + renderSummary(ui.summary) + renderNews() + renderYouthCard(game, ui) + renderCompanyNow(game, ui) + renderInnNow(game, ui) + renderWorkshop(game, ui) + renderPlan(game, ui);
+  if (ui.view === 'month') main = game.over ? renderOver() : nowCards([renderBondageNow(game), renderCrisis(game), renderLawNow(game), renderSecretNow(game), renderHeistNow(game, ui), renderPoorNow(game), renderArmyNow(game), renderAftermathNow(game), renderDragonNow(game), renderExploreNow(game), renderWildsNow(game), renderMineNow(game), renderTradeNow(game), renderNatureNow(game), renderHealthNow(game), renderMysteryNow(game), renderOmenNow(game), renderSchoolNow(game), renderTroupeNow(game)]) + renderSummary(ui.summary) + renderNews() + renderYouthCard(game, ui) + renderCompanyNow(game, ui) + renderInnNow(game, ui) + renderWorkshop(game, ui) + renderPlan(game, ui);
   else if (ui.view === 'me') main = renderSheet();
   else if (ui.view === 'people') main = withJump([['love', '사랑', renderLove(game)], ['kin', '자식', renderKin(game)], ['oath', '맹세', renderOath(game)], ['household', '식솔', renderHousehold(game)], ['troupe', '극단', renderTroupe(game)], ['letters', '편지', renderLetters(game)], ['village', '이웃', renderVillage(game)], ['aftermath', '전쟁 뒤', renderAftermath(game)], ['mentor', '제자', renderMentor(game)], ['beasts', '짐승', renderBeasts(game)], ['feud', '원한', renderFeud(game)], ['peoples', '종족의 땅', renderPeoples(game)], ['party', '동료', renderParty(game)], ['notebook', '인물 수첩', renderPeople(game, ui)]]);
   else if (ui.view === 'map') main = withJump([['map', '지도', renderMap()], ['pol', '대륙 정세', renderPolitics(game, ui)], ['trade', '장사 길', renderTrade(game)], ['nature', '하늘과 땅', renderNature(game)], ['explore', '미지의 땅', renderExplore(game)], ['wilds', '마물', renderWilds(game)], ['mine', '광산', renderMines(game)], ['seal', '봉인', renderSeal(game)], ['dragon', '용', renderDragon(game)], ['omen', '예언', renderOmen(game)], ['deep', '구렁', renderDeep(game)], ['sea', '바다', renderSea(game)], ['world', '레오니아', renderWorldCard()]], { after: 1 }); // 지도가 먼저 (폰에서 바로 보이게), 바로 가기는 지도 아래
@@ -630,6 +632,8 @@ function bindGame() {
   bindWorld(game, ui, rerender);
   const ws = $('details.workshop');
   if (ws) ws.ontoggle = () => { ui.wsOpen = ws.open; };
+  const hz = $('details.heist-card');
+  if (hz) hz.ontoggle = () => { ui.heistOpen = hz.open; };
   const co = $('details.co-card');
   if (co) co.ontoggle = () => { ui.coOpen = co.open; };
   const inn = $('details.inn-card');

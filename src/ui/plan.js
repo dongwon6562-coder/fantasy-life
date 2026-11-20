@@ -142,6 +142,7 @@ const GROUPS = [
   ['poor', '밑바닥', /^poor_/],
   ['secret', '비밀과 이중생활', /^secret_/],
   ['slavery', '노예와 자유', /^bondage_/],
+  ['heist', '큰 한탕', /^heist_/],
   ['dark', '어두운 일', /^(crime_|gang_|dawn_rite|repute_slander|forbidden_rite|feud_plot)/],
   ['rest', '쉼', /^(rest|drift_years)$/],
 ];

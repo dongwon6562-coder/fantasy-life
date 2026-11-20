@@ -1434,3 +1434,5 @@ details.act-group[open]:not(.dark) > summary { align-items: center; padding: 0; 
 .now-notes .note b.warn { color: #e3917f; }
 /* 21단계 광산·용병단·사슬 */
 .mn-list b.warn, .co-contract b.warn, .bondage-now b.warn, .secret-block b.warn, .dragon-card b.warn { color: #e3917f; }
+/* 22단계 큰 한탕 */
+.heist-card b.warn, .heist-block b.warn, .wl-list b.warn, .am-rows b.warn { color: #e3917f; }
