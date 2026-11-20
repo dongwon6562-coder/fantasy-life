@@ -1,4 +1,5 @@
 import UIKit
+import AVFoundation
 import Capacitor
 
 @UIApplicationMain
@@ -26,7 +27,19 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     }
 
     func applicationDidBecomeActive(_ application: UIApplication) {
-        // Restart any tasks that were paused (or not yet started) while the application was inactive. If the application was previously in the background, optionally refresh the user interface.
+        // 다른 앱(음악, 유튜브)의 소리가 흐르는지 앞으로 오는 순간에 보고 게임 쪽(src/audio/index.js)에 알린다.
+        // 흐르고 있으면 게임은 소리 종류를 '배경'으로 바꿔 다른 소리를 끊지 않고 섞는다.
+        // 게임이 소리를 내기 시작하면 이 값이 바뀌므로, 앞으로 올 때 한 번 본 값을 몇 번 다시 보낸다(첫 실행엔 화면이 늦게 뜬다).
+        let s = AVAudioSession.sharedInstance()
+        otherAudio = s.isOtherAudioPlaying || s.secondaryAudioShouldBeSilencedHint
+        tellWeb()
+        for d in [0.8, 2.0, 4.0, 8.0] { DispatchQueue.main.asyncAfter(deadline: .now() + d) { self.tellWeb() } }
+    }
+
+    private var otherAudio = false
+    private func tellWeb() {
+        guard let vc = window?.rootViewController as? CAPBridgeViewController, let web = vc.bridge?.webView else { return }
+        web.evaluateJavaScript("window.__flOther=\(otherAudio);window.dispatchEvent(new Event('fl-other-audio'))", completionHandler: nil)
     }
 
     func applicationWillTerminate(_ application: UIApplication) {
