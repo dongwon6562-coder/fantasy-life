@@ -232,7 +232,8 @@ ACTIONS.push({
   name: '남의 소를 훔친다',
   icon: 'mask',
   desc: '밤에 이웃 목장이나 유목민 무리의 떼에서 몇 마리를 몰아 온다. 낙인을 지져 바꾸면 내 것이 된다. 들키면 소도둑이다.',
-  available: (g) => canOwn(g) && pastureOf(here(g)) > 0 && (!flock(g) || withFlock(g)),
+  // 소도둑질은 뒷골목에 한 발 들인 사람에게만 보인다 (26단계 헤드: 목초지에 가면 누구에게나 떠 있었다)
+  available: (g) => canOwn(g) && pastureOf(here(g)) > 0 && (!flock(g) || withFlock(g)) && ((g.crime?.crimes ?? 0) > 0 || (g.crime?.record?.length ?? 0) > 0 || !!g.crime?.gang || inBand(g)),
   run(g, rng) {
     const st = HD(g);
     tired(g, 14);
