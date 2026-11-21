@@ -1487,3 +1487,113 @@ details.act-group[open]:not(.dark) > summary { align-items: center; padding: 0; 
 .evy-block b.warn, .evy-now b.warn { color: #e3917f; }
 .evy-block .ag-clues li { color: var(--ink); }
 .block .blk-art { display: block; width: 100%; max-height: 170px; object-fit: cover; border-radius: 8px; border: 1px solid var(--line); margin: 4px 0 8px; }
+
+/* ==========================================================================
+   29단계 화면 질감: 촛불 켠 서재의 가죽 장정과 양피지 편지.
+   그림 파일 없이 SVG 잡결(feTurbulence)과 그라데이션만 쓴다. 글 읽기가 먼저라 무늬는 아주 옅게.
+   ========================================================================== */
+:root {
+  --grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .55 0 0 0 0 .42 0 0 0 0 .28 0 0 0 .09 0'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23n)'/%3E%3C/svg%3E");
+  --grain-ink: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.6' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .35 0 0 0 0 .24 0 0 0 0 .12 0 0 0 .16 0'/%3E%3C/filter%3E%3Crect width='220' height='220' filter='url(%23n)'/%3E%3C/svg%3E");
+  --fibers: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='400'%3E%3Cfilter id='f'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.012 .09' numOctaves='2' seed='4'/%3E%3CfeColorMatrix values='0 0 0 0 .45 0 0 0 0 .32 0 0 0 0 .18 0 0 0 .1 0'/%3E%3C/filter%3E%3Crect width='400' height='400' filter='url(%23f)'/%3E%3C/svg%3E");
+  /* 놋쇠 모서리 장식 (네 귀) */
+  --c-tl: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='22' height='22'%3E%3Cg fill='none' stroke='%23c9a25a' stroke-opacity='.5' stroke-width='1'%3E%3Cpath d='M3 19V6a3 3 0 0 1 3-3h13'/%3E%3Cpath d='M6.5 12V8.5a2 2 0 0 1 2-2H12' stroke-opacity='.35'/%3E%3C/g%3E%3Ccircle cx='3' cy='3' r='1.3' fill='%23c9a25a' fill-opacity='.55'/%3E%3C/svg%3E");
+  --c-tr: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='22' height='22'%3E%3Cg transform='matrix(-1 0 0 1 22 0)'%3E%3Cg fill='none' stroke='%23c9a25a' stroke-opacity='.5' stroke-width='1'%3E%3Cpath d='M3 19V6a3 3 0 0 1 3-3h13'/%3E%3Cpath d='M6.5 12V8.5a2 2 0 0 1 2-2H12' stroke-opacity='.35'/%3E%3C/g%3E%3Ccircle cx='3' cy='3' r='1.3' fill='%23c9a25a' fill-opacity='.55'/%3E%3C/g%3E%3C/svg%3E");
+  --c-bl: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='22' height='22'%3E%3Cg transform='matrix(1 0 0 -1 0 22)'%3E%3Cg fill='none' stroke='%23c9a25a' stroke-opacity='.5' stroke-width='1'%3E%3Cpath d='M3 19V6a3 3 0 0 1 3-3h13'/%3E%3Cpath d='M6.5 12V8.5a2 2 0 0 1 2-2H12' stroke-opacity='.35'/%3E%3C/g%3E%3Ccircle cx='3' cy='3' r='1.3' fill='%23c9a25a' fill-opacity='.55'/%3E%3C/g%3E%3C/svg%3E");
+  --c-br: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='22' height='22'%3E%3Cg transform='matrix(-1 0 0 -1 22 22)'%3E%3Cg fill='none' stroke='%23c9a25a' stroke-opacity='.5' stroke-width='1'%3E%3Cpath d='M3 19V6a3 3 0 0 1 3-3h13'/%3E%3Cpath d='M6.5 12V8.5a2 2 0 0 1 2-2H12' stroke-opacity='.35'/%3E%3C/g%3E%3Ccircle cx='3' cy='3' r='1.3' fill='%23c9a25a' fill-opacity='.55'/%3E%3C/g%3E%3C/svg%3E");
+  --corners: var(--c-tl) top 4px left 4px / 22px no-repeat, var(--c-tr) top 4px right 4px / 22px no-repeat, var(--c-bl) bottom 4px left 4px / 22px no-repeat, var(--c-br) bottom 4px right 4px / 22px no-repeat;
+  --leather: linear-gradient(180deg, #282017 0%, #221b14 38%, #1e1812 100%);
+  --rule: linear-gradient(90deg, rgba(201, 162, 90, .6), rgba(201, 162, 90, .18) 55%, rgba(201, 162, 90, 0));
+}
+
+/* 바탕: 먹갈색에 아주 옅은 잡결, 가운데가 조금 따뜻하게 */
+body {
+  background-color: var(--bg);
+  background-image: var(--grain), radial-gradient(ellipse 120% 80% at 50% 0%, #1f1912 0%, var(--bg) 60%, #120f0b 100%);
+}
+
+/* 카드와 '나' 칸: 가죽 장정. 위는 살짝 밝고, 안쪽에 가는 금박 선과 네 귀 장식 */
+.card, .sheet {
+  background: var(--corners), var(--grain), var(--leather);
+  border-color: #3b3126;
+  box-shadow: inset 0 1px 0 rgba(255, 228, 176, .06), inset 0 0 0 1px rgba(201, 162, 90, .07), 0 1px 0 rgba(0, 0, 0, .5), 0 6px 18px rgba(0, 0, 0, .28);
+}
+/* 넓은 지도·작은 한 줄 카드는 귀 장식을 빼고 결만 */
+.card.mapcard, .now-notes { background: var(--grain), var(--leather); }
+
+/* 카드 제목: 바탕체에 놋쇠빛 밑줄이 오른쪽으로 사라진다 */
+.card > h2 { padding-bottom: 9px; background: var(--rule) left bottom / 100% 1px no-repeat; letter-spacing: .01em; }
+.card > h2 small { letter-spacing: 0; }
+.block h3 { display: flex; align-items: center; gap: 7px; }
+.block h3::before { content: ''; width: 5px; height: 5px; background: var(--brass); transform: rotate(45deg); opacity: .75; flex: none; }
+
+/* 단추: 놋쇠를 두드린 듯 볼록하게. 눌리면 들어간다 */
+.primary {
+  background: linear-gradient(180deg, #dcb873 0%, #c69c52 52%, #b08540 100%);
+  color: #1d140b; border: 1px solid #6f5122;
+  box-shadow: inset 0 1px 0 rgba(255, 241, 205, .55), inset 0 -2px 0 rgba(90, 62, 22, .35), 0 2px 6px rgba(0, 0, 0, .45);
+  text-shadow: 0 1px 0 rgba(255, 236, 196, .35); letter-spacing: .02em;
+}
+.primary:active:not(:disabled) { transform: translateY(1px); box-shadow: inset 0 2px 4px rgba(90, 62, 22, .45), 0 1px 2px rgba(0, 0, 0, .4); }
+.ghost { background: linear-gradient(180deg, rgba(255, 236, 200, .035), rgba(0, 0, 0, .08)); }
+.ghost:active { transform: translateY(1px); }
+
+/* 할 일 카드: 고른 것은 금박 테두리 안쪽으로 빛이 돈다 */
+.act { background-image: linear-gradient(180deg, rgba(255, 236, 200, .03), rgba(0, 0, 0, .1)); }
+.act[aria-pressed="true"] { box-shadow: inset 0 0 0 1px var(--brass), inset 0 0 18px rgba(201, 162, 90, .14); }
+
+/* ---------- 사건 창: 그 달 풍경을 머리에 단 양피지 편지 ---------- */
+.event {
+  --ev-ink: #2b1e13; --ev-mute: #6b553b; --ev-red: #8a2e1e; --ev-line: #b99d6c;
+  background: var(--fibers), var(--grain-ink), radial-gradient(ellipse 140% 100% at 50% 40%, #f1e5c6 0%, #e9dab4 62%, #d8c391 100%);
+  color: var(--ev-ink); border: 1px solid #6f5122;
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, .5), inset 0 0 40px rgba(120, 82, 34, .28), 0 24px 70px rgba(0, 0, 0, .7);
+}
+.ev-art { border-bottom: 1px solid rgba(111, 81, 34, .6); }
+.ev-art::after { background: linear-gradient(rgba(233, 218, 180, 0) 55%, rgba(233, 218, 180, .55)); }
+.event .eyebrow { color: var(--ev-mute); }
+.event h2 { color: var(--ev-ink); padding-bottom: 8px; background: linear-gradient(90deg, rgba(111, 81, 34, .65), rgba(111, 81, 34, 0) 70%) left bottom / 100% 1px no-repeat; }
+.event p { color: #33241a; }
+.ev-text::first-letter { color: var(--ev-red); }
+.event .opt { background: rgba(255, 249, 232, .5); border-color: var(--ev-line); color: var(--ev-ink); box-shadow: 0 1px 0 rgba(255, 255, 255, .35) inset; }
+.event .opt .n { border-color: #8a6d38; color: #6b4a1e; background: rgba(255, 250, 236, .6); }
+.event .opt:hover, .event .opt:focus-visible { border-color: #6b4a1e; background: rgba(255, 250, 236, .75); }
+.event .opt[disabled], .event .opt:disabled { opacity: .55; }
+.event .outcome { color: var(--ev-ink); border-left-color: var(--ev-red); }
+.event .gains { color: var(--ev-mute); }
+.event .note { color: var(--ev-mute); }
+.event b.warn, .event .warn { color: var(--ev-red); }
+.event strong { color: var(--ev-ink); }
+.event .ghost { color: var(--ev-ink); border-color: var(--ev-line); background: rgba(255, 249, 232, .4); }
+.event a, .event .linkish { color: #6b3f12; }
+
+/* ---------- 달 넘김: 장식 줄 사이에 달 이름 ---------- */
+.month-card { background: var(--grain), radial-gradient(ellipse at center, rgba(30, 24, 17, .95), rgba(10, 8, 6, .985) 70%); }
+.mc-yr { display: flex; align-items: center; gap: 12px; }
+.mc-yr::before, .mc-yr::after { content: ''; width: 46px; height: 1px; background: linear-gradient(90deg, rgba(201, 162, 90, 0), rgba(201, 162, 90, .8)); }
+.mc-yr::after { transform: scaleX(-1); }
+.mc-in strong { text-shadow: 0 0 28px rgba(201, 162, 90, .28), 0 2px 0 rgba(0, 0, 0, .6); letter-spacing: .04em; }
+.mc-line { border-top: 0; position: relative; padding-top: 16px; }
+.mc-line::before { content: ''; position: absolute; top: 0; left: 50%; width: 9px; height: 9px; margin-left: -4.5px; border: 1px solid var(--brass); transform: rotate(45deg); background: #1a140e; }
+.mc-line::after { content: ''; position: absolute; top: 4px; left: 0; right: 0; height: 1px; background: linear-gradient(90deg, rgba(201, 162, 90, 0), rgba(201, 162, 90, .6) 30%, rgba(201, 162, 90, 0) 47%, rgba(201, 162, 90, 0) 53%, rgba(201, 162, 90, .6) 70%, rgba(201, 162, 90, 0)); z-index: -1; }
+html.motion .month-card .mc-in strong { animation: mc-glow 1.6s ease-out; }
+@keyframes mc-glow { from { text-shadow: 0 0 0 rgba(201, 162, 90, 0), 0 2px 0 rgba(0, 0, 0, .6); letter-spacing: .14em; } }
+
+/* 시작 화면: 고를 거리도 가죽 장정, 칸 제목에 놋쇠 밑줄 */
+.setup section > h2, .setup > h2 { padding-bottom: 8px; background: var(--rule) left bottom / 100% 1px no-repeat; }
+.choice { background: var(--grain), var(--leather); box-shadow: inset 0 1px 0 rgba(255, 228, 176, .05), 0 3px 10px rgba(0, 0, 0, .25); }
+.choice[aria-pressed="true"] { background: var(--corners), var(--grain), linear-gradient(180deg, #33291e, #2a2219); box-shadow: inset 0 0 0 1px var(--brass), inset 0 0 22px rgba(201, 162, 90, .12), 0 3px 10px rgba(0, 0, 0, .3); }
+.title-cap h1 { text-shadow: 0 2px 12px rgba(0, 0, 0, .65); }
+.seg { box-shadow: 0 2px 8px rgba(0, 0, 0, .25); }
+.seg button[aria-pressed="true"] { background: linear-gradient(180deg, #dcb873, #b9904a); box-shadow: inset 0 1px 0 rgba(255, 241, 205, .5); }
+.card.crisis { background: var(--corners), var(--grain), linear-gradient(180deg, rgba(120, 40, 28, .18), transparent 70%), var(--leather); }
+
+/* 탭 막대: 가죽 띠에 놋쇠 실선, 고른 탭에 은은한 불빛 */
+.nav { background: var(--grain), linear-gradient(180deg, #241d16, #1c1712); box-shadow: inset 0 -1px 0 rgba(201, 162, 90, .12), 0 2px 10px rgba(0, 0, 0, .35); }
+.nav button[aria-current="page"] { background: radial-gradient(ellipse 70% 90% at 50% 100%, rgba(201, 162, 90, .14), transparent 70%); }
+@media (max-width: 860px) {
+  .nav { background: var(--grain), linear-gradient(180deg, rgba(36, 29, 22, .98), rgba(26, 21, 16, .98)); box-shadow: inset 0 1px 0 rgba(201, 162, 90, .14), 0 -4px 14px rgba(0, 0, 0, .4); }
+  .nav button[aria-current="page"] { background: radial-gradient(ellipse 70% 90% at 50% 0%, rgba(201, 162, 90, .16), transparent 70%); }
+}
+/* 지도: 양피지를 짙은 나무 액자에 끼운 듯 */
+.mapbox { border: 1px solid #5a4630; box-shadow: 0 0 0 3px #1b1510, 0 0 0 4px rgba(201, 162, 90, .35), inset 0 0 30px rgba(80, 52, 20, .35), 0 6px 18px rgba(0, 0, 0, .4); }
