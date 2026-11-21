@@ -1455,3 +1455,5 @@ details.act-group[open]:not(.dark) > summary { align-items: center; padding: 0; 
 .rl-block b.warn { color: #e3917f; }
 .rl-block b.ok { color: var(--ok, #9fc28a); }
 .rl-block .rl-item p { margin: 4px 0; }
+/* 27단계: 불로 */
+.ag-block .ag-price { color: #e3917f; }
