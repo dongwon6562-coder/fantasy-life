@@ -104,6 +104,7 @@ const BY_ID = {
   works_corvee: 'square:notice',
   mana_crave: 'mana:sick', mana_child: 'ritual:study',
   relic_rumor: 'trade:bard', relic_fake: 'relic:fake', relic_claim: 'relic:contest', relic_challenge: 'road',
+  spirit_glimpse: 'mana:spring', spirit_church: 'square:guards', spirit_tower: 'ritual:study',
   wilds_herd: 'monsters', wilds_refugees: 'muster:refugee', wilds_settle: 'trade:builder', wilds_buyer: 'trade:alchemy',
   school_call: 'square:notice', school_dorm: 'night', school_noble: 'court', school_alum_help: 'road:return', school_alum_plea: 'dusk', school_alum_rival: 'square:guards', school_reunion: 'festival', school_parent_alum: 'road:return',
   law_accused: 'trial:dock', law_wrong: 'square:notice', law_witness: 'trial:plead', law_judge: 'trial:bench', law_pardon: 'prison', law_stain: 'road',
@@ -121,6 +122,7 @@ const BY_SCENE = {
   works_overseer: 'works:site', works_guild: 'works:site', works_skim: 'works:site', works_fall: 'works:fall', works_fund: 'works:site', works_open: 'works:open',
   mana_well: 'mana:spring', mana_storm: 'mana:storm', mana_siege: 'mana:claim',
   relic_trail: 'relic:find', relic_choose: 'relic:find', relic_offer: 'relic:contest',
+  spirit_learn: 'ritual:study', spirit_meet: 'mana:storm', spirit_tithe: 'mana:spring', spirit_whim: 'night',
   nature_drought: 'nature:drought', nature_flood: 'nature:flood', nature_winter: 'nature:winter', nature_quake: 'nature:quake', nature_locust: 'nature:locust', nature_storm: 'nature:storm', nature_granary: 'nature:granary',
   beast_buy: 'beastlife:market', beast_sell: 'beastlife:market', beast_event: 'beastlife:care', beast_familiar: 'beastlife:bond', beast_death: 'beastlife:grave',
   heir: 'bedside:last',
@@ -216,6 +218,7 @@ const BY_SCENE = {
   herd_market: 'beastlife:market', herd_tend: 'herd:pasture', herd_steed: 'herd:steed', herd_band: 'herd:camp', herd_band_life: 'herd:camp', herd_event: 'herd:pasture',
   apo_brew: 'apothecary:brew', apo_shop: 'apothecary:shop', apo_event: 'apothecary:shop',
   heredity_seen: 'mentor:lesson', heredity_envy: 'square:notice',
+  brew_make: 'farm:barn', brew_cellar: 'trade:bard', brew_event: 'trade:bard',
   farm_land: 'farm:plow', farm_sow: 'farm:sow', farm_manage: 'farm:barn', farm_market: 'farm:sell', farm_harvest: 'farm:harvest', farm_event: 'feud:offer',
   cuisine_taste: 'cuisine:stall', cuisine_kitchen: 'cuisine:kitchen', cuisine_post: 'cuisine:kitchen', cuisine_create: 'cuisine:create', cuisine_contest: 'cuisine:contest', cuisine_feast: 'cuisine:feast', cuisine_event: 'cuisine:kitchen', cuisine_cook: 'cuisine:kitchen', cuisine_serve: 'cuisine:feast',
   heist_target: 'heist:plan', heist_crew: 'heist:plan', heist_scout: 'heist:roof', heist_day: 'heist:roof', heist_twist: 'heist:vault-twist', heist_split: 'heist:split', heist_event: 'heist:plan',
@@ -273,6 +276,7 @@ export function vignetteFor(g, { title = '', text = '', outcome = false } = {}) 
     if (kind === 'peoples_rite' && g.life.scene.id) pick = `peoples:${g.life.scene.id}`;
     if (kind === 'herd_event') pick = { sick: 'herd:pasture', wolves: 'monsters', rustlers: 'herd:rustle', neighbor: 'feud:offer', dealer: 'beastlife:market', raid: 'herd:rustle', race: 'herd:steed', dzud: 'nature:winter' }[g.life.scene.ev] ?? pick;
     if (kind === 'apo_event') pick = { doctor: 'square:notice', priest: 'chapel:inquisition', quack: 'square:herald', poison: 'apothecary:poison', plague: 'apothecary:queue', harmed: 'bedside', rare: 'apothecary:gather' }[g.life.scene.ev] ?? pick;
+    if (kind === 'brew_event') pick = { taxman: 'square:notice', ban: 'square:herald', smuggler: 'night', festival: 'festival' }[g.life.scene.ev] ?? pick;
     if (kind === 'farm_event') pick = { water: 'farm:water', boundary: 'feud:offer', blight: 'nature:locust', hands: 'feud:plot', tenant: 'famine', buyer: 'farm:sell', thief: 'seal:alley', levy: 'square:guards' }[g.life.scene.ev] ?? pick;
     if (kind === 'cuisine_event') pick = { plot: 'feud:plot', suspect: 'cuisine:taster', taster: 'cuisine:taster', rival: 'cuisine:contest', shortage: 'cuisine:create', guest: 'cuisine:feast', apprentice: 'cuisine:kitchen', spoiled: 'cuisine:create' }[g.life.scene.ev] ?? pick;
     if (kind === 'law_trial') pick = safe(() => g.law.cases.find((c) => c.id === g.life.scene.cid)?.role) === 'accused' ? 'trial:dock' : 'trial:plead';

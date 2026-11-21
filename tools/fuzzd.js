@@ -61,6 +61,7 @@ import { cuisineStatus, cuisineLine, cuisineState as CUIS } from '../src/cuisine
 import { farmStatus, farmLine, farmState as FARM } from '../src/farm/index.js';
 import { apothecaryStatus, apothecaryLine, apothecaryState as APO } from '../src/apothecary/index.js';
 import { heredityInfo, heredityLine, heredityState as HER } from '../src/heredity/index.js';
+import { brewStatus, brewLine, brewState as BRW } from '../src/brew/index.js';
 import { innStatus, innLine, I as INN, ROLE_IDS as INN_ROLES, REGULAR_IDS as INN_REGS } from '../src/inn/index.js';
 import { mysteryStatus, M as MYSTERY, makeCase, KIND_IDS as MYSTERY_KINDS } from '../src/mystery/index.js';
 import { E as EXPL, REGION_IDS as EXPL_REGIONS, FINDS as EXPL_FINDS } from '../src/explore/core.js';
@@ -84,7 +85,7 @@ function roundTrip(g, rng) {
 function chaos(g, rng) {
   const life = L(g);
   const adult = playerAge(g) >= 15;
-  const r = rng.int(0, 35);
+  const r = rng.int(0, 36);
   if (r === 0) return 'roundtrip';
   if (r === 1 && !CR(g).active) startCrisis(g, rng, rng.pick(Object.keys(CRISES)));
   else if (r === 2) { g.realm.balhart.war = true; g.realm.balhart.warMonths = 0; }
@@ -120,6 +121,7 @@ function chaos(g, rng) {
   else if (r === 33) farmShake(g, rng);
   else if (r === 34) apoShake(g, rng);
   else if (r === 35) herShake(g, rng);
+  else if (r === 36) brewShake(g, rng);
   else if (r === 15 && adult && !life.travel && !isJailed(g)) { const port = rng.pick(['klein', 'portel', 'saltmare', 'saltrock']); life.place = port; const rt = rng.pick(seaRoutesFrom(g, port)); if (rt) setSail(g, rt.to, rt.months, { own: !!S(g).ship }); }
   return null;
 }
@@ -260,6 +262,19 @@ function herShake(g, rng) {
   if (p && rng.chance(0.4)) p.blood = rng.pick([{ t: 'x', mana: 1 }, null, { t: { str: 1.2, agi: 1, int: 1, wil: 1, cha: 1, sen: 1 }, mana: rng.float(0, 1), leap: rng.pick(['mana', 'str', 'gone']) }]);
   if (p && rng.chance(0.2)) p.looks = rng.pick([{ hair: 2 }, 'x', { eyes: 99 }]);
   if (rng.chance(0.3)) queueScene(g, rng.pick(['heredity_seen', 'heredity_envy']), { gift: rng.pick(['magic', 'trade', 'gone']) });
+  runHooks('migrate', g);
+}
+
+// 술통과 술도가를 흔든다 (src/brew/)
+function brewShake(g, rng) {
+  const s = BRW(g), life = L(g);
+  if (rng.chance(0.3)) s.stock = rng.pick([{ barley: rng.int(-2, 20), gone: 3, honey: 'x' }, null, {}]);
+  if (rng.chance(0.4)) s.casks.push(rng.pick([{ d: 'gone', at: 0 }, { d: rng.pick(['ale', 'wine', 'mead', 'spirit', 'cider']), at: (g.date.year * 12 + g.date.month) - rng.int(0, 60), q: rng.pick([50, 'x', 120]), t: rng.pick([1, 3, 'x']), y: 500 }, null]));
+  if (rng.chance(0.25) && !s.cellar) s.cellar = rng.chance(0.2) ? { place: 'nowhere' } : { place: rng.pick([life.place ?? 'ern', 'harfen']), name: rng.pick(['흔들 술도가', 3]), fame: rng.int(-5, 130), still: rng.chance(0.5), contract: rng.pick([null, { name: 3 }, { name: '흔들 주점', d: 'ale', left: 3, pay: 1.1 }]), taxOwed: rng.pick([0, 50, 'x', -4]), since: 0, gens: 1, by: '흔들', last: 0 };
+  if (rng.chance(0.15)) s.named.push(rng.chance(0.3) ? { d: 'gone' } : { d: 'ale', by: '흔들', gen: 'x', since: 0 });
+  if (rng.chance(0.15)) s.cellar = null;
+  if (rng.chance(0.2) && g.world) g.world.famine = !g.world.famine;
+  if (rng.chance(0.3)) { const k = rng.pick(['brew_make', 'brew_cellar', 'brew_event']); queueScene(g, k, { ev: rng.pick(['taxman', 'ban', 'smuggler', 'noble', 'tavern', 'sour', 'rival', 'festival', 'gone']) }); }
   runHooks('migrate', g);
 }
 
@@ -422,7 +437,7 @@ function checkState(g, seed, m) {
   const p = g.player;
   for (const [k, v] of Object.entries({ money: p.money, fatigue: p.fatigue, stress: p.stress, renown: L(g).renown, notoriety: L(g).notoriety })) if (!Number.isFinite(v)) fail('NaN 값', k, seed, m);
   if (p.money < 0) fail('돈이 음수', p.money, seed, m);
-  for (const [name, fn] of [['partyStatus', partyStatus], ['crisisStatus', crisisStatus], ['craftStatus', craftStatus], ['domainReport', (x) => (x.domain ? domainReport(x) : null)], ['seaStatus', seaStatus], ['deepStatus', deepStatus], ['estateStatus', estateStatus], ['vocationStatus', vocationStatus], ['armyStatus', armyStatus], ['exploreStatus', exploreStatus], ['beastsStatus', beastsStatus], ['tradeStatus', tradeStatus], ['contestStatus', contestStatus], ['mysteryStatus', mysteryStatus], ['houseStatus', houseStatus], ['poorStatus', poorStatus], ['poorLine', poorLine], ['innStatus', innStatus], ['innLine', innLine], ['troupeStatus', troupeStatus], ['troupeLine', troupeLine], ['companyStatus', companyStatus], ['companyLine', companyLine], ['heistStatus', heistStatus], ['heistLine', heistLine], ['herdStatus', herdStatus], ['herdLine', herdLine], ['cuisineStatus', cuisineStatus], ['cuisineLine', cuisineLine], ['farmStatus', farmStatus], ['farmLine', farmLine], ['apothecaryStatus', apothecaryStatus], ['apothecaryLine', apothecaryLine], ['heredityInfo', heredityInfo], ['heredityLine', heredityLine]]) {
+  for (const [name, fn] of [['partyStatus', partyStatus], ['crisisStatus', crisisStatus], ['craftStatus', craftStatus], ['domainReport', (x) => (x.domain ? domainReport(x) : null)], ['seaStatus', seaStatus], ['deepStatus', deepStatus], ['estateStatus', estateStatus], ['vocationStatus', vocationStatus], ['armyStatus', armyStatus], ['exploreStatus', exploreStatus], ['beastsStatus', beastsStatus], ['tradeStatus', tradeStatus], ['contestStatus', contestStatus], ['mysteryStatus', mysteryStatus], ['houseStatus', houseStatus], ['poorStatus', poorStatus], ['poorLine', poorLine], ['innStatus', innStatus], ['innLine', innLine], ['troupeStatus', troupeStatus], ['troupeLine', troupeLine], ['companyStatus', companyStatus], ['companyLine', companyLine], ['heistStatus', heistStatus], ['heistLine', heistLine], ['herdStatus', herdStatus], ['herdLine', herdLine], ['cuisineStatus', cuisineStatus], ['cuisineLine', cuisineLine], ['farmStatus', farmStatus], ['farmLine', farmLine], ['apothecaryStatus', apothecaryStatus], ['apothecaryLine', apothecaryLine], ['heredityInfo', heredityInfo], ['heredityLine', heredityLine], ['brewStatus', brewStatus], ['brewLine', brewLine]]) {
     try { const r = deepBad(fn(g)); if (r) fail(`${name}에 나쁜 값`, r, seed, m); } catch (e) { fail(`${name} 예외`, e.stack, seed, m); }
   }
   if (partyOf(g).members.includes(g.player.id)) fail('내가 내 동료 명단에 있음', g.player.id, seed, m);

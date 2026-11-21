@@ -6,6 +6,7 @@
 //   heredityInfo(g) → 내 큰 재능, 내가 누구를 닮았나, 자식마다 누구를 닮았나, 혼인 상대 후보에 대한 말
 //   bloodHint(g, p) → 그 사람 집안 핏줄에 대한 말 (혼인 상대 고를 때), resembleOf(g, p) → '아버지를 많이 닮았다' 같은 말
 import './life.js';
+import './call.js'; // 28단계 헤드: 열여섯 무렵 재능을 알아본 사람이 다시 부른다 (장사·신앙)
 import { me, playerAge } from '../game.js';
 import { byId, ageYears } from '../npc.js';
 import { BIRTH_GIFTS } from './data.js';
