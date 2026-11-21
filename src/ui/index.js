@@ -85,6 +85,9 @@ import { renderFarmNow, renderFarmBlock } from './farm.js';
 import { renderClaimNow, renderClaimBlock } from './claim.js';
 import { renderApoNow, renderApoBlock } from './apothecary.js';
 import { renderRelicNow, renderRelicBlock } from './relic.js';
+import { renderAgelessNow, renderAgelessBlock, renderFarewellBlock } from './ageless.js';
+import { renderHeredityBlock } from './heredity.js';
+import { renderBirthPick, bindBirth, resetLooks, birthReady, birthValue } from './birth.js';
 import { renderWilds, renderWildsNow, renderWildsBlock } from './wilds.js';
 import { renderOmen, renderOmenNow } from './omen.js';
 import { renderMysteryNow, renderMysteryBlock } from './mystery.js';
@@ -117,6 +120,7 @@ export function start() {
 }
 
 /* ---------- 시작 화면 ---------- */
+const beginNote = (s) => `${s.family ? '' : '집안을 골라 주세요. '}${birthReady(s) ? '' : '큰 재능을 하나 골라 주세요. '}${s.name.trim() ? '' : '이름을 지어 주세요.'}`;
 function renderSetup() {
   const s = ui.setup;
   const auto = summary('auto');
@@ -179,6 +183,7 @@ function renderSetup() {
               </button>`).join('')}
           </div>
         </section>
+        ${renderBirthPick(s, race)}
         <section>
           <h2>아이</h2>
           <div class="field-row">
@@ -191,8 +196,8 @@ function renderSetup() {
           </div>
         </section>
         <div class="actions-row">
-          <button class="primary" id="begin" ${s.family && s.name.trim() ? '' : 'disabled'}>태어나기</button>
-          <span class="note" id="begin-note">${s.family ? '' : '집안을 골라 주세요. '}${s.name.trim() ? '' : '이름을 지어 주세요.'}</span>
+          <button class="primary" id="begin" ${s.family && s.name.trim() && birthReady(s) ? '' : 'disabled'}>태어나기</button>
+          <span class="note" id="begin-note">${beginNote(s)}</span>
         </div>
       </div>
     </div>`;
@@ -200,22 +205,24 @@ function renderSetup() {
   $$('[data-mode]').forEach((b) => b.onclick = () => { s.mode = b.dataset.mode; renderSetup(); });
   $$('[data-family]').forEach((b) => b.onclick = () => { s.family = b.dataset.family; renderSetup(); });
   $$('[data-race]').forEach((b) => b.onclick = () => {
+    if (s.race !== b.dataset.race) resetLooks(s);
     s.race = b.dataset.race;
     const fs = familiesOf(s.race);
     if (!fs.some((f) => f.id === s.family)) s.family = fs.length === 1 ? fs[0].id : null; // 집안이 하나뿐이면 바로 고른다
     renderSetup();
   });
   $$('[data-sex]').forEach((b) => b.onclick = () => { s.sex = b.dataset.sex; renderSetup(); });
+  bindBirth(s, renderSetup);
   const input = $('#pname');
   input.oninput = () => {
     s.name = input.value;
-    $('#begin').disabled = !(s.family && s.name.trim());
-    $('#begin-note').textContent = `${s.family ? '' : '집안을 골라 주세요. '}${s.name.trim() ? '' : '이름을 지어 주세요.'}`;
+    $('#begin').disabled = !(s.family && s.name.trim() && birthReady(s));
+    $('#begin-note').textContent = beginNote(s);
   };
   $('#begin').onclick = () => {
     // 하던 삶은 지우지 않고 보관한다 (예전엔 한 번뿐인 삶을 새로 시작하면 하던 삶이 사라졌다)
     if (!shelveAuto()) { $('#begin-note').textContent = '저장 공간이 모자라 하던 삶을 보관할 수 없다. 위에서 안 쓰는 저장을 지워 주세요.'; return; }
-    game = newGame({ name: s.name.trim(), sex: s.sex, familyId: s.family, mode: s.mode });
+    game = newGame({ name: s.name.trim(), sex: s.sex, familyId: s.family, mode: s.mode, birth: birthValue(s) });
     game.uid = newUid();
     resetUi();
     autosave(game);
@@ -303,10 +310,13 @@ function renderSheet() {
       <h3>삶</h3>
       ${lifeLines()}
     </div>
+    ${renderHeredityBlock(game)}
+    ${renderAgelessBlock(game)}
     ${renderYouthBlock(game)}
     ${renderSchoolBlock(game)}
     ${renderLineageBlock(game)}
     ${renderElderBlock(game)}
+    ${renderFarewellBlock(game)}
     ${renderHealthBlock(game)}
     ${renderReputeBlock(game)}
     ${renderTowerBlock(game)}
@@ -466,7 +476,7 @@ function nowCards(parts) {
   return parts.map((h, i) => (i === first ? merged : lines[i] ? '' : h)).join('');
 }
 
-const SHEET_SHORT = { '늙음과 마지막 해들': '늙음', '내기와 겨루기': '내기', '풀리지 않은 일': '미제', '연구와 발명': '연구', '글과 예술': '예술', '병과 의술': '병', '내 집 마련': '집', '법과 재판': '법', '학원과 시험': '학원', '밑바닥 삶': '밑바닥', '내 가게': '가게', '마물 사냥': '마물', '용병단과 깃발': '용병단', '광산과 땅 밑': '광산', '사슬과 자유': '사슬', '무대와 재주': '무대', '전쟁 뒤': '전쟁 뒤', '몸과 마음': '몸과 마음', '집과 재산': '재산', '어린 시절': '어린 시절', '가문의 내력': '가문', '망자와 저주': '저주', '목축과 유목': '목축', '봉기와 반란': '봉기', '요리사의 길': '요리', '유배와 망명': '유배', '첩보와 밀정': '첩보', '마나의 흐름': '마나', '숨은 왕가의 피': '왕가의 피', '약초와 약방': '약방', '성유물': '성유물' };
+const SHEET_SHORT = { '늙음과 마지막 해들': '늙음', '내기와 겨루기': '내기', '풀리지 않은 일': '미제', '연구와 발명': '연구', '글과 예술': '예술', '병과 의술': '병', '내 집 마련': '집', '법과 재판': '법', '학원과 시험': '학원', '밑바닥 삶': '밑바닥', '내 가게': '가게', '마물 사냥': '마물', '용병단과 깃발': '용병단', '광산과 땅 밑': '광산', '사슬과 자유': '사슬', '무대와 재주': '무대', '전쟁 뒤': '전쟁 뒤', '몸과 마음': '몸과 마음', '집과 재산': '재산', '어린 시절': '어린 시절', '가문의 내력': '가문', '망자와 저주': '저주', '목축과 유목': '목축', '봉기와 반란': '봉기', '요리사의 길': '요리', '유배와 망명': '유배', '첩보와 밀정': '첩보', '마나의 흐름': '마나', '숨은 왕가의 피': '왕가의 피', '약초와 약방': '약방', '성유물': '성유물', '늙지 않는 몸': '불로', '타고남과 핏줄': '핏줄', '스스로 고른 끝': '마지막' };
 function sheetJump() {
   const sheet = document.querySelector('.sheet:not(.side)');
   if (!sheet || sheet.querySelector('.view-jump')) return;
@@ -559,7 +569,7 @@ function renderGame() {
   const p = game.player;
   const art = sceneImage({ year: game.date.year, month: game.date.month, famine: game.world?.famine, plague: game.world?.plague, place: L(game).place, calamity: calamityNow() });
   let main = '';
-  if (ui.view === 'month') main = game.over ? renderOver() : nowCards([renderBondageNow(game), renderExileNow(game), renderCrisis(game), renderLawNow(game), renderSecretNow(game), renderSpyNow(game, ui), renderHeistNow(game, ui), renderClaimNow(game, ui), renderRevoltNow(game), renderPoorNow(game), renderArmyNow(game), renderAftermathNow(game), renderDragonNow(game), renderHauntNow(game), renderExploreNow(game), renderFrontierNow(game), renderWildsNow(game), renderMineNow(game), renderHerdLine(game), renderTradeNow(game), renderWorksNow(game), renderNatureNow(game), renderManaNow(game), renderRelicNow(game), renderHealthNow(game), renderMysteryNow(game), renderOmenNow(game), renderLineageNow(game), renderSchoolNow(game), renderTroupeNow(game)]) + renderSummary(ui.summary) + renderNews() + renderYouthCard(game, ui) + renderCompanyNow(game, ui) + renderFarmNow(game, ui) + renderHerdNow(game, ui) + renderCuisineNow(game, ui) + renderApoNow(game, ui) + renderInnNow(game, ui) + renderWorkshop(game, ui) + renderPlan(game, ui);
+  if (ui.view === 'month') main = game.over ? renderOver() : nowCards([renderBondageNow(game), renderExileNow(game), renderCrisis(game), renderLawNow(game), renderSecretNow(game), renderSpyNow(game, ui), renderHeistNow(game, ui), renderClaimNow(game, ui), renderRevoltNow(game), renderPoorNow(game), renderArmyNow(game), renderAftermathNow(game), renderDragonNow(game), renderHauntNow(game), renderExploreNow(game), renderFrontierNow(game), renderWildsNow(game), renderMineNow(game), renderHerdLine(game), renderTradeNow(game), renderWorksNow(game), renderNatureNow(game), renderManaNow(game), renderRelicNow(game), renderAgelessNow(game), renderHealthNow(game), renderMysteryNow(game), renderOmenNow(game), renderLineageNow(game), renderSchoolNow(game), renderTroupeNow(game)]) + renderSummary(ui.summary) + renderNews() + renderYouthCard(game, ui) + renderCompanyNow(game, ui) + renderFarmNow(game, ui) + renderHerdNow(game, ui) + renderCuisineNow(game, ui) + renderApoNow(game, ui) + renderInnNow(game, ui) + renderWorkshop(game, ui) + renderPlan(game, ui);
   else if (ui.view === 'me') main = renderSheet();
   else if (ui.view === 'people') main = withJump([['love', '사랑', renderLove(game)], ['kin', '자식', renderKin(game)], ['oath', '맹세', renderOath(game)], ['household', '식솔', renderHousehold(game)], ['troupe', '극단', renderTroupe(game)], ['letters', '편지', renderLetters(game)], ['village', '이웃', renderVillage(game)], ['aftermath', '전쟁 뒤', renderAftermath(game)], ['mentor', '제자', renderMentor(game)], ['beasts', '짐승', renderBeasts(game)], ['feud', '원한', renderFeud(game)], ['peoples', '종족의 땅', renderPeoples(game)], ['party', '동료', renderParty(game)], ['notebook', '인물 수첩', renderPeople(game, ui)]]);
   else if (ui.view === 'map') main = withJump([['map', '지도', renderMap()], ['pol', '대륙 정세', renderPolitics(game, ui)], ['revolt', '민심', renderRevolt(game)], ['trade', '장사 길', renderTrade(game)], ['works', '큰 공사', renderWorks(game)], ['nature', '하늘과 땅', renderNature(game)], ['explore', '미지의 땅', renderExplore(game)], ['frontier', '변경 너머', renderFrontier(game)], ['wilds', '마물', renderWilds(game)], ['mine', '광산', renderMines(game)], ['herd', '목축', renderHerd(game)], ['seal', '봉인', renderSeal(game)], ['mana', '마나', renderMana(game)], ['dragon', '용', renderDragon(game)], ['haunt', '망자', renderHaunt(game)], ['omen', '예언', renderOmen(game)], ['deep', '구렁', renderDeep(game)], ['sea', '바다', renderSea(game)], ['world', '레오니아', renderWorldCard()]], { after: 1 }); // 지도가 먼저 (폰에서 바로 보이게), 바로 가기는 지도 아래

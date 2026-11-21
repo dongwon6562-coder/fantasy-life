@@ -128,6 +128,7 @@ const GROUPS = [
   ['frontier', '개척', /^frontier_/],
   ['learn', '배움과 수련', /^(school_|study|train_body|sword_|meditate|magic_|legend_lesson|research|seal_study|tower_(join|duty|exam|craft))/],
   ['mana', '마나 샘', /^mana_/],
+  ['ageless', '늙지 않는 몸', /^(noah_|dragonname_|after_rename|sealbreath_)/],
   ['arts', '글과 예술', /^arts_/],
   ['troupe', '유랑극단', /^troupe_/],
   ['faith', '믿음과 기도', /^(pray|worship|keep_feast|pilgrimage|faith_seek|holy_heal)$|^omen_/],
@@ -157,7 +158,7 @@ const GROUPS = [
   ['spy', '첩보와 밀정', /^spy_/],
   ['slavery', '노예와 자유', /^bondage_/],
   ['heist', '큰 한탕', /^heist_/],
-  ['dark', '어두운 일', /^(crime_|gang_|dawn_rite|repute_slander|forbidden_rite|feud_plot)/],
+  ['dark', '어두운 일', /^(crime_|gang_|dawn_rite|repute_slander|forbidden_rite|feud_plot|vessel_rite|imprint_rite|bloodyears_rite)/],
   ['rest', '쉼', /^(rest|drift_years)$/],
 ];
 // 고장마다 따로 있는 일(이름이 고장 이름으로 시작)과 어린아이 일은 하는 일에 맞는 묶음으로 보낸다.
