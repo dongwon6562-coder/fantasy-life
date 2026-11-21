@@ -13,7 +13,7 @@ const folk = (i, o = {}) => ({ cloth: ['#4a4038', '#3e4a40', '#54463a', '#3a3e4a
 const rain = (v, n, a = 0.26, slant = -5) => { const { ctx, R } = v; ctx.strokeStyle = rgba('#dfe8f0', a); ctx.lineWidth = 0.8; for (let i = 0; i < n; i++) { const x = R() * (VW + 40), y = R() * VH, l = 8 + R() * 10; ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x + slant * l / 12, y + l); ctx.stroke(); } };
 
 /** 작은 집: 흙벽과 낮은 지붕. o: lit 창에 불, snow 지붕에 눈, lean 기울기 */
-function cottage(v, x, y, w, h, o = {}) {
+export function cottage(v, x, y, w, h, o = {}) {
   const { ctx, t } = v, roof = t(o.roof ?? '#4a3a30'), wall = t(o.wall ?? '#a89878');
   ctx.save(); ctx.translate(x, y); if (o.lean) ctx.rotate(o.lean);
   rect(ctx, -w / 2, -h, w, h, wall); rect(ctx, -w / 2, -h * 0.16, w, h * 0.16, t('#6e685e'));
@@ -27,7 +27,7 @@ function cottage(v, x, y, w, h, o = {}) {
 }
 
 /** 서 있는 말 옆모습. h는 어깨 높이, d는 보는 쪽 */
-function horseSil(v, x, y, h, d, coat = '#5a3a24', o = {}) {
+export function horseSil(v, x, y, h, d, coat = '#5a3a24', o = {}) {
   const { ctx, t } = v, c = t(coat), dk = t(dark(coat, 0.4));
   ctx.save(); ctx.translate(x, y); ctx.scale(d * h / 100, h / 100); ctx.lineCap = 'round'; ctx.lineJoin = 'round';
   oval(ctx, 0, 4, 60, 5, rgba('#000000', 0.2));
@@ -44,7 +44,7 @@ function horseSil(v, x, y, h, d, coat = '#5a3a24', o = {}) {
   ctx.restore();
 }
 /** 앉은 개(또는 여우·고양이 같은 작은 짐승). o.ears 뾰족 귀, o.eye 빛나는 눈 */
-function dogSil(v, x, y, h, d, coat = '#6a5038', o = {}) {
+export function dogSil(v, x, y, h, d, coat = '#6a5038', o = {}) {
   const { ctx, t } = v, c = o.raw ? coat : t(coat), dk = o.raw ? dark(coat, 0.4) : t(dark(coat, 0.4));
   ctx.save(); ctx.translate(x, y); ctx.scale(d * h / 100, h / 100); ctx.lineCap = 'round'; ctx.lineJoin = 'round';
   oval(ctx, 4, 2, 40, 4, rgba('#000000', 0.2));

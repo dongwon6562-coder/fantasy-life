@@ -20,9 +20,10 @@ import { PLATES as PLATES1 } from './vignettePlates.js';
 import { PLATES2 } from './vignettePlates2.js';
 import { PLATES3 } from './vignettePlates3.js';
 import { PLATES4 } from './vignettePlates4.js';
+import { PLATES5 } from './vignettePlates5.js';
 import { regionOfSite } from './mapTrail.js';
 
-const PLATES = { ...PLATES1, ...PLATES2, ...PLATES3, ...PLATES4 };
+const PLATES = { ...PLATES1, ...PLATES2, ...PLATES3, ...PLATES4, ...PLATES5 };
 
 const hasDom = typeof document !== 'undefined';
 const safe = (fn, d = null) => { try { return fn(); } catch { return d; } };
@@ -30,11 +31,11 @@ const SCALE = 1.5; // 그리는 크기: 960x360
 
 /* ---------- 그리기 ---------- */
 // 판마다 당겨 그릴 중심(x)과 배율
-const FOCUS = { wedding: [410, 1.15], funeral: [330, 1.2], birth: [300, 1.1], muster: [380, 1.25], square: [330, 1.15], plague: [330, 1.25], monsters: [330, 1.2], famine: [330, 1.15], fire: [300, 1.25], prison: [380, 1.15], voyage: [330, 1.15], court: [400, 1.1], festival: [320, 1.3], chapel: [330, 1.1], dragon: [320, 1], road: [300, 1.25], bedside: [330, 1.15], ritual: [320, 1.2], depths: [330, 1.1], seal: [330, 1.1], trade: [330, 1.1], beast: [310, 1.15], mentor: [320, 1.1], nature: [330, 1.1], beastlife: [330, 1.1], peoples: [320, 1.1], feud: [330, 1.1], explore: [330, 1.1], army: [330, 1.1], love: [360, 1.25], tower: [330, 1.1] };
+const FOCUS = { revolt: [330, 1.1], frontier: [330, 1.1], herd: [320, 1.1], haunt: [330, 1.1], mine: [340, 1.1], bondage: [330, 1.1], heist: [330, 1.1], trial: [330, 1.08], wedding: [410, 1.15], funeral: [330, 1.2], birth: [300, 1.1], muster: [380, 1.25], square: [330, 1.15], plague: [330, 1.25], monsters: [330, 1.2], famine: [330, 1.15], fire: [300, 1.25], prison: [380, 1.15], voyage: [330, 1.15], court: [400, 1.1], festival: [320, 1.3], chapel: [330, 1.1], dragon: [320, 1], road: [300, 1.25], bedside: [330, 1.15], ritual: [320, 1.2], depths: [330, 1.1], seal: [330, 1.1], trade: [330, 1.1], beast: [310, 1.15], mentor: [320, 1.1], nature: [330, 1.1], beastlife: [330, 1.1], peoples: [320, 1.1], feud: [330, 1.1], explore: [330, 1.1], army: [330, 1.1], love: [360, 1.25], tower: [330, 1.1] };
 // 늘 밤이나 해 질 녘이어야 하는 그림
-const TOD = { 'nature:flood': 'night', 'nature:storm': 'night', 'nature:winter': 'dusk', 'nature:granary': 'dusk', 'nature:drought': 'day', 'nature:locust': 'day', 'beastlife:bond': 'night', 'beastlife:grave': 'dusk', 'peoples:elf_fall': 'night', 'peoples:beast_totem': 'night', 'peoples:beast_hunt': 'dusk', 'feud:turned': 'dusk', 'feud:plot': 'night', 'feud:strike': 'night', 'feud:peace': 'dawn', 'seal:stone': 'night', 'seal:visitor': 'night', 'seal:alley': 'dusk' };
+const TOD = { 'revolt:secret': 'night', 'revolt:march': 'dusk', 'revolt:gallows': 'dawn', 'revolt:gallows-me': 'dawn', 'frontier:raid': 'night', 'herd:camp': 'dusk', 'herd:rustle': 'night', 'herd:steed': 'dawn', 'haunt:house': 'night', 'haunt:grave': 'night', 'haunt:grave-kneel': 'night', 'haunt:seance': 'night', 'haunt:fraud': 'night', 'haunt:item': 'night', 'mine:picket': 'dusk', 'mine:collapse': 'dusk', 'bondage:coffle': 'dusk', 'bondage:free': 'dawn', 'bondage:free-kin': 'dawn', 'heist:roof': 'night', 'heist:plan': 'night', 'heist:split': 'night', 'heist:vault': 'night', 'heist:vault-twist': 'night', 'trial:dock': 'day', 'trial:plead': 'day', 'trial:bench': 'day', 'nature:flood': 'night', 'nature:storm': 'night', 'nature:winter': 'dusk', 'nature:granary': 'dusk', 'nature:drought': 'day', 'nature:locust': 'day', 'beastlife:bond': 'night', 'beastlife:grave': 'dusk', 'peoples:elf_fall': 'night', 'peoples:beast_totem': 'night', 'peoples:beast_hunt': 'dusk', 'feud:turned': 'dusk', 'feud:plot': 'night', 'feud:strike': 'night', 'feud:peace': 'dawn', 'seal:stone': 'night', 'seal:visitor': 'night', 'seal:alley': 'dusk' };
 // 날씨가 정해진 그림
-const WX = { 'nature:drought': 'clear', 'nature:locust': 'clear', 'nature:quake': 'cloudy', 'nature:flood': 'rain', 'nature:storm': 'storm', 'nature:winter': 'snow', 'nature:granary': 'cloudy', 'beastlife:bond': 'clear' };
+const WX = { 'herd:rustle': 'clear', 'haunt:house': 'fog', 'haunt:grave': 'clear', 'haunt:grave-kneel': 'clear', 'heist:roof': 'clear', 'frontier:raid': 'clear', 'bondage:free': 'clear', 'bondage:free-kin': 'clear', 'revolt:gallows': 'cloudy', 'revolt:gallows-me': 'cloudy', 'nature:drought': 'clear', 'nature:locust': 'clear', 'nature:quake': 'cloudy', 'nature:flood': 'rain', 'nature:storm': 'storm', 'nature:winter': 'snow', 'nature:granary': 'cloudy', 'beastlife:bond': 'clear' };
 const cache = new Map();
 export function vignetteImage(spec) {
   if (!hasDom || !spec || !PLATES[spec.plate]) return '';
@@ -89,21 +90,23 @@ const BY_ID = {
   arts_critic: 'square:notice', arts_reader: 'ritual:study', arts_forger: 'trade:bard', arts_rival: 'court', arts_forbidden_find: 'ritual:dark', arts_burning: 'fire',
   omen_false_prophet: 'square:herald', omen_witness: 'seal:dream', omen_faction: 'trade:bard', omen_hunter: 'seal:alley', omen_pilgrims: 'funeral:visit', omen_church: 'chapel:inquisition',
   dragon_seekers: 'trade:bard', dragon_dream: 'seal:dream', dragon_shadow: 'dragon', dragon_preacher: 'square:herald', dragon_cult_revenge: 'seal:alley', dragon_cult_tithe: 'ritual:dark',
-  mine_strike_owner: 'square:herald', mine_dispute: 'court', mine_widow: 'funeral:visit', mine_knocking: 'depths', mine_found_out: 'square:guards',
-  haunt_fraud: 'square:herald', haunt_cursed_buy: 'trade:bard', haunt_dying_curse: 'funeral:visit', haunt_night: 'seal:alley', haunt_ancestor: 'funeral:visit', haunt_wraith_call: 'square:guards', haunt_curse_strike: 'seal:dream',
-  frontier_call: 'square:herald', frontier_refugees: 'muster:refugee', frontier_claim: 'square:guards', frontier_elect: 'trade:builder',
+  mine_strike_owner: 'mine:picket', mine_dispute: 'court', mine_widow: 'funeral:visit', mine_knocking: 'mine:knock', mine_found_out: 'square:guards',
+  haunt_fraud: 'haunt:fraud', haunt_cursed_buy: 'haunt:item', haunt_dying_curse: 'funeral:visit', haunt_night: 'haunt:house', haunt_ancestor: 'haunt:grave-kneel', haunt_wraith_call: 'haunt:grave', haunt_curse_strike: 'haunt:item',
+  frontier_call: 'square:herald', frontier_refugees: 'muster:refugee', frontier_claim: 'frontier:clearing', frontier_elect: 'frontier:clearing',
   works_corvee: 'square:notice',
   wilds_herd: 'monsters', wilds_refugees: 'muster:refugee', wilds_settle: 'trade:builder', wilds_buyer: 'trade:alchemy',
   school_call: 'square:notice', school_dorm: 'night', school_noble: 'court', school_alum_help: 'road:return', school_alum_plea: 'dusk', school_alum_rival: 'square:guards', school_reunion: 'festival', school_parent_alum: 'road:return',
-  law_accused: 'square:herald', law_wrong: 'square:notice', law_witness: 'court', law_judge: 'court', law_pardon: 'prison', law_stain: 'road',
+  law_accused: 'trial:dock', law_wrong: 'square:notice', law_witness: 'trial:plead', law_judge: 'trial:bench', law_pardon: 'prison', law_stain: 'road',
   research_buyer: 'ritual:study', research_claim: 'ritual:study', research_mentor: 'ritual:study', research_rival: 'ritual:study', research_spy_offer: 'ritual:study', research_sue: 'square:herald',
 };
 // 장면 종류(life.scene.kind)로 정해지는 것
 const BY_SCENE = {
+  // 24단계: 새 판(vignettePlates5)으로 잇는 사건들
+  revolt_stir: 'revolt:secret', revolt_raid: 'revolt:march', revolt_suppress: 'revolt:gallows', frontier_go: 'frontier:wagons', herd_rustle: 'herd:rustle', herd_band_join: 'herd:camp', herd_work: 'herd:pasture', haunt_visit: 'haunt:house', mine_prospect: 'mine:adit', mine_dwarf: 'mine:deep', bondage_drive: 'bondage:coffle', bondage_escape: 'bondage:free', bondage_manumit: 'bondage:free', bondage_ransom: 'bondage:free-kin', bondage_rescue: 'bondage:free', bondage_serve: 'bondage:yard', heist_fence: 'heist:split', heist_lay_low: 'heist:plan', heist_plan: 'heist:plan', heist_go: 'heist:roof', law_advocate: 'trial:plead', law_sue: 'trial:plead',
   dragon_climb: 'dragon', dragon_bones: 'dragon', dragon_cult: 'ritual:dark', dragon_lair: 'dragon', dragon_talk: 'dragon', dragon_young: 'dragon', dragon_fire: 'fire',
-  mine_claim: 'road', mine_manage: 'depths', mine_deep: 'depths', mine_collapse: 'depths', mine_picket: 'square:herald',
-  haunt_spot: 'seal:alley', haunt_medium: 'ritual:dark', haunt_rite: 'ritual:dark', haunt_item: 'seal:dream', haunt_lift: 'chapel:inquisition',
-  frontier_charter: 'court', frontier_gather: 'square:herald', frontier_arrive: 'road', frontier_work: 'trade:builder', frontier_natives: 'road', frontier_name: 'trade:builder', frontier_raid: 'monsters', frontier_winter: 'nature:winter',
+  mine_claim: 'mine:adit', mine_manage: 'mine:adit', mine_deep: 'mine:deep', mine_collapse: 'mine:collapse', mine_picket: 'mine:picket',
+  haunt_spot: 'haunt:house', haunt_medium: 'haunt:seance', haunt_rite: 'haunt:seance', haunt_item: 'haunt:item', haunt_lift: 'chapel:inquisition',
+  frontier_charter: 'court', frontier_gather: 'frontier:wagons', frontier_arrive: 'frontier:wagons', frontier_work: 'frontier:clearing', frontier_natives: 'frontier:natives', frontier_name: 'frontier:clearing', frontier_raid: 'frontier:raid', frontier_winter: 'nature:winter',
   works_overseer: 'trade:builder', works_guild: 'square:herald', works_skim: 'trade:builder', works_fall: 'funeral:visit', works_fund: 'trade:builder', works_open: 'square:herald',
   nature_drought: 'nature:drought', nature_flood: 'nature:flood', nature_winter: 'nature:winter', nature_quake: 'nature:quake', nature_locust: 'nature:locust', nature_storm: 'nature:storm', nature_granary: 'nature:granary',
   beast_buy: 'beastlife:market', beast_sell: 'beastlife:market', beast_event: 'beastlife:care', beast_familiar: 'beastlife:bond', beast_death: 'beastlife:grave',
@@ -139,14 +142,14 @@ const BY_SCENE = {
   exile_decree: 'square:herald', exile_life: 'voyage:harbor', exile_pardon: 'road:return', exile_spotted: 'seal:alley', exile_choose: 'seal:map',
   exile_host: 'square:guards', exile_plot_ev: 'feud:plot', exile_return: 'voyage:pirate',
   // 23단계: 봉기와 반란 (새 그림 없이 있는 판을 붙임)
-  revolt_call: 'seal:alley', revolt_quarrel: 'feud:plot', revolt_betray: 'seal:alley', revolt_parley: 'square:herald', revolt_crushed: 'feud:strike',
-  revolt_gallows: 'square:guards', revolt_won: 'square:herald', revolt_rot: 'feud:plot', revolt_hunted: 'seal:alley', revolt_legacy: 'funeral:visit',
+  revolt_call: 'revolt:secret', revolt_quarrel: 'revolt:secret', revolt_betray: 'revolt:secret', revolt_parley: 'revolt:march', revolt_crushed: 'revolt:gallows',
+  revolt_gallows: 'revolt:gallows', revolt_won: 'revolt:march', revolt_rot: 'revolt:secret', revolt_hunted: 'seal:alley', revolt_legacy: 'funeral:visit',
   // 22단계: 가문의 내력과 가풍 (새 그림 없이 있는 판을 붙임)
   lineage_motto: 'ritual:study', lineage_crest: 'square:herald', lineage_forge: 'seal:map',
   lineage_exposed: 'square:guards', lineage_blacksheep: 'bedside', lineage_branch_ev: 'road:return',
   lineage_claim: 'feud:peace', lineage_gathering: 'wedding',
   // 21단계: 노예와 자유 (새 그림 없이 있는 판을 붙임)
-  bondage_taken: 'seal:alley', bondage_debtsold: 'voyage:harbor', bondage_master: 'bedside', bondage_family: 'road:return', bondage_hunters: 'seal:alley', bondage_newname: 'road:return', bondage_brand: 'square:guards', bondage_market: 'voyage:pirate', bondage_owned: 'bedside',
+  bondage_taken: 'bondage:coffle', bondage_debtsold: 'bondage:market', bondage_master: 'bondage:yard', bondage_family: 'bondage:free-kin', bondage_hunters: 'seal:alley', bondage_newname: 'bondage:free', bondage_brand: 'bondage:yard', bondage_market: 'bondage:market', bondage_owned: 'bondage:yard-master',
   // 20단계: 비밀과 이중생활 (새 그림 없이 있는 판을 붙임)
   secret_bastard: 'bedside', secret_child: 'funeral:visit', secret_alias: 'seal:map', secret_mask: 'seal:alley', secret_knower: 'seal:alley', secret_exposed: 'square:guards', secret_halfsib: 'funeral:visit', secret_legacy: 'ritual:study',
   // 19단계: 전쟁 뒤의 삶 (새 그림 없이 있는 판을 붙임)
@@ -167,7 +170,7 @@ const BY_SCENE = {
   // 16단계: 예언과 징조 (새 그림 없이 있는 판을 붙임)
   omen_named: 'seal:visitor',
   // 17단계: 법과 재판
-  law_trial: 'court',
+  law_trial: 'trial:dock',
   // 19단계: 마물의 땅
   wilds_nest: 'monsters',
   // 18단계: 학원과 시험
@@ -186,9 +189,9 @@ const BY_SCENE = {
   // 19단계: 주점과 여관 꾸리기 (기존 그림을 이어 붙임)
   // 20단계: 유랑극단 (기존 그림을 이어 붙임)
   troupe_arrive: 'festival', troupe_show: 'trade:bard', troupe_manage: 'road', troupe_fire: 'road', troupe_move: 'road', troupe_event: 'road',
-  herd_market: 'beastlife:market', herd_tend: 'beastlife:care', herd_steed: 'beastlife:bond', herd_band: 'festival', herd_band_life: 'road', herd_event: 'beastlife:care',
+  herd_market: 'beastlife:market', herd_tend: 'herd:pasture', herd_steed: 'herd:steed', herd_band: 'herd:camp', herd_band_life: 'herd:camp', herd_event: 'herd:pasture',
   cuisine_taste: 'beastlife:market', cuisine_kitchen: 'court', cuisine_post: 'night', cuisine_create: 'mentor:lesson', cuisine_contest: 'festival', cuisine_feast: 'court', cuisine_event: 'court',
-  heist_target: 'seal:alley', heist_crew: 'seal:alley', heist_scout: 'night', heist_day: 'night', heist_twist: 'night', heist_split: 'feud:plot', heist_event: 'seal:alley',
+  heist_target: 'heist:plan', heist_crew: 'heist:plan', heist_scout: 'heist:roof', heist_day: 'heist:roof', heist_twist: 'heist:vault-twist', heist_split: 'heist:split', heist_event: 'heist:plan',
   company_found: 'muster', company_board: 'army:camp', company_fight: 'army:clash', company_manage: 'army:camp', company_rules: 'army:camp', company_take: 'muster', company_event: 'army:camp',
   inn_open: 'trade:builder', inn_work: 'trade:bard', inn_manage: 'ritual:study', inn_price: 'ritual:study', inn_hire: 'trade:builder', inn_fire: 'trade:builder', inn_event: 'trade:bard',
 };
@@ -241,9 +244,10 @@ export function vignetteFor(g, { title = '', text = '', outcome = false } = {}) 
     if (kind === 'sea_event') pick = /폭풍|풍랑/.test(title) ? 'voyage:storm' : /해적|검은 돛/.test(title) ? 'voyage:pirate' : /뱀|괴물|촉수/.test(title + text) ? 'voyage:serpent' : 'voyage';
     if (kind === 'voc_path' || kind === 'voc_event') { const sc = g.life.scene; pick = VOC_ART[sc.path ?? sc.ev] ?? JOB_ART[g.life?.job?.id] ?? null; }
     if (kind === 'peoples_rite' && g.life.scene.id) pick = `peoples:${g.life.scene.id}`;
-    if (kind === 'herd_event') pick = { sick: 'plague', wolves: 'monsters', rustlers: 'seal:alley', neighbor: 'feud:offer', dealer: 'beastlife:market', raid: 'feud:strike', race: 'festival', dzud: 'nature:winter' }[g.life.scene.ev] ?? pick;
+    if (kind === 'herd_event') pick = { sick: 'herd:pasture', wolves: 'monsters', rustlers: 'herd:rustle', neighbor: 'feud:offer', dealer: 'beastlife:market', raid: 'herd:rustle', race: 'herd:steed', dzud: 'nature:winter' }[g.life.scene.ev] ?? pick;
     if (kind === 'cuisine_event') pick = { plot: 'feud:plot', suspect: 'square:guards', taster: 'bedside', rival: 'feud:offer', shortage: 'famine', guest: 'square:herald', apprentice: 'mentor:lesson', spoiled: 'beastlife:market' }[g.life.scene.ev] ?? pick;
-    if (kind === 'heist_event') pick = { caught: 'square:guards', close: 'seal:alley', rat: 'feud:turned', blab: 'feud:plot', greed: 'feud:offer', informant: 'square:guards' }[g.life.scene.ev] ?? pick;
+    if (kind === 'law_trial') pick = safe(() => g.law.cases.find((c) => c.id === g.life.scene.cid)?.role) === 'accused' ? 'trial:dock' : 'trial:plead';
+    if (kind === 'heist_event') pick = { caught: 'square:guards', close: 'heist:roof', rat: 'feud:turned', blab: 'feud:plot', greed: 'feud:offer', informant: 'square:guards' }[g.life.scene.ev] ?? pick;
     if (kind === 'company_event') pick = { maimed: 'bedside', sack: 'fire', unpaid: 'feud:plot', turn: 'feud:turned', ransom: 'prison', rival: 'feud:offer', mutiny: 'feud:strike', widow: 'funeral:visit', desert: 'road' }[g.life.scene.ev] ?? pick;
     if (kind === 'troupe_event') pick = { censor: 'square:trial', quarrel: 'feud:offer', love: 'festival', lover: 'road', feast: 'court', theft: 'seal:alley' }[g.life.scene.ev] ?? pick;
     if (kind === 'inn_event') pick = { brawl: 'feud:strike', guest: 'square:herald', gang: 'seal:alley', smuggle: 'seal:alley', guard: 'square:notice', arrears: 'square:notice', tax: 'court', rival_open: 'feud:plot', rival: 'feud:plot' }[g.life.scene.ev] ?? pick;
