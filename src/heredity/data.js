@@ -41,7 +41,7 @@ export const BIRTH_GIFTS = {
   faith: {
     name: '깊은 믿음', icon: 'pray',
     line: '기도가 마음에 닿는다. 믿음이 깊이 뿌리내리고 성력이 쉽게 붙는다. 마음이 굳다.',
-    talents: { wil: 1.3, cha: 1.1 }, skills: { letters: 1.15 },
+    talents: { wil: 1.3, cha: 1.1 }, skills: { letters: 1.5 },
     seen: { who: '교단의 순회 사제', text: '마을을 돌던 순회 사제가 예배당 맨 앞에 앉은 아이를 오래 지켜보았다. 몇 해 교단 수련원에 드나들며 기도와 글을 배우게 하자고 한다.', skill: 'letters' },
     sign: '아무도 시키지 않았는데 저녁 기도를 거른 적이 없다.',
   },

@@ -14,7 +14,7 @@ import { makeRng } from '../rng.js';
 import { isJailed } from '../crime.js';
 import { deed } from '../repute/index.js';
 import { outbreaksAt } from '../health/index.js';
-import { SS, WEDGES } from '../seal/state.js';
+import { SS, WEDGES, stageOf } from '../seal/state.js';
 import { loseAgeless, playerAgeless, agelessYears } from '../ageless/core.js';
 import { byId } from '../npc.js';
 
@@ -85,7 +85,7 @@ defineScene('farewell_wedge', {
   resolve(g, rng, s, k) {
     const S = SS(g);
     if (!base(g) || !S.wedges?.[s.wedge] || S.wedges[s.wedge] === 'whole') return '그사이 금은 다른 손으로 메워졌다.';
-    if (k === 'no') { declined(g); return '물러섰다. 파수꾼은 나를 탓하지 않았다. 그는 아무도 탓하지 않았다. 그게 더 무거웠다.'; }
+    if (k === 'no') { declined(g); V(g).wedgeNo = (V(g).wedgeNo ?? 0) + 1; return '물러섰다. 파수꾼은 나를 탓하지 않았다. 그는 아무도 탓하지 않았다. 그게 더 무거웠다.'; }
     S.wedges[s.wedge] = 'whole';
     if (g.realm) g.realm.seal = clamp((g.realm.seal ?? 60) + 15, 0, 100);
     if (S.me) S.me.wedgeSaved = (S.me.wedgeSaved ?? 0) + 1;
@@ -174,7 +174,9 @@ HOOKS.afterMonth.push((g) => {
   if (g.army?.captive && gap('farewell_honor', 36) && !sceneQueued(g, 'farewell_honor') && r.chance(0.08)) return fire('farewell_honor', {});
   if (g.army?.campaign || g.army?.captive || isJailed(g) || g.bondage?.slave) return;
   const wedge = Object.entries(WEDGES).find(([id, w]) => w.place && w.place === here(g) && SS(g).wedges?.[id] && SS(g).wedges[id] !== 'whole');
-  if (wedge && gap('farewell_wedge', 60) && r.chance(0.04)) return fire('farewell_wedge', { wedge: wedge[0] });
+  // 봉인이 정말 흔들릴 때만, 열 해에 한 번 남짓. 두 번 물러선 사람에게는 다시 묻지 않는다 (28단계 헤드: 큰 고장에 사는 사람에게 너무 자주 떴다)
+  const shaken = Number.isFinite(g.realm?.seal) && stageOf(g.realm.seal) >= 2;
+  if (wedge && shaken && (v.wedgeNo ?? 0) < 2 && gap('farewell_wedge', 120) && r.chance(0.02)) return fire('farewell_wedge', { wedge: wedge[0] });
   const ob = outbreaksAt(g, here(g)).filter((o) => o.sev >= 0.5);
   // 남을 까닭이 있는 사람에게만: 약초나 의술을 아는 사람, 또는 아픈 이들을 돌보는 일을 하는 사람
   const carer = (g.player.skills?.herbs ?? 0) >= 15 || /priest|heal|doctor|herb|cleric|apothec|nun/.test(L(g).job?.id ?? '') || !!g.apothecary?.shop;
