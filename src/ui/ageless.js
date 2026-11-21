@@ -24,7 +24,7 @@ export function renderAgelessNow(game) {
 function pathBits(game, path) {
   const out = [];
   const sv = safe(() => seventhInfo(game));
-  if (sv?.clues?.length) out.push(`<details class="pl-more"><summary>노아에 얽힌 조각 ${sv.clues.length}개</summary><ul class="pl-news">${sv.clues.map((c) => `<li><span>${esc(c)}</span></li>`).join('')}</ul></details>`);
+  if (sv?.clues?.length) out.push(`<details class="pl-more"><summary>노아에 얽힌 조각 ${sv.clues.length}개</summary><ul class="ag-clues">${sv.clues.map((c) => `<li>${esc(c)}</li>`).join('')}</ul></details>`);
   if (sv?.failed && path !== 'seventh') out.push('<p class="note">그 밤의 시험을 넘기지 못했다.</p>');
   const sb = safe(() => sealbreathInfo(game));
   if (sb?.heard && path !== 'sealbreath') out.push(`<p class="note">늙지 않게 한다는 숨의 소문${sb.wedge ? `: ${esc(sb.wedge)}` : ''}</p>`);

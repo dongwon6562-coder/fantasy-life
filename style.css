@@ -1472,3 +1472,5 @@ details.act-group[open]:not(.dark) > summary { align-items: center; padding: 0; 
 .bt-chip:disabled { opacity: .4; }
 .hd-note { display: grid; gap: 4px; }
 .hd-note b, .hd-block b { color: var(--brass); }
+.ag-clues { margin: 6px 0; padding-left: 18px; display: grid; gap: 6px; }
+.ag-clues li { font-size: 14px; color: var(--muted); line-height: 1.55; }
