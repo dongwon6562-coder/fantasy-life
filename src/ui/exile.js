@@ -21,7 +21,7 @@ export function renderExileNow(game) {
   </section>`;
   }
   const A = s.asylum, C = s.court;
-  if (C) return `<section class="card exile-now"><p class="note"><b>망명 궁정</b> ${esc(C.prince)}의 ${esc(C.name)} (${esc(C.host)}) · 나는 ${esc(C.rank)} · ${esc(C.word)}</p></section>`;
+  if (C) return `<section class="card exile-now"><p class="note"><b>망명 궁정</b> ${esc(String(C.name).includes(C.prince) ? C.name : `${C.prince}의 ${C.name}`)} (${esc(C.host)}) · 나는 ${esc(C.rank)} · ${esc(C.word)}</p></section>`;
   if (A) return `<section class="card exile-now"><p class="note"><b>망명</b> ${esc(A.realm)}에 몸을 맡긴 지 ${A.years}해 · 진 빚 ${esc(A.word)}</p></section>`;
   return '';
 }

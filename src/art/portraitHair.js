@@ -29,7 +29,7 @@ export function drawHair(style, h) {
   const { cx, cy, hw, hh, top, chin, browY, uid, detail, hair, dark, light, part } = h;
   const out = { back: '', mid: '', front: '', defs: '' };
   const fillG = `url(#${uid}hg)`;
-  const line = `stroke="${dark}" stroke-width="0.5" stroke-linejoin="round" stroke-linecap="round"`;
+  const line = `stroke="${dark}" stroke-width="${detail ? 0.4 : 0.5}"${detail ? ' stroke-opacity="0.55"' : ''} stroke-linejoin="round" stroke-linecap="round"`;
   out.defs += `<linearGradient id="${uid}hg" x1="0.15" y1="0" x2="0.9" y2="1"><stop offset="0" stop-color="${light}"/><stop offset="0.45" stop-color="${hair}"/><stop offset="1" stop-color="${dark}"/></linearGradient>`;
   const hlBase = top + hh * (0.33 + h.peak * 0.05);
 
