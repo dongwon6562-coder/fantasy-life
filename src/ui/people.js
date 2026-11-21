@@ -6,6 +6,7 @@ import { portrait, looksOf } from '../art/portrait.js';
 import { relationLabel, memoriesOf } from '../relations.js';
 import { J } from '../narrative/text.js';
 import { esc, clamp } from './util.js';
+import { resembleOf, bloodHint } from '../heredity/index.js';
 
 const FILTERS = [['all', '모두'], ['family', '가족'], ['close', '가까운 사이'], ['foe', '껄끄러운 사이'], ['gone', '떠난 사람']];
 const SORTS = [['close', '가까운 순'], ['recent', '최근 만난 순'], ['name', '이름 순'], ['age', '나이 순']];
@@ -96,6 +97,19 @@ function personCard(game, ui, p, q) {
         </button>`;
 }
 
+// 27단계 유전: 누구를 닮았는지(부모를 아는 사람), 핏줄에 도는 말(혼인할 만한 사람과 배우자)
+function heredityNote(game, p) {
+  if (p.isPlayer) return '';
+  const meP = byId(game, game.player?.id);
+  const safe = (fn) => { try { return fn(); } catch (e) { console.error(e); return null; } };
+  const like = p.fatherId != null || p.motherId != null ? safe(() => resembleOf(game, p)) : null;
+  const fam = game.player?.familyIds ?? [];
+  const match = p.alive && meP && (p.id === meP.spouseId || (!p.spouseId && p.sex !== meP.sex && ageYears(p) >= 16 && !fam.includes(p.id)));
+  const hint = match ? safe(() => bloodHint(game, p)) : null;
+  if (!like && !hint) return '';
+  return `<p class="note hd-note">${like ? `<span><b>닮음</b> ${esc(like)}</span>` : ''}${hint ? `<span><b>핏줄</b> ${esc(hint)}</span>` : ''}</p>`;
+}
+
 function renderDetail(game, p) {
   const spouse = byId(game, p.spouseId);
   const kids = (p.childIds ?? []).map((id) => byId(game, id)).filter(Boolean);
@@ -119,6 +133,7 @@ function renderDetail(game, p) {
         ${spouse ? `<span>배우자 ${link(spouse)}</span>` : ''}
         ${kids.length ? `<span>자식 ${kids.map(link).join(', ')}</span>` : ''}
       </p>` : ''}
+      ${heredityNote(game, p)}
       ${memoriesOf(p).length ? `<div class="memories"><h4>${esc(J(p.name, '이/가'))} 기억하는 나</h4><ul>${memoriesOf(p).slice(-6).reverse().map((m) => `<li class="${m.tone > 0 ? 'good' : m.tone < 0 ? 'bad' : ''}"><time>${m.y}년 ${m.m}월</time>${esc(m.text)}</li>`).join('')}</ul></div>` : ''}
       <h4>삶의 기록</h4>
       ${p.history.length

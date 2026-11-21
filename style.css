@@ -1456,4 +1456,19 @@ details.act-group[open]:not(.dark) > summary { align-items: center; padding: 0; 
 .rl-block b.ok { color: var(--ok, #9fc28a); }
 .rl-block .rl-item p { margin: 4px 0; }
 /* 27단계: 불로 */
-.ag-block .ag-price { color: #e3917f; }
+.ag-block .ag-price, .ag-block b.warn { color: #e3917f; }
+/* 27단계: 타고난 것 고르기, 핏줄 */
+.birth-pick .birth-mode { margin-bottom: 6px; }
+.bt-gifts .bt-gift { display: grid; grid-template-columns: auto minmax(0, 1fr); column-gap: 8px; align-items: center; }
+.bt-gifts .bt-gift .bt-ic { grid-row: span 2; color: var(--brass); display: flex; }
+.bt-gifts .bt-gift span:last-child { grid-column: 2; }
+.bt-more { margin-top: 10px; border-top: 1px dashed var(--line); padding-top: 8px; }
+.bt-more summary { cursor: pointer; min-height: 40px; display: flex; align-items: center; gap: 6px; flex-wrap: wrap; color: var(--brass); }
+.bt-more summary small, .bt-more h3 small { color: var(--muted); font-weight: 400; }
+.bt-more h3 { font-size: 14px; margin: 12px 0 6px; }
+.bt-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.bt-chip { background: var(--panel); border: 1px solid var(--line); border-radius: 999px; padding: 6px 12px; min-height: 36px; font-size: 14px; }
+.bt-chip[aria-pressed="true"] { border-color: var(--brass); background: var(--panel-2); box-shadow: inset 0 0 0 1px var(--brass); }
+.bt-chip:disabled { opacity: .4; }
+.hd-note { display: grid; gap: 4px; }
+.hd-note b, .hd-block b { color: var(--brass); }
