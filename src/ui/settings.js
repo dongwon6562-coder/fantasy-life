@@ -1,4 +1,4 @@
-// 설정: 글자 크기, 움직임 줄이기, 달 넘김 카드, 음량(음악·효과음), 안내 다시 보기.
+// 설정: 글자 크기, 움직임 줄이기, 달 넘김 카드, 글 드러내기, 음량(음악·효과음), 안내 다시 보기.
 // 값은 이 기기에만 저장된다(저장 파일과 따로). 소리 쪽(src/audio/)은 이렇게 쓴다:
 //   import { prefs, onPrefs } from '../ui/settings.js';
 //   prefs().music   // 0~1
@@ -9,6 +9,7 @@ const DEFAULTS = {
   text: 'm',          // 글자 크기: m 보통, l 크게, xl 아주 크게
   motion: 'auto',     // 움직임: auto 기기 설정 따름, full 켬, reduce 줄임
   monthCard: true,    // 한 달이 넘어갈 때 날짜 카드
+  reveal: true,       // 글이 한 줄씩 드러나기 (오늘의 장면·사건 창)
   music: 0.6,         // 음악 음량 0~1
   sfx: 0.8,           // 효과음 음량 0~1
   guideSeen: {},      // 처음 안내에서 본 단계들
@@ -48,6 +49,21 @@ export function reducedMotion() {
   try { return matchMedia('(prefers-reduced-motion: reduce)').matches; } catch { return false; }
 }
 
+/** 글이 한 줄씩 드러나야 하나. 움직임을 줄였으면 끈다. 자동 점검 브라우저(webdriver)에서도 끈다 (reveal: 'force'면 켬). */
+export function revealOn() {
+  const r = prefs().reveal;
+  if (!r || reducedMotion()) return false;
+  try { if (navigator.webdriver && r !== 'force') return false; } catch { /* 노드 */ }
+  return true;
+}
+
+/** 창이 걷히는 것처럼 기다림이 끼는 전환을 써도 되나 (움직임을 줄였거나 자동 점검 브라우저면 아니다) */
+export function smoothOn() {
+  if (reducedMotion()) return false;
+  try { if (navigator.webdriver) return false; } catch { /* 노드 */ }
+  return true;
+}
+
 /** 문서에 설정을 반영한다: <html data-text="l" class="motion"> */
 export function applyPrefs() {
   if (typeof document === 'undefined') return;
@@ -70,6 +86,7 @@ export function renderSettings() {
     <div class="set-row"><span class="lbl">글자 크기</span>${seg('text', [['m', '보통'], ['l', '크게'], ['xl', '아주 크게']])}</div>
     <div class="set-row"><span class="lbl">화면 움직임</span>${seg('motion', [['auto', '기기 따름'], ['full', '켜기'], ['reduce', '줄이기']])}</div>
     <div class="set-row"><span class="lbl">달 넘김 카드</span>${seg('monthCard', [[true, '보기'], [false, '안 보기']])}</div>
+    <div class="set-row"><span class="lbl">글 드러내기</span>${seg('reveal', [[true, '한 줄씩'], [false, '한꺼번에']])}</div>
     <div class="audio-host" id="audio-host">
       <div class="set-row vols"><span class="lbl">소리</span><div class="vol-list">${slider('music', '음악')}${slider('sfx', '효과음')}</div></div>
       <p class="note">소리는 화면을 처음 누른 뒤부터 난다.</p>

@@ -70,3 +70,14 @@ export function renderSummary(sum) {
     ${sum.lines.length ? `<ul class="sm-lines">${sum.lines.map((l) => `<li>${esc(l)}</li>`).join('')}</ul>` : ''}
   </section>`;
 }
+
+/** '오늘의 장면' 카드 안에 넣을 몸통 (제목은 작은 h3) */
+export function summaryBody(sum) {
+  if (!sum || sum.months <= 0) return '';
+  const rows = [['money', '돈'], ['growth', '자람'], ['body', '몸과 마음'], ['people', '사이']]
+    .filter(([k]) => sum[k].length)
+    .map(([k, name]) => `<div class="sm-row"><span class="lbl">${name}</span><div class="sm-chips">${sum[k].map(chip).join('')}</div></div>`).join('');
+  if (!rows && !sum.lines.length) return '';
+  const title = sum.months === 1 ? '지난달 한눈에' : `지난 ${sum.months}달 한눈에`;
+  return `<div class="month-sum" aria-label="${title}"><h3 class="sub">${title}</h3>${rows}${sum.lines.length ? `<ul class="sm-lines">${sum.lines.map((l) => `<li>${esc(l)}</li>`).join('')}</ul>` : ''}</div>`;
+}

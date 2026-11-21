@@ -16,7 +16,7 @@ export function natureRow(game) {
 export const NATURE_ALARM = /가뭄|홍수|혹한|지진|메뚜기|폭풍|흉년|겨울 준비가 없다/;
 
 /** 이번 달 화면: 걱정할 일이 있을 때만 */
-export function renderNatureNow(game) {
+export function renderNatureNow(game, opt = {}) {
   const s = safe(() => natureInfo(game));
   if (!s) return '';
   const here = s.active.filter((d) => d.here);
@@ -25,7 +25,7 @@ export function renderNatureNow(game) {
   if (!here.length && !s.famine && !winterWorry) return '';
   return `<section class="card nature-now${here.some((d) => d.sevWord !== '가볍다') || s.famine ? ' bad' : ''}">
     <h2>하늘과 땅 <small>${esc(s.seasonName)} · ${esc(s.region.name)}</small></h2>
-    <p class="nt-sky">${esc(s.sky)}</p>
+    ${opt.noSky ? "" : `<p class="nt-sky">${esc(s.sky)}</p>`}
     ${here.length ? `<div class="ct-tags">${here.map((d) => `<span class="ct-tag ${SEV_CLS[d.sevWord] ?? ''}">${esc(d.name)} · ${esc(d.sevWord)}${d.left > 0 ? ` · ${d.left}달 더` : ''}</span>`).join('')}</div>` : ''}
     ${s.famine ? `<p class="note warn">${s.lean >= 2 ? `${s.lean}해째 ` : ''}흉년이다. 빵값이 평년의 ${s.bread.toFixed(1)}배.</p>` : ''}
     ${winterWorry ? '<p class="note warn">겨울 준비가 없다. 할 일의 \'겨울나기 준비\'로 땔감과 먹을 것을 쟁일 수 있다.</p>' : ''}
@@ -50,7 +50,7 @@ export function renderNature(game) {
   if (s.dike) chips.push(['둑', '올해 쌓았다', false]);
   return `<section class="card nature-card">
     <h2>하늘과 땅 <small>${esc(s.seasonName)}${s.famine ? ` · ${s.lean >= 2 ? `${s.lean}해째 ` : ''}흉년` : ''}</small></h2>
-    <p class="nt-sky">${esc(s.sky)}</p>
+    ${opt.noSky ? "" : `<p class="nt-sky">${esc(s.sky)}</p>`}
     <div class="sm-chips">${chips.map(([k, v, down]) => `<span class="sm-chip${down ? ' down' : ''}"><span>${esc(k)}</span><b>${esc(v)}</b></span>`).join('')}</div>
     <h3 class="sub">곡창의 올해 소출</h3>
     <ul class="nt-regions">${farms.map(row).join('')}</ul>

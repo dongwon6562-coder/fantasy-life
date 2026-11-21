@@ -19,10 +19,11 @@ import { worldSummary } from '../world.js';
 import { splitResult, J } from '../narrative/text.js';
 import { $, $$, esc, root } from './util.js';
 import { renderPlan, bindPlan, noteActUse } from './plan.js';
-import { snapshot, diffSummary, renderSummary } from './summary.js';
+import { snapshot, diffSummary, summaryBody } from './summary.js';
+import { renderToday, revealSpans } from './today.js';
 import { renderPeople, bindPeople } from './people.js';
 import { yearFold, yearSpan } from './yearfold.js';
-import { applyPrefs, prefs, reducedMotion, renderSettings, bindSettings } from './settings.js';
+import { applyPrefs, prefs, reducedMotion, revealOn, smoothOn, renderSettings, bindSettings } from './settings.js';
 import { runGuide, stopGuide } from './guide.js';
 import { audio } from '../audio/index.js';
 import { renderWorkshop } from './workshop.js';
@@ -113,12 +114,14 @@ let unmountMap = null;
 if (typeof document !== 'undefined') { initBook(() => game); initWays(() => game); }
 let lastArt = null;   // 바로 전에 보인 풍경 (바뀌면 천천히 겹쳐 바꾼다)
 let lastView = null;  // 바로 전 화면 (바뀌면 살짝 떠오르며 나타난다)
+let ovFresh = false;  // 이번 그림에서 사건 창이 새로 열리나
+let lastMonth = null; // 바로 전에 그린 달 (달이 바뀌면 이번 달 화면도 살짝 떠오른다)
 
 export function start() {
   applyPrefs();
   try { matchMedia('(prefers-reduced-motion: reduce)').addEventListener('change', applyPrefs); } catch { /* 옛 브라우저 */ }
   stopGuide();
-  lastArt = null; lastView = null;
+  lastArt = null; lastView = null; lastMonth = null;
   renderSetup();
 }
 
@@ -407,18 +410,13 @@ function renderWorldMini() {
   </details>`;
 }
 
+// 이번 달 맨 위 '오늘의 장면' (src/ui/today.js). 글이 한 줄씩 드러나는 것은 달이 바뀐 첫 그림에서만.
 function renderNews() {
-  const mi = monthInfo(game);
-  return `
-  <section class="card news-card">
-    <h2>이번 달 소식 <small>${esc(placeName(game))} · ${mi.season}</small></h2>
-    ${game.news.length
-      ? `<ul class="news">${game.news.map((n) => `<li class="${n.rel >= 40 ? 'close' : ''}">${esc(n.text)}</li>`).join('')}</ul>`
-      : '<p class="note">조용한 달이었다. 별다른 소문은 없다.</p>'}
-    ${renderWorldMini()}
-    ${game.lastResults.length ? `<h3 class="sub">지난달 한 일</h3>
-      <ul class="results">${sameResults(game.lastResults).map(([r, n]) => `<li><b>${esc(r.name)}${n > 1 ? ` <small>×${n}</small>` : ''}</b><span class="scene-text">${esc(r.scene ?? r.text)}</span>${r.gains ? `<small class="gains">${esc(r.gains)}</small>` : ''}</li>`).join('')}</ul>` : ''}
-  </section>`;
+  const key = `${game.player?.id}:${game.date.year * 12 + game.date.month}`;
+  const reveal = revealOn() && ui.todaySeen !== key;
+  ui.todaySeen = key;
+  const res = game.lastResults.length ? `<ul class="results">${sameResults(game.lastResults).map(([r, n]) => `<li><b>${esc(r.name)}${n > 1 ? ` <small>×${n}</small>` : ''}</b><span class="scene-text">${esc(r.scene ?? r.text)}</span>${r.gains ? `<small class="gains">${esc(r.gains)}</small>` : ''}</li>`).join('')}</ul>` : '';
+  return renderToday(game, { results: res, summary: summaryBody(ui.summary), world: renderWorldMini(), reveal });
 }
 
 // 같은 일을 같은 글로 여러 칸 했으면 한 줄로 (감옥에서 '견디기' 네 칸 같은 것)
@@ -516,25 +514,32 @@ function renderEvent() {
   if (!e && !ui.outcome) return '';
   const art = sceneImage({ year: game.date.year, month: game.date.month, famine: game.world?.famine, plague: game.world?.plague, place: L(game).place, calamity: calamityNow() });
   const head = `${art ? `<div class="ev-art" aria-hidden="true"><i style="background-image:url(${art})"></i></div>` : ''}`;
+  // 한 줄씩 드러나기: 이 창을 처음 그릴 때만 (다시 그리면 바로 다 보인다)
+  const key = ui.outcome ? `o:${ui.outcome.title}:${String(ui.outcome.text).length}` : `e:${e.id}:${e.title}:${game.date.year * 12 + game.date.month}`;
+  const rv = revealOn() && ui.evSeen !== key ? ' rv' : '';
+  ui.evSeen = key;
+  let rvBase = 0;
   if (ui.outcome) {
-    return `<div class="overlay"><div class="event" role="dialog" aria-modal="true" aria-labelledby="ev-title">
+    return `<div class="overlay${ovFresh ? ' fresh' : ''}"><div class="event${rv}" role="dialog" aria-modal="true" aria-labelledby="ev-title">
       ${head}
       <div class="ev-body">
         <span class="eyebrow">용사력 ${game.date.year}년 ${monthInfo(game).name} · 그 뒤</span>
         <h2 id="ev-title">${esc(ui.outcome.title)}</h2>
-        ${(() => { const r = splitResult(String(ui.outcome.text ?? '')); return `<p class="outcome">${esc(r.scene)}</p>${r.gains ? `<p class="gains">${esc(r.gains)}</p>` : ''}`; })()}
-        <div class="opts"><button class="primary" id="ev-close">계속</button></div>
+        ${(() => { const r = splitResult(String(ui.outcome.text ?? '')); const t = revealSpans(r.scene); rvBase = t.n * t.step; return `<p class="outcome">${t.html}</p>${r.gains ? `<p class="gains ln" style="--ln:${t.n};--st:${t.step}s">${esc(r.gains)}</p>` : ''}`; })()}
+        <div class="opts" style="--base:${rvBase.toFixed(2)}s"><button class="primary" id="ev-close">계속</button></div>
       </div>
     </div></div>`;
   }
-  return `<div class="overlay"><div class="event" role="dialog" aria-modal="true" aria-labelledby="ev-title">
+  const t = revealSpans(e.text);
+  rvBase = t.n * t.step;
+  return `<div class="overlay${ovFresh ? ' fresh' : ''}"><div class="event${rv}" role="dialog" aria-modal="true" aria-labelledby="ev-title">
     ${head}
     <div class="ev-body">
       <span class="eyebrow">용사력 ${game.date.year}년 ${monthInfo(game).name} · 사건</span>
       <h2 id="ev-title">${esc(e.title)}</h2>
-      <p class="ev-text">${esc(e.text)}</p>
+      <p class="ev-text">${t.html}</p>
       ${heirReview()}
-      <div class="opts">${e.choices.map((c, i) => `<button class="opt" data-choice="${i}" style="--i:${i}"><span class="n">${i + 1}</span><span>${esc(c)}</span></button>`).join('')}</div>
+      <div class="opts" style="--base:${rvBase.toFixed(2)}s">${e.choices.map((c, i) => `<button class="opt" data-choice="${i}" style="--i:${i}"><span class="n">${i + 1}</span><span>${esc(c)}</span></button>`).join('')}</div>
     </div>
   </div></div>`;
 }
@@ -571,11 +576,13 @@ const VIEWS = [
 
 function renderGame() {
   if (unmountMap) { unmountMap(); unmountMap = null; }
+  const monthKey = game.date.year * 12 + game.date.month;
+  ovFresh = !document.querySelector('.overlay:not(.out)'); // 사건 창이 새로 열리면 어둠이 깔리며 (창 안 글만 바뀌면 그대로)
   const mi = monthInfo(game);
   const p = game.player;
   const art = sceneImage({ year: game.date.year, month: game.date.month, famine: game.world?.famine, plague: game.world?.plague, place: L(game).place, calamity: calamityNow() });
   let main = '';
-  if (ui.view === 'month') main = game.over ? renderOver() : nowCards([renderBondageNow(game), renderExileNow(game), renderCrisis(game), renderLawNow(game), renderSecretNow(game), renderEnvoyNow(game), renderSpyNow(game, ui), renderHeistNow(game, ui), renderClaimNow(game, ui), renderRevoltNow(game), renderPoorNow(game), renderArmyNow(game), renderAftermathNow(game), renderDragonNow(game), renderHauntNow(game), renderExploreNow(game), renderFrontierNow(game), renderWildsNow(game), renderMineNow(game), renderHerdLine(game), renderTradeNow(game), renderWorksNow(game), renderNatureNow(game), renderManaNow(game), renderRelicNow(game), renderAgelessNow(game), renderSpiritNow(game), renderHealthNow(game), renderMysteryNow(game), renderOmenNow(game), renderLineageNow(game), renderSchoolNow(game), renderTroupeNow(game)]) + renderSummary(ui.summary) + renderNews() + renderYouthCard(game, ui) + renderCompanyNow(game, ui) + renderFarmNow(game, ui) + renderHerdNow(game, ui) + renderCuisineNow(game, ui) + renderApoNow(game, ui) + renderBrewNow(game, ui) + renderInnNow(game, ui) + renderWorkshop(game, ui) + renderPlan(game, ui);
+  if (ui.view === 'month') main = game.over ? renderOver() : renderNews() + nowCards([renderBondageNow(game), renderExileNow(game), renderCrisis(game), renderLawNow(game), renderSecretNow(game), renderEnvoyNow(game), renderSpyNow(game, ui), renderHeistNow(game, ui), renderClaimNow(game, ui), renderRevoltNow(game), renderPoorNow(game), renderArmyNow(game), renderAftermathNow(game), renderDragonNow(game), renderHauntNow(game), renderExploreNow(game), renderFrontierNow(game), renderWildsNow(game), renderMineNow(game), renderHerdLine(game), renderTradeNow(game), renderWorksNow(game), renderNatureNow(game, { noSky: true }), renderManaNow(game), renderRelicNow(game), renderAgelessNow(game), renderSpiritNow(game), renderHealthNow(game), renderMysteryNow(game), renderOmenNow(game), renderLineageNow(game), renderSchoolNow(game), renderTroupeNow(game)]) + renderYouthCard(game, ui) + renderCompanyNow(game, ui) + renderFarmNow(game, ui) + renderHerdNow(game, ui) + renderCuisineNow(game, ui) + renderApoNow(game, ui) + renderBrewNow(game, ui) + renderInnNow(game, ui) + renderWorkshop(game, ui) + renderPlan(game, ui);
   else if (ui.view === 'me') main = renderSheet();
   else if (ui.view === 'people') main = withJump([['love', '사랑', renderLove(game)], ['kin', '자식', renderKin(game)], ['oath', '맹세', renderOath(game)], ['household', '식솔', renderHousehold(game)], ['troupe', '극단', renderTroupe(game)], ['letters', '편지', renderLetters(game)], ['village', '이웃', renderVillage(game)], ['aftermath', '전쟁 뒤', renderAftermath(game)], ['mentor', '제자', renderMentor(game)], ['beasts', '짐승', renderBeasts(game)], ['feud', '원한', renderFeud(game)], ['peoples', '종족의 땅', renderPeoples(game)], ['party', '동료', renderParty(game)], ['notebook', '인물 수첩', renderPeople(game, ui)]]);
   else if (ui.view === 'map') main = withJump([['map', '지도', renderMap()], ['pol', '대륙 정세', renderPolitics(game, ui)], ['revolt', '민심', renderRevolt(game)], ['trade', '장사 길', renderTrade(game)], ['works', '큰 공사', renderWorks(game)], ['nature', '하늘과 땅', renderNature(game)], ['explore', '미지의 땅', renderExplore(game)], ['frontier', '변경 너머', renderFrontier(game)], ['wilds', '마물', renderWilds(game)], ['mine', '광산', renderMines(game)], ['herd', '목축', renderHerd(game)], ['seal', '봉인', renderSeal(game)], ['mana', '마나', renderMana(game)], ['dragon', '용', renderDragon(game)], ['haunt', '망자', renderHaunt(game)], ['omen', '예언', renderOmen(game)], ['deep', '구렁', renderDeep(game)], ['sea', '바다', renderSea(game)], ['world', '레오니아', renderWorldCard()]], { after: 1 }); // 지도가 먼저 (폰에서 바로 보이게), 바로 가기는 지도 아래
@@ -596,11 +603,11 @@ function renderGame() {
     <div class="wrap game">
       <div class="layout view-${ui.view}">
         ${ui.view === 'me' ? '' : renderSheet().replace('class="sheet"', 'class="sheet side"')}
-        <div class="main${lastView !== ui.view ? ' enter' : ''}">${main}</div>
+        <div class="main${lastView !== ui.view || (ui.view === 'month' && lastMonth !== monthKey) ? ' enter' : ''}">${main}</div>
       </div>
     </div>
     ${game.over ? '' : renderEvent()}`;
-  lastArt = art; lastView = ui.view;
+  lastArt = art; lastView = ui.view; lastMonth = monthKey;
   if (!game.over) { const ny = game.date.month === 12 ? game.date.year + 1 : game.date.year, nm = game.date.month === 12 ? 1 : game.date.month + 1; prewarmScene({ year: ny, month: nm, famine: game.world?.famine, plague: game.world?.plague, place: L(game).place, calamity: calamityNow() }); }
   bindGame();
   if (ui.view === 'map') {
@@ -732,7 +739,15 @@ function bindGame() {
     renderGame();
   });
   const ec = $('#ev-close');
-  if (ec) ec.onclick = () => { ui.outcome = null; renderGame(); };
+  if (ec) ec.onclick = () => {
+    ui.outcome = null;
+    // 창이 스르르 걷힌 뒤 다음 화면 (움직임을 줄였으면 바로)
+    const ov = $('.overlay');
+    if (ov && smoothOn() && !game.pendingEvent) { ov.classList.add('out'); ec.disabled = true; setTimeout(() => { if (game) renderGame(); }, 200); }
+    else renderGame();
+  };
+  // 한 줄씩 드러나는 중에 글을 누르면 바로 다 보인다
+  $$('.rv').forEach((el) => el.addEventListener('click', (ev) => { if (!ev.target.closest('button, a, summary, input')) el.classList.add('done'); }));
   const firstOpt = $('.event .opt, #ev-close');
   if (firstOpt) firstOpt.focus({ preventScroll: true });
 }
