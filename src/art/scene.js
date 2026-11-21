@@ -3,9 +3,11 @@
 // 한 장소의 배치는 늘 같고(장소마다 고정 씨앗), 그날의 때와 날씨만 달마다 정해진다.
 import { W, H, HZ, hash, fbm1, ridged1, rng, mixh, rgba, dark, light, clamp, sbump, lerp, fillCurve, clipBelow, poly, puff, mist, vgrad, grain, trace, canvasUrl, dropUrl } from './sceneKit.js';
 import { describe } from './scenePlaces.js';
+import { paintFinish } from './scenePaint.js';
+import { noteMotion } from './sceneMotion.js';
 import { skyOf, paintSky, gradeLand, paintWeather } from './sceneSky.js';
 import { weatherFor, tweak as seasonTweak, land as seasonLand, air as seasonAir } from './sceneSeason.js';
-import { paletteOf, mountains, hillBand, treeline, forestMass, fields, water, tree, conifer, palm, rock, reedClump, foreground } from './sceneLand.js';
+import { takeWater, paletteOf, mountains, hillBand, treeline, forestMass, fields, water, tree, conifer, palm, rock, reedClump, foreground } from './sceneLand.js';
 import { STYLE, house, tower, wallRun, windmill, church, cathedral, keep, castle, citadel, mageTowers, endlessTower, wizardTower, elfGreatTree, ropeBridge, dwarfFacade, yurt, herd, ruinArch, bastion, manor, fortress, ruins, ruinPalace, lighthouse, ship, docks, elfSpire, tent, totem, blackSpire, stiltHut, dwarfGate, worldTree } from './sceneTown.js';
 
 /** 그 달의 때와 날씨 (같은 달이면 늘 같음) */
@@ -66,13 +68,14 @@ function draw(year, month, famine, plague, place, calamity) {
   const P = paletteOf(cal === 'frost' && (month >= 11 || month <= 3) ? 1 : month, D.biome, famine);
   if (cal) seasonTweak(P, cal);
   const S = skyOf(tod, weather, D.biome, k);
+  takeWater();
   const cv = document.createElement('canvas'); cv.width = W; cv.height = H;
   const ctx = cv.getContext('2d');
   const land = document.createElement('canvas'); land.width = W; land.height = H;
   const L = land.getContext('2d');
   const wr = rng(k * 31 + 7), R = rng(D.seed);
   paintSky(ctx, S, wr, k);
-  const e = { D, P, S, R, wr, month, k, plague, wins: [], smoke: [], st: STYLE[D.culture] || STYLE.leonia, q: D.seed % 89 };
+  const e = { D, P, S, R, wr, month, k, plague, wins: [], smoke: [], lit: [], smokeOn: [], st: STYLE[D.culture] || STYLE.leonia, q: D.seed % 89 };
   const layout = D.layout ?? (D.biome === 'island' ? 'island' : D.biome === 'lake' ? 'lake' : D.biome === 'mountain' ? 'mountain' : D.biome === 'forest' ? 'forest' : D.coast || D.biome === 'coast' ? 'coast' : 'open');
   LAYOUTS[layout](L, e);
   if (cal) seasonLand(L, cal, e);
@@ -81,9 +84,12 @@ function draw(year, month, famine, plague, place, calamity) {
   lights(ctx, e);
   paintWeather(ctx, S, wr, { leaves: !!P.autumn && !P.blight, embers: D.culture === 'demon', month, snowy: !!P.snow, barren: !!P.blight });
   if (cal) seasonAir(ctx, cal, e);
+  paintFinish(ctx, W, H, S, { hz: HZ / H });
   grain(ctx);
   land.width = land.height = 0;
-  return canvasUrl(cv, 'image/jpeg', 0.88);
+  const url = canvasUrl(cv, 'image/jpeg', 0.88);
+  noteMotion(url, { kind: 'scene', w: W, h: H, weather, tod, wins: e.lit, smoke: e.smokeOn, water: takeWater(), embers: D.culture === 'demon' });
+  return url;
 }
 
 /* ---------- 함께 쓰는 조각 ---------- */
@@ -131,6 +137,7 @@ function smokeUp(L, e) {
   const p = plague ? 0.2 : P.snow ? 0.9 : S.tod === 'night' ? 0.4 : 0.55, c = S.tod === 'night' ? '#6a7080' : '#d6d2ca';
   for (const [x, y, seed, sc] of e.smoke) {
     if (hash(seed, k) > p) continue;
+    if (e.smokeOn.length < 12) e.smokeOn.push([Math.round(x + wind * 9 * 0.9 * sc), Math.round(y - 9 * 6.5 * sc), sc]);
     for (let i = 0; i < 9; i++) puff(L, x + wind * i * 0.9 * sc + Math.sin(i * 1.3 + seed) * 2.4, y - i * 6.5 * sc, (3 + i * 1.7) * sc, (3 + i * 1.5) * sc, c, 0.5 - i * 0.045);
   }
 }
@@ -143,6 +150,7 @@ function lights(ctx, e) {
   for (const [x, y, w, h, key, glow, always] of e.wins) {
     if (!always && hash(key, k) > on * (plague ? 0.6 : 1)) continue;
     const a = always ? (tod === 'day' ? 0.35 : 0.9) : tod === 'night' ? 0.85 : 0.6, r = Math.max(7, (w + h) * 1.7) * (always ? 2.2 : 1);
+    if (e.lit.length < 48 && (tod !== 'day' || always)) e.lit.push([Math.round(x + w / 2), Math.round(y + h / 2), Math.round(r * 0.8), glow || '#ffc878']);
     puff(ctx, x + w / 2, y + h / 2, r, r, glow || '#ffc878', (always ? 0.34 : dense ? 0.14 : 0.24) * a);
   }
   ctx.globalCompositeOperation = 'source-over';

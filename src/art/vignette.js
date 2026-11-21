@@ -26,6 +26,8 @@ import { PLATES7 } from './vignettePlates7.js';
 import { PLATES8 } from './vignettePlates8.js';
 import { PLATES9 } from './vignettePlates9.js';
 import { regionOfSite } from './mapTrail.js';
+import { paintFinish } from './scenePaint.js';
+import { noteMotion } from './sceneMotion.js';
 
 const PLATES = { ...PLATES1, ...PLATES2, ...PLATES3, ...PLATES4, ...PLATES5, ...PLATES6, ...PLATES7, ...PLATES8, ...PLATES9 };
 
@@ -65,7 +67,10 @@ export function vignetteImage(spec) {
     PLATES[spec.plate]({ ctx, S, P, D, R: rng(seed), t: toner(S), q: D.seed % 89, k, month, year, me, other, variant: spec.variant ?? null });
     const lf = LIFT[`${spec.plate}:${spec.variant ?? ''}`] ?? LIFT[spec.plate];
     if (lf) { ctx.save(); ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.globalCompositeOperation = 'screen'; ctx.fillStyle = lf; ctx.fillRect(0, 0, cv.width, cv.height); ctx.restore(); }
+    paintFinish(ctx, cv.width, cv.height, S, { hz: 0.56, strength: 0.85, land: false, edgeK: 0.6 });
+    const vw = cv.width, vh = cv.height;
     url = canvasUrl(cv, 'image/jpeg', 0.86);
+    noteMotion(url, { kind: 'vig', w: vw, h: vh, weather, tod: S.tod, embers: spec.plate === 'fire' || spec.plate === 'dragon' || spec.variant === 'still' || spec.variant === 'riot' });
   } catch { url = ''; }
   if (!url) return '';
   while (cache.size >= 8) { const [k0, old] = cache.entries().next().value; cache.delete(k0); dropUrl(old); }
