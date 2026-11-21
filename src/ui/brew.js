@@ -3,6 +3,7 @@
 // renderBrewBlock: '나' 화면 덩이 (빚는 솜씨, 빚은·판 술과 번 돈, 이름난 술, 기록)
 import { brewStatus } from '../brew/index.js';
 import { esc } from './util.js';
+import { vignetteImage } from '../art/vignette.js';
 
 const safe = (fn, d = null) => { try { return fn() ?? d; } catch (e) { console.error(e); return d; } };
 const bar = (v, cls = '') => `<span class="wd-bar ${cls}"><i style="width:${Math.max(0, Math.min(100, v))}%"></i></span>`;
@@ -44,8 +45,11 @@ export function renderBrewBlock(game) {
   if (s.brewed) chips.push(['빚은 술', `${s.brewed}통`]);
   if (s.sold) chips.push(['판 술', `${s.sold}통`]);
   if (s.earned) chips.push(['번 돈', `은화 ${s.earned}닢`, 'up']);
+  // 이름난 술이 생겼거나 술도가를 꾸리면 페이블 '해마다의 맛' 판
+  const art = s.named.length || s.cellar ? safe(() => vignetteImage({ plate: 'brew', variant: 'vintage', year: game.date.year, month: game.date.month }), '') : '';
   return `<div class="block brew-block">
     <h3>양조장</h3>
+    ${art ? `<img class="blk-art" src="${art}" alt="술 창고에 해마다 다른 술통이 늘어선 모습">` : ''}
     ${s.skill >= 1 ? `<div class="wd-row kn-row"><span>빚는 솜씨 ${s.skill}</span>${bar(s.skill, 'kin')}</div>` : ''}
     ${chips.length ? `<div class="sm-chips">${chips.map(chip).join('')}</div>` : ''}
     ${s.named.length ? `<p class="note">이름난 술: ${s.named.map((n) => `<strong>${esc(n.name)}</strong>`).join(', ')}</p>` : ''}

@@ -1486,3 +1486,4 @@ details.act-group[open]:not(.dark) > summary { align-items: center; padding: 0; 
 /* 28단계: 사절과 볼모 */
 .evy-block b.warn, .evy-now b.warn { color: #e3917f; }
 .evy-block .ag-clues li { color: var(--ink); }
+.block .blk-art { display: block; width: 100%; max-height: 170px; object-fit: cover; border-radius: 8px; border: 1px solid var(--line); margin: 4px 0 8px; }

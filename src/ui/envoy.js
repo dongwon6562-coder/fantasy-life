@@ -3,6 +3,7 @@
 // renderEnvoyBlock: '나' 화면 덩이 (아는 말, 외교청 자리, 협상, 볼모살이, 볼모로 보낸 자식, 기록)
 import { envoyInfo } from '../envoy/index.js';
 import { esc } from './util.js';
+import { vignetteImage } from '../art/vignette.js';
 
 const safe = (fn, d = null) => { try { return fn() ?? d; } catch (e) { console.error(e); return d; } };
 const bar = (v, cls = '') => `<span class="wd-bar ${cls}"><i style="width:${Math.max(0, Math.min(100, v))}%"></i></span>`;
@@ -27,8 +28,11 @@ export function renderEnvoyBlock(game) {
   if (t.pacts) chips.push(['맺은 약조', `${t.pacts}`]);
   if (t.wars) chips.push(['틀어져 난 전쟁', `${t.wars}`, 'down']);
   const P = s.post, H = s.hostage, B = s.between;
+  // 볼모로 자란 사람에게는 페이블 '자란 볼모' 판
+  const art = B || H ? safe(() => vignetteImage({ plate: 'envoy', variant: B ? 'hostage-grown' : 'hostage', year: game.date.year, month: game.date.month }), '') : '';
   return `<div class="block evy-block">
     <h3>사절과 볼모</h3>
+    ${art ? `<img class="blk-art" src="${art}" alt="남의 나라 옥좌 앞에 선 볼모">` : ''}
     ${P ? `<p><strong>${esc(P.realm)} ${esc(P.roleName)}</strong> · ${P.years}해째 · 사절길 ${P.missions}번${P.wins ? `, 그중 ${P.wins}번 뜻을 이룸` : ''}</p>` : ''}
     ${H ? `<p class="note"><b class="warn">${esc(H.from)}에서 ${esc(H.to)} 궁정으로 보내진 볼모</b> · ${H.years}해째${H.backIn ? ` · 돌아가기까지 ${H.backIn}해` : ''}</p>
       <div class="wd-row kn-row"><span>그 나라에 든 정</span>${bar(H.ties, 'kin')}</div>
