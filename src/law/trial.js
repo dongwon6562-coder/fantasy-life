@@ -167,7 +167,7 @@ export function decide(g, rng, c, key) {
   if (key === 'speak') {
     const won = contest(myPower(g), Lw.forms.includes('truth') ? 10 : 0);
     S.skill = clamp(S.skill + 2, 0, 100);
-    return `${acc ? '법정 한가운데 서서 내 말을 했다.' : '법정 한가운데 서서 내가 당한 일을 하나씩 늘어놓았다.'}${Lw.forms.includes('truth') ? ' 주문을 받지 않은 것을 집행관이 장부에 적었다.' : ''} ${won ? `${Lw.judge}가 고개를 끄덕였다.` : `${Lw.judge}의 눈이 차가웠다.`} ${verdict(g, rng, c, won, 'court')}`;
+    return `${acc ? '법정 한가운데 서서 내 말을 했다.' : '법정 한가운데 서서 내가 당한 일을 하나씩 늘어놓았다.'}${Lw.forms.includes('truth') ? ' 주문을 받지 않은 것을 집행관이 장부에 적었다.' : ''} ${won ? `${J(Lw.judge, '이/가')} 고개를 끄덕였다.` : `${Lw.judge}의 눈이 차가웠다.`} ${verdict(g, rng, c, won, 'court')}`;
   }
   if (key === 'advocate') {
     const cost = Math.round(15 * Lw.advocate * (bigTown(c.place) ? 1.5 : 1));
@@ -185,7 +185,7 @@ export function decide(g, rng, c, key) {
     const odds = clamp(0.45 + Lw.bribe + (t === 'greedy' ? 0.2 : t === 'harsh' ? -0.2 : 0), 0.05, 0.92);
     if (rng.chance(odds)) return `은화 ${cost}닢이 든 주머니가 재판관의 소매 속으로 사라졌다. 재판은 짧았다. ${verdict(g, rng, c, true, 'bribe')}`;
     if (Lw.bribe < 0) { reportCrime(g, 'fraud', c.place); deed(g, 'honest', -5, `${J(g.player.name, '이/가')} ${Lw.judge}에게 뇌물을 내밀었다고 한다.`, c.place); }
-    return `${Lw.judge}가 주머니를 탁자 위에 쏟았다. 은화가 법정 바닥에 굴렀다. "${Lw.bribe < 0 ? '이것도 판결에 적겠소.' : '모자라오.'}" ${verdict(g, rng, c, false, 'bribe')}`;
+    return `${J(Lw.judge, '이/가')} 주머니를 탁자 위에 쏟았다. 은화가 법정 바닥에 굴렀다. "${Lw.bribe < 0 ? '이것도 판결에 적겠소.' : '모자라오.'}" ${verdict(g, rng, c, false, 'bribe')}`;
   }
   if (key === 'combat') {
     if (!canCombat(g, c)) return `결투 재판은 받아들여지지 않았다. ${decide(g, rng, c, 'speak')}`;
@@ -231,7 +231,7 @@ defineScene('law_trial', {
       : `내가 ${J(otherP(c), '을/를')} ${J(chargeName(c), '으로/로')} 고발했다.`;
     const wit = c.witness ? ` 증인으로 ${J(c.witness, '이/가')} 나왔다.` : '';
     const ln = lean(g, c);
-    const mood = ln >= 15 ? ` ${Lw.judge}는 처음부터 나를 곱게 보지 않는다.` : ln <= -5 ? ` ${Lw.judge}는 나에게 예를 갖춘다.` : '';
+    const mood = ln >= 15 ? ` ${J(Lw.judge, '은/는')} 처음부터 나를 곱게 보지 않는다.` : ln <= -5 ? ` ${J(Lw.judge, '은/는')} 나에게 예를 갖춘다.` : '';
     return `${Lw.court}. ${who} ${c.role === 'accused' ? '고발하는 쪽은' : '내 쪽은'} ${evidenceWord(c.evidence)}.${wit}${mood} ${Lw.sum}`;
   },
   choices: (g, s) => trialOptions(g, caseById(g, s.cid)),

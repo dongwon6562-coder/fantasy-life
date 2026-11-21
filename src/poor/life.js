@@ -72,7 +72,7 @@ ACTIONS.push({
     const f = faithState(g); if (f.god !== 'none') f.devotion = clamp(f.devotion + 1, 0, 100);
     let bed = '';
     if (hasPoorhouse(g, pl) && onStreet(g)) { p.bedAt = mi(g); tired(g, 5); bed = ` 구빈원 마루에 자리를 얻었다. 대신 아침마다 마당을 쓸어야 한다.${p.built[pl] ? ' 내가 세운 구빈원이다. 아는 얼굴들이 고개를 숙였다.' : ''}`; }
-    if (rng.chance(0.25) && !sceneQueued(g, 'poor_slum')) queueScene(g, 'poor_slum', { ev: rng.pick(['share', 'sick']) });
+    if (rng.chance(0.25) && !sceneQueued(g, 'poor_slum')) { const ev = slumPick(p, rng, ['share', 'sick']); if (ev) queueScene(g, 'poor_slum', { ev }); }
     return `${rng.pick(['멀건 보리죽 한 그릇과 딱딱한 빵 한 조각.', '사제가 감사 기도를 길게 했다. 죽이 식었다.', '줄이 길었다. 앞사람이 넘어지자 아무도 일으키지 않았다.'])}${bed}`;
   },
 });
@@ -111,6 +111,15 @@ ACTIONS.push({
 
 /* ---------- 빈민가 사람들 ---------- */
 const SLUM_EVS = ['share', 'kid', 'winter', 'gang', 'sick'];
+// 같은 사람의 같은 장면은 한 삶에 두 번까지만 (30단계 헤드: 브란트의 빵 반 덩이를 한 삶에 서른 번 넘게 받았다). 겨울은 철마다 다르니 넉넉히.
+HOOKS.heir.push((g) => { if (g.poor) g.poor.slumSeen = {}; }); // 새 사람에게는 새 얼굴
+function slumPick(p, rng, evs) {
+  const seen = (p.slumSeen ??= {});
+  const ok = evs.filter((e) => (seen[e] ?? 0) < (e === 'winter' ? 6 : e === 'gang' ? 3 : 2));
+  if (!ok.length) return null;
+  const ev = rng.pick(ok); seen[ev] = (seen[ev] ?? 0) + 1;
+  return ev;
+}
 defineScene('poor_slum', {
   need: (g, s) => free(g) && SLUM_EVS.includes(s.ev) && (s.ev !== 'gang' || !!gangHere(g)),
   title: (g, s) => ({ share: '다리 밑의 저녁', kid: '빠른 손', winter: '언 밤', gang: '뒷골목의 손짓', sick: '기침 소리' }[s.ev]),
@@ -212,7 +221,8 @@ HOOKS.afterMonth.push((g) => {
     if (free(g) && now - p.slumAt >= 3 && rng.chance(isSlum(here(g)) ? 0.3 : 0.15) && !sceneQueued(g, 'poor_slum')) {
       p.slumAt = now;
       const evs = ['share', 'kid', 'sick', ...(winter(g) ? ['winter', 'winter'] : []), ...(gangHere(g) ? ['gang'] : [])];
-      queueScene(g, 'poor_slum', { ev: rng.pick(evs) });
+      const ev = slumPick(p, rng, evs);
+      if (ev) queueScene(g, 'poor_slum', { ev });
     }
   } else p.hunger = 0;
   if (broke(g) && free(g) && now - p.chanceAt >= 8 && p.lowMonths >= 2 && rng.chance(0.08) && !sceneQueued(g, 'poor_chance')) {
