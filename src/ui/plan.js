@@ -128,6 +128,7 @@ const GROUPS = [
   ['frontier', '개척', /^frontier_/],
   ['learn', '배움과 수련', /^(school_|study|train_body|sword_|meditate|magic_|legend_lesson|research|seal_study|tower_(join|duty|exam|craft))/],
   ['mana', '마나 샘', /^mana_/],
+  ['spirit', '정령', /^spirit_/],
   ['ageless', '늙지 않는 몸', /^(noah_|dragonname_|after_rename|sealbreath_)/],
   ['arts', '글과 예술', /^arts_/],
   ['troupe', '유랑극단', /^troupe_/],
