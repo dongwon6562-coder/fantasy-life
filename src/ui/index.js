@@ -79,6 +79,9 @@ import { renderRevolt, renderRevoltNow, renderRevoltBlock } from './revolt.js';
 import { renderCuisineNow, renderCuisineBlock } from './cuisine.js';
 import { renderWorks, renderWorksNow, renderWorksBlock } from './works.js';
 import { renderExileNow, renderExileBlock } from './exile.js';
+import { renderSpyNow, renderSpyBlock } from './spy.js';
+import { renderMana, renderManaNow, renderManaBlock } from './mana.js';
+import { renderFarmNow, renderFarmBlock } from './farm.js';
 import { renderWilds, renderWildsNow, renderWildsBlock } from './wilds.js';
 import { renderOmen, renderOmenNow } from './omen.js';
 import { renderMysteryNow, renderMysteryBlock } from './mystery.js';
@@ -313,12 +316,15 @@ function renderSheet() {
     ${renderMineBlock(game)}
     ${renderDragonBlock(game)}
     ${renderHauntBlock(game)}
+    ${renderFarmBlock(game)}
     ${renderHerdBlock(game)}
     ${renderCuisineBlock(game)}
     ${renderWorksBlock(game)}
     ${renderFrontierBlock(game)}
     ${renderRevoltBlock(game)}
     ${renderExileBlock(game)}
+    ${renderSpyBlock(game)}
+    ${renderManaBlock(game)}
     ${renderVocBlock(game)}
     ${renderArtsBlock(game)}
     ${renderTroupeBlock(game)}
@@ -389,8 +395,19 @@ function renderNews() {
       : '<p class="note">조용한 달이었다. 별다른 소문은 없다.</p>'}
     ${renderWorldMini()}
     ${game.lastResults.length ? `<h3 class="sub">지난달 한 일</h3>
-      <ul class="results">${game.lastResults.map((r) => `<li><b>${esc(r.name)}</b><span class="scene-text">${esc(r.scene ?? r.text)}</span>${r.gains ? `<small class="gains">${esc(r.gains)}</small>` : ''}</li>`).join('')}</ul>` : ''}
+      <ul class="results">${sameResults(game.lastResults).map(([r, n]) => `<li><b>${esc(r.name)}${n > 1 ? ` <small>×${n}</small>` : ''}</b><span class="scene-text">${esc(r.scene ?? r.text)}</span>${r.gains ? `<small class="gains">${esc(r.gains)}</small>` : ''}</li>`).join('')}</ul>` : ''}
   </section>`;
+}
+
+// 같은 일을 같은 글로 여러 칸 했으면 한 줄로 (감옥에서 '견디기' 네 칸 같은 것)
+function sameResults(list) {
+  const out = [];
+  for (const r of list) {
+    const last = out[out.length - 1];
+    if (last && last[0].name === r.name && (last[0].scene ?? last[0].text) === (r.scene ?? r.text) && !r.gains && !last[0].gains) last[1] += 1;
+    else out.push([r, 1]);
+  }
+  return out;
 }
 
 function renderChron() {
@@ -443,7 +460,7 @@ function nowCards(parts) {
   return parts.map((h, i) => (i === first ? merged : lines[i] ? '' : h)).join('');
 }
 
-const SHEET_SHORT = { '늙음과 마지막 해들': '늙음', '내기와 겨루기': '내기', '풀리지 않은 일': '미제', '연구와 발명': '연구', '글과 예술': '예술', '병과 의술': '병', '내 집 마련': '집', '법과 재판': '법', '학원과 시험': '학원', '밑바닥 삶': '밑바닥', '내 가게': '가게', '마물 사냥': '마물', '용병단과 깃발': '용병단', '광산과 땅 밑': '광산', '사슬과 자유': '사슬', '무대와 재주': '무대', '전쟁 뒤': '전쟁 뒤', '몸과 마음': '몸과 마음', '집과 재산': '재산', '어린 시절': '어린 시절', '가문의 내력': '가문', '망자와 저주': '저주', '목축과 유목': '목축', '봉기와 반란': '봉기', '요리사의 길': '요리', '유배와 망명': '유배' };
+const SHEET_SHORT = { '늙음과 마지막 해들': '늙음', '내기와 겨루기': '내기', '풀리지 않은 일': '미제', '연구와 발명': '연구', '글과 예술': '예술', '병과 의술': '병', '내 집 마련': '집', '법과 재판': '법', '학원과 시험': '학원', '밑바닥 삶': '밑바닥', '내 가게': '가게', '마물 사냥': '마물', '용병단과 깃발': '용병단', '광산과 땅 밑': '광산', '사슬과 자유': '사슬', '무대와 재주': '무대', '전쟁 뒤': '전쟁 뒤', '몸과 마음': '몸과 마음', '집과 재산': '재산', '어린 시절': '어린 시절', '가문의 내력': '가문', '망자와 저주': '저주', '목축과 유목': '목축', '봉기와 반란': '봉기', '요리사의 길': '요리', '유배와 망명': '유배', '첩보와 밀정': '첩보', '마나의 흐름': '마나' };
 function sheetJump() {
   const sheet = document.querySelector('.sheet:not(.side)');
   if (!sheet || sheet.querySelector('.view-jump')) return;
@@ -536,10 +553,10 @@ function renderGame() {
   const p = game.player;
   const art = sceneImage({ year: game.date.year, month: game.date.month, famine: game.world?.famine, plague: game.world?.plague, place: L(game).place, calamity: calamityNow() });
   let main = '';
-  if (ui.view === 'month') main = game.over ? renderOver() : nowCards([renderBondageNow(game), renderExileNow(game), renderCrisis(game), renderLawNow(game), renderSecretNow(game), renderHeistNow(game, ui), renderRevoltNow(game), renderPoorNow(game), renderArmyNow(game), renderAftermathNow(game), renderDragonNow(game), renderHauntNow(game), renderExploreNow(game), renderFrontierNow(game), renderWildsNow(game), renderMineNow(game), renderHerdLine(game), renderTradeNow(game), renderWorksNow(game), renderNatureNow(game), renderHealthNow(game), renderMysteryNow(game), renderOmenNow(game), renderLineageNow(game), renderSchoolNow(game), renderTroupeNow(game)]) + renderSummary(ui.summary) + renderNews() + renderYouthCard(game, ui) + renderCompanyNow(game, ui) + renderHerdNow(game, ui) + renderCuisineNow(game, ui) + renderInnNow(game, ui) + renderWorkshop(game, ui) + renderPlan(game, ui);
+  if (ui.view === 'month') main = game.over ? renderOver() : nowCards([renderBondageNow(game), renderExileNow(game), renderCrisis(game), renderLawNow(game), renderSecretNow(game), renderSpyNow(game, ui), renderHeistNow(game, ui), renderRevoltNow(game), renderPoorNow(game), renderArmyNow(game), renderAftermathNow(game), renderDragonNow(game), renderHauntNow(game), renderExploreNow(game), renderFrontierNow(game), renderWildsNow(game), renderMineNow(game), renderHerdLine(game), renderTradeNow(game), renderWorksNow(game), renderNatureNow(game), renderManaNow(game), renderHealthNow(game), renderMysteryNow(game), renderOmenNow(game), renderLineageNow(game), renderSchoolNow(game), renderTroupeNow(game)]) + renderSummary(ui.summary) + renderNews() + renderYouthCard(game, ui) + renderCompanyNow(game, ui) + renderFarmNow(game, ui) + renderHerdNow(game, ui) + renderCuisineNow(game, ui) + renderInnNow(game, ui) + renderWorkshop(game, ui) + renderPlan(game, ui);
   else if (ui.view === 'me') main = renderSheet();
   else if (ui.view === 'people') main = withJump([['love', '사랑', renderLove(game)], ['kin', '자식', renderKin(game)], ['oath', '맹세', renderOath(game)], ['household', '식솔', renderHousehold(game)], ['troupe', '극단', renderTroupe(game)], ['letters', '편지', renderLetters(game)], ['village', '이웃', renderVillage(game)], ['aftermath', '전쟁 뒤', renderAftermath(game)], ['mentor', '제자', renderMentor(game)], ['beasts', '짐승', renderBeasts(game)], ['feud', '원한', renderFeud(game)], ['peoples', '종족의 땅', renderPeoples(game)], ['party', '동료', renderParty(game)], ['notebook', '인물 수첩', renderPeople(game, ui)]]);
-  else if (ui.view === 'map') main = withJump([['map', '지도', renderMap()], ['pol', '대륙 정세', renderPolitics(game, ui)], ['revolt', '민심', renderRevolt(game)], ['trade', '장사 길', renderTrade(game)], ['works', '큰 공사', renderWorks(game)], ['nature', '하늘과 땅', renderNature(game)], ['explore', '미지의 땅', renderExplore(game)], ['frontier', '변경 너머', renderFrontier(game)], ['wilds', '마물', renderWilds(game)], ['mine', '광산', renderMines(game)], ['herd', '목축', renderHerd(game)], ['seal', '봉인', renderSeal(game)], ['dragon', '용', renderDragon(game)], ['haunt', '망자', renderHaunt(game)], ['omen', '예언', renderOmen(game)], ['deep', '구렁', renderDeep(game)], ['sea', '바다', renderSea(game)], ['world', '레오니아', renderWorldCard()]], { after: 1 }); // 지도가 먼저 (폰에서 바로 보이게), 바로 가기는 지도 아래
+  else if (ui.view === 'map') main = withJump([['map', '지도', renderMap()], ['pol', '대륙 정세', renderPolitics(game, ui)], ['revolt', '민심', renderRevolt(game)], ['trade', '장사 길', renderTrade(game)], ['works', '큰 공사', renderWorks(game)], ['nature', '하늘과 땅', renderNature(game)], ['explore', '미지의 땅', renderExplore(game)], ['frontier', '변경 너머', renderFrontier(game)], ['wilds', '마물', renderWilds(game)], ['mine', '광산', renderMines(game)], ['herd', '목축', renderHerd(game)], ['seal', '봉인', renderSeal(game)], ['mana', '마나', renderMana(game)], ['dragon', '용', renderDragon(game)], ['haunt', '망자', renderHaunt(game)], ['omen', '예언', renderOmen(game)], ['deep', '구렁', renderDeep(game)], ['sea', '바다', renderSea(game)], ['world', '레오니아', renderWorldCard()]], { after: 1 }); // 지도가 먼저 (폰에서 바로 보이게), 바로 가기는 지도 아래
   else if (ui.view === 'chron') main = renderChron();
   else if (ui.view === 'save') main = renderSave();
   root().innerHTML = `
@@ -648,8 +665,12 @@ function bindGame() {
   bindWorld(game, ui, rerender);
   const ws = $('details.ws-own'); // 다른 접는 카드도 .workshop 모양을 빌려 쓰니 내 일터만 따로 잡는다
   if (ws) ws.ontoggle = () => { ui.wsOpen = ws.open; };
+  const sp = $('details.spy-card');
+  if (sp) sp.ontoggle = () => { ui.spyOpen = sp.open; };
   const hz = $('details.heist-card');
   if (hz) hz.ontoggle = () => { ui.heistOpen = hz.open; };
+  const fm = $('details.farm-card');
+  if (fm) fm.ontoggle = () => { ui.farmOpen = fm.open; };
   const hd = $('details.herd-card');
   if (hd) hd.ontoggle = () => { ui.herdOpen = hd.open; };
   const cu = $('details.cu-card');
