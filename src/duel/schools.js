@@ -120,7 +120,8 @@ ACTIONS.push(
       if (!m) return '대련을 청하려 했지만 스승이 자리에 없었다.';
       if (g.duelQueued) return '이번 달에는 이미 잡힌 대련이 있다. 승급 대련은 다음으로 미뤘다.';
       const r = rankOf(g) + 1;
-      const foeSkill = r >= 4 ? 96 : Math.max(m.skill, RANK_NEED[r] + 8);
+      // 스승은 그 등급에 맞는 힘으로 시험한다. 제 솜씨를 다 쓰면 숙련 대련도 넘을 수 없었다 (28단계 헤드: 솜씨 90에도 숙련 대련을 열세 번 내리 짐)
+      const foeSkill = r >= 4 ? 96 : Math.max(RANK_NEED[r] + 8, Math.min(m.skill, RANK_NEED[r] + 15));
       queueDuel(g, {
         kind: 'rank_test', title: `${RANKS[r]} 승급 대련`,
         intro: r >= 3
