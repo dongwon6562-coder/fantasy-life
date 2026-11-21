@@ -201,6 +201,7 @@ const BY_SCENE = {
   // 20단계: 유랑극단 (기존 그림을 이어 붙임)
   troupe_arrive: 'festival', troupe_show: 'trade:bard', troupe_manage: 'road', troupe_fire: 'road', troupe_move: 'road', troupe_event: 'road',
   herd_market: 'beastlife:market', herd_tend: 'herd:pasture', herd_steed: 'herd:steed', herd_band: 'herd:camp', herd_band_life: 'herd:camp', herd_event: 'herd:pasture',
+  apo_brew: 'trade:alchemy', apo_shop: 'trade:healer', apo_event: 'trade:healer',
   farm_land: 'farm:plow', farm_sow: 'farm:sow', farm_manage: 'farm:barn', farm_market: 'farm:sell', farm_harvest: 'farm:harvest', farm_event: 'feud:offer',
   cuisine_taste: 'cuisine:stall', cuisine_kitchen: 'cuisine:kitchen', cuisine_post: 'cuisine:kitchen', cuisine_create: 'cuisine:create', cuisine_contest: 'cuisine:contest', cuisine_feast: 'cuisine:feast', cuisine_event: 'cuisine:kitchen', cuisine_cook: 'cuisine:kitchen', cuisine_serve: 'cuisine:feast',
   heist_target: 'heist:plan', heist_crew: 'heist:plan', heist_scout: 'heist:roof', heist_day: 'heist:roof', heist_twist: 'heist:vault-twist', heist_split: 'heist:split', heist_event: 'heist:plan',
@@ -257,6 +258,7 @@ export function vignetteFor(g, { title = '', text = '', outcome = false } = {}) 
     if (kind === 'voc_path' || kind === 'voc_event') { const sc = g.life.scene; pick = VOC_ART[sc.path ?? sc.ev] ?? JOB_ART[g.life?.job?.id] ?? null; }
     if (kind === 'peoples_rite' && g.life.scene.id) pick = `peoples:${g.life.scene.id}`;
     if (kind === 'herd_event') pick = { sick: 'herd:pasture', wolves: 'monsters', rustlers: 'herd:rustle', neighbor: 'feud:offer', dealer: 'beastlife:market', raid: 'herd:rustle', race: 'herd:steed', dzud: 'nature:winter' }[g.life.scene.ev] ?? pick;
+    if (kind === 'apo_event') pick = { doctor: 'square:notice', priest: 'chapel:inquisition', quack: 'square:herald', poison: 'feud:plot', plague: 'plague', harmed: 'bedside', rare: 'road' }[g.life.scene.ev] ?? pick;
     if (kind === 'farm_event') pick = { water: 'farm:water', boundary: 'feud:offer', blight: 'nature:locust', hands: 'feud:plot', tenant: 'famine', buyer: 'farm:sell', thief: 'seal:alley', levy: 'square:guards' }[g.life.scene.ev] ?? pick;
     if (kind === 'cuisine_event') pick = { plot: 'feud:plot', suspect: 'cuisine:taster', taster: 'cuisine:taster', rival: 'cuisine:contest', shortage: 'cuisine:create', guest: 'cuisine:feast', apprentice: 'cuisine:kitchen', spoiled: 'cuisine:create' }[g.life.scene.ev] ?? pick;
     if (kind === 'law_trial') pick = safe(() => g.law.cases.find((c) => c.id === g.life.scene.cid)?.role) === 'accused' ? 'trial:dock' : 'trial:plead';
