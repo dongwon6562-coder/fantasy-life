@@ -1608,8 +1608,13 @@ html.motion .month-card .mc-in strong { animation: mc-glow 1.6s ease-out; }
 .td-sec { display: grid; gap: 8px; padding-top: 10px; border-top: 1px solid rgba(201, 162, 90, .14); }
 .td-sec > h3.sub { margin: 0; font-size: 13px; letter-spacing: .12em; color: var(--brass); }
 .today .news li.rumor { color: var(--muted); font-style: italic; border-left-style: dashed; }
+.today .news li.rumor.fix { color: var(--ink); font-style: normal; }
+.td-feast { margin: 0; font-size: 14px; line-height: 1.7; color: var(--ink); padding: 8px 12px; border: 1px solid rgba(201, 162, 90, .28); border-radius: 6px; background: rgba(201, 162, 90, .06); }
+.td-feast b { color: var(--brass); margin-right: 4px; }
 .td-met .news li { border-left-color: rgba(201, 162, 90, .55); }
-.td-sum .month-sum h3.sub { margin: 0; }
+.td-sum .month-sum h3.sub { margin: 0; font-size: 13px; letter-spacing: .12em; color: var(--brass); }
+.td-more > summary { cursor: pointer; color: var(--muted); font-size: 13px; padding: 4px 0; }
+.td-more[open] > summary { margin-bottom: 8px; }
 .today .world-mini { margin-top: 2px; }
 
 /* 한 줄씩 드러나기: .rv 안의 .ln이 차례로 떠오른다. 누르면(.done) 바로 다 보인다. */

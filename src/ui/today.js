@@ -3,6 +3,7 @@
 // 다른 갈래가 내보내는 줄(만남·소문·감각)은 TODAY_SOURCES에 이어 붙인다. 하나가 망가져도 카드는 그려진다.
 // 글이 한 줄씩 드러나는 효과: 줄마다 class="ln" style="--ln:n". 달이 바뀐 첫 그림에서만 카드에 rv가 붙는다.
 import { natureInfo } from '../nature/index.js';
+import { streetLine, rumorLines, rumorInfo } from '../rumor/index.js';
 import { placeName } from '../places.js';
 import { esc } from './util.js';
 
@@ -13,9 +14,9 @@ const txt = (x) => (typeof x === 'string' ? x : x.text);
 // 다른 갈래가 붙는 자리: lead(풍경 한 줄, 처음 것 하나만), met(마주친 사람들), heard(들려온 소문)
 // 함수는 game을 받아 글 한 줄, 줄들, {text, cls} 가운데 하나를 돌려준다.
 export const TODAY_SOURCES = {
-  lead: [(g) => natureInfo(g)?.sky],
+  lead: [streetLine, (g) => natureInfo(g)?.sky], // 거리 풍경 (src/rumor), 없으면 하늘과 땅
   met: [],
-  heard: [],
+  heard: [(g) => rumorLines(g).map((h) => ({ text: h.text, cls: h.fix ? 'rumor fix' : 'rumor' }))], // 소문 (src/rumor)
 };
 
 const pick = (kind, game) => TODAY_SOURCES[kind].flatMap((fn) => safe(() => arr(fn(game)), []));
@@ -25,6 +26,7 @@ export function renderToday(game, parts = {}) {
   let i = 0;
   const ln = (c = '') => `class="ln${c ? ` ${c}` : ''}" style="--ln:${i++}"`;
   const lead = pick('lead', game)[0];
+  const feast = safe(() => rumorInfo(game).feast); // 이달 이 고장 축제
   const met = pick('met', game).slice(0, 3);
   const heard = pick('heard', game).slice(0, 3);
   const news = game.news ?? [];
@@ -33,6 +35,7 @@ export function renderToday(game, parts = {}) {
   const body = `
     <h2 ${ln()}>${esc(safe(() => placeName(game), '') || '이 고장')}</h2>
     ${lead ? `<p class="td-lead ln" style="--ln:${i++}">${esc(txt(lead))}</p>` : ''}
+    ${feast ? `<p class="td-feast ln" style="--ln:${i++}"><b>${esc(feast.name)}</b> ${esc(feast.text)}</p>` : ''}
     ${parts.results ? `<div class="td-sec td-did"><h3 ${ln('sub')}>지난달 한 일</h3>${parts.results.replace(/<li>/g, () => `<li ${ln()}>`)}</div>` : ''}
     ${met.length ? `<div class="td-sec td-met"><h3 ${ln('sub')}>마주친 사람들</h3><ul class="news">${met.map((x) => li(x)).join('')}</ul></div>` : ''}
     ${news.length || heard.length ? `<div class="td-sec td-heard"><h3 ${ln('sub')}>들려온 소식</h3><ul class="news">${news.map((n) => `<li class="ln${n.rel >= 40 ? ' close' : ''}" style="--ln:${i++}">${esc(n.text)}</li>`).join('')}${heard.map((x) => li(x, 'rumor')).join('')}</ul></div>` : ''}
