@@ -239,10 +239,21 @@ function letterBody(g, l, p) {
     case 'sick': return `"${greet(g, p)}. 요즘 기침이 멎지 않아. 의원은 걱정 말라는데, 얼굴은 그렇게 말하지 않더군. 혹시 모르니 쓴다. 잘 살아." ${n}의 편지는 평소보다 짧았다.`;
     case 'love': return `"${greet(g, p)}. 이런 편지를 써도 되는지 모르겠어. ${where}의 밤은 길고, 자꾸 그대 생각이 나." 종이에서 희미하게 향 냄새가 났다. ${J(n, '이/가')} 보낸 연서다.`;
     case 'wed': return `"${greet(g, p)}. 여기서 짝을 만나 살림을 차렸어.${kids ? ` 아이가 ${kids}이나 된다네.` : ''} 언젠가 한번 들러 줘." ${n}의 글씨가 웃고 있었다.`;
-    default: return `"${greet(g, p)}. ${where}에서 그럭저럭 지내. ${rng0(n) ? '장터 물가가 또 올랐고, 지난달엔 큰비가 왔어.' : '일은 고되지만 밥은 먹고 산다.'}${kids ? ` 아이들은 잘 커.` : ''} 그쪽 소식도 알려 줘." ${n}의 편지다.`;
+    default: return `"${greet(g, p)}. ${where}에서 그럭저럭 지내. ${newsLine(g, l, n)}${kids ? ` 아이들은 잘 커.` : ''} 그쪽 소식도 알려 줘." ${n}의 편지다.`;
   }
 }
-const rng0 = (s) => [...String(s)].reduce((a, ch) => a + ch.charCodeAt(0), 0) % 2 === 0;
+// 편지 속 그쪽 형편: 보낸 달의 철과 세상 일을 안다 (30단계 헤드: 백 년 내내 '장터 물가가 또 올랐고, 지난달엔 큰비가 왔어'였다)
+function newsLine(g, l, n) {
+  const sent = l.sent ?? 0, m = (sent % 12) + 1, h = [...String(n) + sent].reduce((a, ch) => a + ch.charCodeAt(0), 0);
+  const pick = (a) => a[h % a.length];
+  if (g.world?.plague) return pick(['돌림병 소문에 장터가 한산해. 다들 문을 닫고 지내.', '이웃 마을에 병이 돈대. 우물물을 끓여 마시고 있어.']);
+  if (g.world?.famine) return pick(['올해는 밀이 귀해서 다들 허리띠를 졸라매고 있어.', '빵값이 두 배가 됐어. 그래도 굶지는 않아.']);
+  const season = m <= 2 || m === 12 ? ['여긴 벌써 눈이 무릎까지 왔어. 장작 패느라 팔이 아파.', '겨울이 길어. 화롯가에서 이 편지를 쓴다.']
+    : m <= 5 ? ['밭에 씨를 다 뿌렸어. 올해는 비가 제때 와 주면 좋겠는데.', '들판에 꽃이 피었어. 그쪽도 봄이겠지.']
+    : m <= 8 ? ['더위에 우물이 얕아졌어. 저녁마다 강가에 나가 앉아 있어.', '보리를 거둬들였어. 허리가 끊어질 것 같아.']
+    : ['추수가 끝났어. 올해 곳간은 그럭저럭 찼어.', '잎이 지기 시작했어. 겨울 날 장작을 쌓아 두고 있어.'];
+  return pick([...season, '일은 고되지만 밥은 먹고 산다.', '장터 물가가 또 올랐어. 소금값은 말도 마.']);
+}
 defineScene('letters_arrive', {
   title: (g, s) => (s.dead ? '늦게 닿은 편지' : s.lk === 'love' ? '연서' : `${s.name}의 편지`),
   text: (g, s) => {
