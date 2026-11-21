@@ -122,6 +122,7 @@ const GROUPS = [
   ['inn', '내 가게', /^inn_(open|work|manage)$/],
   ['works', '큰 공사', /^works_/],
   ['mine', '광산', /^mine_/],
+  ['farm', '내 농장', /^farm_/],
   ['herd', '목축과 유목', /^herd_/],
   ['frontier', '개척', /^frontier_/],
   ['learn', '배움과 수련', /^(school_|study|train_body|sword_|meditate|magic_|legend_lesson|research|seal_study|tower_(join|duty|exam|craft))/],
