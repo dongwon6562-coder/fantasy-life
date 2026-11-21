@@ -1483,3 +1483,6 @@ details.act-group[open]:not(.dark) > summary { align-items: center; padding: 0; 
 .brew-card b.warn, .brew-block b.warn { color: #e3917f; }
 .brew-card b.ok { color: #9fc28a; }
 .brew-card .br-casks li { color: var(--ink); }
+/* 28단계: 사절과 볼모 */
+.evy-block b.warn, .evy-now b.warn { color: #e3917f; }
+.evy-block .ag-clues li { color: var(--ink); }
