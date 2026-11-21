@@ -6,6 +6,11 @@ import { seventhInfo } from '../ageless/seventh.js';
 import { sealbreathInfo } from '../ageless/sealbreath.js';
 import { vesselInfo } from '../ageless/vessel.js';
 import { imprintInfo } from '../ageless/imprint.js';
+import { noahInfo } from '../ageless/noah.js';
+import { dragonnameInfo } from '../ageless/dragonname.js';
+import { bloodyearsInfo } from '../ageless/bloodyears.js';
+import { afterInfo } from '../ageless/after.js';
+import { farewellInfo } from '../farewell/index.js';
 import { esc } from './util.js';
 import { J } from '../narrative/text.js';
 
@@ -23,8 +28,31 @@ export function renderAgelessNow(game) {
 // 길마다 들은 조각과 그 길의 형편. 조건은 알려 주지 않고, 들은 것만 보여 준다.
 function pathBits(game, path) {
   const out = [];
+  const bar = (v, cls = '') => `<span class="wd-bar ${cls}"><i style="width:${Math.max(0, Math.min(100, v))}%"></i></span>`;
+  const list = (title, items) => (items.length ? `<details class="pl-more"><summary>${title} ${items.length}</summary><ul class="ag-clues">${items.map((t) => `<li>${t}</li>`).join('')}</ul></details>` : '');
+  const ah = safe(() => afterInfo(game));
+  if (ah && path) {
+    out.push(`<div class="wd-row kn-row"><span>늙지 않는다는 소문 · ${esc(ah.rumorWord)}</span>${bar(ah.rumor, ah.rumor >= 40 ? 'low' : '')}</div>`);
+    out.push(`<p class="note">지금 이름으로 산 지 ${ah.sameName}해${ah.canRename ? ' · <b class="warn">이름을 바꾸고 떠날 때가 됐다</b>' : ''}</p>`);
+  }
+  if (ah?.gone?.length) out.push(list('먼저 떠나보낸 사람', ah.gone.map((x) => `${x.y}년 · ${esc(x.rel)} ${esc(x.name)}${x.age ? ` (${x.age}살)` : ''}`)));
+  const by = safe(() => bloodyearsInfo(game));
+  if (by?.dueIn != null) out.push(`<p class="note"><b class="warn">다음 세월을 받아야 할 때</b> ${by.dueIn ? `${by.dueIn}해 뒤` : '지금'}</p>`);
+  if (by?.taken?.length) out.push(list('세월을 받아 온 자식', by.taken.map((x) => `${x.y}년 · ${esc(x.name)} (그때 ${x.age}살)`)));
+  if (by?.known && !by.taken.length && path !== 'bloodyears') out.push('<p class="note">자손의 세월을 받아 산다는 피의 마법을 안다.</p>');
+  const nh = safe(() => noahInfo(game));
+  if (nh) {
+    out.push(`<p class="note">${nh.met ? '<b>노아를 만났다.</b>' : nh.canSeek ? '노아에 얽힌 조각이 셋 넘게 모였다. 찾아가 볼 만하다.' : '노아가 아직 살아 있다는 조각을 몇 들었다.'}</p>`);
+    out.push(list('노아가 살아 있다는 조각', nh.clues.map((c) => `${c.y ? `${c.y}년 · ` : ''}${esc(c.text)}`)));
+    if (nh.hints?.length) out.push(list('노아에게서 들은 말', nh.hints.map(esc)));
+  }
+  const dn = safe(() => dragonnameInfo(game));
+  if (dn) {
+    out.push(`<div class="wd-row kn-row"><span>용왕의 참이름 · ${esc(dn.word)}</span>${bar(dn.need ? (dn.frags / dn.need) * 100 : 0, 'kin')}</div>`);
+    if (dn.failed?.length) out.push(`<p class="note"><b class="warn">부르다 틀린 이름</b> ${dn.failed.map(esc).join(', ')}</p>`);
+  }
   const sv = safe(() => seventhInfo(game));
-  if (sv?.clues?.length) out.push(`<details class="pl-more"><summary>노아에 얽힌 조각 ${sv.clues.length}개</summary><ul class="ag-clues">${sv.clues.map((c) => `<li>${esc(c)}</li>`).join('')}</ul></details>`);
+  if (sv?.clues?.length) out.push(`<details class="pl-more"><summary>일곱째 원에 얽힌 조각 ${sv.clues.length}개</summary><ul class="ag-clues">${sv.clues.map((c) => `<li>${esc(c)}</li>`).join('')}</ul></details>`);
   if (sv?.failed && path !== 'seventh') out.push('<p class="note">그 밤의 시험을 넘기지 못했다.</p>');
   const sb = safe(() => sealbreathInfo(game));
   if (sb?.heard && path !== 'sealbreath') out.push(`<p class="note">늙지 않게 한다는 숨의 소문${sb.wedge ? `: ${esc(sb.wedge)}` : ''}</p>`);
@@ -35,6 +63,17 @@ function pathBits(game, path) {
   const im = safe(() => imprintInfo(game));
   if (im?.chain?.length) out.push(`<details class="pl-more"><summary>새김으로 이어 온 몸 ${im.chain.length}</summary><ul class="pl-news">${im.chain.map((c) => `<li><time>${c.y}년</time><span>${esc(c.was)} → ${esc(c.name)}</span></li>`).join('')}</ul></details>`);
   return out.join('');
+}
+
+// 스스로 고른 끝 (src/farewell): 집안에 남은 기록. 대를 넘어 남는다. 죽는 방법은 쓰지 않는다.
+export function renderFarewellBlock(game) {
+  const f = safe(() => farewellInfo(game));
+  if (!f?.past?.length && !f?.stayed) return '';
+  return `<div class="block fw-block">
+    <h3>스스로 고른 끝</h3>
+    ${f.past.length ? `<ul class="pl-news">${f.past.slice().reverse().map((x) => `<li><time>${x.y}년</time><span>${esc(x.name)} · ${esc(x.what)}</span></li>`).join('')}</ul>` : ''}
+    ${f.stayed ? `<p class="note">역병 마을에 남았다가 살아 돌아온 일 ${f.stayed}번</p>` : ''}
+  </div>`;
 }
 
 export function renderAgelessBlock(game) {

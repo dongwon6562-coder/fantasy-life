@@ -85,7 +85,7 @@ import { renderFarmNow, renderFarmBlock } from './farm.js';
 import { renderClaimNow, renderClaimBlock } from './claim.js';
 import { renderApoNow, renderApoBlock } from './apothecary.js';
 import { renderRelicNow, renderRelicBlock } from './relic.js';
-import { renderAgelessNow, renderAgelessBlock } from './ageless.js';
+import { renderAgelessNow, renderAgelessBlock, renderFarewellBlock } from './ageless.js';
 import { renderHeredityBlock } from './heredity.js';
 import { renderBirthPick, bindBirth, resetLooks, birthReady, birthValue } from './birth.js';
 import { renderWilds, renderWildsNow, renderWildsBlock } from './wilds.js';
@@ -316,6 +316,7 @@ function renderSheet() {
     ${renderSchoolBlock(game)}
     ${renderLineageBlock(game)}
     ${renderElderBlock(game)}
+    ${renderFarewellBlock(game)}
     ${renderHealthBlock(game)}
     ${renderReputeBlock(game)}
     ${renderTowerBlock(game)}
@@ -475,7 +476,7 @@ function nowCards(parts) {
   return parts.map((h, i) => (i === first ? merged : lines[i] ? '' : h)).join('');
 }
 
-const SHEET_SHORT = { '늙음과 마지막 해들': '늙음', '내기와 겨루기': '내기', '풀리지 않은 일': '미제', '연구와 발명': '연구', '글과 예술': '예술', '병과 의술': '병', '내 집 마련': '집', '법과 재판': '법', '학원과 시험': '학원', '밑바닥 삶': '밑바닥', '내 가게': '가게', '마물 사냥': '마물', '용병단과 깃발': '용병단', '광산과 땅 밑': '광산', '사슬과 자유': '사슬', '무대와 재주': '무대', '전쟁 뒤': '전쟁 뒤', '몸과 마음': '몸과 마음', '집과 재산': '재산', '어린 시절': '어린 시절', '가문의 내력': '가문', '망자와 저주': '저주', '목축과 유목': '목축', '봉기와 반란': '봉기', '요리사의 길': '요리', '유배와 망명': '유배', '첩보와 밀정': '첩보', '마나의 흐름': '마나', '숨은 왕가의 피': '왕가의 피', '약초와 약방': '약방', '성유물': '성유물', '늙지 않는 몸': '불로', '타고남과 핏줄': '핏줄' };
+const SHEET_SHORT = { '늙음과 마지막 해들': '늙음', '내기와 겨루기': '내기', '풀리지 않은 일': '미제', '연구와 발명': '연구', '글과 예술': '예술', '병과 의술': '병', '내 집 마련': '집', '법과 재판': '법', '학원과 시험': '학원', '밑바닥 삶': '밑바닥', '내 가게': '가게', '마물 사냥': '마물', '용병단과 깃발': '용병단', '광산과 땅 밑': '광산', '사슬과 자유': '사슬', '무대와 재주': '무대', '전쟁 뒤': '전쟁 뒤', '몸과 마음': '몸과 마음', '집과 재산': '재산', '어린 시절': '어린 시절', '가문의 내력': '가문', '망자와 저주': '저주', '목축과 유목': '목축', '봉기와 반란': '봉기', '요리사의 길': '요리', '유배와 망명': '유배', '첩보와 밀정': '첩보', '마나의 흐름': '마나', '숨은 왕가의 피': '왕가의 피', '약초와 약방': '약방', '성유물': '성유물', '늙지 않는 몸': '불로', '타고남과 핏줄': '핏줄', '스스로 고른 끝': '마지막' };
 function sheetJump() {
   const sheet = document.querySelector('.sheet:not(.side)');
   if (!sheet || sheet.querySelector('.view-jump')) return;
