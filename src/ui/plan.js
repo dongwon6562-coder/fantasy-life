@@ -185,6 +185,25 @@ const actCard = (a, ui, counts) => `<button class="act" data-act="${a.id}" aria-
           ${counts[a.id] ? `<span class="cnt" aria-label="${counts[a.id]}칸에 들어 있음">${counts[a.id]}</span>` : ''}
         </button>`;
 
+// 자주 하는 일: 이 삶에서 달마다 고른 일을 기억해 두고(이 기기, 오래된 달은 옅어진다) 맨 위에 모아 보인다.
+// 보여 주는 방식만 바꾼다: 할 수 있는 일 목록(available)은 그대로.
+function useMap(game) {
+  const u = prefs().actUse;
+  return u && u.life === lifeId(game) && u.c && typeof u.c === 'object' ? u.c : {};
+}
+export function noteActUse(game, plan) {
+  try {
+    const c = { ...useMap(game) };
+    for (const k of Object.keys(c)) { c[k] = Math.round(c[k] * 0.85 * 100) / 100; if (c[k] < 0.3) delete c[k]; }
+    for (const s of plan ?? []) if (s?.id && s.id !== 'rest') c[s.id] = (c[s.id] ?? 0) + 1;
+    setPref('actUse', { life: lifeId(game), c });
+  } catch (e) { console.error(e); }
+}
+const usualActs = (game, acts) => {
+  const c = useMap(game);
+  return acts.filter((a) => (c[a.id] ?? 0) >= 1.5).sort((a, b) => c[b.id] - c[a.id]).slice(0, 6);
+};
+
 export function renderPlan(game, ui) {
   const n = slotsFor(game);
   if (n === 0) {
@@ -204,6 +223,7 @@ export function renderPlan(game, ui) {
   const counts = {};
   ui.plan.forEach((c) => { counts[c.id] = (counts[c.id] ?? 0) + 1; });
   const groups = groupActs(acts);
+  const usual = acts.length > 12 ? usualActs(game, acts) : [];
   const folded = Array.isArray(prefs().foldActs) ? prefs().foldActs : [];
   // 짧게 보기: 할 일 카드에서 설명을 빼고 이름만(이 기기에 기억). 고른 칸의 설명은 칸 줄 아래에 한 줄로.
   const many = acts.length > 12;
@@ -240,7 +260,9 @@ export function renderPlan(game, ui) {
         </div>
       </div>` : ''}
     <div class="acts${compact ? ' compact' : ''}">
-      ${many ? `<div class="act-tools"><span class="note">할 일 ${acts.length}가지</span><button class="ghost sm" id="act-compact" aria-pressed="${compact}">${compact ? '설명까지 보기' : '이름만 짧게 보기'}</button></div>` : ''}
+      ${many ? `<div class="act-tools"><span class="note">할 일 ${acts.length}가지</span><button class="ghost sm" id="act-compact" aria-pressed="${compact}">${compact ? '설명까지 보기' : '이름만 짧게 보기'}</button></div>
+      <div class="act-find"><input type="search" id="act-q" value="${esc(ui.actQ ?? '')}" placeholder="할 일 찾기 (이름이나 설명)" aria-label="할 일 찾기" autocomplete="off"><span class="note" id="act-q-n" hidden></span></div>` : ''}
+      ${usual.length >= 2 ? `<div class="act-group act-usual" id="ag-usual"><h4>자주 하는 일</h4><div class="act-grid">${usual.map((a) => actCard(a, ui, counts)).join('')}</div></div>` : ''}
       ${groups.length > 3 && acts.length > 12 ? `<nav class="act-jump" aria-label="할 일 묶음으로 가기">${groups.map(([gid, name, list]) => `<button class="ghost sm" data-act-jump="${gid}">${esc(name)} <small>${list.length}</small></button>`).join('')}</nav>` : ''}
       ${groups.map(([gid, name, list]) => {
         const cards = list.map((a) => actCard(gid === 'crisis' ? crisisActDesc(game, a) : a, ui, counts)).join('');
@@ -294,6 +316,26 @@ export function bindPlan(game, ui, rerender) {
     if (g.tagName === 'DETAILS' && !g.open) g.open = true;
     g.scrollIntoView({ block: 'start', behavior: 'smooth' });
   });
+  // 할 일 찾기: 다시 그리지 않고 카드만 숨긴다. 찾는 동안은 묶음을 다 펼치고 '자주 하는 일'은 감춘다.
+  const q = document.getElementById('act-q');
+  if (q) q.oninput = () => {
+    ui.actQ = q.value;
+    const t = q.value.trim().toLowerCase();
+    let shown = 0;
+    document.querySelectorAll('.acts .act-group').forEach((g) => {
+      if (g.id === 'ag-usual') { g.hidden = !!t; return; }
+      let any = 0;
+      g.querySelectorAll('.act').forEach((b) => { const hit = !t || b.textContent.toLowerCase().includes(t); b.hidden = !hit; if (hit) any++; });
+      g.hidden = !!t && !any;
+      if (t && any && g.tagName === 'DETAILS') g.open = true;
+      shown += any;
+    });
+    const nav = document.querySelector('.act-jump');
+    if (nav) nav.hidden = !!t;
+    const n = document.getElementById('act-q-n');
+    if (n) { n.hidden = !t; n.textContent = shown ? `${shown}가지` : '맞는 일이 없다'; }
+  };
+  if (q && q.value) q.oninput();
   const cmp = document.getElementById('act-compact');
   if (cmp) cmp.onclick = () => { setPref('actCompact', !prefs().actCompact); rerender(); };
   bindTpl(game, ui, rerender);

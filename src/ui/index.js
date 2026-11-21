@@ -18,7 +18,7 @@ import { lineage } from '../heir.js';
 import { worldSummary } from '../world.js';
 import { splitResult, J } from '../narrative/text.js';
 import { $, $$, esc, root } from './util.js';
-import { renderPlan, bindPlan } from './plan.js';
+import { renderPlan, bindPlan, noteActUse } from './plan.js';
 import { snapshot, diffSummary, renderSummary } from './summary.js';
 import { renderPeople, bindPeople } from './people.js';
 import { yearFold, yearSpan } from './yearfold.js';
@@ -634,7 +634,7 @@ function advance(times = 1, untilEvent = false) {
   const before = { year: game.date.year, season: monthInfo(game).season };
   let passed = 0;
   const snap = (() => { try { return snapshot(game); } catch (e) { console.error(e); return null; } })();
-  if (slotsFor(game)) ui.lastPlan = ui.plan.map((c) => ({ ...c }));
+  if (slotsFor(game)) { ui.lastPlan = ui.plan.map((c) => ({ ...c })); noteActUse(game, ui.plan); }
   ui.tplNote = null;
   for (let k = 0; k < times; k++) {
     passed++;

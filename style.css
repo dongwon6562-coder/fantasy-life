@@ -1444,3 +1444,10 @@ details.act-group[open]:not(.dark) > summary { align-items: center; padding: 0; 
 .mn-list b.warn, .co-contract b.warn, .bondage-now b.warn, .secret-block b.warn, .dragon-card b.warn { color: #e3917f; }
 /* 22단계 큰 한탕 */
 .heist-card b.warn, .heist-block b.warn, .wl-list b.warn, .am-rows b.warn { color: #e3917f; }
+/* 26단계: 할 일 찾기 칸과 자주 하는 일 */
+.act-find { min-width: 0; display: flex; gap: 8px; align-items: center; margin: 2px 0 4px; }
+.act-find input { flex: 1 1 0; width: 0; min-width: 0; background: var(--panel); border: 1px solid var(--line); border-radius: 6px; padding: 9px 12px; font-size: 16px; color: var(--ink); min-height: 40px; }
+.act-find input:focus { outline: none; border-color: var(--brass); }
+.act-find .note { flex: none; margin: 0; white-space: nowrap; }
+.act-group.act-usual { border: 1px solid var(--line); border-left: 3px solid var(--brass); border-radius: 8px; padding: 8px; background: var(--panel-2); }
+.acts .act[hidden], .acts .act-group[hidden], .act-jump[hidden] { display: none; }
