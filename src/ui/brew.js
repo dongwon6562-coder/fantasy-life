@@ -49,7 +49,7 @@ export function renderBrewBlock(game) {
   const art = s.named.length || s.cellar ? safe(() => vignetteImage({ plate: 'brew', variant: 'vintage', year: game.date.year, month: game.date.month }), '') : '';
   return `<div class="block brew-block">
     <h3>양조장</h3>
-    ${art ? `<img class="blk-art" src="${art}" alt="술 창고에 해마다 다른 술통이 늘어선 모습">` : ''}
+    ${art ? `<img class="blk-art" src="${art}" alt="포도밭에서 그해의 술 거리를 거두는 식구들">` : ''}
     ${s.skill >= 1 ? `<div class="wd-row kn-row"><span>빚는 솜씨 ${s.skill}</span>${bar(s.skill, 'kin')}</div>` : ''}
     ${chips.length ? `<div class="sm-chips">${chips.map(chip).join('')}</div>` : ''}
     ${s.named.length ? `<p class="note">이름난 술: ${s.named.map((n) => `<strong>${esc(n.name)}</strong>`).join(', ')}</p>` : ''}
