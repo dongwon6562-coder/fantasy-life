@@ -144,9 +144,9 @@ const BY_SCENE = {
   // 14단계: 장사 길과 상단 (trade_event는 아래에서 일에 따라 고른다)
   trade_market: 'beastlife:market', trade_caravan: 'road', trade_bandits: 'feud:strike', trade_toll: 'square:guards', trade_house: 'mentor:found', trade_rival: 'feud:plot', trade_event: 'beastlife:market',
   // 14단계: 글과 예술 (기존 그림을 이어 붙임)
-  // 25단계: 첩보와 밀정 (새 삽화가 오기 전까지 있는 판을 붙임)
-  spy_recruit: 'night', spy_job: 'seal:alley', spy_caught: 'depths', spy_exposed: 'seal:alley', spy_turn: 'feud:plot',
-  spy_double: 'seal:map', spy_hunter: 'feud:strike',
+  // 25단계: 첩보와 밀정 (spy_job·spy_hunter는 아래에서 일에 따라 고른다)
+  spy_recruit: 'spy:recruit', spy_job: 'spy:drop', spy_caught: 'spy:caught', spy_exposed: 'spy:exposed', spy_turn: 'spy:recruit',
+  spy_double: 'spy:drop', spy_hunter: 'spy:tail',
   // 24단계: 유배와 망명 (새 삽화가 오기 전까지 있는 판을 붙임)
   exile_decree: 'exile:boat', exile_life: 'exile:island', exile_pardon: 'road:return', exile_spotted: 'seal:alley', exile_choose: 'seal:map',
   exile_host: 'exile:hall', exile_plot_ev: 'exile:hall-plot', exile_return: 'exile:fleet',
@@ -266,6 +266,8 @@ export function vignetteFor(g, { title = '', text = '', outcome = false } = {}) 
     if (id === 'peoples_name') pick = { silverleaf: 'peoples:elf_dew', hammer: 'peoples:dwarf_fire', fur: 'peoples:beast_totem' }[g.life?.place] ?? pick;
     if (kind === 'explore_leg' || kind === 'explore_heart' || kind === 'explore_name') { const rg = kind === 'explore_name' ? regionOfSite(g.life.scene.site) : g.explore?.exp?.region; if (rg) pick = kind === 'explore_leg' ? `explore:${rg}` : `explore:heart-${rg}`; }
     if (kind === 'trade_event') pick = TRADE_ART[g.life.scene.ev] ?? pick;
+    if (kind === 'spy_job') pick = { letter: 'spy:steal', extract: 'spy:tail', rumor: 'spy:drop', watch: 'spy:tail', burn: 'spy:tail' }[g.life.scene.mission] ?? pick;
+    if (kind === 'spy_hunter') pick = { offer: 'spy:recruit' }[g.life.scene.ev] ?? pick;
     if (kind === 'voc_beast') pick = BEAST_ART[g.life.scene.beast] ?? 'beast:boar';
     if (!pick) pick = BY_TITLE.find(([re, , need]) => re.test(title) && (!need || kind || atSea(g)))?.[1] ?? null;
   }
