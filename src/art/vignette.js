@@ -320,13 +320,17 @@ const keep = (g) => { game = g; };
 HOOKS.newGame.push(keep); HOOKS.migrate.push(keep); HOOKS.afterMonth.push(keep); (HOOKS.heir ??= []).push(keep);
 
 let last = null;   // 사건이 떠 있을 때 고른 그림 (그 뒤 화면에서도 이어 쓴다)
+/** 지금 사건 창에 걸린 그림의 판 이름 ('court:…'). 없으면 null. 소리 쪽이 그곳의 울림을 고르는 데 쓴다 */
+export const currentPlate = () => (last ? `${last.plate}${last.variant ? `:${last.variant}` : ''}` : null);
 let styled = false;
 function css() {
   if (styled) return; styled = true;
   const st = document.createElement('style');
   st.textContent = `.ev-art.fl-vig{height:auto!important;aspect-ratio:${VW}/${VH}}
 .ev-art.fl-vig::after{background:linear-gradient(transparent 74%,var(--panel))!important}
-.ev-art.fl-vig i{background-position:50% 50%!important;animation-duration:40s!important}`;
+.ev-art.fl-vig i{background-position:50% 50%!important;animation-duration:40s!important}
+@keyframes fl-vig-in{from{opacity:0;filter:brightness(.35) blur(5px)}to{opacity:1;filter:none}}
+html.motion .ev-art.fl-vig-in{animation:fl-vig-in 1.9s ease both}`;
   document.head.appendChild(st);
 }
 function refresh() {
@@ -349,7 +353,11 @@ function refresh() {
   let i = host.querySelector('i');
   if (!i) { i = document.createElement('i'); host.prepend(i); }
   const want = `url("${url}")`;
-  if (i.dataset.vig !== url) { i.style.backgroundImage = want; i.dataset.vig = url; }
+  if (i.dataset.vig !== url) {
+    i.style.backgroundImage = want; i.dataset.vig = url;
+    // 그림이 새로 걸릴 때는 어둠에서 천천히 드러난다 (30단계)
+    host.classList.remove('fl-vig-in'); void host.offsetWidth; host.classList.add('fl-vig-in');
+  }
   host.classList.add('fl-vig');
 }
 function init() {
