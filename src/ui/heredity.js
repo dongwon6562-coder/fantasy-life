@@ -15,8 +15,8 @@ export function renderHeredityBlock(game) {
     <h3>타고남과 핏줄</h3>
     ${s.giftName ? `<p><strong>타고난 ${esc(s.giftName)}</strong></p><p class="note">${esc(s.giftLine ?? '')}</p>` : ''}
     ${s.resemble ? `<p class="note">나는 ${esc(s.resemble)}</p>` : ''}
-    ${s.kids.length ? `<ul class="pl-news hd-kids">${s.kids.map((k) => `<li><time>${k.age}살</time><span><button class="linkish" data-ws-person="${k.id}">${esc(k.name)}</button> · ${esc(k.resemble ?? '아직 누구를 닮았는지 모르겠다')}</span></li>`).join('')}</ul>` : ''}
+    ${s.kids.length ? `<ul class="ag-clues hd-kids">${s.kids.map((k) => `<li><button class="linkish" data-ws-person="${k.id}">${esc(k.name)}</button> (${k.age}살) · ${esc(k.resemble ?? '아직 누구를 닮았는지 모르겠다')}</li>`).join('')}</ul>` : ''}
     ${s.spouse?.hint ? `<p class="note">배우자 ${esc(nameOf(s.spouse.id))}의 핏줄: ${esc(s.spouse.hint)}</p>` : ''}
-    ${s.suitors.length ? `<details class="pl-more"><summary>혼처 집안에 도는 말 ${s.suitors.length}</summary><ul class="pl-news">${s.suitors.map((x) => `<li><span><button class="linkish" data-ws-person="${x.id}">${esc(x.name)}</button> · ${esc(x.hint ?? '')}</span></li>`).join('')}</ul></details>` : ''}
+    ${s.suitors.length ? `<details class="pl-more"><summary>혼처 집안에 도는 말 ${s.suitors.length}</summary><ul class="ag-clues hd-suitors">${s.suitors.map((x) => `<li><button class="linkish" data-ws-person="${x.id}">${esc(x.name)}</button> · ${esc(x.hint ?? '')}</li>`).join('')}</ul></details>` : ''}
   </div>`;
 }
