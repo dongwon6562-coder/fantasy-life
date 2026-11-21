@@ -1636,3 +1636,6 @@ html.motion .overlay.fresh:not(.out) { animation: ov-in .25s ease-out; }
 html.motion .overlay:not(.fresh):not(.out) .event { animation: none; }
 @keyframes ov-in { from { background-color: rgba(10, 8, 6, 0); } }
 html.motion .main.enter { animation: view-in .38s ease-out; }
+/* 달 넘김 카드나 장면 연출(src/art/stage.js)이 화면을 덮는 동안에는 글 드러내기를 멈춰 두고, 걷히면 이어 간다 */
+body:has(.month-card:not(.out)) .rv .ln, body:has(.month-card:not(.out)) .event.rv .opt, body:has(.month-card:not(.out)) .event.rv #ev-close,
+body:has(.fl-stage:not(.off)) .rv .ln, body:has(.fl-stage:not(.off)) .event.rv .opt, body:has(.fl-stage:not(.off)) .event.rv #ev-close { animation-play-state: paused; }
