@@ -236,6 +236,10 @@ const CROWD = { ern: 0.42, harfen: 0.4, verden: 0.42, leocast: 0.3 }; // 사람�
 const lootMul = (g) => LOOT[here(g)] ?? PLACES[here(g)]?.loot ?? 1;
 const notJailed = (g) => !isJailed(g) && !L(g).travel;
 const crimeAge = (n) => (g) => playerAge(g) >= n && notJailed(g);
+// 뒷골목 일은 한 걸음씩 열린다 (26단계 헤드: 바르게 사는 사람의 행동 목록에도 늘 다섯 가지 범죄가 떠 있었다).
+// 소매치기는 늘 보이고, 한 번이라도 손을 더럽혔거나 패거리에 들었으면 빈집 털기·사기·뒷조사가, 더 깊이 들어가면 암살이 보인다.
+const dark = (g) => { const c = C(g); return (c.crimes ?? 0) > 0 || !!c.gang || (c.craft ?? 0) >= 10 || c.record.length > 0 || (L(g).notoriety ?? 0) >= 10; };
+const deepDark = (g) => { const c = C(g); return (c.crimes ?? 0) >= 3 || !!c.gang || (c.murders ?? 0) > 0 || (L(g).notoriety ?? 0) >= 25; };
 const targetOk = (g, p) => p && p.alive && !p.away && !p.isPlayer && local(g, p);
 
 // ---------- 범죄 행동 ----------
@@ -270,7 +274,7 @@ ACTIONS.push(
     crime: true,
     needsTarget: true,
     desc: '아는 사람의 집이 빈 틈을 노려 들어간다. 부잣집일수록 챙길 게 많지만, 들키면 그 사람과는 원수가 된다. (사람을 고른다)',
-    available: crimeAge(13),
+    available: (g) => crimeAge(13)(g) && dark(g),
     run(g, rng, choice) {
       if (isJailed(g)) return '';
       const v = byId(g, choice.target);
@@ -299,7 +303,7 @@ ACTIONS.push(
     icon: 'scroll',
     crime: true,
     desc: '가짜 약, 없는 땅문서, 꾸며 낸 사연. 말솜씨와 머리로 남의 돈을 가져온다. 속은 사람은 오래 기억한다.',
-    available: crimeAge(14),
+    available: (g) => crimeAge(14)(g) && dark(g),
     run(g, rng) {
       if (isJailed(g)) return '';
       tired(g, 6);
@@ -332,7 +336,7 @@ ACTIONS.push(
     crime: true,
     needsTarget: true,
     desc: '누군가의 뒤를 밟고, 창문 밑에서 엿듣고, 하인을 구슬린다. 약점을 쥐면 협박할 수 있다. (사람을 고른다)',
-    available: crimeAge(12),
+    available: (g) => crimeAge(12)(g) && dark(g),
     run(g, rng, choice) {
       if (isJailed(g)) return '';
       const v = byId(g, choice.target);
@@ -401,7 +405,7 @@ ACTIONS.push(
     crime: true,
     needsTarget: true,
     desc: '누군가를 죽인다. 약초를 알면 독을, 검을 알면 칼을 쓴다. 들키면 살인자로 쫓기고, 실패하면 상대가 나를 안다. 되돌릴 수 없다. (사람을 고른다)',
-    available: crimeAge(16),
+    available: (g) => crimeAge(16)(g) && deepDark(g),
     run(g, rng, choice) {
       if (isJailed(g)) return '';
       const v = byId(g, choice.target);

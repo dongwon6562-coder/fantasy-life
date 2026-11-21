@@ -34,7 +34,8 @@ ACTIONS.push({
   name: '집을 짓는다',
   icon: 'home',
   desc: '터를 사서 오두막이나 집을 짓는다. 사는 것보다 싸지만 몇 달이 걸리고, 그 사이 일이 생긴다. 오두막은 집으로 고쳐 지을 수 있다. 판 옛 집을 되살 수도 있다.',
-  available: (g) => canBuild(g) && !sceneQueued(g, 'house_build') && (options(g).length > 0 || !!lostHere(g)),
+  // 지을 돈이 있을 때만 보인다 (26단계 헤드: 빈털터리에게도 늘 떠 있었다)
+  available: (g) => canBuild(g) && !sceneQueued(g, 'house_build') && ((options(g).length > 0 && g.player.money >= Math.min(...options(g).map((k) => buildCost(here(g), k)))) || (!!lostHere(g) && g.player.money >= buybackCost(here(g)))),
   run(g) { queueScene(g, 'house_build'); return '빈 터를 보러 다녔다.'; },
 });
 
