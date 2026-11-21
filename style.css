@@ -1452,3 +1452,6 @@ details.act-group[open]:not(.dark) > summary { align-items: center; padding: 0; 
 .act-group.act-usual { border: 1px solid var(--line); border-left: 3px solid var(--brass); border-radius: 8px; padding: 8px; background: var(--panel-2); }
 .acts .act[hidden], .acts .act-group[hidden], .act-jump[hidden] { display: none; }
 .claim-card b.warn, .apo-card b.warn, .claim-block b.warn, .apo-block b.warn { color: #e3917f; }
+.rl-block b.warn { color: #e3917f; }
+.rl-block b.ok { color: var(--ok, #9fc28a); }
+.rl-block .rl-item p { margin: 4px 0; }

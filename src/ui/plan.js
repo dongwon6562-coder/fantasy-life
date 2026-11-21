@@ -134,6 +134,7 @@ const GROUPS = [
   ['revolt', '봉기와 반란', /^revolt_/],
   ['court', '궁정', /^court_/],
   ['claim', '숨은 왕가의 피', /^claim_/],
+  ['relic', '성유물', /^relic_/],
   ['army', '군대', /^army_/],
   ['company', '용병단', /^company_/],
   ['aftermath', '전쟁 뒤', /^aftermath_/],
