@@ -1,6 +1,7 @@
 // 27단계: 스스로 고르는 죽음. 상태는 g.farewell 하나, 화면 연결점은 farewellInfo(g).
 // 아무 때나 누르는 행동은 없다. 뜻 있는 순간에만 장면의 선택지로 나온다.
-// - 희생: 전쟁터에서 뒤를 막기(farewell_rearguard), 흔들리는 쐐기에 목숨을 묶기(farewell_wedge), 역병 마을에 남기(farewell_plague, 꼭 죽지는 않는다).
+// - 희생: 전쟁터에서 뒤를 막기(farewell_rearguard, 기세가 꺾인 원정), 흔들리는 쐐기에 목숨을 묶기(farewell_wedge), 역병 마을에 남기(farewell_plague, 약초·의술을 아는 사람만, 꼭 죽지는 않는다).
+// 스무 살이 넘은 사람에게만 온다.
 // - 명예: 사로잡힌 몸으로 배신을 강요받을 때(farewell_honor).
 // - 불로를 내려놓기(farewell_letgo): 오래 산 불로가 식구를 다 보낸 뒤. 내려놓고 남은 세월을 살거나, 삶을 마친다.
 // 죽는 방법은 그리지 않고 장면을 닫는다. 남은 사람들의 반응은 대를 이은 뒤 그 집안의 기록으로 남긴다. 미화하지 않는다.
@@ -162,20 +163,22 @@ defineScene('farewell_letgo', {
 /* ---------- 한 달: 뜻 있는 순간이 오면 ---------- */
 HOOKS.afterMonth.push((g) => {
   if (g.over || !g.player || L(g).heirPending || L(g).pendingDeath) return;
-  if (!base(g)) return;
+  if (!base(g) || playerAge(g) < 20) return;
   const v = V(g);
   const r = ownRng(g, 5);
   const now = mi(g);
   const gap = (kind, n) => now - (v.seen[kind] ?? -999) >= n;
   const fire = (kind, data) => { v.seen[kind] = now; queueScene(g, kind, data, { first: true }); };
   const c = g.army?.campaign;
-  if (c && c.month >= 1 && gap('farewell_rearguard', 24) && !sceneQueued(g, 'farewell_rearguard') && r.chance(0.04)) return fire('farewell_rearguard', {});
+  if (c && c.month >= 1 && (c.morale ?? 60) < 55 && gap('farewell_rearguard', 24) && !sceneQueued(g, 'farewell_rearguard') && r.chance(0.04)) return fire('farewell_rearguard', {});
   if (g.army?.captive && gap('farewell_honor', 36) && !sceneQueued(g, 'farewell_honor') && r.chance(0.08)) return fire('farewell_honor', {});
   if (g.army?.campaign || g.army?.captive || isJailed(g) || g.bondage?.slave) return;
   const wedge = Object.entries(WEDGES).find(([id, w]) => w.place && w.place === here(g) && SS(g).wedges?.[id] && SS(g).wedges[id] !== 'whole');
   if (wedge && gap('farewell_wedge', 60) && r.chance(0.04)) return fire('farewell_wedge', { wedge: wedge[0] });
   const ob = outbreaksAt(g, here(g)).filter((o) => o.sev >= 0.5);
-  if (ob.length && gap('farewell_plague', 48) && r.chance(0.05)) return fire('farewell_plague', { sick: ob[0].name });
+  // 남을 까닭이 있는 사람에게만: 약초나 의술을 아는 사람, 또는 아픈 이들을 돌보는 일을 하는 사람
+  const carer = (g.player.skills?.herbs ?? 0) >= 15 || /priest|heal|doctor|herb|cleric|apothec|nun/.test(L(g).job?.id ?? '') || !!g.apothecary?.shop;
+  if (ob.length && carer && gap('farewell_plague', 48) && r.chance(0.04)) return fire('farewell_plague', { sick: ob[0].name });
   if (playerAgeless(g) && gap('farewell_letgo', 120)) {
     const yrs = agelessYears(g);
     if ((yrs >= 30 && kinCount(g) === 0) || yrs >= 80) { if (r.chance(0.03)) return fire('farewell_letgo', {}); }
