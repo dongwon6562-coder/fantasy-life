@@ -1,6 +1,6 @@
 // 그림 마무리 (29단계): 다 그린 풍경·삽화 위에 한 번 얹는 붓맛.
 //   paintFinish(ctx, w, h, S, { hz, land }) — ctx는 변환 없이(픽셀 좌표) 넘긴다.
-//   ① 공기 원근: 지평선 가까운 것일수록 하늘빛에 묻히고 빛깔이 바랜다.
+//   ① 공기 원근: 먼 산·먼 마을(지평선 둘레)만 하늘빛에 묻히고 빛깔이 바랜다. 앞쪽은 대비·채도를 살린다.
 //   ② 빛 번짐: 밝은 곳(창 불빛, 해, 문간의 등)이 둘레로 번진다. 밤일수록 세다.
 //   ③ 물감 얼룩: 큰 붓으로 문지른 듯 따뜻한 빛과 찬 빛이 넓게 얼룩진다.
 //   ④ 붓 자국: 짧은 붓질 결이 화면 전체에 옅게 남는다.
@@ -88,33 +88,62 @@ function bloom(ctx, w, h, S) {
   ctx.save();
   ctx.globalCompositeOperation = 'screen';
   ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = 'high';
-  ctx.globalAlpha = night ? 0.7 : dusk ? 0.45 : 0.2;
+  ctx.globalAlpha = night ? 0.7 : dusk ? 0.4 : 0.18;
   ctx.drawImage(mid, 0, 0, w, h);
-  ctx.globalAlpha = night ? 0.5 : dusk ? 0.32 : 0.14;
+  ctx.globalAlpha = night ? 0.4 : dusk ? 0.16 : 0.06;
   ctx.drawImage(tiny, 0, 0, w, h);
   ctx.restore();
   small.width = mid.width = tiny.width = 0;
 }
 
-/* ---------- 공기 원근 ---------- */
+/* ---------- 공기 원근: 먼 산·먼 마을에만 ---------- */
 function aerial(ctx, w, h, S, hz) {
   const y = hz * h;
-  // 지평선 둘레를 하늘빛 안개로
-  const g = ctx.createLinearGradient(0, y - h * 0.16, 0, y + h * 0.26);
+  // 지평선 바로 위아래 좁은 띠만 하늘빛 안개로 (앞쪽은 건드리지 않는다)
+  const top = y - h * 0.17, bot = y + h * 0.05;
+  const g = ctx.createLinearGradient(0, top, 0, bot);
   const haze = S.haze ?? '#b8bcc4';
-  const a = S.tod === 'night' ? 0.08 : S.heavy ? 0.08 : 0.12;
-  g.addColorStop(0, rgba(haze, 0)); g.addColorStop(0.42, rgba(haze, a)); g.addColorStop(1, rgba(haze, 0));
-  ctx.fillStyle = g; ctx.fillRect(0, y - h * 0.16, w, h * 0.42);
-  // 먼 곳은 빛깔이 바랜다
+  const a = S.tod === 'night' ? 0.05 : S.heavy ? 0.05 : 0.09;
+  g.addColorStop(0, rgba(haze, 0)); g.addColorStop(0.6, rgba(haze, a)); g.addColorStop(1, rgba(haze, 0));
+  ctx.fillStyle = g; ctx.fillRect(0, top, w, bot - top);
+  // 먼 곳만 빛깔이 조금 바랜다
   ctx.save();
   ctx.globalCompositeOperation = 'saturation';
-  const s = ctx.createLinearGradient(0, y - h * 0.2, 0, y + h * 0.3);
-  s.addColorStop(0, 'rgba(128,128,128,0)'); s.addColorStop(0.45, 'rgba(128,128,128,0.3)'); s.addColorStop(1, 'rgba(128,128,128,0)');
-  ctx.fillStyle = s; ctx.fillRect(0, y - h * 0.2, w, h * 0.5);
+  const s = ctx.createLinearGradient(0, top, 0, bot);
+  s.addColorStop(0, 'rgba(128,128,128,0)'); s.addColorStop(0.6, 'rgba(128,128,128,0.16)'); s.addColorStop(1, 'rgba(128,128,128,0)');
+  ctx.fillStyle = s; ctx.fillRect(0, top, w, bot - top);
   ctx.restore();
 }
 
-/* ---------- 붓 터치: 그림 제 빛깔로 짧은 붓질을 수천 번 얹는다 ---------- */
+/* ---------- 앞쪽 살리기: 지평선 아래로 내려올수록 대비와 채도를 올린다 ---------- */
+function foreground(ctx, w, h, hz, k) {
+  const y0 = Math.max(0, Math.floor(hz * h));
+  if (y0 >= h - 2 || k <= 0) return;
+  let img;
+  try { img = ctx.getImageData(0, y0, w, h - y0); } catch { return; }
+  const d = img.data, rows = h - y0;
+  // 앞쪽 평균 밝기를 축으로 대비를 늘린다
+  let sum = 0, n = 0;
+  for (let i = 0; i < d.length; i += 64) { sum += d[i] * 0.3 + d[i + 1] * 0.59 + d[i + 2] * 0.11; n++; }
+  const mean = n ? sum / n : 128;
+  for (let row = 0; row < rows; row++) {
+    const t = clamp(row / (rows * 0.35), 0, 1) * k;    // 지평선에서 조금 내려오면 다 들어간다
+    if (t <= 0.01) continue;
+    const con = 1 + 0.16 * t, sat = 1 + 0.2 * t;
+    let o = row * w * 4;
+    for (let x = 0; x < w; x++, o += 4) {
+      let r = d[o], g = d[o + 1], b = d[o + 2];
+      const l = r * 0.3 + g * 0.59 + b * 0.11;
+      r = l + (r - l) * sat; g = l + (g - l) * sat; b = l + (b - l) * sat;
+      d[o] = clamp(mean + (r - mean) * con, 0, 255);
+      d[o + 1] = clamp(mean + (g - mean) * con, 0, 255);
+      d[o + 2] = clamp(mean + (b - mean) * con, 0, 255);
+    }
+  }
+  ctx.putImageData(img, 0, y0);
+}
+
+/* ---------- 붓 터치: 그림 제 빛깔로 짧은 붓질을 얹는다. 넓은 면에만 (윤곽·사람 둘레는 건너뛴다) ---------- */
 function dabs(ctx, w, h, hz, strength) {
   const sw = Math.max(32, Math.round(w / 4)), sh = Math.max(16, Math.round(h / 4));
   const small = mk(sw, sh), sx = small.getContext('2d', { willReadFrequently: true });
@@ -122,37 +151,55 @@ function dabs(ctx, w, h, hz, strength) {
   let d;
   try { d = sx.getImageData(0, 0, sw, sh).data; } catch { return; }
   small.width = 0;
+  // 둘레 두 칸 안에서 빛깔이 크게 바뀌면 윤곽으로 본다
+  const edge = (ix, iy) => {
+    const o = (iy * sw + ix) * 4;
+    let m = 0;
+    for (const [dx, dy] of [[-2, 0], [2, 0], [0, -2], [0, 2], [-1, -1], [1, 1], [1, -1], [-1, 1]]) {
+      const jx = clamp(ix + dx, 0, sw - 1), jy = clamp(iy + dy, 0, sh - 1), p = (jy * sw + jx) * 4;
+      m = Math.max(m, Math.abs(d[o] - d[p]) + Math.abs(d[o + 1] - d[p + 1]) + Math.abs(d[o + 2] - d[p + 2]));
+    }
+    return m;
+  };
   const r = rng(7373 + w), unit = w / 1200, n = Math.round(4200 * (w * h) / (1200 * 480));
   ctx.lineCap = 'round';
   for (let i = 0; i < n; i++) {
     const x = r() * w, y = r() * h;
     const ix = Math.min(sw - 1, (x / w * sw) | 0), iy = Math.min(sh - 1, (y / h * sh) | 0), o = (iy * sw + ix) * 4;
     const sky = y < hz * h - h * 0.04;
-    // 하늘은 길고 누운 붓질, 땅은 짧고 비스듬한 붓질. 가까울수록 굵다.
+    // 하늘은 길고 누운 붓질, 땅은 짧고 비스듬한 붓질
     const near = clamp((y / h - hz) / (1 - hz), 0, 1);
-    const len = (sky ? 10 + r() * 16 : 3 + r() * 6 + near * 6) * unit, ang = sky ? (r() - 0.5) * 0.25 : -0.35 + (r() - 0.5) * 0.9;
-    const jit = (r() - 0.5) * 14;
-    ctx.strokeStyle = `rgba(${clamp(d[o] + jit, 0, 255) | 0},${clamp(d[o + 1] + jit, 0, 255) | 0},${clamp(d[o + 2] + jit * 0.8, 0, 255) | 0},${(sky ? 0.24 : 0.34) * strength})`;
-    ctx.lineWidth = (sky ? 2.4 + r() * 2.4 : 1.4 + r() * 1.8 + near * 1.6) * unit;
+    const len = (sky ? 10 + r() * 14 : 3 + r() * 4 + near * 3) * unit, ang = sky ? (r() - 0.5) * 0.25 : -0.35 + (r() - 0.5) * 0.9;
+    const jit = (r() - 0.5) * 10;
+    if (edge(ix, iy) > (sky ? 40 : 30)) continue;
+    // 붓질 양끝도 같은 면이어야 한다 (윤곽을 넘어 번지지 않게)
+    const ex = clamp(((x + Math.cos(ang) * len / 2) / w * sw) | 0, 0, sw - 1), ey = clamp(((y + Math.sin(ang) * len / 2) / h * sh) | 0, 0, sh - 1);
+    const fx = clamp(((x - Math.cos(ang) * len / 2) / w * sw) | 0, 0, sw - 1), fy = clamp(((y - Math.sin(ang) * len / 2) / h * sh) | 0, 0, sh - 1);
+    const pe = (ey * sw + ex) * 4, pf = (fy * sw + fx) * 4;
+    if (Math.abs(d[o] - d[pe]) + Math.abs(d[o + 1] - d[pe + 1]) + Math.abs(d[o + 2] - d[pe + 2]) > 24) continue;
+    if (Math.abs(d[o] - d[pf]) + Math.abs(d[o + 1] - d[pf + 1]) + Math.abs(d[o + 2] - d[pf + 2]) > 24) continue;
+    ctx.strokeStyle = `rgba(${clamp(d[o] + jit, 0, 255) | 0},${clamp(d[o + 1] + jit, 0, 255) | 0},${clamp(d[o + 2] + jit * 0.8, 0, 255) | 0},${(sky ? 0.22 : 0.28) * strength})`;
+    ctx.lineWidth = (sky ? 2.4 + r() * 2.4 : 1.4 + r() * 1.6 + near * 1.2) * unit;
     ctx.beginPath(); ctx.moveTo(x - Math.cos(ang) * len / 2, y - Math.sin(ang) * len / 2); ctx.lineTo(x + Math.cos(ang) * len / 2, y + Math.sin(ang) * len / 2); ctx.stroke();
   }
 }
 
 /** 다 그린 그림에 붓맛을 한 번 얹는다 */
-export function paintFinish(ctx, w, h, S, { hz = 0.5, land = true, strength = 1, edgeK = 1 } = {}) {
+export function paintFinish(ctx, w, h, S, { hz = 0.5, land = true, strength = 1, edgeK = 1, lift = land ? 1 : 0.5 } = {}) {
   if (!hasDom || !ctx) return;
   ctx.save();
   ctx.setTransform(1, 0, 0, 1, 0, 0);
   if (land) aerial(ctx, w, h, S, hz);
   dabs(ctx, w, h, hz, strength);
   bloom(ctx, w, h, S);
+  foreground(ctx, w, h, hz, lift);
   // 물감 얼룩: 부드러운 빛(soft-light)으로 넓게
   ctx.globalCompositeOperation = 'soft-light';
-  ctx.globalAlpha = 0.42 * strength;
+  ctx.globalAlpha = 0.26 * strength;
   ctx.drawImage(mottle(w, h), 0, 0);
   // 붓 자국: 겹침(overlay)으로 옅게
   ctx.globalCompositeOperation = 'overlay';
-  ctx.globalAlpha = 0.32 * strength;
+  ctx.globalAlpha = 0.16 * strength;
   const scale = clamp(w / 1200, 0.6, 2);
   const pat = ctx.createPattern(strokes(), 'repeat');
   if (pat) {
