@@ -61,6 +61,10 @@ const SCENARIOS = [
   }),
 ];
 
+// 같은 사건의 같은 선택지는 열여섯 번까지만 해 본다 (25단계 헤드: 흔한 사건을 수백 번씩 복사본에서 돌려 이 점검 하나가 7분이었다).
+// 조건이 드물게 맞는 사건은 그대로 다 해 보므로 해 보는 사건 목록은 줄지 않는다.
+const CAP = 16;
+const runs = new Map();
 let fail = 0;
 const tried = new Set();
 const errs = new Map();
@@ -90,13 +94,18 @@ for (let run = 0; run < 9; run++) {
 }
 
 function tryAll(g, m, run) {
+    let base = null; // 해 볼 사건이 있을 때 한 번만 글로 바꾼다
     for (const e of EVENTS) {
+      if (e.choices.every((_, ci) => (runs.get(`${e.id}#${ci}`) ?? 0) >= CAP)) continue;
       let ok = false;
       try { ok = e.cond(g); } catch { ok = false; }
       if (!ok) continue;
-      const base = JSON.stringify(g);
+      base ??= JSON.stringify(g);
       const prng = makeRng({ s: m * 31 + run });
       for (let ci = 0; ci < e.choices.length; ci++) {
+        const rk = `${e.id}#${ci}`;
+        if ((runs.get(rk) ?? 0) >= CAP) continue;
+        runs.set(rk, (runs.get(rk) ?? 0) + 1);
         const copy = JSON.parse(base);
         try {
           const ctx = e.prepare ? e.prepare(copy, prng) ?? {} : {};
