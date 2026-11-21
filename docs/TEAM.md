@@ -416,3 +416,5 @@
 | 도우미스레드4 | **풍경과 사건 삽화 손질**: 붓 터치 질감, 빛 번짐, 공기 원근, 그리고 작은 움직임(불빛 일렁임, 비·눈, 연기, 물결)을 화면이 떠 있을 때만 가볍게. 배터리를 먹지 않게(보이는 동안만, 초당 프레임 낮게). | `src/art/scene*.js`, `src/art/vignette*.js`(판 그림은 손질만) |
 | 도우미스레드1 | **화면 질감**: 28단계 화면 PR 다음에. 양피지·가죽 질감, 장식 테두리, 제목 글꼴, 버튼과 카드, 사건 창, 달 넘김 연출. 글 읽기 편한 것이 먼저. | `src/ui/`, `style.css` |
 | 헤드 | 소리 파일 빌드·불러오기(build.js, 늦게 불러오기, 앱 크기 재기), 합치기·점검·TestFlight. | `tools/build.js`, `tools/` |
+
+**29단계 소리 파일 약속 (헤드)**: `assets/` 아래 파일은 빌드 때 `dist/www/assets/`로 복사된다. 아이폰 판 index.html은 `window.__flAssets = 'assets/'`를 세운다. 소리 코드는 `window.__flAssets`가 있을 때만 `fetch(window.__flAssets + 'audio/...')`로 늦게 불러오고, 없으면(dist/play.html, node 점검) 조용히 소리 없이 돈다. 빌드가 assets 크기를 찍는다(`dist/www/assets N MB`).

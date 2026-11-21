@@ -1,7 +1,7 @@
 // 브라우저에서 바로 열 수 있는 한 파일짜리 게임(dist/play.html)을 만든다.
 // esbuild로 src를 묶고, style.css를 안에 넣는다.
 import { execSync } from 'node:child_process';
-import { readFileSync, writeFileSync, mkdirSync } from 'node:fs';
+import { readFileSync, writeFileSync, mkdirSync, existsSync, cpSync, rmSync, readdirSync, statSync } from 'node:fs';
 
 mkdirSync('dist', { recursive: true });
 // --charset=utf8: 한글을 \uXXXX로 풀지 않는다. 파일이 3.4MB에서 2.6MB로 줄고, 글자 수로는 훨씬 줄어 켜질 때 읽는 시간이 준다 (헤드 16단계)
@@ -35,8 +35,19 @@ writeFileSync('dist/www/index.html', `<!doctype html>
 ${html.split('<main id="app"></main>')[0].replace('<meta charset="utf-8">\n', '')}</head>
 <body>
 <main id="app"><div style="min-height:80vh;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;color:var(--brass);font-family:'Gowun Batang',serif"><div style="font-size:28px;letter-spacing:.2em">에른 마을</div><div style="font-size:13px;color:var(--brass-dim)">세상을 펼치는 중</div></div></main>
+<script>window.__flAssets='assets/';</script>
 <script>requestAnimationFrame(function(){setTimeout(function(){var s=document.createElement('script');s.src='game.js';document.body.appendChild(s);},0);});</script>
 </body>
 </html>
 `);
+// 소리 같은 큰 파일(29단계): assets/를 dist/www/assets/로 복사한다. 게임 코드는 window.__flAssets가 있을 때만 이 파일들을 찾는다.
+// dist/play.html 한 파일 판에는 없다(소리 파일 없이 돈다).
+rmSync('dist/www/assets', { recursive: true, force: true });
+let assetBytes = 0;
+if (existsSync('assets')) {
+  cpSync('assets', 'dist/www/assets', { recursive: true, filter: (src) => !src.endsWith('.gitkeep') && !src.endsWith('.md') });
+  const walk = (d) => { for (const f of readdirSync(d)) { const p = d + '/' + f; const st = statSync(p); if (st.isDirectory()) walk(p); else assetBytes += st.size; } };
+  walk('dist/www/assets');
+}
+console.log('dist/www/assets', (assetBytes / 1024 / 1024).toFixed(1) + 'MB');
 console.log('dist/play.html', (html.length / 1024).toFixed(0) + 'KB');
