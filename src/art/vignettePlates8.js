@@ -200,9 +200,33 @@ function gift(v) {
   ctx.restore(); finish(v, { inside: true });
 }
 
+/** 마지막 새김: 마주 앉은 늙은이와 아이. 이마를 잇는 빛, 벽의 그림자는 둘 다 늙은이의 것 */
+function imprint(v) {
+  const { ctx, R } = v; room(v, { stone: false, wall: '#26222a', floor: '#1a161c', fy: 172 });
+  ctx.save(); zoom(v, 330, 240, 1.16);
+  windowAt(v, 330, 30, 36, 54);
+  // 벽의 두 그림자: 같은 모양
+  for (const [x, d] of [[196, 1], [464, -1]]) { ctx.fillStyle = 'rgba(0,0,0,.36)'; ctx.beginPath(); ctx.ellipse(x, 74, 15, 17, 0, 0, TAU); ctx.fill(); ctx.beginPath(); ctx.moveTo(x - 24, 172); ctx.quadraticCurveTo(x - 30, 96, x - d * 4, 90); ctx.quadraticCurveTo(x + 30, 100, x + 26, 172); ctx.fill(); stroke(ctx, [x + d * 22, 172, x + d * 26, 70], 3, 'rgba(0,0,0,.36)'); }
+  // 가운데 낮은 상: 거울과 초 하나
+  rect(ctx, 300, 196, 60, 6, '#3a2e26'); rect(ctx, 306, 202, 6, 20, '#221a16'); rect(ctx, 348, 202, 6, 20, '#221a16'); candle(v, 316, 196, 9); oval(ctx, 342, 188, 9, 11, '#8a7038'); oval(ctx, 342, 188, 7, 9, '#8aa0b8');
+  // 늙은 나와 후계자
+  person(v, 240, 234, 100, { raw: true, f: 1, pose: 'sit', cloth: v.me.cloth, hair: '#c8c4bc', female: v.me.female, long: v.me.long, old: true, arm: 'fwd', rim: 'rgba(200,170,255,.55)', rimDir: 1 });
+  person(v, 420, 234, 84, { raw: true, f: -1, pose: 'sit', cloth: '#3e4a40', hair: v.me.hair, arm: 'chest', rim: 'rgba(200,170,255,.55)', rimDir: -1 });
+  // 이마에서 이마로
+  ctx.save(); ctx.globalCompositeOperation = 'lighter';
+  for (let k = 0; k < 4; k++) { ctx.strokeStyle = rgba('#c8a8ff', 0.36 - k * 0.07); ctx.lineWidth = 1.2 + k * 3; ctx.beginPath(); ctx.moveTo(258, 150); ctx.bezierCurveTo(300, 120, 370, 130, 408, 162); ctx.stroke(); }
+  for (let i = 0; i < 9; i++) { const tt = i / 8, x = 258 + tt * 150, y = 150 - Math.sin(tt * Math.PI) * 22 + tt * 12; stroke(ctx, [x - 3, y, x, y - 4, x + 3, y, x, y + 4, x - 3, y], 0.8, rgba('#e8d8ff', 0.8 - tt * 0.4)); }
+  glow(v, 258, 150, 30, '#c8a8ff', 0.4); glow(v, 408, 162, 36, '#c8a8ff', 0.5);
+  for (let i = 0; i < 24; i++) { ctx.fillStyle = rgba('#e8d8ff', 0.3 + R() * 0.5); ctx.fillRect(250 + R() * 170, 100 + R() * 80, 1.2, 1.2); }
+  ctx.restore();
+  // 아이의 손에서 떨어진 것
+  oval(ctx, 452, 228, 6, 3, '#8a6a40'); stroke(ctx, [448, 226, 456, 224], 1, '#5a4030');
+  ctx.restore(); finish(v, { inside: true });
+}
+
 export const PLATES8 = {
-  /** 불로. variant: noa seventh truename breath vessel depart rear */
-  ageless(v) { const k = v.variant ?? 'noa'; return k === 'seventh' ? seventh(v) : k === 'truename' ? truename(v) : k === 'breath' ? breath(v) : k === 'vessel' ? vessel(v) : k === 'depart' ? depart(v) : k === 'rear' ? holdRear(v) : noa(v); },
+  /** 불로. variant: noa seventh truename breath vessel depart rear imprint */
+  ageless(v) { const k = v.variant ?? 'noa'; return k === 'seventh' ? seventh(v) : k === 'truename' ? truename(v) : k === 'breath' ? breath(v) : k === 'vessel' ? vessel(v) : k === 'depart' ? depart(v) : k === 'rear' ? holdRear(v) : k === 'imprint' ? imprint(v) : noa(v); },
   /** 타고남: 시작 화면 */
   gift(v) { return gift(v); },
 };
