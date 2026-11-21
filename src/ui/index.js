@@ -285,7 +285,7 @@ function renderSheet() {
       ${portrait(game, meP, { size: 84, scars: p.scars ?? [], ring: '#c9a25a', title: p.name })}
       <div>
         <h2>${esc(p.name)} ${esc(p.lastName)}</h2>
-        <p>${age}살 ${months}개월 · ${p.sex === 'm' ? '남' : '여'}</p>
+        <p>${age}살 ${months}개월${meP.agelessAt != null ? ` · 몸은 ${meP.agelessAt}살에 멈춤` : ''} · ${p.sex === 'm' ? '남' : '여'}</p>
         <p>${esc(family(game).name)}</p>
       </div>
     </div>
