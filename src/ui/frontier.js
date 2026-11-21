@@ -30,7 +30,7 @@ export function renderFrontier(game) {
   const row = (x) => {
     const top = `<div class="top"><strong>${esc(x.name)}</strong><span class="note">${x.named && x.name !== x.land ? `${esc(x.land)} · ` : ''}${esc(x.stageName)}${x.here ? ' · 여기' : ''}</span></div>`;
     const where = `${esc(x.near)}에서 ${x.months}달 길${x.claim ? ` · ${esc(x.claim)} 땅이라 한다` : ' · 주인 없는 땅'}${x.lost ? ` · 버려진 개척촌 ${x.lost}곳` : ''}`;
-    const life = x.open ? `<span class="note">사람 ${x.pop}명${x.mine ? ' · 내가 일굼' : x.by ? ` · ${esc(x.by)}` : ''}${x.chief ? ' · 내가 촌장' : ''}${x.winters ? ` · 겨울 ${x.winters}번 남` : ''}</span><span class="note">${[x.food, x.safety, x.morale].filter(Boolean).map(warn).join(' · ')}</span>` : '';
+    const life = x.open ? `<span class="note">사람 ${x.pop}명${x.mine ? ' · 내가 일굼' : x.by ? ` · ${esc(x.by)}` : ''}${x.chief ? ' · 내가 촌장' : ''}${x.winters ? ` · 겨울을 ${x.winters}번 났다` : ''}</span><span class="note">${[x.food, x.safety, x.morale].filter(Boolean).map(warn).join(' · ')}</span>` : '';
     const N = x.natives;
     const nat = N && (x.open || x.here || x.mine) ? `<span class="note">먼저 살던 이들: ${esc(N.name)} (${esc(N.race)}) · ${N.gone ? '<b class="warn">쫓겨났다</b>' : warn(N.mood)}${N.gone ? '' : ` · 바라는 것: ${esc(N.want)}`}</span>` : N ? `<span class="note">먼저 살던 이들: ${esc(N.name)} (${esc(N.race)})</span>` : '';
     return `<li class="${x.mine || x.chief ? 'here' : ''}">${top}<span class="note">${where}</span>${life}${nat}</li>`;

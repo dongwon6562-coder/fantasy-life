@@ -389,8 +389,19 @@ function renderNews() {
       : '<p class="note">조용한 달이었다. 별다른 소문은 없다.</p>'}
     ${renderWorldMini()}
     ${game.lastResults.length ? `<h3 class="sub">지난달 한 일</h3>
-      <ul class="results">${game.lastResults.map((r) => `<li><b>${esc(r.name)}</b><span class="scene-text">${esc(r.scene ?? r.text)}</span>${r.gains ? `<small class="gains">${esc(r.gains)}</small>` : ''}</li>`).join('')}</ul>` : ''}
+      <ul class="results">${sameResults(game.lastResults).map(([r, n]) => `<li><b>${esc(r.name)}${n > 1 ? ` <small>×${n}</small>` : ''}</b><span class="scene-text">${esc(r.scene ?? r.text)}</span>${r.gains ? `<small class="gains">${esc(r.gains)}</small>` : ''}</li>`).join('')}</ul>` : ''}
   </section>`;
+}
+
+// 같은 일을 같은 글로 여러 칸 했으면 한 줄로 (감옥에서 '견디기' 네 칸 같은 것)
+function sameResults(list) {
+  const out = [];
+  for (const r of list) {
+    const last = out[out.length - 1];
+    if (last && last[0].name === r.name && (last[0].scene ?? last[0].text) === (r.scene ?? r.text) && !r.gains && !last[0].gains) last[1] += 1;
+    else out.push([r, 1]);
+  }
+  return out;
 }
 
 function renderChron() {
