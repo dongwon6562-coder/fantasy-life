@@ -95,6 +95,8 @@ const STRESSED = [
   '사소한 일에도 짜증이 치밀었다.',
   '가슴 한쪽이 계속 답답했다.',
 ];
+// 맥락 고리(src/senses)가 몸 상태 줄 앞에 글을 끼울 수 있게 내보낸다
+export const MOOD_LINES = [...TIRED, ...STRESSED];
 export function moodLine(game, rng) {
   const ctx = ctxOf(game);
   if (ctx.tired && rng.chance(0.35)) return rng.pick(TIRED);
