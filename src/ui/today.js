@@ -5,6 +5,7 @@
 import { natureInfo } from '../nature/index.js';
 import { streetLine, rumorLines, rumorInfo } from '../rumor/index.js';
 import { sceneLine, sensesLine } from '../senses/index.js';
+import { encounterLines } from '../encounter/index.js';
 import { placeName } from '../places.js';
 import { esc } from './util.js';
 
@@ -17,7 +18,7 @@ const txt = (x) => (typeof x === 'string' ? x : x.text);
 export const TODAY_SOURCES = {
   lead: [sceneLine, streetLine, (g) => natureInfo(g)?.sky], // 몸으로 느끼는 지금 (src/senses), 거리 풍경 (src/rumor), 없으면 하늘과 땅. 앞의 둘까지
   did: [sensesLine], // 지난달을 몸으로 느낀 한두 문장 (src/senses): '지난달 한 일' 머리에
-  met: [],
+  met: [(g) => encounterLines(g).map((x) => ({ text: x.text, cls: x.kind ? `ek-${String(x.kind).replace(/[^\w-]/g, '')}` : '' }))], // 먼저 다가온 사람들 (src/encounter)
   heard: [(g) => rumorLines(g).map((h) => ({ text: h.text, cls: h.fix ? 'rumor fix' : 'rumor' }))], // 소문 (src/rumor)
 };
 
