@@ -51,6 +51,8 @@ function play(seed, years, family) {
     for (const x of lines) {
       ok(!bad(x.text), `bad line [${x.kind}]: ${x.text}`);
       kinds[x.kind] = (kinds[x.kind] ?? 0) + 1;
+      if (x.kind === 'gossip' && x.name) ok(!(x.text.match(/"([^"]+)"/)?.[1] ?? '').includes(x.name), `자기 이야기를 남처럼: ${x.text}`);
+      ok(!/미역|배냇|첫돌/.test(x.text), `세계와 안 맞는 말: ${x.text}`);
       texts.push(x.text.replace(/[가-힣]+ [가-힣]+ /, ''));
       (samples[x.kind] ??= []).length < 4 && samples[x.kind].push(`${playerAge(g)}살: ${x.text}`);
     }

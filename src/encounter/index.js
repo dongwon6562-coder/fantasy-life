@@ -313,13 +313,13 @@ function lineGossip(g, rng, p, pool) {
   const e = E(g);
   const others = pool.filter((x) => x.id !== p.id);
   const opts = [];
-  for (const f of e.fresh) { const o = byId(g, f.id); if (o && o.id !== p.id && T.GOSSIP[f.k]) opts.push({ k: f.k, o }); }
+  for (const f of e.fresh) { const o = byId(g, f.id); if (o && o.id !== p.id && o.name !== p.name && T.GOSSIP[f.k]) opts.push({ k: f.k, o }); }
   for (const [key, t] of Object.entries(e.ties)) {
     const [a, b] = key.split('-').map(Number).map((id) => byId(g, id));
-    if (!a?.alive || !b?.alive || a.id === p.id || b.id === p.id) continue;
+    if (!a?.alive || !b?.alive || a.id === p.id || b.id === p.id || a.name === p.name || b.name === p.name || a.name === b.name) continue;
     if (t.k === 'feud' || t.k === 'court') opts.push({ k: t.k, o: a, o2: b });
   }
-  for (const o of others) { if (has(o, 'drunkard')) opts.push({ k: 'drunk', o }); else if (has(o, 'lazy') && o.job === 'farmer') opts.push({ k: 'lazy', o }); }
+  for (const o of others.filter((x) => x.name !== p.name)) { if (has(o, 'drunkard')) opts.push({ k: 'drunk', o }); else if (has(o, 'lazy') && o.job === 'farmer') opts.push({ k: 'lazy', o }); }
   const freshOpts = opts.filter((x) => !e.used.includes(`go${x.k}${x.o.id}`));
   if (!freshOpts.length) return null;
   const pickd = rng.pick(freshOpts);
