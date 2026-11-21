@@ -1475,3 +1475,15 @@ details.act-group[open]:not(.dark) > summary { align-items: center; padding: 0; 
 .ag-clues { margin: 6px 0; padding-left: 18px; display: grid; gap: 6px; }
 .ag-clues li { font-size: 14px; color: var(--muted); line-height: 1.55; }
 .birth-pick .bt-art { display: block; width: 100%; max-height: 180px; object-fit: cover; border-radius: 8px; border: 1px solid var(--line); margin: 4px 0 10px; }
+.hd-block .ag-clues li { color: var(--ink); }
+/* 28단계: 정령 */
+.sp-block b.warn, .sp-now b.warn { color: #e3917f; }
+.sp-block .sp-pact p { margin: 4px 0; }
+.sp-block .sp-pact b, .sp-block .ag-clues strong { color: var(--brass); }
+.brew-card b.warn, .brew-block b.warn { color: #e3917f; }
+.brew-card b.ok { color: #9fc28a; }
+.brew-card .br-casks li { color: var(--ink); }
+/* 28단계: 사절과 볼모 */
+.evy-block b.warn, .evy-now b.warn { color: #e3917f; }
+.evy-block .ag-clues li { color: var(--ink); }
+.block .blk-art { display: block; width: 100%; max-height: 170px; object-fit: cover; border-radius: 8px; border: 1px solid var(--line); margin: 4px 0 8px; }
