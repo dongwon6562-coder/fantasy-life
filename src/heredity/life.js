@@ -157,6 +157,7 @@ defineScene('heredity_seen', {
     const H = HD(g), k = s.gift, d = BIRTH_GIFTS[k];
     H.seen = true;
     if (key === 'no') { stress(g, -3); note(g, `${J(d.seen.who, '이/가')} 찾아왔지만 부모가 돌려보냈다.`); return `${J(d.seen.who, '은/는')} 서운한 얼굴로 돌아갔다. 문을 나서며 한마디 남겼다. "재능은 기다려 주지 않습니다." 그날 저녁 밥상은 조용했다.`; }
+    H.went = true; // 열여섯 무렵 다시 부르는 장면(call.js)이 읽는다
     bump(g, d.seen.skill, 8);
     gainStat(g, topStat(k), 1.5);
     stress(g, 6);
