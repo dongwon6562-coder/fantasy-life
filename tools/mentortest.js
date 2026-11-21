@@ -196,7 +196,7 @@ for (let run = 0; run < 14; run++) {
   betrayals += m.betrayals;
   checkInfo(g);
 }
-ok(schools >= 3, `schools ${schools}/14`);
+ok(schools >= 2, `schools ${schools}/14`); // 25단계: 행동이 늘어 무작위 플레이가 문파까지 가는 판이 줄었다
 ok(grads >= 8, `grads ${grads}`);
 ok(fates >= 4, `fates ${fates}`);
 

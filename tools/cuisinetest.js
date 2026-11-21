@@ -8,6 +8,7 @@ import { PLACES } from '../src/places.js';
 import { realmState } from '../src/realms/index.js';
 import { cuisineStatus, cuisineLine, cuisineState as CU, newDish, bestDish } from '../src/cuisine/index.js';
 import { crimeState } from '../src/crime.js';
+import { NS, regionOf } from '../src/nature/state.js';
 
 SCENE_STRICT.on = true;
 const verbose = process.argv.includes('-v');
@@ -212,6 +213,8 @@ function cook(seed, pl = 'harfen', kind = 'manor', rank = 1) {
     const r = direct(g, 'cuisine_event', { ev }, k);
     if (r.skipped || r.missing) fail('event', ev, k, JSON.stringify(r));
   }
+  const sh = cook(506490); NS(sh).active = [{ id: 1, kind: 'winter', region: regionOf('harfen'), sev: 0.5, left: 2 }];
+  if (!/혹한이 들어/.test(SCENES.cuisine_event.text(sh, { ev: 'shortage' }))) fail('shortage disaster text', SCENES.cuisine_event.text(sh, { ev: 'shortage' }));
   const a = cook(506500); const m = a.player.money; direct(a, 'cuisine_event', { ev: 'plot' }, 'accept');
   if (a.player.money !== m + 200 || !crimeState(a).record.some((x) => x.c === 'murder')) fail('poison accept');
   const r2 = cook(506510); const f2 = CU(r2).post.favor; direct(r2, 'cuisine_event', { ev: 'plot' }, 'report'); if (!(CU(r2).post.favor > f2)) fail('poison report');
