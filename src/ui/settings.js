@@ -75,6 +75,9 @@ export function renderSettings() {
       <p class="note">소리는 화면을 처음 누른 뒤부터 난다.</p>
     </div>
     <div class="actions-row"><button class="ghost sm" id="guide-again">처음 안내 다시 보기</button></div>
+    <details class="credits"><summary>소리 출처</summary>
+      <p class="note">효과음·환경음: Freesound의 CC0 녹음들. 악기 소리: VSCO 2: Community Edition (Versilian Studios, CC0), FluidR3_GM 사운드폰트 (Frank Wen) — midi-js-soundfonts (Benjamin Gleitzman), CC BY 3.0. 곡은 이 게임을 위해 새로 썼다. 자세한 목록은 저장소의 docs/CREDITS.md.</p>
+    </details>
   </section>`;
 }
 
