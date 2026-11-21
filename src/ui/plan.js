@@ -227,6 +227,8 @@ export function renderPlan(game, ui) {
   const groups = groupActs(acts);
   const usual = acts.length > 12 ? usualActs(game, acts) : [];
   const folded = Array.isArray(prefs().foldActs) ? prefs().foldActs : [];
+  const foldable = groups.map(([gid]) => gid).filter((gid) => gid !== 'dark' && gid !== 'crisis');
+  const allFolded = foldable.length > 0 && foldable.every((gid) => folded.includes(gid));
   // 짧게 보기: 할 일 카드에서 설명을 빼고 이름만(이 기기에 기억). 고른 칸의 설명은 칸 줄 아래에 한 줄로.
   const many = acts.length > 12;
   const compact = many && !!prefs().actCompact;
@@ -262,7 +264,7 @@ export function renderPlan(game, ui) {
         </div>
       </div>` : ''}
     <div class="acts${compact ? ' compact' : ''}">
-      ${many ? `<div class="act-tools"><span class="note">할 일 ${acts.length}가지</span><button class="ghost sm" id="act-compact" aria-pressed="${compact}">${compact ? '설명까지 보기' : '이름만 짧게 보기'}</button></div>
+      ${many ? `<div class="act-tools"><span class="note">할 일 ${acts.length}가지</span>${groups.length > 3 ? `<button class="ghost sm" id="act-fold" data-fold="${allFolded ? 0 : 1}">${allFolded ? '묶음 다 펼치기' : '묶음 다 접기'}</button>` : ''}<button class="ghost sm" id="act-compact" aria-pressed="${compact}">${compact ? '설명까지 보기' : '이름만 짧게 보기'}</button></div>
       <div class="act-find"><input type="search" id="act-q" value="${esc(ui.actQ ?? '')}" placeholder="할 일 찾기 (이름이나 설명)" aria-label="할 일 찾기" autocomplete="off"><span class="note" id="act-q-n" hidden></span></div>` : ''}
       ${usual.length >= 2 ? `<div class="act-group act-usual" id="ag-usual"><h4>자주 하는 일</h4><div class="act-grid">${usual.map((a) => actCard(a, ui, counts)).join('')}</div></div>` : ''}
       ${groups.length > 3 && acts.length > 12 ? `<nav class="act-jump" aria-label="할 일 묶음으로 가기">${groups.map(([gid, name, list]) => `<button class="ghost sm" data-act-jump="${gid}">${esc(name)} <small>${list.length}</small></button>`).join('')}</nav>` : ''}
@@ -305,6 +307,7 @@ export function bindPlan(game, ui, rerender) {
     rerender();
   });
   document.querySelectorAll('details.act-group[data-ag]').forEach((d) => d.ontoggle = () => {
+    if (d.dataset.auto) { delete d.dataset.auto; return; } // 찾기가 잠깐 펼친 것은 기억하지 않는다
     const gid = d.dataset.ag;
     if (gid === 'dark') { ui.darkOpen = d.open; return; }
     const cur = Array.isArray(prefs().foldActs) ? prefs().foldActs : [];
@@ -329,7 +332,10 @@ export function bindPlan(game, ui, rerender) {
       let any = 0;
       g.querySelectorAll('.act').forEach((b) => { const hit = !t || b.textContent.toLowerCase().includes(t); b.hidden = !hit; if (hit) any++; });
       g.hidden = !!t && !any;
-      if (t && any && g.tagName === 'DETAILS') g.open = true;
+      if (g.tagName === 'DETAILS') {
+        if (t && any && !g.open) { g.dataset.auto = '1'; g.dataset.searchOpened = '1'; g.open = true; }
+        else if (!t && g.dataset.searchOpened) { delete g.dataset.searchOpened; g.dataset.auto = '1'; g.open = false; }
+      }
       shown += any;
     });
     const nav = document.querySelector('.act-jump');
@@ -338,6 +344,13 @@ export function bindPlan(game, ui, rerender) {
     if (n) { n.hidden = !t; n.textContent = shown ? `${shown}가지` : '맞는 일이 없다'; }
   };
   if (q && q.value) q.oninput();
+  // 묶음 다 접기/펼치기: 접으면 묶음 이름만 남아 한눈에 고른다. 고른 일이 든 묶음은 그래도 펼친다.
+  const fold = document.getElementById('act-fold');
+  if (fold) fold.onclick = () => {
+    const ids = [...document.querySelectorAll('.acts details.act-group[data-ag]')].map((d) => d.dataset.ag).filter((x) => x !== 'dark');
+    setPref('foldActs', fold.dataset.fold === '1' ? ids : []);
+    rerender();
+  };
   const cmp = document.getElementById('act-compact');
   if (cmp) cmp.onclick = () => { setPref('actCompact', !prefs().actCompact); rerender(); };
   bindTpl(game, ui, rerender);
