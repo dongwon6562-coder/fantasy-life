@@ -1,5 +1,5 @@
 // 소리 엔진.
-// - Engine: 음량, 울림(리버브), 마지막 압축기, 악기 샘플 받아 오기
+// - Engine: 음량, 울림(리버브), 마지막 압축기, 악기 샘플 받아 오기, 곳의 울림(setSpace)과 음악의 밝기(setTone)
 // - Group: 곡 하나(또는 효과음 묶음)가 쓰는 악기 통로. 통째로 서서히 끄고 켤 수 있다.
 //
 // 음악(group 종류 'music')은 실제 악기를 녹음한 샘플로만 소리를 낸다 (목록은 samples.js, 파일은 assets/audio/music/).
@@ -11,7 +11,8 @@
 //   타악(perc): taiko taiko2 taiko3(큰북 낮은 것부터) tom tom2 tom3(북) wood wood2(나무) timp timp2 timp3
 // 샘플 파일은 window.__flAssets 가 있을 때만(아이폰 판) 그 곡이 처음 흐를 때 받아 온다. 없으면 음악은 조용히 쉰다.
 //
-// 효과음·환경음(group 종류 'sfx', 'amb')은 아래의 옛 합성 악기를 그대로 쓴다 (sfx.js·ambience.js가 부른다):
+// 효과음·환경음(group 종류 'sfx', 'amb')의 가락도 녹음 악기로 낸다 (30단계, SFX_INST·SFX_PERC 표. engine.pin으로 받아 둔 뒤부터).
+// 녹음을 받기 전이나 표에 없는 이름은 아래의 옛 합성 악기로 난다 (sfx.js·ambience.js가 부르는 이름):
 //   lute harp strings viol flute horn choir choirOo bell glass drone wind pipe organ
 //   타악: frame war tom tick shaker jingle heart snare anvil
 import { SAMPLES } from './samples.js';
@@ -164,6 +165,22 @@ function rowsFor(inst, midis) {
 const assetBase = () => (typeof window !== 'undefined' && window.__flAssets ? `${window.__flAssets}audio/music/` : null);
 const decode = (ctx, ab) => new Promise((ok, no) => { const p = ctx.decodeAudioData(ab, ok, no); if (p?.catch) p.catch(no); });
 
+// 곳마다 울림을 섞는 양. 음악은 늘 홀에서 울리고(이야기 바깥의 소리), 굴에서만 조금 더 젖는다.
+export const SPACES = {
+  open: { music: { hall: 1 }, amb: { hall: 0.7 }, sfx: { room: 0.45, hall: 0.3 } },
+  street: { music: { hall: 1 }, amb: { hall: 1 }, sfx: { room: 1 } },
+  indoor: { music: { hall: 0.9 }, amb: { hall: 0.35, room: 0.5 }, sfx: { room: 1.7 } },
+  hall: { music: { hall: 1.1 }, amb: { hall: 0.5, stone: 0.7 }, sfx: { room: 0.5, stone: 0.8 } },
+  cave: { music: { hall: 1.25 }, amb: { hall: 0.6, stone: 1.2 }, sfx: { room: 0.3, stone: 1.2 } },
+};
+// 효과음·환경음의 가락을 낼 때, 옛 합성 악기 이름 → [녹음 악기, 크기, 옮김]. 녹음이 받아져 있으면 이쪽으로 낸다.
+export const SFX_INST = {
+  // 크기는 옛 합성음과 같은 크기로 들리게 재서 맞춘 값 (1.3초 창 RMS)
+  harp: ['harp', 2.0], lute: ['lute', 1.7], strings: ['strings', 1.3], viol: ['cello', 1.45], flute: ['flute', 1], horn: ['horn', 1.35],
+  choir: ['choir', 2.2], choirOo: ['choir', 1], organ: ['organ', 2.6], bell: ['bell', 1], glass: ['glock', 1, 12], drone: ['bass', 1.5], pipe: ['recorder', 1],
+};
+export const SFX_PERC = { war: ['taiko', 36, 1.3], frame: ['tom', 45, 0.9], tom: ['tom', 52, 0.85], heart: ['taiko', 36, 0.55] };
+
 /* ---------- 엔진 ---------- */
 
 export class Engine {
@@ -190,17 +207,31 @@ export class Engine {
     };
     this.hall = verb(3.1, {}, 1.6);
     this.room = verb(0.7, { pre: 0.004, hi: 0.5, lo: 1 }, 1.1);
+    // 돌로 지은 큰 방과 굴: 효과음과 환경음이 그 안에 있는 것처럼 길게 울린다 (30단계, setSpace)
+    this.stone = verb(2.4, { pre: 0.032, hi: 0.42, lo: 1.35 }, 1.25);
     // 음악은 중요한 효과음이 날 때 잠깐 물러난다 (duck)
     this.duckGain = ctx.createGain();
     this.duckGain.connect(this.master);
-    this.hall.out.connect(this.duckGain); this.room.out.connect(this.master);
+    this.hall.out.connect(this.duckGain); this.room.out.connect(this.master); this.stone.out.connect(this.master);
+    // 음악의 밝기: 밤·안개·눈 오는 날에는 높은 소리를 조금 걷어 낸다 (setTone)
+    const tone = () => { const f = ctx.createBiquadFilter(); f.type = 'lowpass'; f.frequency.value = 18000; f.Q.value = 0.5; return f; };
+    this.tone = [tone(), tone()];
+    this.tone[0].connect(this.duckGain);
     // 음량 손잡이는 울림 앞에 둔다. music 음악, amb 환경음, sfx 효과음
+    // 울림으로 가는 길은 셋(room 가까운 방, hall 넓은 홀, stone 돌방·굴)이고, 지금 있는 곳에 따라 섞는 양이 바뀐다.
     this.vol = {};
-    for (const [k, dest, rv] of [['music', this.duckGain, this.hall], ['amb', this.master, this.hall], ['sfx', this.master, this.room]]) {
+    for (const [k, dest] of [['music', this.tone[0]], ['amb', this.master], ['sfx', this.master]]) {
       const dry = ctx.createGain(), wet = ctx.createGain();
-      dry.connect(dest); wet.connect(rv.in);
-      this.vol[k] = { dry, wet, v: 1 };
+      dry.connect(dest);
+      const sends = {};
+      for (const name of ['room', 'hall', 'stone']) {
+        const g = ctx.createGain(); g.gain.value = SPACES.street[k]?.[name] ?? 0;
+        if (k === 'music') { if (name === 'hall') { wet.connect(this.tone[1]); this.tone[1].connect(g); } else continue; } else wet.connect(g);
+        g.connect(this[name].in); sends[name] = g;
+      }
+      this.vol[k] = { dry, wet, v: 1, sends };
     }
+    this.space = 'street'; this.pinned = new Set();
     this.noise = makeNoise(ctx);
     this.plucks = new Map();
   }
@@ -215,6 +246,32 @@ export class Engine {
   duck(depth = 0.45, hold = 1.2, when = 0) {
     const t = this.ctx.currentTime + when; const g = this.duckGain.gain;
     g.cancelScheduledValues(t); g.setTargetAtTime(depth, t, 0.05); g.setTargetAtTime(1, t + hold, 0.5);
+  }
+  /** 지금 있는 곳의 울림. name: open(들·길) street(거리) indoor(집 안) hall(돌로 지은 큰 방) cave(굴·미궁) */
+  setSpace(name, secs = 1.2) {
+    const sp = SPACES[name]; if (!sp || name === this.space) return;
+    this.space = name;
+    const t = this.ctx.currentTime;
+    for (const k of ['music', 'amb', 'sfx']) for (const [n, g] of Object.entries(this.vol[k].sends)) g.gain.setTargetAtTime(sp[k]?.[n] ?? 0, t, secs / 3);
+  }
+  /** 음악의 밝기(Hz)와 울림의 양(1이 보통). 때와 날씨에 맞춰 천천히 바뀐다 */
+  setTone(hz = 18000, wet = 1, secs = 3) {
+    const t = this.ctx.currentTime;
+    for (const f of this.tone) f.frequency.setTargetAtTime(Math.max(1500, Math.min(18000, hz)), t, secs / 3);
+    this.musicWet = wet;
+    this.vol.music.sends.hall.gain.setTargetAtTime((SPACES[this.space].music?.hall ?? 1) * wet, t, secs / 3);
+  }
+  /** 늘 쓰는 녹음(효과음의 가락, 소리 큐)을 받아 두고 내려놓지 않는다 */
+  async pin(needs, keep = true) {
+    const files = new Set();
+    for (const [inst, midis] of Object.entries(needs)) for (const r of rowsFor(inst, midis)) files.add(r[1]);
+    if (keep) for (const f of files) this.pinned.add(f);
+    return (await Promise.all([...files].map((f) => this.loadFile(f)))).every(Boolean);
+  }
+  /** 그 음들을 낼 녹음이 다 풀려 있는가 */
+  has(needs) {
+    for (const [inst, midis] of Object.entries(needs)) for (const r of rowsFor(inst, midis)) if (!DECODED.get(r[1])?.buf) return false;
+    return true;
   }
   pluck(midi, kind) {
     const key = kind + midi;
@@ -255,7 +312,7 @@ export class Engine {
     for (const [inst, midis] of Object.entries(needs)) for (const r of rowsFor(inst, midis)) files.add(r[1]);
     const ok = (await Promise.all([...files].map((f) => this.loadFile(f)))).every(Boolean);
     let total = 0; const idle = [];
-    for (const [k, d] of DECODED) if (d.buf) { total += d.secs; if (!files.has(k)) idle.push([k, d]); }
+    for (const [k, d] of DECODED) if (d.buf) { total += d.secs; if (!files.has(k) && !this.pinned.has(k)) idle.push([k, d]); }
     idle.sort((a, b) => a[1].at - b[1].at);
     for (const [k, d] of idle) { if (total <= KEEP_SECS) break; DECODED.delete(k); total -= d.secs; }
     return ok;
@@ -433,6 +490,9 @@ export class Group {
     if (this.dead) return;
     if (this.kind === 'music') { this.sample(inst, t, midi, dur, vel, o ?? {}); return; }
     o = o ?? {};
+    // 효과음의 가락도 녹음된 악기로 (받아져 있을 때). 아직이면 옛 합성음으로 낸다.
+    const sm = SFX_INST[inst];
+    if (sm && this.e.zones(sm[0]).length) { this.sample(sm[0], t, midi + (sm[2] ?? 0), dur, vel, { gain: sm[1], damp: o.damp, attack: o.attack, release: o.release }); return; }
     const c = this.ctx;
     t = Math.max(t, c.currentTime + 0.003);
     const f = mtof(midi);
@@ -593,6 +653,8 @@ export class Group {
   perc(type, t, vel = 0.8) {
     if (this.dead) return;
     if (this.kind === 'music') { const p = PERC[type]; if (p) this.sample(p[0], t, p[1], 0.1, vel); return; }
+    const sp = SFX_PERC[type];
+    if (sp && this.e.zones(sp[0]).length) { this.sample(sp[0], t, sp[1], 0.1, vel, { gain: sp[2] }); return; }
     const c = this.ctx;
     t = Math.max(t, c.currentTime + 0.003);
     const out = this.bus('perc').in;

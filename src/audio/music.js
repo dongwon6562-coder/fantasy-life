@@ -116,7 +116,7 @@ function compileSection(track, s) {
   const push = (part, beat, ev) => {
     const b = Math.min(s.bars - 1, Math.max(0, Math.floor(beat / B + 1e-6)));
     ev.on = part.on; ev.beat = beat - b * B; // 같은 객체를 넣는다 ('-'로 길이를 늘릴 수 있게)
-    ev.pk = s.parts.indexOf(part); if (part.kind === 'drone') ev.pedal = true; ev.flat = !!part.flat || part.kind === 'drone' || part.kind === 'pad';
+    ev.pk = s.parts.indexOf(part); ev.k = part.kind; if (part.kind === 'drone') ev.pedal = true; ev.flat = !!part.flat || part.kind === 'drone' || part.kind === 'pad';
     if (part.cresc) ev.vel *= part.cresc[0] + ((part.cresc[1] - part.cresc[0]) * beat) / (s.bars * B); // 구간에 걸쳐 커지거나 잦아든다
     if (part.late) ev.lag = (ev.lag ?? 0) + part.late;
     bars[b].push(ev);
@@ -240,9 +240,9 @@ function ritOf(track, s, pos) {
   return s.rit ?? track.rit ?? (track.kind === 'mood' ? 0.05 : 0);
 }
 /** 그 마디의 길이(초). 느려지는 마디는 조금 길다 */
-export function barLen(track, pos) {
+export function barLen(track, pos, tempo = 1) {
   const s = compileTrack(track)[pos.sec];
-  return (60 / track.bpm) * track.beats * (1 + ritOf(track, s, pos));
+  return (60 / (track.bpm * tempo)) * track.beats * (1 + ritOf(track, s, pos));
 }
 
 /**
@@ -251,7 +251,9 @@ export function barLen(track, pos) {
  */
 export function scheduleBar(track, group, pos, time, rnd = Math.random, perf = {}) {
   const s = compileTrack(track)[pos.sec];
-  const B = track.beats; const spb = 60 / track.bpm;
+  // 때와 날씨의 빛깔(perf.color, 30단계): tempo 빠르기, vel 세기, thin 1이면 타악을 쉬고 2면 잘게 써는 반주도 성기게
+  const col = perf.color ?? null; const thin = col?.thin ?? 0;
+  const B = track.beats; const spb = 60 / (track.bpm * (col?.tempo ?? 1));
   const r = ritOf(track, s, pos);
   const at = (beat) => { const x = beat / B; return time + spb * B * (x + r * x * x); }; // 마디 끝으로 갈수록 느려진다
   const tight = track.kind === 'cue' ? 0.6 : 1; // 상황 곡은 박을 더 지킨다
@@ -260,6 +262,7 @@ export function scheduleBar(track, group, pos, time, rnd = Math.random, perf = {
   const chord = new Map(); // 같은 악기가 같은 박에 내는 음들은 함께 움직인다
   const play = (ev, pk = ev.pk ?? 'g') => {
     if (ev.on && !ev.on(pos.loop)) return;
+    if (thin && (ev.perc || (thin > 1 && (ev.k === 'chop' || ev.k === 'strum') && ev.beat - Math.floor(ev.beat + 1e-6) > 0.01))) return;
     if (!chord.has(pk)) { drift[pk] = 0.7 * (drift[pk] ?? 0) + (rnd() - 0.5) * 0.014 * tight; chord.set(pk, new Map()); }
     const cm = chord.get(pk); const key = Math.round(ev.beat * 96);
     if (!cm.has(key)) cm.set(key, { dt: (rnd() - 0.5) * 0.012 * tight, dv: 0.93 + rnd() * 0.14 });
@@ -270,7 +273,7 @@ export function scheduleBar(track, group, pos, time, rnd = Math.random, perf = {
     // 센박은 조금 세게, 박 사이의 음은 조금 여리게
     const frac = ev.beat - Math.floor(ev.beat + 1e-6);
     const accent = ev.flat ? 1 : ev.beat < 0.01 ? 1.06 : frac > 0.01 ? 0.92 : B === 4 && Math.abs(ev.beat - 2) < 0.01 ? 1.02 : 0.97;
-    const v = ev.vel * accent * h.dv * (1 + perf.breath) * (0.97 + rnd() * 0.06);
+    const v = ev.vel * accent * h.dv * (1 + perf.breath) * (0.97 + rnd() * 0.06) * (col?.vel ?? 1);
     if (ev.perc) { group.perc(ev.perc, t, v); return; }
     group.note(ev.inst, t, ev.midi, ev.dur * spb * (1 + r * 0.6) * (ev.legato ?? 1) * (0.97 + rnd() * 0.05), v, ev.o);
   };
@@ -332,7 +335,18 @@ const AHEAD = 1.3; // 이만큼 앞의 마디까지 미리 예약 (탭이 뒤에
 export class MusicPlayer {
   constructor(engine, tracks, { gap = [14, 34], rnd = Math.random } = {}) {
     this.e = engine; this.tracks = tracks; this.cur = null; this.timer = null;
-    this.gap = gap; this.rnd = rnd; this.prog = null; this.resumeAt = 0; this.lastMood = null;
+    this.gap = gap; this.rnd = rnd; this.prog = null; this.resumeAt = 0; this.lastMood = null; this.color = null;
+  }
+  /** 때와 날씨의 빛깔 { tempo, vel, thin }. 배경 곡에만, 다음 마디부터 먹는다 */
+  setColor(c) { this.color = c ?? null; }
+  /** 장면이 열릴 때: 흐르던 곡을 거두고, delay초 뒤에 이 묶음의 첫 곡이 처음부터 들어온다 */
+  enter(pool, { delay = 1.6, fade = 1.2 } = {}) {
+    pool = pool.filter((id) => this.tracks.some((t) => t.id === id));
+    if (!pool.length) return;
+    this.stop(fade);
+    this.prog = { pool, cue: false, key: 'm:' + pool.join(',') };
+    this.lastMood = null; this.resumeAt = this.e.ctx.currentTime + delay;
+    if (!this.timer) this.timer = setInterval(() => this.tick(), 180);
   }
   get playing() { return this.cur?.ready ? this.cur.track.id : null; }
   /** 지금 상황의 곡 묶음을 알려 준다. pool: 곡 id들, cue: 상황 곡인가 */
@@ -406,8 +420,9 @@ export class MusicPlayer {
         this.resumeAt = c.next + tail + this.gap[0] + this.rnd() * (this.gap[1] - this.gap[0]);
         return;
       }
+      c.perf.color = c.loop || c.track.kind !== 'mood' ? null : this.color;
       scheduleBar(c.track, c.group, c.pos, c.next, this.rnd, c.perf);
-      c.next += barLen(c.track, c.pos);
+      c.next += barLen(c.track, c.pos, c.perf.color?.tempo ?? 1);
       c.pos = nextPos(c.track, c.pos);
     }
   }

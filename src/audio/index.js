@@ -18,9 +18,13 @@ import { MusicPlayer } from './music.js';
 import { TRACKS } from './tracks.js';
 import { SFX, playSfx } from './sfx.js';
 import { Ambience, pickAmbience } from './ambience.js';
-import { pickMusic, eventMood, ambienceWhere, fightSfx } from './pick.js';
-import { conditionText } from '../art/scene.js';
-import { prefs, setPref, onPrefs } from '../ui/settings.js';
+import { pickMusic, eventMood, ambienceWhere, fightSfx, placePool, colorOf, spaceOf, shelterOf, momentOf, OPEN_CUE, weighty, arrivalOf, arriveCue } from './pick.js';
+import { playCue, kitNeeds, warmCues } from './cues.js';
+import { conditionText, sceneImage } from '../art/scene.js';
+import { currentPlate } from '../art/vignette.js';
+import { showStage, stageActive } from '../art/stage.js';
+import { PLACES } from '../places.js';
+import { prefs, setPref, onPrefs, reducedMotion } from '../ui/settings.js';
 
 const KEY = 'fantasy-life:audio';
 const hasDom = typeof window !== 'undefined' && typeof document !== 'undefined';
@@ -55,10 +59,12 @@ if (hasDom) {
 
 /* ---------- 게임 상태 받아 두기 ---------- */
 const keep = (g) => { game = g; };
-HOOKS.newGame.push(keep);
-HOOKS.migrate.push(keep);
+// 새 삶이 시작되거나 대를 이으면, 다음에 화면이 그려질 때 장면 연출을 띄운다 (30단계)
+let opening = null; // { g, kind: 'intro' | 'heir' }
+HOOKS.newGame.push((g) => { keep(g); opening = { g, kind: 'intro' }; });
+HOOKS.migrate.push((g) => { keep(g); opening = null; });
 HOOKS.afterMonth.push(keep);
-(HOOKS.heir ??= []).push(keep);
+(HOOKS.heir ??= []).push((g) => { keep(g); opening = { g, kind: 'heir' }; });
 
 /* ---------- 소리 켜기 ---------- */
 // 아이폰 웹뷰는 앱이 뒤로 갔다 오면 AudioContext가 'interrupted'에 빠지거나, 'running'이라면서 소리가 안 나는 일이 있다.
@@ -92,6 +98,8 @@ function unlock() {
     fx = engine.group('sfx');
     amb = new Ambience(engine);
     applyVolume();
+    // 효과음의 가락(하프·류트·호른…)도 녹음된 악기로 내려고 미리 받아 둔다. 받기 전에는 옛 합성음으로 난다.
+    safe(() => engine.pin(kitNeeds())?.catch?.(() => {}));
     // 소리를 끈 채 시작했으면 장치도 재워 둔다 (배터리)
     if (!settings.on) rest();
   }
@@ -117,6 +125,36 @@ function sfx(id, when = 0) {
   playSfx(fx, SFX[id] ? id : 'tap', when);
 }
 
+/* ---------- 소리 큐와 장면 연출 (30단계) ---------- */
+let lastCue = 0;
+// 결정적 순간의 악구. 연달아 겹치지 않게 2.2초에 하나만.
+function cue(id, when = 0) {
+  if (!id || !engine || !settings.on || settings.sfx <= 0 || engine.ctx.state !== 'running') return;
+  const now = Date.now() + when * 1000;
+  if (now - lastCue < 2200) return;
+  lastCue = now;
+  safe(() => playCue(fx, id, when));
+}
+const SEASON_KO = ['겨울', '겨울', '봄', '봄', '봄', '여름', '여름', '여름', '가을', '가을', '가을', '겨울'];
+const firstSentence = (s) => { const m = /^[^.]*\./.exec(String(s ?? '')); return m ? m[0] : ''; };
+/** 처음 닿은 곳·오랜만의 귀향·삶의 시작: 풍경이 천천히 드러나고, 그곳의 곡이 처음부터 들어온다 */
+function openStage(g, a) {
+  const d = g.date; const place = PLACES[a.place];
+  const name = place?.name ?? '낯선 땅'; const when = `용사력 ${d.year}년 · ${SEASON_KO[(d.month - 1) % 12]}`;
+  const who = g.player?.name ?? '';
+  const spec = a.kind === 'intro' ? { eyebrow: when, title: name, line: who ? `${who}의 삶이 여기서 시작된다.` : '' }
+    : a.kind === 'heir' ? { eyebrow: '대를 잇다', title: who || name, line: `${name} · ${when}` }
+    : a.kind === 'return' ? { eyebrow: `${a.years}년 만에`, title: name, line: when }
+    : { eyebrow: when, title: name, line: firstSentence(place?.desc) };
+  spec.image = safe(() => sceneImage({ year: d.year, month: d.month, famine: g.world?.famine, plague: g.world?.plague, place: a.place }), '');
+  spec.still = safe(() => reducedMotion(), false);
+  spec.onClose = () => setTimeout(sync, 0);
+  if (!showStage(spec)) return;
+  if (!engine || !settings.on) return;
+  cue(arriveCue(a.place, a.kind), 0.45);
+  if (settings.music > 0 && !mixing()) safe(() => player.enter(placePool(g), { delay: 2.6 }));
+}
+
 /* ---------- 곡 고르기 ---------- */
 const circle = (g) => (g?.player ? safe(() => circleOf(g), 0) : 0);
 
@@ -132,7 +170,13 @@ function sync() {
     if (kind === 'battle') { sfx('warhorn'); sfx('march', 1.6); }
     else if (g.pendingEvent.id === 'duel_round' || g.pendingEvent.id === 'duel_start') sfx('sword');
     else if (/편지|서신|소식|전갈/.test(t)) sfx('letter');
-    else sfx('event');
+    else {
+      // 사건의 분위기에 맞는 여는 소리 (조종, 불길한 떨림, 뿔나팔…). 여느 사건은 예전 소리 그대로.
+      const open = stageActive() ? null : OPEN_CUE[eventMood(g)];
+      if (open) { sfx('choose'); cue(open, 0.05); } else if (!stageActive()) sfx('event');
+    }
+    // 결과가 드러날 때 울릴 악구를 미리 받아 둔다
+    if (eventMood(g)) warmCues(engine, ['grief', 'turn', 'dread', 'wonder', 'tender', 'triumph', 'hush']);
   }
   if (!overlay) lastEventTrack = null;
   const m = pickMusic(g, { title, overlay, last: lastEventTrack });
@@ -145,11 +189,24 @@ function sync() {
     if (lastYear != null && y === lastYear + 1 && !overlay) sfx('newyear', 0.5);
     lastYear = y;
   } else { wasOver = false; lastYear = null; }
+  // 장면 연출: 새 삶·대 잇기는 곧바로, 처음 닿은 곳은 사건 창이 걷힌 뒤에
+  if (g && !g.over && !stageActive()) {
+    const flag = opening?.g === g ? opening.kind : null;
+    if (flag || !overlay) { opening = null; const a = safe(() => arrivalOf(g, flag)); if (a) safe(() => openStage(g, a)); }
+  }
   if (player && settings.on) {
-    if (settings.music > 0) player.program(m.pool, { cue: m.cue, soft: sameGround(lastWhere, m.where) });
+    // 연출이 떠 있는 동안은 연출이 넣은 곡을 건드리지 않는다
+    if (settings.music > 0 && !stageActive()) player.program(m.pool, { cue: m.cue, soft: sameGround(lastWhere, m.where) });
     lastWhere = m.where;
+    // 때·날씨·계절의 빛깔: 밤에는 느리고 여리고 어둡게, 궂은 날에는 타악을 쉬고 울림을 늘린다
+    const col = g ? safe(() => colorOf(g)) : null;
+    player.setColor(col);
+    engine.setTone(col?.lp ?? 18000, col?.wet ?? 1);
     const weather = g?.date ? safe(() => conditionText(g.date.year, g.date.month), '') : '';
-    if (settings.sfx > 0) amb.set(pickAmbience(ambienceWhere(m), weather, g?.date?.month)); else amb.stop();
+    const ambId = pickAmbience(g ? safe(() => shelterOf(g, ambienceWhere(m)), ambienceWhere(m)) : ambienceWhere(m), weather, g?.date?.month);
+    if (settings.sfx > 0) amb.set(ambId); else amb.stop();
+    // 지금 있는 곳의 울림: 들·거리·집 안·돌로 지은 큰 방·굴
+    engine.setSpace(spaceOf(m, ambId, overlay ? safe(() => currentPlate()) : null));
   }
   for (const f of listeners) f();
 }
@@ -194,6 +251,9 @@ function onClick(ev) {
     const before = circle(game);
     if (duel) duelSfx(pe, +el.dataset.choice, el.textContent);
     else sfx(kind === 'fight' ? 'clash' : kind === 'battle' ? 'march' : 'choose');
+    // 무게 있는 사건에서는 고르는 순간 음악이 숨을 죽인다
+    const heavy = !pendingFight && safe(() => weighty(game), false);
+    if (heavy) safe(() => engine?.duck(0.4, 0.9));
     // 화면이 결과를 그린 뒤에 결과에 맞는 소리를 낸다
     setTimeout(() => {
       const text = document.querySelector('.overlay .outcome')?.textContent ?? '';
@@ -206,6 +266,7 @@ function onClick(ev) {
       } else if (circle(game) > before || /서클에 올랐|승급했|서임/.test(text)) sfx('rise', 0.3);
       else if (/혼례를 올렸|부부가 되었/.test(text)) sfx('wedding', 0.3);
       else if (/태어났다/.test(text)) sfx('birth', 0.3);
+      else if (momentOf(text) && (heavy || momentOf(text) === 'grief')) cue(momentOf(text), 0.35); // 결과가 드러나는 순간의 악구
       else if (/은화 \d+닢을 (받|벌|얻)/.test(text)) sfx('coin', 0.3);
       pendingFight = false;
     }, 0);
@@ -352,7 +413,10 @@ export const audio = {
   get playing() { return player?.playing ?? null; },
   set, sfx, unlock, mountSettings,
   get ambience() { return amb?.playing ?? null; },
+  get space() { return engine?.space ?? null; },
+  cue,
   tracks: TRACKS.map((t) => ({ id: t.id, name: t.name, where: t.where, kind: t.kind })),
   sounds: Object.entries(SFX).map(([id, s]) => ({ id, name: s.name, kind: s.kind })),
 };
+if (hasDom) window.__flAudio = audio; // 점검과 미리듣기에서 지금 상태를 들여다보는 창
 export { pickTrack, pickMusic, eventMood } from './pick.js';

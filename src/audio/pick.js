@@ -5,6 +5,7 @@
 //  - 상황 곡(cue): 싸움·결투·사건처럼 그 순간에만 흐르는 곡. 상황이 끝날 때까지 이어진다.
 
 import { describe } from '../art/scenePlaces.js';
+import { conditions } from '../art/scene.js';
 
 const SEASON = ['winter', 'winter', 'spring', 'spring', 'spring', 'summer', 'summer', 'summer', 'autumn', 'autumn', 'autumn', 'winter'];
 export const seasonOf = (month) => SEASON[(month - 1) % 12];
@@ -92,6 +93,120 @@ const GROUND_POOL = {
   empire: ['empire', 'castle'], holy: ['holy'], north: ['north'], demonland: ['demonland'], lakecity: ['lakecity'],
 };
 
+/** 그 달의 때·날씨 { tod: day|dawn|dusk|night, weather } (풍경 그림과 같은 값). 날짜가 없으면 null */
+export function skyOf(game) {
+  const d = game?.date;
+  if (!d?.year || !d?.month) return null;
+  try { return conditions(d.year, d.month); } catch { return null; }
+}
+
+/* ---------- 때·날씨·계절이 음악에 입히는 빛깔 (30단계) ---------- */
+// tempo 빠르기, vel 세기, lp 밝기(Hz), wet 울림의 양, thin 편성 덜기(1 타악 쉼, 2 잘게 써는 반주도 성기게)
+const TOD_COLOR = {
+  day: { tempo: 1, vel: 1, lp: 18000, wet: 1, thin: 0 },
+  dawn: { tempo: 0.96, vel: 0.88, lp: 9500, wet: 1.15, thin: 1 },
+  dusk: { tempo: 0.97, vel: 0.94, lp: 11000, wet: 1.1, thin: 0 },
+  night: { tempo: 0.93, vel: 0.8, lp: 7000, wet: 1.25, thin: 1 },
+};
+const WX_COLOR = {
+  clear: {}, cloudy: { lp: 0.9 }, wind: { lp: 0.92 }, fog: { vel: 0.92, lp: 0.62, wet: 1.3, thin: 1 },
+  rain: { vel: 0.95, lp: 0.75, wet: 1.1 }, storm: { lp: 0.7, wet: 1.1 },
+  snow: { tempo: 0.97, vel: 0.95, lp: 0.8, wet: 1.2, thin: 1 }, blizzard: { tempo: 0.95, vel: 0.9, lp: 0.62, wet: 1.2, thin: 2 },
+};
+const SEASON_TEMPO = { spring: 1.01, summer: 1.02, autumn: 0.99, winter: 0.97 };
+/** 지금의 빛깔. 처음 화면이나 날짜를 모를 때는 null (곡을 쓰인 그대로 연주) */
+export function colorOf(game) {
+  const sky = skyOf(game);
+  if (!sky) return null;
+  const a = TOD_COLOR[sky.tod] ?? TOD_COLOR.day, w = WX_COLOR[sky.weather] ?? {};
+  const r2 = (x) => Math.round(x * 100) / 100;
+  let thin = Math.max(a.thin, w.thin ?? 0);
+  if (sky.tod === 'night' && thin && (w.thin ?? 0)) thin = 2;
+  return {
+    tempo: r2(a.tempo * (w.tempo ?? 1) * (SEASON_TEMPO[seasonOf(game.date.month)] ?? 1)),
+    vel: r2(a.vel * (w.vel ?? 1)), lp: Math.max(4200, Math.round(a.lp * (w.lp ?? 1))), wet: r2(Math.min(1.5, a.wet * (w.wet ?? 1))), thin,
+  };
+}
+
+/* ---------- 지금 있는 곳의 울림 (30단계) ---------- */
+// 사건 그림(vignette)의 판 이름 앞머리로, 그 사건이 어떤 곳에서 벌어지는지 짐작한다
+const PLATE_SPACE = [
+  [/^(court|trial|chapel|tower|ritual|claim:acclaim|envoy:table|exile:hall|relic)/, 'hall'],
+  [/^(depths|prison|mine|heist:vault|seal:stone|haunt:seance|mana:spring)/, 'cave'],
+  [/^(bedside|birth|cuisine|brew|apothecary:(brew|shop|poison)|spy:(recruit|steal)|heist:(plan|split)|feud:plot|revolt:secret|gift|haunt:house|farm:barn)/, 'indoor'],
+];
+const WHERE_SPACE = { town: 'street', capital: 'street', castle: 'street', labyrinth: 'street', empire: 'street', holy: 'street', lakecity: 'street', garrison: 'street', dwarfhall: 'hall', magetower: 'hall', cradle: 'indoor', title: 'indoor' };
+/**
+ * m: pickMusic이 돌려준 것, amb: 지금 환경음 장면 id, plate: 떠 있는 사건 그림의 판 이름('court:…')
+ * 돌려주는 것: open | street | indoor | hall | cave
+ */
+export function spaceOf(m, amb = '', plate = null) {
+  if (m?.cue) {
+    const c = m.pool[0];
+    if (c === 'dungeon' || c === 'abyss') return 'cave';
+    if (c === 'palace' || c === 'court') return 'hall';
+  }
+  if (plate) { const hit = PLATE_SPACE.find(([re]) => re.test(plate)); if (hit) return hit[1]; }
+  if (amb === 'dungeon' || amb === 'deep') return 'cave';
+  if (amb === 'hall') return 'hall';
+  if (/^hearth/.test(amb)) return 'indoor';
+  return WHERE_SPACE[m?.where] ?? 'open';
+}
+
+/* ---------- 결정적 순간의 소리 큐 (30단계) ---------- */
+// 사건 창이 뜰 때: 그 사건의 분위기에 맞는 여는 소리
+export const OPEN_CUE = { solemn: 'toll', tense: 'omen', mystic: 'wonder', festive: 'tender', court: 'herald', palace: 'herald', underworld: 'omen', abyss: 'omen', war: null, battle: null, boss: null, duel: null, dungeon: null };
+const MOMENT = [
+  ['grief', /숨을 거두|세상을 떠났|돌아오지 못했|죽었다|눈을 감았다|시신|주검|장례를 치렀|묻었다|전사했다/],
+  ['turn', /배신|속았다|함정이었다|덫이었다|등을 돌렸|칼을 겨누|들통|들켰다|발각|탄로/],
+  ['dread', /붙잡혔다|끌려갔다|쫓기게 되었|낙인|추방|쫓겨났다|옥에 갇혔|저주|몰락|빼앗겼다|불탔다|잿더미/],
+  ['wonder', /깨달았다|눈을 떴다|마력이 깨어|처음으로 주문|계약이 맺어|빛이 번졌|목소리가 들렸|환영을 보았/],
+  ['tender', /입을 맞추|청혼을 받아|마음을 받아|끌어안았다|품에 안았다|화해했다|용서했다|손을 잡았다|다시 만났다/],
+  ['triumph', /우승했다|합격했다|이름을 올렸|해냈다|이겨 냈다|인정을 받았|박수|환호|작위를 받았|임명되었다/],
+];
+/** 결과 글에서 결정적 순간을 읽는다: grief turn dread wonder tender triumph 또는 null */
+export function momentOf(text) {
+  const t = String(text ?? '');
+  if (!t) return null;
+  for (const [id, re] of MOMENT) if (re.test(t)) return id;
+  return null;
+}
+// 무게 있는 사건: 선택을 누르는 순간 음악이 잠깐 숨을 죽인다
+export const weighty = (game) => { const m = eventMood(game); return !!m && !['festive'].includes(m); };
+
+/* ---------- 장면 연출을 띄울 대목인가 (30단계) ---------- */
+/**
+ * 처음 닿은 곳, 오랜만에(다섯 해 넘게) 돌아온 곳인지 가린다. 다녀간 곳은 game.stage.seen에 적어 둔다(저장에 실린다).
+ * flag: 'intro' 새 삶의 시작, 'heir' 대를 이은 직후 (이때는 곳과 상관없이 띄운다)
+ * 돌려주는 것: { kind: 'intro'|'heir'|'arrive'|'return', place, years? } 또는 null
+ */
+export function arrivalOf(game, flag = null) {
+  const life = game?.life; const d = game?.date;
+  if (!life || !d?.year || game.over) return null;
+  const now = d.year * 12 + d.month; const place = life.place ?? 'ern';
+  const st = (game.stage ??= { seen: {} }); st.seen ??= {};
+  if (life.travel) return null;
+  const prev = st.seen[place]; const was = st.at;
+  st.seen[place] = now; st.at = place;
+  if (flag === 'intro' || flag === 'heir') return { kind: flag, place };
+  if (was === undefined || was === place) return null; // 예전 저장을 처음 불러왔거나, 그대로 머무는 중
+  if (prev == null) return { kind: 'arrive', place };
+  if (now - prev >= 60) return { kind: 'return', place, years: Math.floor((now - prev) / 12) };
+  return null;
+}
+/** 그곳에 닿을 때의 소리 큐 */
+export function arriveCue(place, kind = 'arrive') {
+  if (kind === 'intro' || kind === 'heir') return 'newlife';
+  if (kind === 'return') return 'homecoming';
+  const w = { harfen: 'town', verden: 'castle', leocast: 'capital' }[place] ?? groundOf(place);
+  if (w === 'holy') return 'arrive_holy';
+  if (w === 'demonland') return 'arrive_dark';
+  if (w === 'magetower') return 'wonder';
+  if (w === 'elfwood' || w === 'isles' || w === 'north') return 'arrive_wild';
+  if (w) return 'arrive_city';
+  return 'arrive_village';
+}
+
 /** 지금 있는 곳을 가리키는 낱말. 환경음도 이것으로 고른다. */
 export function whereOf(game) {
   if (!game) return 'title';
@@ -118,6 +233,16 @@ export function placePool(game) {
   else {
     const s = where.slice(8);
     pool = s === 'winter' ? [where, 'ern_dusk'] : [where, 'ern_fields', 'ern_dusk'];
+  }
+  // 때와 날씨 (30단계): 해 질 녘과 밤, 궂은 날에는 저무는 곡이 먼저 오고 밝은 들판 곡은 쉰다. 새벽과 맑은 낮에는 들판 곡이 앞에 선다.
+  const sky = skyOf(game);
+  if (sky && /^village_/.test(where)) {
+    const rough = ['rain', 'storm', 'snow', 'blizzard', 'fog'].includes(sky.weather);
+    if (sky.tod === 'night' || sky.tod === 'dusk' || sky.weather === 'storm' || sky.weather === 'blizzard') pool = ['ern_dusk', where];
+    else if (rough) pool = pool.filter((id) => id !== 'ern_fields');
+    else if (sky.tod === 'dawn' && pool.includes('ern_fields')) pool = ['ern_fields', where];
+  } else if (sky && where === 'town') {
+    if (sky.tod === 'night' || ['rain', 'storm', 'snow', 'blizzard'].includes(sky.weather)) pool = ['town']; // 장터 곡은 장이 서는 낮에만
   }
   // 기근·역병 때는 힘겨운 곡이 섞인다 (그것만 틀면 몇 해씩 같은 곡이 된다)
   if (game.world?.famine || game.world?.plague) pool = ['hardship', pool[0]];
@@ -150,6 +275,15 @@ export function ambienceWhere(m) {
   if (c === 'palace') return 'hall';
   if (['battle', 'boss', 'duel', 'war'].includes(c)) return 'none';
   return m.where;
+}
+
+/** 궂은 밤이나 겨울밤의 마을에서는 집 안에 든다: 환경음이 난롯가(지붕의 빗소리, 문틈 바람)로 바뀐다 (30단계) */
+export function shelterOf(game, where) {
+  if (!/^village_/.test(where ?? '')) return where;
+  const sky = skyOf(game);
+  if (!sky || sky.tod !== 'night') return where;
+  const rough = ['rain', 'storm', 'snow', 'blizzard'].includes(sky.weather);
+  return rough || seasonOf(game.date.month) === 'winter' ? 'cradle' : where;
 }
 
 /** 싸움 결과 글에 맞는 효과음 */
