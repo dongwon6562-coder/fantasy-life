@@ -1,15 +1,18 @@
 // 미리듣기 페이지 (tools/audio-preview.js가 dist/audio-preview.html로 묶는다).
 // 게임과 똑같은 엔진·곡·효과음 코드를 쓴다.
 import { Engine } from './engine.js';
+import { SAMPLES } from './samples.js';
 import { MusicPlayer } from './music.js';
 import { TRACKS } from './tracks.js';
 import { SFX, playSfx } from './sfx.js';
 import { Ambience, AMBIENCES } from './ambience.js';
 
+// 미리듣기 페이지는 옆에 올려 둔 assets/ 폴더에서 악기 샘플을 받는다
+if (typeof window !== 'undefined' && !window.__flAssets) window.__flAssets = 'assets/';
 const $ = (s, el = document) => el.querySelector(s);
 const MODE = { dorian: '도리아', mixolydian: '믹솔리디아', lydian: '리디아', aeolian: '에올리아', phrygian: '프리지아', ionian: '이오니아' };
 const NOTE = ['C', 'C♯', 'D', 'E♭', 'E', 'F', 'F♯', 'G', 'A♭', 'A', 'B♭', 'B'];
-const INST = { lute: '류트', harp: '하프', strings: '현악', viol: '비올', flute: '나무 피리', horn: '뿔나팔', choir: '합창', choirOo: '낮은 합창', bell: '종', glass: '유리 종', drone: '지속 저음', wind: '바람', frame: '틀북', war: '큰북', tom: '북', tick: '나무 타악', shaker: '셰이커', jingle: '방울', heart: '심장 소리', pipe: '갈대 피리', organ: '풍금', snare: '작은북', anvil: '모루' };
+const INST = { harp: '하프', lute: '류트', pizz: '현 뜯기', strings: '현악 합주', spic: '끊는 활', trem: '떨리는 활', cello: '첼로', bass: '콘트라베이스', flute: '플루트', recorder: '리코더', oboe: '오보에', clarinet: '클라리넷', bassoon: '바순', horn: '호른', trumpet: '트럼펫', trombone: '트롬본', choir: '합창', organ: '오르간', bell: '종', glock: '글로켄슈필', timp: '팀파니', timp2: '팀파니', timp3: '팀파니', taiko: '큰북', taiko2: '큰북', taiko3: '큰북', tom: '북', tom2: '북', tom3: '북', wood: '나무 타악', wood2: '나무 타악' };
 const GROUPS = [
   ['처음 화면과 어린 시절', ['title', 'cradle']],
   ['에른 마을 (계절마다 곡 묶음이 달라진다)', ['village_spring', 'village_summer', 'village_autumn', 'village_winter', 'ern_fields', 'ern_dusk']],
@@ -17,8 +20,9 @@ const GROUPS = [
   ['세상 형편', ['hardship']],
   ['싸움 (그 순간에만 흐르는 곡)', ['battle', 'boss', 'duel', 'war', 'dungeon', 'abyss']],
   ['사건 (그 순간에만 흐르는 곡)', ['tense', 'solemn', 'festive', 'mystic', 'court', 'palace', 'underworld']],
+  ['먼 고장들', ['isles', 'elfwood', 'dwarfhall', 'magetower', 'lakecity', 'garrison', 'labyrinth', 'empire', 'holy', 'north', 'demonland']],
 ];
-const insts = (t) => [...new Set(t.sections.flatMap((s) => s.parts.map((p) => p.type ?? p.inst)).filter(Boolean))].map((i) => INST[i] ?? i);
+const insts = (t) => [...new Set(t.sections.flatMap((s) => s.parts.map((p) => p.type ?? p.inst)).filter(Boolean).map((i) => INST[i] ?? i))];
 
 let engine = null, player = null, fx = null, analyser = null, amb = null;
 const vol = { music: 0.7, sfx: 0.8 };
@@ -42,7 +46,7 @@ const stopTour = () => { tourTimers.forEach(clearTimeout); tourTimers = []; $('#
 function playTrack(id) {
   boot();
   if (player.playing === id) player.stop(1.2); else player.play(id);
-  refresh();
+  refresh(); setTimeout(refresh, 600); setTimeout(refresh, 2500); // 샘플을 받은 뒤에 곡이 시작된다
 }
 function refresh() {
   const id = player?.playing ?? null;
@@ -115,7 +119,7 @@ function build() {
     <section class="grp"><h3>${k}</h3><div class="pads">
       ${Object.entries(SFX).filter(([, s]) => s.kind === k).map(([id, s]) => `<button class="padb" data-sfx="${id}">${s.name}</button>`).join('')}
     </div></section>`).join('');
-  $('#count').textContent = `곡 ${TRACKS.length}개 · 환경음 ${AMBIENCES.length}가지 · 효과음 ${Object.keys(SFX).length}개 · 녹음 파일 0개`;
+  $('#count').textContent = `곡 ${TRACKS.length}개 · 환경음 ${AMBIENCES.length}가지 · 효과음 ${Object.keys(SFX).length}개 · 악기 샘플 ${Object.values(SAMPLES).reduce((a, z) => a + z.length, 0)}개`;
 
   document.addEventListener('click', (e) => {
     const t = e.target.closest('[data-track]');
