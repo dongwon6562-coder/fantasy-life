@@ -333,7 +333,7 @@ function slave(seed, place = 'saltmare', opts = {}) {
 // 12) 저절로 붙잡힌다 (남해 섬에서)
 {
   let n = 0;
-  for (let t = 0; t < 8; t++) {
+  for (let t = 0; t < 12; t++) { // 25단계: 8판에서 12판으로 (난수가 밀려 흔들림)
     const g = adult(150 + t, { place: 'saltmare' });
     g.player.stats.str = 10;
     for (let k = 0; k < 10 && !V(g).slave; k++) { if (!L(g).travel && here(g) !== 'saltmare') { L(g).place = 'saltmare'; realmState(g).cur = 'sea'; } play(g, 12, ['rest', 'work'], { bondage_taken: (pe) => pe.choices.length - 1, bondage_market: idxOf(/지켜본다/), border: 0 }, 1); }

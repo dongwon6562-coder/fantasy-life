@@ -257,6 +257,8 @@ const checkInfo = (g) => {
       ok(v.mask.deeds >= 2, `night deeds ${k} ${v.mask.deeds}`);
       if (k === 'heretic') ok(faithState(g).suspicion > s0, 'heretic suspicion');
       ok(checkInfo(g).mask?.name, 'info mask');
+      // 밤일 하다 옥에 갇혔으면 풀어 두고 잰다 (25단계: 난수가 밀려 의적이 밤일 중에 잡혔다)
+      { const ms = sec(g, 'mask'); if (ms) ms.risk = 0; v.mask.heat = 0; const cs = crimeState(g); cs.jailed = null; if (cs.heat) for (const p in cs.heat) cs.heat[p] = 0; if (cs.bounty) for (const p in cs.bounty) cs.bounty[p] = 0; L(g).queue = L(g).queue.filter((x) => x.kind !== 'arrest'); settle(g); }
       ok(act(g, 'secret_unmask'), 'unmask');
       ok(v.mask.hung && !availableActions(g).some((a) => a.id === 'secret_night'), 'mask hung');
       const s = sec(g, 'mask');
