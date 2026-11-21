@@ -16,9 +16,11 @@ const S = 132;
 // 1. 예전과 지금 (main의 예전 그림 코드를 불러와 같은 사람을 그린다)
 let before = '';
 try {
-  const old = execSync('git show 1ed7960:src/art/portrait.js', { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] });
-  writeFileSync('dist/_old_portrait.mjs', old);
-  const { portrait: oldPortrait } = await import(pathToFileURL(resolve('dist/_old_portrait.mjs')).href);
+  // 28단계 끝(29단계 새 그림체 전)의 초상 코드 다섯 장을 그대로 꺼내 쓴다
+  mkdirSync('dist/_old_portrait', { recursive: true });
+  for (const n of ['portrait', 'portraitGarb', 'portraitHair', 'portraitKit', 'portraitLife']) writeFileSync(`dist/_old_portrait/${n}.js`, execSync(`git show 55292e2:src/art/${n}.js`, { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] }));
+  writeFileSync('dist/_old_portrait/package.json', '{"type":"module"}');
+  const { portrait: oldPortrait } = await import(pathToFileURL(resolve('dist/_old_portrait/portrait.js')).href);
   const who = [[5, 'hunter', 28], [6, 'merchant', 34], [11, 'old_knight', 58], [12, 'weaver', 66], [3, 'smith', 44], [8, 'priest', 23]];
   before = `<section><h2>예전과 지금</h2><p class="lead">같은 사람을 예전 그림과 새 그림으로 나란히 놓았다. 위가 예전, 아래가 지금.</p>
     ${row(who.map(([i, job, a]) => cell(oldPortrait(null, P(i, { job, ageMonths: a * 12 }), { size: S }), '예전')), 'six')}
@@ -119,6 +121,7 @@ figcaption { font-size: 12.5px; color: var(--muted); text-align: center; text-wr
     <p>게임 속 모든 사람의 얼굴은 그 자리에서 그려진다. 같은 사람은 언제나 같은 얼굴이고, 나이를 먹고, 기분이 얼굴에 드러나고, 부모를 닮는다.</p>
   </header>
   <section class="what"><ul>
+    <li><b>29단계 새 그림체.</b> 빛이 왼쪽 위 한 곳에서 와서 얼굴 오른쪽이 부드럽게 그늘지고, 머리에는 머리결이, 옷에는 천의 짜임과 주름의 빛이, 살갗에는 고운 결이 얹힌다. 먹선은 가늘고 옅게, 눈동자에는 홍채 결과 젖은 빛을 넣었다. 목록용 작은 초상은 필터 없이 같은 방향의 명암만.</li>
     <li><b>얼굴에 명암이 생겼다.</b> 빛이 왼쪽 위에서 들어와 이마와 광대는 밝고 눈두덩과 턱 밑은 어둡다. 굵은 테두리 선은 뺐다.</li>
     <li><b>이목구비가 사람마다 다르다.</b> 턱과 광대, 눈매와 눈꺼풀, 콧대, 입술, 눈썹이 따로 정해진다.</li>
     <li><b>머리 모양 열여덟 가지, 수염 일곱 가지.</b> 나이가 들면 세고, 벗어지고, 틀어 올린다.</li>
@@ -127,6 +130,7 @@ figcaption { font-size: 12.5px; color: var(--muted); text-align: center; text-wr
     <li><b>흉터는 이름에 적힌 자리에 난다.</b> 뺨, 눈가, 이마, 입술, 턱, 화상.</li>
     <li><b>얼굴이 삶을 담는다.</b> 다친 곳, 흉터, 살림 형편, 하는 일과 신분, 볕에 그을린 정도가 저절로 초상에 얹힌다.</li>
   </ul></section>
+  ${before}
   <section><h2>다친 얼굴</h2><p class="lead">내가 다치면 초상에 바로 드러난다. 머리 붕대, 멍든 눈, 팔걸이 천, 열에 뜬 얼굴.</p>${hurt}</section>
   <section><h2>살아온 흔적</h2><p class="lead">얼굴을 베이면 그 자리에 흉터가 남고, 몸의 흉터가 쌓이면 끊긴 눈썹이나 휜 콧대 같은 자잘한 흔적이 는다. 처지가 바뀌면 옷도 바뀐다.</p>${lifeScars}</section>
   <section><h2>싸우며 산 사람들</h2><p class="lead">기사, 용병, 해적, 뒷골목 사람은 나이가 들수록 흉터가 있기 쉽다. 눈을 잃은 사람은 안대를 한다.</p>${veterans}</section>

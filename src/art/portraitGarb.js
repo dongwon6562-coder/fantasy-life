@@ -122,7 +122,8 @@ export function wearTier(o, tier, job, sex, r1, r2) {
 // c: { cx, chin, hw, male, kid, stage, uid, detail, nw, baseY, sw, sy }
 export function drawGarb(o, c) {
   const { cx, nw, baseY, sw, sy, detail } = c;
-  const ink = (w = 0.55, op = 1) => `stroke="${INK}" stroke-width="${w}" stroke-linejoin="round" stroke-linecap="round"${op < 1 ? ` stroke-opacity="${op}"` : ''}`;
+  // 큰 초상은 먹선을 가늘고 옅게: 윤곽보다 빛과 그늘로 모양을 읽게 한다 (29단계)
+  const ink = (w = 0.55, op = 1) => { const o2 = detail ? op * 0.55 : op, w2 = detail ? w * 0.75 : w; return `stroke="${INK}" stroke-width="${f(w2)}" stroke-linejoin="round" stroke-linecap="round"${o2 < 1 ? ` stroke-opacity="${f(o2)}"` : ''}`; };
   const out = { behind: '', torso: '', collar: '', head: '', headBack: '' };
   const dark = shade(o.main, 0.35), light = tint(o.main, 0.14);
   // 어깨 윤곽 (오른쪽 점들, 목 밑 → 어깨 끝 → 아래)
