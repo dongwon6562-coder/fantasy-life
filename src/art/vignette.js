@@ -152,6 +152,10 @@ const BY_SCENE = {
   // 14단계: 글과 예술 (기존 그림을 이어 붙임)
   // 27단계: 불로 (나머지 장면은 갈래가 들어오는 대로 잇는다)
   seventh_call: 'ageless:noa', seventh_trial: 'ageless:seventh', sealbreath_draw: 'ageless:breath', vessel_rite: 'ageless:vessel',
+  // 27단계 도우미2: 노아 실마리·불로의 두 길·불로가 된 뒤·스스로 고르는 죽음
+  noah_sighting: 'ageless:noa', noah_journey: 'night', noah_meet: 'ageless:noa', dragonname_tablet: 'seal:map', dragonname_call: 'ageless:truename',
+  bloodyears_offer: 'bedside', bloodyears_rite: 'night', bloodyears_due: 'bedside', after_rumor: 'ageless:depart', after_hunted: 'square:guards',
+  after_farewell: 'funeral:visit', farewell_rearguard: 'ageless:rear', farewell_wedge: 'seal:alley', farewell_plague: 'bedside', farewell_honor: 'night', farewell_letgo: 'funeral:visit',
   // 26단계: 숨은 왕가의 피
   claim_reveal: 'claim:scroll', claim_suitor: 'claim:offer', claim_threat: 'night', claim_pretender: 'claim:pretender', claim_crown: 'claim:acclaim',
   // 25단계: 첩보와 밀정 (spy_job·spy_hunter는 아래에서 일에 따라 고른다)
