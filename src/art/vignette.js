@@ -149,6 +149,10 @@ const BY_SCENE = {
   // 14단계: 장사 길과 상단 (trade_event는 아래에서 일에 따라 고른다)
   trade_market: 'beastlife:market', trade_caravan: 'road', trade_bandits: 'feud:strike', trade_toll: 'square:guards', trade_house: 'mentor:found', trade_rival: 'feud:plot', trade_event: 'beastlife:market',
   // 14단계: 글과 예술 (기존 그림을 이어 붙임)
+  // 27단계: 노아 실마리·불로의 두 길·불로가 된 뒤·스스로 고르는 죽음 (새 삽화가 오기 전까지 있는 판을 붙임)
+  noah_sighting: 'road:return', noah_journey: 'night', noah_meet: 'ritual:study', dragonname_tablet: 'seal:map', dragonname_call: 'depths',
+  bloodyears_offer: 'bedside', bloodyears_rite: 'night', bloodyears_due: 'bedside', after_rumor: 'square:herald', after_hunted: 'square:guards',
+  after_farewell: 'funeral:visit', farewell_rearguard: 'feud:strike', farewell_wedge: 'seal:alley', farewell_plague: 'bedside', farewell_honor: 'night', farewell_letgo: 'funeral:visit',
   // 26단계: 숨은 왕가의 피
   claim_reveal: 'claim:scroll', claim_suitor: 'claim:offer', claim_threat: 'night', claim_pretender: 'claim:pretender', claim_crown: 'claim:acclaim',
   // 25단계: 첩보와 밀정 (spy_job·spy_hunter는 아래에서 일에 따라 고른다)
