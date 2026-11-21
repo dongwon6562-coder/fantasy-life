@@ -1,0 +1,1458 @@
+[
+{
+"inst": "harp",
+"midi": 31,
+"url": "https://raw.githubusercontent.com/sgossner/VSCO-2-CE/master/Strings/Harp/KSHarp_G1_mp.wav",
+"tag": "",
+"vol": 10.0,
+"raw": "raw/harp_31.wav"
+},
+{
+"inst": "harp",
+"midi": 38,
+"url": "https://raw.githubusercontent.com/sgossner/VSCO-2-CE/master/Strings/Harp/KSHarp_D2_mf.wav",
+"tag": "",
+"vol": 10.0,
+"raw": "raw/harp_38.wav"
+},
+{
+"inst": "harp",
+"midi": 45,
+"url": "https://raw.githubusercontent.com/sgossner/VSCO-2-CE/master/Strings/Harp/KSHarp_A2_mf.wav",
+"tag": "",
+"vol": 10.0,
+"raw": "raw/harp_45.wav"
+},
+{
+"inst": "harp",
+"midi": 52,
+"url": "https://raw.githubusercontent.com/sgossner/VSCO-2-CE/master/Strings/Harp/KSHarp_E3_mf.wav",
+"tag": "",
+"vol": 10.0,
+"raw": "raw/harp_52.wav"
+},
+{
+"inst": "harp",
+"midi": 59,
+"url": "https://raw.githubusercontent.com/sgossner/VSCO-2-CE/master/Strings/Harp/KSHarp_B3_mf.wav",
+"tag": "",
+"vol": 10.0,
+"raw": "raw/harp_59.wav"
+},
+{
+"inst": "harp",
+"midi": 65,
+"url": "https://raw.githubusercontent.com/sgossner/VSCO-2-CE/master/Strings/Harp/KSHarp_F4_mf.wav",
+"tag": "",
+"vol": 10.0,
+"raw": "raw/harp_65.wav"
+},
+{
+"inst": "harp",
+"midi": 72,
+"url": "https://raw.githubusercontent.com/sgossner/VSCO-2-CE/master/Strings/Harp/KSHarp_C5_mf.wav",
+"tag": "",
+"vol": 10.0,
+"raw": "raw/harp_72.wav"
+},
+{
+"inst": "harp",
+"midi": 79,
+"url": "https://raw.githubusercontent.com/sgossner/VSCO-2-CE/master/Strings/Harp/KSHarp_G5_mf.wav",
+"tag": "",
+"vol": 10.0,
+"raw": "raw/harp_79.wav"
+},
+{
+"inst": "harp",
+"midi": 86,
+"url": "https://raw.githubusercontent.com/sgossner/VSCO-2-CE/master/Strings/Harp/KSHarp_D6_mf.wav",
+"tag": "",
+"vol": 10.0,
+"raw": "raw/harp_86.wav"
+},
+{
+"inst": "harp",
+"midi": 93,
+"url": "https://raw.githubusercontent.com/sgossner/VSCO-2-CE/master/Strings/Harp/KSHarp_A6_mf.wav",
+"tag": "",
+"vol": 10.0,
+"raw": "raw/harp_93.wav"
+},
+{
+"inst": "strings",
+"midi": 36,
+"url": "https://raw.githubusercontent.com/sgossner/VSCO-2-CE/master/Strings/Cello%20Section/susvib/susvib_C1_v1_1.wav",
+"tag": "",
+"vol": 16.0,
+"raw": "raw/strings_36.wav"
+},
+{
+"inst": "strings",
+"midi": 40,
+"url": "https://raw.githubusercontent.com/sgossner/VSCO-2-CE/master/Strings/Cello%20Section/susvib/susvib_E1_v1_2.wav",
+"tag": "",
+"vol": 16.0,
+"raw": "raw/strings_40.wav"
+},
+{
+"inst": "strings",
+"midi": 43,
+"url": "https://raw.githubusercontent.com/sgossner/VSCO-2-CE/master/Strings/Cello%20Section/susvib/susvib_G1_v1_1.wav",
+"tag": "",
+"vol": 16.0,
+"raw": "raw/strings_43.wav"
+},
+{
+"inst": "strings",
+"midi": 47,
+"url": "https://raw.githubusercontent.com/sgossner/VSCO-2-CE/master/Strings/Cello%20Section/susvib/susvib_B1_v1_1.wav",
+"tag": "",
+"vol": 16.0,
+"raw": "raw/strings_47.wav"
+},
+{
+"inst": "strings",
+"midi": 50,
+"url": "https://raw.githubusercontent.com/sgossner/VSCO-2-CE/master/Strings/Cello%20Section/susvib/susvib_D2_v1_1.wav",
+"tag": "",
+"vol": 16.0,
+"raw": "raw/strings_50.wav"
+},
+{
+"inst": "strings",
+"midi": 53,
+"url": "https://raw.githubusercontent.com/sgossner/VSCO-2-CE/master/Strings/Cello%20Section/susvib/susvib_F2_v1_1.wav",
+"tag": "",
+"vol": 16.0,
+"raw": "raw/strings_53.wav"
+},
+{
+"inst": "strings",
+"midi": 55,
+"url": "https://raw.githubusercontent.com/sgossner/VSCO-2-CE/master/Strings/Viola%20Section/susvib/ViolaEns_susvib_G2_v1_1.wav",
+"tag": "",
+"vol": 28.0,
+"raw": "raw/strings_55.wav"
+},
+{
+"inst": "strings",
+"midi": 59,
+"url": "https://raw.githubusercontent.com/sgossner/VSCO-2-CE/master/Strings/Viola%20Section/susvib/ViolaEns_susvib_B2_v1_1.wav",
+"tag": "",
+"vol": 28.0,
+"raw": "raw/strings_59.wav"
+},
+{
+"inst": "strings",
+"midi": 62,
+"url": "https://raw.githubusercontent.com/sgossner/VSCO-2-CE/master/Strings/Viola%20Section/susvib/ViolaEns_susvib_D3_v1_1.wav",
+"tag": "",
+"vol": 28.0,
+"raw": "raw/strings_62.wav"
+},
+{
+"inst": "strings",
+"midi": 65,
+"url": "https://raw.githubusercontent.com/sgossner/VSCO-2-CE/master/Strings/Viola%20Section/susvib/ViolaEns_susvib_F3_v1_1.wav",
+"tag": "",
+"vol": 28.0,
+"raw": "raw/strings_65.wav"
+},
+{
+"inst": "strings",
+"midi": 69,
+"url": "https://raw.githubusercontent.com/sgossner/VSCO-2-CE/master/Strings/Violin%20Section/susVib/VlnEns_susVib_A3_v1.wav",
+"tag": "",
+"vol": 20.0,
+"raw": "raw/strings_69.wav"
+},
+{
+"inst": "strings",
+"midi": 72,
+"url": "https://raw.githubusercontent.com/sgossner/VSCO-2-CE/master/Strings/Violin%20Section/susVib/VlnEns_susVib_C4_v1.wav",
+"tag": "",
+"vol": 20.0,
+"raw": "raw/strings_72.wav"
+},
+{
+"inst": "strings",
+"midi": 76,
+"url": "https://raw.githubusercontent.com/sgossner/VSCO-2-CE/master/Strings/Violin%20Section/susVib/VlnEns_susVib_E4_v1.wav",
+"tag": "",
+"vol": 20.0,
+"raw": "raw/strings_76.wav"
+},
+{
+"inst": "strings",
+"midi": 79,
+"url": "https://raw.githubusercontent.com/sgossner/VSCO-2-CE/master/Strings/Violin%20Section/susVib/VlnEns_susVib_G4_v1.wav",
+"tag": "",
+"vol": 20.0,
+"raw": "raw/strings_79.wav"
+},
+{
+"inst": "strings",
+"midi": 83,
+"url": "https://raw.githubusercontent.com/sgossner/VSCO-2-CE/master/Strings/Violin%20Section/susVib/VlnEns_susVib_B4_v1.wav",
+"tag": "",
+"vol": 20.0,
+"raw": "raw/strings_83.wav"
+},
+{
+"inst": "strings",
+"midi": 86,
+"url": "https://raw.githubusercontent.com/sgossner/VSCO-2-CE/master/Strings/Violin%20Section/susVib/VlnEns_susVib_D5_v1.wav",
+"tag": "",
+"vol": 20.0,
+"raw": "raw/strings_86.wav"
+},
+{
+"inst": "spic",
+"midi": 36,
+"url": "https://raw.githubusercontent.com/sgossner/VSCO-2-CE/master/Strings/Cello%20Section/spic/spic_C1_v2_RR1.wav",
+"tag": "",
+"vol": 0.0,
+"raw": "raw/spic_36.wav"
+},
+{
+"inst": "spic",
+"midi": 43,
+"url": "https://raw.githubusercontent.com/sgossner/VSCO-2-CE/master/Strings/Cello%20Section/spic/spic_G1_v2_RR1.wav",
+"tag": "",
+"vol": 0.0,
+"raw": "raw/spic_43.wav"
+},
+{
+"inst": "spic",
+"midi": 50,
+"url": "https://raw.githubusercontent.com/sgossner/VSCO-2-CE/master/Strings/Cello%20Section/spic/spic_D2_v2_RR1.wav",
+"tag": "",
+"vol": 0.0,
+"raw": "raw/spic_50.wav"
+},
+{
+"inst": "spic",
+"midi": 57,
+"url": "https://raw.githubusercontent.com/sgossner/VSCO-2-CE/master/Strings/Cello%20Section/spic/spic_A2_v2_RR1.wav",
+"tag": "",
+"vol": 0.0,
+"raw": "raw/spic_57.wav"
+},
+{
+"inst": "spic",
+"midi": 62,
+"url": "https://raw.githubusercontent.com/sgossner/VSCO-2-CE/master/Strings/Viola%20Section/spic/Violas_spic_D3_v2_rr1.wav",
+"tag": "",
+"vol": 7.0,
+"raw": "raw/spic_62.wav"
+},
+{
+"inst": "spic",
+"midi": 69,
+"url": "https://raw.githubusercontent.com/sgossner/VSCO-2-CE/master/Strings/Viola%20Section/spic/Violas_spic_A3_v2_rr1.wav",
+"tag": "",
+"vol": 7.0,
+"raw": "raw/spic_69.wav"
+},
+{
+"inst": "spic",
+"midi": 76,
+"url": "https://raw.githubusercontent.com/sgossner/VSCO-2-CE/master/Strings/Violin%20Section/Spic/VlnEns_Spic_E4_v2_rr1.wav",
+"tag": "",
+"vol": 6.0,
+"raw": "raw/spic_76.wav"
+},
+{
+"inst": "spic",
+"midi": 83,
+"url": "https://raw.githubusercontent.com/sgossner/VSCO-2-CE/master/Strings/Violin%20Section/Spic/VlnEns_Spic_B4_v2_rr1.wav",
+"tag": "",
+"vol": 6.0,
+"raw": "raw/spic_83.wav"
+},
+{
+"inst": "pizz",
+"midi": 36,
+"url": "https://raw.githubusercontent.com/sgossner/VSCO-2-CE/master/Strings/Cello%20Section/pizzT/pizzT_C1_v2_RR1.wav",
+"tag": "",
+"vol": 4.0,
+"raw": "raw/pizz_36.wav"
+},
+{
+"inst": "pizz",
+"midi": 43,
+"url": "https://raw.githubusercontent.com/sgossner/VSCO-2-CE/master/Strings/Cello%20Section/pizzT/pizzT_G1_v2_RR1.wav",
+"tag": "",
+"vol": 4.0,
+"raw": "raw/pizz_43.wav"
+},
+{
+"inst": "pizz",
+"midi": 50,
+"url": "https://raw.githubusercontent.com/sgossner/VSCO-2-CE/master/Strings/Cello%20Section/pizzT/pizzT_D2_v2_RR1.wav",
+"tag": "",
+"vol": 4.0,
+"raw": "raw/pizz_50.wav"
+},
+{
+"inst": "pizz",
+"midi": 57,
+"url": "https://raw.githubusercontent.com/sgossner/VSCO-2-CE/master/Strings/Cello%20Section/pizzT/pizzT_A2_v2_RR1.wav",
+"tag": "",
+"vol": 4.0,
+"raw": "raw/pizz_57.wav"
+},
+{
+"inst": "pizz",
+"midi": 62,
+"url": "https://raw.githubusercontent.com/sgossner/VSCO-2-CE/master/Strings/Violin%20Section/Pizz/VlnEns_Pizz_D3_v2_rr1.wav",
+"tag": "",
+"vol": 6.0,
+"raw": "raw/pizz_62.wav"
+},
+{
+"inst": "pizz",
+"midi": 69,
+"url": "https://raw.githubusercontent.com/sgossner/VSCO-2-CE/master/Strings/Violin%20Section/Pizz/VlnEns_Pizz_A3_v2_rr1.wav",
+"tag": "",
+"vol": 6.0,
+"raw": "raw/pizz_69.wav"
+},
+{
+"inst": "pizz",
+"midi": 76,
+"url": "https://raw.githubusercontent.com/sgossner/VSCO-2-CE/master/Strings/Violin%20Section/Pizz/VlnEns_Pizz_E4_v2_rr1.wav",
+"tag": "",
+"vol": 6.0,
+"raw": "raw/pizz_76.wav"
+},
+{
+"inst": "pizz",
+"midi": 83,
+"url": "https://raw.githubusercontent.com/sgossner/VSCO-2-CE/master/Strings/Violin%20Section/Pizz/VlnEns_Pizz_B4_v2_rr1.wav",
+"tag": "",
+"vol": 6.0,
+"raw": "raw/pizz_83.wav"
+},
+{
+"inst": "trem",
+"midi": 36,
+"url": "https://raw.githubusercontent.com/sgossner/VSCO-2-CE/master/Strings/Cello%20Section/trem/trem_C1_v2_1.wav",
+"tag": "",
+"vol": 4.0,
+"raw": "raw/trem_36.wav"
+},
+{
+"inst": "trem",
+"midi": 43,
+"url": "https://raw.githubusercontent.com/sgossner/VSCO-2-CE/master/Strings/Cello%20Section/trem/trem_G1_v1_1.wav",
+"tag": "",
+"vol": 26.0,
+"raw": "raw/trem_43.wav"
+},
+{
+"inst": "trem",
+"midi": 50,
+"url": "https://raw.githubusercontent.com/sgossner/VSCO-2-CE/master/Strings/Cello%20Section/trem/trem_D2_v1_1.wav",
+"tag": "",
+"vol": 26.0,
+"raw": "raw/trem_50.wav"
+},
+{
+"inst": "trem",
+"midi": 55,
+"url": "https://raw.githubusercontent.com/sgossner/VSCO-2-CE/master/Strings/Viola%20Section/trem/Violas_trem_G2_v1_rr1.wav",
+"tag": "",
+"vol": 32.0,
+"raw": "raw/trem_55.wav"
+},
+{
+"inst": "trem",
+"midi": 62,
+"url": "https://raw.githubusercontent.com/sgossner/VSCO-2-CE/master/Strings/Viola%20Section/trem/Violas_trem_D3_v1_rr1.wav",
+"tag": "",
+"vol": 32.0,
+"raw": "raw/trem_62.wav"
+},
+{
+"inst": "trem",
+"midi": 69,
+"url": "https://raw.githubusercontent.com/sgossner/VSCO-2-CE/master/Strings/Violin%20Section/Trem/VlnEns_Trem_A3_v1.wav",
+"tag": "",
+"vol": 20.0,
+"raw": "raw/trem_69.wav"
+},
+{
+"inst": "trem",
+"midi": 76,
+"url": "https://raw.githubusercontent.com/sgossner/VSCO-2-CE/master/Strings/Violin%20Section/Trem/VlnEns_Trem_E4_v1.wav",
+"tag": "",
+"vol": 20.0,
+"raw": "raw/trem_76.wav"
+},
+{
+"inst": "flute",
+"midi": 60,
+"url": "https://raw.githubusercontent.com/sgossner/VSCO-2-CE/master/Woodwinds/Flute/susvib/LDFlute_susvib_C3_v1_1.wav",
+"tag": "",
+"vol": 8.0,
+"raw": "raw/flute_60.wav"
+},
+{
+"inst": "flute",
+"midi": 64,
+"url": "https://raw.githubusercontent.com/sgossner/VSCO-2-CE/master/Woodwinds/Flute/susvib/LDFlute_susvib_E3_v1_1.wav",
+"tag": "",
+"vol": 8.0,
+"raw": "raw/flute_64.wav"
+},
+{
+"inst": "flute",
+"midi": 69,
+"url": "https://raw.githubusercontent.com/sgossner/VSCO-2-CE/master/Woodwinds/Flute/susvib/LDFlute_susvib_A3_v1_1.wav",
+"tag": "",
+"vol": 8.0,
+"raw": "raw/flute_69.wav"
+},
+{
+"inst": "flute",
+"midi": 72,
+"url": "https://raw.githubusercontent.com/sgossner/VSCO-2-CE/master/Woodwinds/Flute/susvib/LDFlute_susvib_C4_v1_1.wav",
+"tag": "",
+"vol": 12.0,
+"raw": "raw/flute_72.wav"
+},
+{
+"inst": "flute",
+"midi": 76,
+"url": "https://raw.githubusercontent.com/sgossner/VSCO-2-CE/master/Woodwinds/Flute/susvib/LDFlute_susvib_E4_v1_1.wav",
+"tag": "",
+"vol": 12.0,
+"raw": "raw/flute_76.wav"
+},
+{
+"inst": "flute",
+"midi": 81,
+"url": "https://raw.githubusercontent.com/sgossner/VSCO-2-CE/master/Woodwinds/Flute/susvib/LDFlute_susvib_A4_v1_1.wav",
+"tag": "",
+"vol": 8.0,
+"raw": "raw/flute_81.wav"
+},
+{
+"inst": "flute",
+"midi": 84,
+"url": "https://raw.githubusercontent.com/sgossner/VSCO-2-CE/master/Woodwinds/Flute/susvib/LDFlute_susvib_C5_v1_1.wav",
+"tag": "",
+"vol": 8.0,
+"raw": "raw/flute_84.wav"
+},
+{
+"inst": "flute",
+"midi": 88,
+"url": "https://raw.githubusercontent.com/sgossner/VSCO-2-CE/master/Woodwinds/Flute/susvib/LDFlute_susvib_E5_v1_1.wav",
+"tag": "",
+"vol": 4.0,
+"raw": "raw/flute_88.wav"
+},
+{
+"inst": "oboe",
+"midi": 58,
+"url": "https://raw.githubusercontent.com/sgossner/VSCO-2-CE/master/Woodwinds/Oboe/Vib/Oboe_Vib_A%232_v1_Main.wav",
+"tag": "",
+"vol": 12.0,
+"raw": "raw/oboe_58.wav"
+},
+{
+"inst": "oboe",
+"midi": 62,
+"url": "https://raw.githubusercontent.com/sgossner/VSCO-2-CE/master/Woodwinds/Oboe/Vib/Oboe_Vib_D3_v1_Main.wav",
+"tag": "",
+"vol": 12.0,
+"raw": "raw/oboe_62.wav"
+},
+{
+"inst": "oboe",
+"midi": 65,
+"url": "https://raw.githubusercontent.com/sgossner/VSCO-2-CE/master/Woodwinds/Oboe/Vib/Oboe_Vib_F3_v1_Main.wav",
+"tag": "",
+"vol": 12.0,
+"raw": "raw/oboe_65.wav"
+},
+{
+"inst": "oboe",
+"midi": 70,
+"url": "https://raw.githubusercontent.com/sgossner/VSCO-2-CE/master/Woodwinds/Oboe/Vib/Oboe_Vib_A%233_v1_Main.wav",
+"tag": "",
+"vol": 12.0,
+"raw": "raw/oboe_70.wav"
+},
+{
+"inst": "oboe",
+"midi": 74,
+"url": "https://raw.githubusercontent.com/sgossner/VSCO-2-CE/master/Woodwinds/Oboe/Vib/Oboe_Vib_D4_v1_Main.wav",
+"tag": "",
+"vol": 12.0,
+"raw": "raw/oboe_74.wav"
+},
+{
+"inst": "oboe",
+"midi": 77,
+"url": "https://raw.githubusercontent.com/sgossner/VSCO-2-CE/master/Woodwinds/Oboe/Vib/Oboe_Vib_F4_v1_Main.wav",
+"tag": "",
+"vol": 12.0,
+"raw": "raw/oboe_77.wav"
+},
+{
+"inst": "oboe",
+"midi": 82,
+"url": "https://raw.githubusercontent.com/sgossner/VSCO-2-CE/master/Woodwinds/Oboe/Vib/Oboe_Vib_A%234_v1_Main.wav",
+"tag": "",
+"vol": 12.0,
+"raw": "raw/oboe_82.wav"
+},
+{
+"inst": "clarinet",
+"midi": 50,
+"url": "https://raw.githubusercontent.com/sgossner/VSCO-2-CE/master/Woodwinds/Clarinet/susLong/DCClar_susLong_D2_v2_rr1_sum.wav",
+"tag": "",
+"vol": 13.0,
+"raw": "raw/clarinet_50.wav"
+},
+{
+"inst": "clarinet",
+"midi": 53,
+"url": "https://raw.githubusercontent.com/sgossner/VSCO-2-CE/master/Woodwinds/Clarinet/susLong/DCClar_susLong_F2_v2_rr1_sum.wav",
+"tag": "",
+"vol": 13.0,
+"raw": "raw/clarinet_53.wav"
+},
+{
+"inst": "clarinet",
+"midi": 58,
+"url": "https://raw.githubusercontent.com/sgossner/VSCO-2-CE/master/Woodwinds/Clarinet/susLong/DCClar_susLong_A%232_v2_rr1_sum.wav",
+"tag": "",
+"vol": 13.0,
+"raw": "raw/clarinet_58.wav"
+},
+{
+"inst": "clarinet",
+"midi": 62,
+"url": "https://raw.githubusercontent.com/sgossner/VSCO-2-CE/master/Woodwinds/Clarinet/susLong/DCClar_susLong_D3_v2_rr1_sum.wav",
+"tag": "",
+"vol": 13.0,
+"raw": "raw/clarinet_62.wav"
+},
+{
+"inst": "clarinet",
+"midi": 65,
+"url": "https://raw.githubusercontent.com/sgossner/VSCO-2-CE/master/Woodwinds/Clarinet/susLong/DCClar_susLong_F3_v2_rr1_sum.wav",
+"tag": "",
+"vol": 13.0,
+"raw": "raw/clarinet_65.wav"
+},
+{
+"inst": "clarinet",
+"midi": 70,
+"url": "https://raw.githubusercontent.com/sgossner/VSCO-2-CE/master/Woodwinds/Clarinet/susLong/DCClar_susLong_A%233_v2_rr1_sum.wav",
+"tag": "",
+"vol": 13.0,
+"raw": "raw/clarinet_70.wav"
+},
+{
+"inst": "clarinet",
+"midi": 74,
+"url": "https://raw.githubusercontent.com/sgossner/VSCO-2-CE/master/Woodwinds/Clarinet/susLong/DCClar_susLong_D4_v2_rr1_sum.wav",
+"tag": "",
+"vol": 13.0,
+"raw": "raw/clarinet_74.wav"
+},
+{
+"inst": "clarinet",
+"midi": 77,
+"url": "https://raw.githubusercontent.com/sgossner/VSCO-2-CE/master/Woodwinds/Clarinet/susLong/DCClar_susLong_F4_v2_rr1_sum.wav",
+"tag": "",
+"vol": 13.0,
+"raw": "raw/clarinet_77.wav"
+},
+{
+"inst": "bassoon",
+"midi": 34,
+"url": "https://raw.githubusercontent.com/sgossner/VSCO-2-CE/master/Woodwinds/Bassoon/sus/PSBassoon_A%230_v1_1.wav",
+"tag": "",
+"vol": 6.0,
+"raw": "raw/bassoon_34.wav"
+},
+{
+"inst": "bassoon",
+"midi": 41,
+"url": "https://raw.githubusercontent.com/sgossner/VSCO-2-CE/master/Woodwinds/Bassoon/sus/PSBassoon_F1_v1_1.wav",
+"tag": "",
+"vol": 6.0,
+"raw": "raw/bassoon_41.wav"
+},
+{
+"inst": "bassoon",
+"midi": 48,
+"url": "https://raw.githubusercontent.com/sgossner/VSCO-2-CE/master/Woodwinds/Bassoon/sus/PSBassoon_C2_v1_1.wav",
+"tag": "",
+"vol": 6.0,
+"raw": "raw/bassoon_48.wav"
+},
+{
+"inst": "bassoon",
+"midi": 55,
+"url": "https://raw.githubusercontent.com/sgossner/VSCO-2-CE/master/Woodwinds/Bassoon/sus/PSBassoon_G2_v1_1.wav",
+"tag": "",
+"vol": 6.0,
+"raw": "raw/bassoon_55.wav"
+},
+{
+"inst": "bassoon",
+"midi": 60,
+"url": "https://raw.githubusercontent.com/sgossner/VSCO-2-CE/master/Woodwinds/Bassoon/sus/PSBassoon_C3_v1_1.wav",
+"tag": "",
+"vol": 6.0,
+"raw": "raw/bassoon_60.wav"
+},
+{
+"inst": "bassoon",
+"midi": 63,
+"url": "https://raw.githubusercontent.com/sgossner/VSCO-2-CE/master/Woodwinds/Bassoon/sus/PSBassoon_D%233_v1_1.wav",
+"tag": "",
+"vol": 6.0,
+"raw": "raw/bassoon_63.wav"
+},
+{
+"inst": "trumpet",
+"midi": 57,
+"url": "https://raw.githubusercontent.com/sgossner/VSCO-2-CE/master/Brass/Trumpet/sus/Sum_SHTrumpet_sus_A2_v1_rr1.wav",
+"tag": "",
+"vol": 18.0,
+"raw": "raw/trumpet_57.wav"
+},
+{
+"inst": "trumpet",
+"midi": 63,
+"url": "https://raw.githubusercontent.com/sgossner/VSCO-2-CE/master/Brass/Trumpet/sus/Sum_SHTrumpet_sus_D%233_v1_rr1.wav",
+"tag": "",
+"vol": 18.0,
+"raw": "raw/trumpet_63.wav"
+},
+{
+"inst": "trumpet",
+"midi": 70,
+"url": "https://raw.githubusercontent.com/sgossner/VSCO-2-CE/master/Brass/Trumpet/sus/Sum_SHTrumpet_sus_A%233_v1_rr1.wav",
+"tag": "",
+"vol": 18.0,
+"raw": "raw/trumpet_70.wav"
+},
+{
+"inst": "trumpet",
+"midi": 77,
+"url": "https://raw.githubusercontent.com/sgossner/VSCO-2-CE/master/Brass/Trumpet/sus/Sum_SHTrumpet_sus_F4_v1_rr1.wav",
+"tag": "",
+"vol": 18.0,
+"raw": "raw/trumpet_77.wav"
+},
+{
+"inst": "trombone",
+"midi": 34,
+"url": "https://raw.githubusercontent.com/sgossner/VSCO-2-CE/master/Brass/Tenor%20Trombone/sus/tenortbn_sus_A%230_v1_1.wav",
+"tag": "",
+"vol": 23.0,
+"raw": "raw/trombone_34.wav"
+},
+{
+"inst": "trombone",
+"midi": 41,
+"url": "https://raw.githubusercontent.com/sgossner/VSCO-2-CE/master/Brass/Tenor%20Trombone/sus/tenortbn_sus_F1_v2_1.wav",
+"tag": "",
+"vol": 15.0,
+"raw": "raw/trombone_41.wav"
+},
+{
+"inst": "trombone",
+"midi": 46,
+"url": "https://raw.githubusercontent.com/sgossner/VSCO-2-CE/master/Brass/Tenor%20Trombone/sus/tenortbn_sus_A%231_v2_1.wav",
+"tag": "",
+"vol": 15.0,
+"raw": "raw/trombone_46.wav"
+},
+{
+"inst": "trombone",
+"midi": 53,
+"url": "https://raw.githubusercontent.com/sgossner/VSCO-2-CE/master/Brass/Tenor%20Trombone/sus/tenortbn_sus_F2_v2_1.wav",
+"tag": "",
+"vol": 15.0,
+"raw": "raw/trombone_53.wav"
+},
+{
+"inst": "trombone",
+"midi": 60,
+"url": "https://raw.githubusercontent.com/sgossner/VSCO-2-CE/master/Brass/Tenor%20Trombone/sus/tenortbn_sus_C3_v2_1.wav",
+"tag": "",
+"vol": 15.0,
+"raw": "raw/trombone_60.wav"
+},
+{
+"inst": "timp",
+"midi": 42,
+"url": "https://raw.githubusercontent.com/sgossner/VSCO-2-CE/master/Percussion/Timpani/Timpani1_Hit_v1_rr1_Sum.wav",
+"tag": "mf",
+"vol": 27.0,
+"raw": "raw/timp_42_mf.wav"
+},
+{
+"inst": "timp",
+"midi": 49,
+"url": "https://raw.githubusercontent.com/sgossner/VSCO-2-CE/master/Percussion/Timpani/Timpani3_Hit_v3_rr1_Sum.wav",
+"tag": "mf",
+"vol": 10.0,
+"raw": "raw/timp_49_mf.wav"
+},
+{
+"inst": "timp",
+"midi": 54,
+"url": "https://raw.githubusercontent.com/sgossner/VSCO-2-CE/master/Percussion/Timpani/Timpani5_Hit_v3_rr1_Sum.wav",
+"tag": "mf",
+"vol": 10.0,
+"raw": "raw/timp_54_mf.wav"
+},
+{
+"inst": "timp",
+"midi": 42,
+"url": "https://raw.githubusercontent.com/sgossner/VSCO-2-CE/master/Percussion/Timpani/Timpani1_Hit_v3_rr1_Sum.wav",
+"tag": "ff",
+"vol": 17.0,
+"raw": "raw/timp_42_ff.wav"
+},
+{
+"inst": "timp",
+"midi": 49,
+"url": "https://raw.githubusercontent.com/sgossner/VSCO-2-CE/master/Percussion/Timpani/Timpani3_Hit_v4_rr1_Sum.wav",
+"tag": "ff",
+"vol": 2.0,
+"raw": "raw/timp_49_ff.wav"
+},
+{
+"inst": "timp",
+"midi": 54,
+"url": "https://raw.githubusercontent.com/sgossner/VSCO-2-CE/master/Percussion/Timpani/Timpani5_Hit_v4_rr1_Sum.wav",
+"tag": "ff",
+"vol": 2.0,
+"raw": "raw/timp_54_ff.wav"
+},
+{
+"inst": "bell",
+"midi": 60,
+"url": "https://raw.githubusercontent.com/sgossner/VSCO-2-CE/master/Percussion/TB_hit_C4_v4_rr1.wav",
+"tag": "",
+"vol": 6.0,
+"raw": "raw/bell_60.wav"
+},
+{
+"inst": "bell",
+"midi": 67,
+"url": "https://raw.githubusercontent.com/sgossner/VSCO-2-CE/master/Percussion/TB_hit_G4_v4_rr1.wav",
+"tag": "",
+"vol": 6.0,
+"raw": "raw/bell_67.wav"
+},
+{
+"inst": "bell",
+"midi": 72,
+"url": "https://raw.githubusercontent.com/sgossner/VSCO-2-CE/master/Percussion/TB_hit_C5_v4_rr1.wav",
+"tag": "",
+"vol": 6.0,
+"raw": "raw/bell_72.wav"
+},
+{
+"inst": "bell",
+"midi": 77,
+"url": "https://raw.githubusercontent.com/sgossner/VSCO-2-CE/master/Percussion/TB_hit_F5_v3_rr1.wav",
+"tag": "",
+"vol": 16.0,
+"raw": "raw/bell_77.wav"
+},
+{
+"inst": "glock",
+"midi": 67,
+"url": "https://raw.githubusercontent.com/sgossner/VSCO-2-CE/master/Percussion/Glock/glock_medium_G4.wav",
+"tag": "",
+"vol": 8.0,
+"raw": "raw/glock_67.wav"
+},
+{
+"inst": "glock",
+"midi": 72,
+"url": "https://raw.githubusercontent.com/sgossner/VSCO-2-CE/master/Percussion/Glock/glock_medium_C5.wav",
+"tag": "",
+"vol": 8.0,
+"raw": "raw/glock_72.wav"
+},
+{
+"inst": "glock",
+"midi": 79,
+"url": "https://raw.githubusercontent.com/sgossner/VSCO-2-CE/master/Percussion/Glock/glock_medium_G5.wav",
+"tag": "",
+"vol": 8.0,
+"raw": "raw/glock_79.wav"
+},
+{
+"inst": "glock",
+"midi": 84,
+"url": "https://raw.githubusercontent.com/sgossner/VSCO-2-CE/master/Percussion/Glock/glock_medium_C6.wav",
+"tag": "",
+"vol": 8.0,
+"raw": "raw/glock_84.wav"
+},
+{
+"inst": "glock",
+"midi": 91,
+"url": "https://raw.githubusercontent.com/sgossner/VSCO-2-CE/master/Percussion/Glock/glock_medium_G6.wav",
+"tag": "",
+"vol": 8.0,
+"raw": "raw/glock_91.wav"
+},
+{
+"inst": "organ",
+"midi": 36,
+"url": "https://raw.githubusercontent.com/sgossner/VSCO-2-CE/master/Keys/Organ/Quiet/NT5_Man3Quiet_122_rr1.wav",
+"tag": "",
+"vol": 12.0,
+"raw": "raw/organ_36.wav"
+},
+{
+"inst": "organ",
+"midi": 45,
+"url": "https://raw.githubusercontent.com/sgossner/VSCO-2-CE/master/Keys/Organ/Quiet/NT5_Man3Quiet_131_rr1.wav",
+"tag": "",
+"vol": 12.0,
+"raw": "raw/organ_45.wav"
+},
+{
+"inst": "organ",
+"midi": 54,
+"url": "https://raw.githubusercontent.com/sgossner/VSCO-2-CE/master/Keys/Organ/Quiet/NT5_Man3Quiet_140_rr1.wav",
+"tag": "",
+"vol": 12.0,
+"raw": "raw/organ_54.wav"
+},
+{
+"inst": "organ",
+"midi": 63,
+"url": "https://raw.githubusercontent.com/sgossner/VSCO-2-CE/master/Keys/Organ/Quiet/NT5_Man3Quiet_149_rr1.wav",
+"tag": "",
+"vol": 12.0,
+"raw": "raw/organ_63.wav"
+},
+{
+"inst": "organ",
+"midi": 72,
+"url": "https://raw.githubusercontent.com/sgossner/VSCO-2-CE/master/Keys/Organ/Quiet/NT5_Man3Quiet_158_rr1.wav",
+"tag": "",
+"vol": 12.0,
+"raw": "raw/organ_72.wav"
+},
+{
+"inst": "organ",
+"midi": 81,
+"url": "https://raw.githubusercontent.com/sgossner/VSCO-2-CE/master/Keys/Organ/Quiet/NT5_Man3Quiet_167_rr1.wav",
+"tag": "",
+"vol": 12.0,
+"raw": "raw/organ_81.wav"
+},
+{
+"inst": "lute",
+"midi": 40,
+"url": "https://raw.githubusercontent.com/gleitz/midi-js-soundfonts/gh-pages/FluidR3_GM/acoustic_guitar_nylon-mp3/E2.mp3",
+"tag": "",
+"vol": 0,
+"raw": "raw/lute_40.mp3"
+},
+{
+"inst": "lute",
+"midi": 43,
+"url": "https://raw.githubusercontent.com/gleitz/midi-js-soundfonts/gh-pages/FluidR3_GM/acoustic_guitar_nylon-mp3/G2.mp3",
+"tag": "",
+"vol": 0,
+"raw": "raw/lute_43.mp3"
+},
+{
+"inst": "lute",
+"midi": 46,
+"url": "https://raw.githubusercontent.com/gleitz/midi-js-soundfonts/gh-pages/FluidR3_GM/acoustic_guitar_nylon-mp3/Bb2.mp3",
+"tag": "",
+"vol": 0,
+"raw": "raw/lute_46.mp3"
+},
+{
+"inst": "lute",
+"midi": 49,
+"url": "https://raw.githubusercontent.com/gleitz/midi-js-soundfonts/gh-pages/FluidR3_GM/acoustic_guitar_nylon-mp3/Db3.mp3",
+"tag": "",
+"vol": 0,
+"raw": "raw/lute_49.mp3"
+},
+{
+"inst": "lute",
+"midi": 52,
+"url": "https://raw.githubusercontent.com/gleitz/midi-js-soundfonts/gh-pages/FluidR3_GM/acoustic_guitar_nylon-mp3/E3.mp3",
+"tag": "",
+"vol": 0,
+"raw": "raw/lute_52.mp3"
+},
+{
+"inst": "lute",
+"midi": 55,
+"url": "https://raw.githubusercontent.com/gleitz/midi-js-soundfonts/gh-pages/FluidR3_GM/acoustic_guitar_nylon-mp3/G3.mp3",
+"tag": "",
+"vol": 0,
+"raw": "raw/lute_55.mp3"
+},
+{
+"inst": "lute",
+"midi": 58,
+"url": "https://raw.githubusercontent.com/gleitz/midi-js-soundfonts/gh-pages/FluidR3_GM/acoustic_guitar_nylon-mp3/Bb3.mp3",
+"tag": "",
+"vol": 0,
+"raw": "raw/lute_58.mp3"
+},
+{
+"inst": "lute",
+"midi": 61,
+"url": "https://raw.githubusercontent.com/gleitz/midi-js-soundfonts/gh-pages/FluidR3_GM/acoustic_guitar_nylon-mp3/Db4.mp3",
+"tag": "",
+"vol": 0,
+"raw": "raw/lute_61.mp3"
+},
+{
+"inst": "lute",
+"midi": 64,
+"url": "https://raw.githubusercontent.com/gleitz/midi-js-soundfonts/gh-pages/FluidR3_GM/acoustic_guitar_nylon-mp3/E4.mp3",
+"tag": "",
+"vol": 0,
+"raw": "raw/lute_64.mp3"
+},
+{
+"inst": "lute",
+"midi": 67,
+"url": "https://raw.githubusercontent.com/gleitz/midi-js-soundfonts/gh-pages/FluidR3_GM/acoustic_guitar_nylon-mp3/G4.mp3",
+"tag": "",
+"vol": 0,
+"raw": "raw/lute_67.mp3"
+},
+{
+"inst": "lute",
+"midi": 70,
+"url": "https://raw.githubusercontent.com/gleitz/midi-js-soundfonts/gh-pages/FluidR3_GM/acoustic_guitar_nylon-mp3/Bb4.mp3",
+"tag": "",
+"vol": 0,
+"raw": "raw/lute_70.mp3"
+},
+{
+"inst": "lute",
+"midi": 73,
+"url": "https://raw.githubusercontent.com/gleitz/midi-js-soundfonts/gh-pages/FluidR3_GM/acoustic_guitar_nylon-mp3/Db5.mp3",
+"tag": "",
+"vol": 0,
+"raw": "raw/lute_73.mp3"
+},
+{
+"inst": "lute",
+"midi": 76,
+"url": "https://raw.githubusercontent.com/gleitz/midi-js-soundfonts/gh-pages/FluidR3_GM/acoustic_guitar_nylon-mp3/E5.mp3",
+"tag": "",
+"vol": 0,
+"raw": "raw/lute_76.mp3"
+},
+{
+"inst": "choir",
+"midi": 48,
+"url": "https://raw.githubusercontent.com/gleitz/midi-js-soundfonts/gh-pages/FluidR3_GM/choir_aahs-mp3/C3.mp3",
+"tag": "",
+"vol": 0,
+"raw": "raw/choir_48.mp3"
+},
+{
+"inst": "choir",
+"midi": 52,
+"url": "https://raw.githubusercontent.com/gleitz/midi-js-soundfonts/gh-pages/FluidR3_GM/choir_aahs-mp3/E3.mp3",
+"tag": "",
+"vol": 0,
+"raw": "raw/choir_52.mp3"
+},
+{
+"inst": "choir",
+"midi": 56,
+"url": "https://raw.githubusercontent.com/gleitz/midi-js-soundfonts/gh-pages/FluidR3_GM/choir_aahs-mp3/Ab3.mp3",
+"tag": "",
+"vol": 0,
+"raw": "raw/choir_56.mp3"
+},
+{
+"inst": "choir",
+"midi": 60,
+"url": "https://raw.githubusercontent.com/gleitz/midi-js-soundfonts/gh-pages/FluidR3_GM/choir_aahs-mp3/C4.mp3",
+"tag": "",
+"vol": 0,
+"raw": "raw/choir_60.mp3"
+},
+{
+"inst": "choir",
+"midi": 64,
+"url": "https://raw.githubusercontent.com/gleitz/midi-js-soundfonts/gh-pages/FluidR3_GM/choir_aahs-mp3/E4.mp3",
+"tag": "",
+"vol": 0,
+"raw": "raw/choir_64.mp3"
+},
+{
+"inst": "choir",
+"midi": 68,
+"url": "https://raw.githubusercontent.com/gleitz/midi-js-soundfonts/gh-pages/FluidR3_GM/choir_aahs-mp3/Ab4.mp3",
+"tag": "",
+"vol": 0,
+"raw": "raw/choir_68.mp3"
+},
+{
+"inst": "choir",
+"midi": 72,
+"url": "https://raw.githubusercontent.com/gleitz/midi-js-soundfonts/gh-pages/FluidR3_GM/choir_aahs-mp3/C5.mp3",
+"tag": "",
+"vol": 0,
+"raw": "raw/choir_72.mp3"
+},
+{
+"inst": "choir",
+"midi": 76,
+"url": "https://raw.githubusercontent.com/gleitz/midi-js-soundfonts/gh-pages/FluidR3_GM/choir_aahs-mp3/E5.mp3",
+"tag": "",
+"vol": 0,
+"raw": "raw/choir_76.mp3"
+},
+{
+"inst": "recorder",
+"midi": 60,
+"url": "https://raw.githubusercontent.com/gleitz/midi-js-soundfonts/gh-pages/FluidR3_GM/recorder-mp3/C4.mp3",
+"tag": "",
+"vol": 0,
+"raw": "raw/recorder_60.mp3"
+},
+{
+"inst": "recorder",
+"midi": 64,
+"url": "https://raw.githubusercontent.com/gleitz/midi-js-soundfonts/gh-pages/FluidR3_GM/recorder-mp3/E4.mp3",
+"tag": "",
+"vol": 0,
+"raw": "raw/recorder_64.mp3"
+},
+{
+"inst": "recorder",
+"midi": 68,
+"url": "https://raw.githubusercontent.com/gleitz/midi-js-soundfonts/gh-pages/FluidR3_GM/recorder-mp3/Ab4.mp3",
+"tag": "",
+"vol": 0,
+"raw": "raw/recorder_68.mp3"
+},
+{
+"inst": "recorder",
+"midi": 72,
+"url": "https://raw.githubusercontent.com/gleitz/midi-js-soundfonts/gh-pages/FluidR3_GM/recorder-mp3/C5.mp3",
+"tag": "",
+"vol": 0,
+"raw": "raw/recorder_72.mp3"
+},
+{
+"inst": "recorder",
+"midi": 76,
+"url": "https://raw.githubusercontent.com/gleitz/midi-js-soundfonts/gh-pages/FluidR3_GM/recorder-mp3/E5.mp3",
+"tag": "",
+"vol": 0,
+"raw": "raw/recorder_76.mp3"
+},
+{
+"inst": "recorder",
+"midi": 80,
+"url": "https://raw.githubusercontent.com/gleitz/midi-js-soundfonts/gh-pages/FluidR3_GM/recorder-mp3/Ab5.mp3",
+"tag": "",
+"vol": 0,
+"raw": "raw/recorder_80.mp3"
+},
+{
+"inst": "recorder",
+"midi": 84,
+"url": "https://raw.githubusercontent.com/gleitz/midi-js-soundfonts/gh-pages/FluidR3_GM/recorder-mp3/C6.mp3",
+"tag": "",
+"vol": 0,
+"raw": "raw/recorder_84.mp3"
+},
+{
+"inst": "recorder",
+"midi": 88,
+"url": "https://raw.githubusercontent.com/gleitz/midi-js-soundfonts/gh-pages/FluidR3_GM/recorder-mp3/E6.mp3",
+"tag": "",
+"vol": 0,
+"raw": "raw/recorder_88.mp3"
+},
+{
+"inst": "cello",
+"midi": 36,
+"url": "https://raw.githubusercontent.com/gleitz/midi-js-soundfonts/gh-pages/FluidR3_GM/cello-mp3/C2.mp3",
+"tag": "",
+"vol": 0,
+"raw": "raw/cello_36.mp3"
+},
+{
+"inst": "cello",
+"midi": 40,
+"url": "https://raw.githubusercontent.com/gleitz/midi-js-soundfonts/gh-pages/FluidR3_GM/cello-mp3/E2.mp3",
+"tag": "",
+"vol": 0,
+"raw": "raw/cello_40.mp3"
+},
+{
+"inst": "cello",
+"midi": 44,
+"url": "https://raw.githubusercontent.com/gleitz/midi-js-soundfonts/gh-pages/FluidR3_GM/cello-mp3/Ab2.mp3",
+"tag": "",
+"vol": 0,
+"raw": "raw/cello_44.mp3"
+},
+{
+"inst": "cello",
+"midi": 48,
+"url": "https://raw.githubusercontent.com/gleitz/midi-js-soundfonts/gh-pages/FluidR3_GM/cello-mp3/C3.mp3",
+"tag": "",
+"vol": 0,
+"raw": "raw/cello_48.mp3"
+},
+{
+"inst": "cello",
+"midi": 52,
+"url": "https://raw.githubusercontent.com/gleitz/midi-js-soundfonts/gh-pages/FluidR3_GM/cello-mp3/E3.mp3",
+"tag": "",
+"vol": 0,
+"raw": "raw/cello_52.mp3"
+},
+{
+"inst": "cello",
+"midi": 56,
+"url": "https://raw.githubusercontent.com/gleitz/midi-js-soundfonts/gh-pages/FluidR3_GM/cello-mp3/Ab3.mp3",
+"tag": "",
+"vol": 0,
+"raw": "raw/cello_56.mp3"
+},
+{
+"inst": "cello",
+"midi": 60,
+"url": "https://raw.githubusercontent.com/gleitz/midi-js-soundfonts/gh-pages/FluidR3_GM/cello-mp3/C4.mp3",
+"tag": "",
+"vol": 0,
+"raw": "raw/cello_60.mp3"
+},
+{
+"inst": "cello",
+"midi": 64,
+"url": "https://raw.githubusercontent.com/gleitz/midi-js-soundfonts/gh-pages/FluidR3_GM/cello-mp3/E4.mp3",
+"tag": "",
+"vol": 0,
+"raw": "raw/cello_64.mp3"
+},
+{
+"inst": "cello",
+"midi": 68,
+"url": "https://raw.githubusercontent.com/gleitz/midi-js-soundfonts/gh-pages/FluidR3_GM/cello-mp3/Ab4.mp3",
+"tag": "",
+"vol": 0,
+"raw": "raw/cello_68.mp3"
+},
+{
+"inst": "violin",
+"midi": 55,
+"url": "https://raw.githubusercontent.com/gleitz/midi-js-soundfonts/gh-pages/FluidR3_GM/violin-mp3/G3.mp3",
+"tag": "",
+"vol": 0,
+"raw": "raw/violin_55.mp3"
+},
+{
+"inst": "violin",
+"midi": 59,
+"url": "https://raw.githubusercontent.com/gleitz/midi-js-soundfonts/gh-pages/FluidR3_GM/violin-mp3/B3.mp3",
+"tag": "",
+"vol": 0,
+"raw": "raw/violin_59.mp3"
+},
+{
+"inst": "violin",
+"midi": 63,
+"url": "https://raw.githubusercontent.com/gleitz/midi-js-soundfonts/gh-pages/FluidR3_GM/violin-mp3/Eb4.mp3",
+"tag": "",
+"vol": 0,
+"raw": "raw/violin_63.mp3"
+},
+{
+"inst": "violin",
+"midi": 67,
+"url": "https://raw.githubusercontent.com/gleitz/midi-js-soundfonts/gh-pages/FluidR3_GM/violin-mp3/G4.mp3",
+"tag": "",
+"vol": 0,
+"raw": "raw/violin_67.mp3"
+},
+{
+"inst": "violin",
+"midi": 71,
+"url": "https://raw.githubusercontent.com/gleitz/midi-js-soundfonts/gh-pages/FluidR3_GM/violin-mp3/B4.mp3",
+"tag": "",
+"vol": 0,
+"raw": "raw/violin_71.mp3"
+},
+{
+"inst": "violin",
+"midi": 75,
+"url": "https://raw.githubusercontent.com/gleitz/midi-js-soundfonts/gh-pages/FluidR3_GM/violin-mp3/Eb5.mp3",
+"tag": "",
+"vol": 0,
+"raw": "raw/violin_75.mp3"
+},
+{
+"inst": "violin",
+"midi": 79,
+"url": "https://raw.githubusercontent.com/gleitz/midi-js-soundfonts/gh-pages/FluidR3_GM/violin-mp3/G5.mp3",
+"tag": "",
+"vol": 0,
+"raw": "raw/violin_79.mp3"
+},
+{
+"inst": "violin",
+"midi": 83,
+"url": "https://raw.githubusercontent.com/gleitz/midi-js-soundfonts/gh-pages/FluidR3_GM/violin-mp3/B5.mp3",
+"tag": "",
+"vol": 0,
+"raw": "raw/violin_83.mp3"
+},
+{
+"inst": "violin",
+"midi": 87,
+"url": "https://raw.githubusercontent.com/gleitz/midi-js-soundfonts/gh-pages/FluidR3_GM/violin-mp3/Eb6.mp3",
+"tag": "",
+"vol": 0,
+"raw": "raw/violin_87.mp3"
+},
+{
+"inst": "violin",
+"midi": 91,
+"url": "https://raw.githubusercontent.com/gleitz/midi-js-soundfonts/gh-pages/FluidR3_GM/violin-mp3/G6.mp3",
+"tag": "",
+"vol": 0,
+"raw": "raw/violin_91.mp3"
+},
+{
+"inst": "horn",
+"midi": 36,
+"url": "https://raw.githubusercontent.com/gleitz/midi-js-soundfonts/gh-pages/FluidR3_GM/french_horn-mp3/C2.mp3",
+"tag": "",
+"vol": 0,
+"raw": "raw/horn_36.mp3"
+},
+{
+"inst": "horn",
+"midi": 40,
+"url": "https://raw.githubusercontent.com/gleitz/midi-js-soundfonts/gh-pages/FluidR3_GM/french_horn-mp3/E2.mp3",
+"tag": "",
+"vol": 0,
+"raw": "raw/horn_40.mp3"
+},
+{
+"inst": "horn",
+"midi": 44,
+"url": "https://raw.githubusercontent.com/gleitz/midi-js-soundfonts/gh-pages/FluidR3_GM/french_horn-mp3/Ab2.mp3",
+"tag": "",
+"vol": 0,
+"raw": "raw/horn_44.mp3"
+},
+{
+"inst": "horn",
+"midi": 48,
+"url": "https://raw.githubusercontent.com/gleitz/midi-js-soundfonts/gh-pages/FluidR3_GM/french_horn-mp3/C3.mp3",
+"tag": "",
+"vol": 0,
+"raw": "raw/horn_48.mp3"
+},
+{
+"inst": "horn",
+"midi": 52,
+"url": "https://raw.githubusercontent.com/gleitz/midi-js-soundfonts/gh-pages/FluidR3_GM/french_horn-mp3/E3.mp3",
+"tag": "",
+"vol": 0,
+"raw": "raw/horn_52.mp3"
+},
+{
+"inst": "horn",
+"midi": 56,
+"url": "https://raw.githubusercontent.com/gleitz/midi-js-soundfonts/gh-pages/FluidR3_GM/french_horn-mp3/Ab3.mp3",
+"tag": "",
+"vol": 0,
+"raw": "raw/horn_56.mp3"
+},
+{
+"inst": "horn",
+"midi": 60,
+"url": "https://raw.githubusercontent.com/gleitz/midi-js-soundfonts/gh-pages/FluidR3_GM/french_horn-mp3/C4.mp3",
+"tag": "",
+"vol": 0,
+"raw": "raw/horn_60.mp3"
+},
+{
+"inst": "horn",
+"midi": 64,
+"url": "https://raw.githubusercontent.com/gleitz/midi-js-soundfonts/gh-pages/FluidR3_GM/french_horn-mp3/E4.mp3",
+"tag": "",
+"vol": 0,
+"raw": "raw/horn_64.mp3"
+},
+{
+"inst": "bass",
+"midi": 28,
+"url": "https://raw.githubusercontent.com/gleitz/midi-js-soundfonts/gh-pages/FluidR3_GM/contrabass-mp3/E1.mp3",
+"tag": "",
+"vol": 0,
+"raw": "raw/bass_28.mp3"
+},
+{
+"inst": "bass",
+"midi": 33,
+"url": "https://raw.githubusercontent.com/gleitz/midi-js-soundfonts/gh-pages/FluidR3_GM/contrabass-mp3/A1.mp3",
+"tag": "",
+"vol": 0,
+"raw": "raw/bass_33.mp3"
+},
+{
+"inst": "bass",
+"midi": 38,
+"url": "https://raw.githubusercontent.com/gleitz/midi-js-soundfonts/gh-pages/FluidR3_GM/contrabass-mp3/D2.mp3",
+"tag": "",
+"vol": 0,
+"raw": "raw/bass_38.mp3"
+},
+{
+"inst": "bass",
+"midi": 43,
+"url": "https://raw.githubusercontent.com/gleitz/midi-js-soundfonts/gh-pages/FluidR3_GM/contrabass-mp3/G2.mp3",
+"tag": "",
+"vol": 0,
+"raw": "raw/bass_43.mp3"
+},
+{
+"inst": "bass",
+"midi": 48,
+"url": "https://raw.githubusercontent.com/gleitz/midi-js-soundfonts/gh-pages/FluidR3_GM/contrabass-mp3/C3.mp3",
+"tag": "",
+"vol": 0,
+"raw": "raw/bass_48.mp3"
+},
+{
+"inst": "taiko",
+"midi": 36,
+"url": "https://raw.githubusercontent.com/gleitz/midi-js-soundfonts/gh-pages/FluidR3_GM/taiko_drum-mp3/C2.mp3",
+"tag": "",
+"vol": 0,
+"raw": "raw/taiko_36.mp3"
+},
+{
+"inst": "taiko",
+"midi": 43,
+"url": "https://raw.githubusercontent.com/gleitz/midi-js-soundfonts/gh-pages/FluidR3_GM/taiko_drum-mp3/G2.mp3",
+"tag": "",
+"vol": 0,
+"raw": "raw/taiko_43.mp3"
+},
+{
+"inst": "taiko",
+"midi": 50,
+"url": "https://raw.githubusercontent.com/gleitz/midi-js-soundfonts/gh-pages/FluidR3_GM/taiko_drum-mp3/D3.mp3",
+"tag": "",
+"vol": 0,
+"raw": "raw/taiko_50.mp3"
+},
+{
+"inst": "tom",
+"midi": 45,
+"url": "https://raw.githubusercontent.com/gleitz/midi-js-soundfonts/gh-pages/FluidR3_GM/melodic_tom-mp3/A2.mp3",
+"tag": "",
+"vol": 0,
+"raw": "raw/tom_45.mp3"
+},
+{
+"inst": "tom",
+"midi": 52,
+"url": "https://raw.githubusercontent.com/gleitz/midi-js-soundfonts/gh-pages/FluidR3_GM/melodic_tom-mp3/E3.mp3",
+"tag": "",
+"vol": 0,
+"raw": "raw/tom_52.mp3"
+},
+{
+"inst": "tom",
+"midi": 60,
+"url": "https://raw.githubusercontent.com/gleitz/midi-js-soundfonts/gh-pages/FluidR3_GM/melodic_tom-mp3/C4.mp3",
+"tag": "",
+"vol": 0,
+"raw": "raw/tom_60.mp3"
+},
+{
+"inst": "wood",
+"midi": 60,
+"url": "https://raw.githubusercontent.com/gleitz/midi-js-soundfonts/gh-pages/FluidR3_GM/woodblock-mp3/C4.mp3",
+"tag": "",
+"vol": 0,
+"raw": "raw/wood_60.mp3"
+},
+{
+"inst": "wood",
+"midi": 72,
+"url": "https://raw.githubusercontent.com/gleitz/midi-js-soundfonts/gh-pages/FluidR3_GM/woodblock-mp3/C5.mp3",
+"tag": "",
+"vol": 0,
+"raw": "raw/wood_72.mp3"
+},
+{
+"inst": "dulcimer",
+"midi": 50,
+"url": "https://raw.githubusercontent.com/gleitz/midi-js-soundfonts/gh-pages/FluidR3_GM/dulcimer-mp3/D3.mp3",
+"tag": "",
+"vol": 0,
+"raw": "raw/dulcimer_50.mp3"
+},
+{
+"inst": "dulcimer",
+"midi": 57,
+"url": "https://raw.githubusercontent.com/gleitz/midi-js-soundfonts/gh-pages/FluidR3_GM/dulcimer-mp3/A3.mp3",
+"tag": "",
+"vol": 0,
+"raw": "raw/dulcimer_57.mp3"
+},
+{
+"inst": "dulcimer",
+"midi": 64,
+"url": "https://raw.githubusercontent.com/gleitz/midi-js-soundfonts/gh-pages/FluidR3_GM/dulcimer-mp3/E4.mp3",
+"tag": "",
+"vol": 0,
+"raw": "raw/dulcimer_64.mp3"
+},
+{
+"inst": "dulcimer",
+"midi": 71,
+"url": "https://raw.githubusercontent.com/gleitz/midi-js-soundfonts/gh-pages/FluidR3_GM/dulcimer-mp3/B4.mp3",
+"tag": "",
+"vol": 0,
+"raw": "raw/dulcimer_71.mp3"
+},
+{
+"inst": "dulcimer",
+"midi": 78,
+"url": "https://raw.githubusercontent.com/gleitz/midi-js-soundfonts/gh-pages/FluidR3_GM/dulcimer-mp3/Gb5.mp3",
+"tag": "",
+"vol": 0,
+"raw": "raw/dulcimer_78.mp3"
+}
+]

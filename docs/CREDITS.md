@@ -161,3 +161,21 @@ CC0라서 출처 표기 의무는 없지만, 누가 녹음했는지 남겨 둡�
 | [824588](https://freesound.org/s/824588/) | St Peters Church, Kinver - Distant Tolling Bell | TicAshfield | bell |
 | [829282](https://freesound.org/s/829282/) | Beginner chopping vegetables on a cutting board | megahope | cook |
 | [846523](https://freesound.org/s/846523/) | Another blackbird | sgo.75 | bird2 |
+
+## 음악 (29단계)
+
+곡은 모두 이 게임을 위해 새로 썼습니다(`src/audio/tracks.js`, 38곡). 악기 소리만 아래 녹음을 빌려 씁니다.
+녹음 파일은 `assets/audio/music/`에 있고(167개, 약 4MB), 목록은 `src/audio/samples.js`입니다.
+
+| 악기 (파일 앞머리) | 출처 | 라이선스 |
+|---|---|---|
+| harp, strings, spic, pizz, trem, flute, oboe, clarinet, bassoon, trumpet, trombone, timp, bell, glock, organ | [VSCO 2: Community Edition](https://github.com/sgossner/VSCO-2-CE) (Versilian Studios, Sam Gossner 외) | CC0 1.0 (퍼블릭 도메인) |
+| lute, choir, recorder, cello, horn, bass, taiko, tom, wood | FluidR3_GM 사운드폰트(Frank Wen)를 음마다 뽑아 둔 [midi-js-soundfonts](https://github.com/gleitz/midi-js-soundfonts) (Benjamin Gleitzman) | Creative Commons Attribution 3.0 |
+
+### 어떻게 다듬었나
+
+1. 악기마다 서너 음에 하나씩 녹음을 골라 받았습니다(그 사이 음은 가까운 녹음의 빠르기를 바꿔 냅니다).
+2. 44.1kHz 모노로 바꾸고, 소리가 시작되는 자리에 맞춰 앞을 자르고, 길이를 악기에 맞게(짧은 것 0.3초, 긴 것 6초) 줄여 끝을 부드럽게 닫았습니다.
+3. 크기를 맞췄습니다(긴 소리는 RMS, 뜯거나 치는 소리는 꼭지 기준). 음높이를 재서 어긋난 만큼(센트)을 목록에 적어 두고, 낼 때 바로잡습니다.
+4. mp3(모노 48~56kbps)로 압축했습니다.
+5. 게임 안에서는 브라우저(Chromium)로 곡을 처음부터 끝까지 실제로 그려 곡마다 RMS·꼭지·찢어짐·1초 창 크기 변화를 재고, 악기별 음높이도 다시 재서(몇 센트 안) 맞췄습니다.

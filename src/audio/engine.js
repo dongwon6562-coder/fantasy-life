@@ -1,9 +1,20 @@
-// 소리 엔진. 녹음 파일 없이 Web Audio로 악기 소리를 직접 만든다.
-// - Engine: 음량, 울림(리버브), 마지막 압축기
+// 소리 엔진.
+// - Engine: 음량, 울림(리버브), 마지막 압축기, 악기 샘플 받아 오기
 // - Group: 곡 하나(또는 효과음 묶음)가 쓰는 악기 통로. 통째로 서서히 끄고 켤 수 있다.
-// 악기: lute(류트) harp(하프) strings(현악 합주) viol(독주 현) flute(나무 피리) horn(뿔나팔)
-//       choir / choirOo(합창) bell(종) glass(유리 종) drone(지속 저음) wind(바람) pipe(갈대 피리) organ(작은 오르간)
-// 타악: frame(틀북) war(큰북) tom tick(나무) shaker jingle(방울) heart(심장) snare(군악 작은북) anvil(모루)
+//
+// 음악(group 종류 'music')은 실제 악기를 녹음한 샘플로만 소리를 낸다 (목록은 samples.js, 파일은 assets/audio/music/).
+//   뜯는 현: harp(하프) lute(류트·나일론 기타) pizz(현 뜯기)
+//   활: strings(현악 합주) spic(짧게 끊는 활) trem(떨리는 활) cello(독주 첼로) bass(콘트라베이스)
+//   나무 관: flute(플루트) recorder(리코더) oboe(오보에) clarinet(클라리넷) bassoon(바순)
+//   쇠 관: horn(호른) trumpet(트럼펫) trombone(트롬본)
+//   그 밖: choir(합창) organ(오르간) bell(관종) glock(글로켄슈필) timp(팀파니)
+//   타악(perc): taiko taiko2 taiko3(큰북 낮은 것부터) tom tom2 tom3(북) wood wood2(나무) timp timp2 timp3
+// 샘플 파일은 window.__flAssets 가 있을 때만(아이폰 판) 그 곡이 처음 흐를 때 받아 온다. 없으면 음악은 조용히 쉰다.
+//
+// 효과음·환경음(group 종류 'sfx', 'amb')은 아래의 옛 합성 악기를 그대로 쓴다 (sfx.js·ambience.js가 부른다):
+//   lute harp strings viol flute horn choir choirOo bell glass drone wind pipe organ
+//   타악: frame war tom tick shaker jingle heart snare anvil
+import { SAMPLES } from './samples.js';
 
 export const mtof = (m) => 440 * 2 ** ((m - 69) / 12);
 
@@ -90,6 +101,69 @@ function makePluck(ctx, midi, kind) {
   return buf;
 }
 
+/* ---------- 녹음 샘플 악기 ---------- */
+
+// gain 크기, a 소리가 올라오는 시간, rel 놓은 뒤 사라지는 시간, ring 놓아도 더 울리는 시간(뜯는 악기·종),
+// loop 긴 음을 이어 붙일 수 있는가(지속 악기), solo 독주 악기(이어 붙일 때 위상을 맞춤), skip 샘플 앞머리 건너뛰기, lead 그만큼 일찍 켜기(늦게 차오르는 악기),
+// tail 샘플 끝에서 버리는 길이, swell 긴 음이 부풀었다 잦아듦, lp [여릴 때, 셀 때] 밝기, hp 낮은 웅웅거림 걷기,
+// pan 자리, spread 음높이에 따라 좌우로 벌어지는 정도(높은 음이 왼쪽), send 울림에 보내는 양
+export const INST = {
+  harp: { gain: 0.32, a: 0.002, rel: 0.5, ring: 4, lp: [1500, 11000], pan: 0.2, spread: 0.25, send: 0.3 },
+  lute: { gain: 0.36, a: 0.002, rel: 0.35, ring: 1.4, lp: [1300, 9000], pan: -0.22, spread: 0.1, send: 0.2, tail: 0.3 },
+  pizz: { gain: 0.42, a: 0.002, rel: 0.3, ring: 1.5, lp: [1600, 9000], pan: -0.05, spread: 0.45, send: 0.3 },
+  strings: { gain: 0.56, a: 0.07, rel: 0.5, loop: true, skip: 0.05, lead: 0.07, tail: 0.3, swell: true, lp: [2600, 9000], pan: 0, spread: 0.55, send: 0.36 },
+  spic: { gain: 0.36, a: 0.003, rel: 0.2, ring: 1, lp: [2200, 10000], pan: 0, spread: 0.5, send: 0.3 },
+  trem: { gain: 0.42, a: 0.09, rel: 0.5, loop: true, skip: 0.03, lead: 0.04, tail: 0.3, swell: true, lp: [2400, 8000], pan: 0, spread: 0.5, send: 0.36 },
+  cello: { gain: 0.9, a: 0.03, rel: 0.22, loop: true, solo: true, tail: 0.3, re: 0.5, swell: true, lp: [2400, 8000], pan: 0.18, send: 0.3 },
+  bass: { gain: 0.5, a: 0.04, rel: 0.25, loop: true, solo: true, tail: 0.3, re: 0.5, lp: [900, 4000], pan: 0.3, send: 0.2 },
+  flute: { gain: 0.8, a: 0.02, rel: 0.14, loop: true, solo: true, tail: 0.3, re: 0.6, swell: true, hp: 200, pan: -0.14, send: 0.36 },
+  recorder: { gain: 0.8, a: 0.012, rel: 0.1, loop: true, solo: true, tail: 0.3, re: 0.5, hp: 220, pan: -0.1, send: 0.34 },
+  oboe: { gain: 0.85, a: 0.02, rel: 0.12, loop: true, solo: true, tail: 0.3, re: 0.6, swell: true, hp: 200, pan: 0.1, send: 0.34 },
+  clarinet: { gain: 0.78, a: 0.025, rel: 0.14, loop: true, solo: true, tail: 0.3, re: 0.6, swell: true, hp: 120, pan: 0.14, send: 0.34 },
+  bassoon: { gain: 0.75, a: 0.025, rel: 0.14, loop: true, solo: true, tail: 0.3, re: 0.6, pan: 0.2, send: 0.3 },
+  horn: { gain: 0.9, a: 0.03, rel: 0.25, loop: true, solo: true, tail: 0.3, re: 0.5, swell: true, lp: [1500, 6000], pan: -0.3, send: 0.44 },
+  trumpet: { gain: 0.7, a: 0.015, rel: 0.18, loop: true, solo: true, tail: 0.3, re: 0.6, lp: [2500, 9000], pan: 0.25, send: 0.4 },
+  trombone: { gain: 0.76, a: 0.02, rel: 0.2, loop: true, solo: true, tail: 0.3, re: 0.6, lp: [1600, 7000], pan: 0.3, send: 0.4 },
+  choir: { gain: 0.38, a: 0.12, rel: 0.6, loop: true, tail: 0.3, re: 0.6, lead: 0.03, det: 6, lp: [2200, 7000], pan: 0, spread: 0.4, send: 0.5 },
+  organ: { gain: 0.32, a: 0.04, rel: 0.35, loop: true, solo: true, tail: 0.3, re: 0.6, pan: 0.05, send: 0.5 },
+  bell: { gain: 0.42, a: 0.002, rel: 1.5, ring: 6, pan: 0.1, send: 0.5 },
+  glock: { gain: 1.0, a: 0.001, rel: 0.8, ring: 2.5, lp: [3000, 14000], pan: -0.2, send: 0.5 },
+  timp: { gain: 0.75, a: 0.002, rel: 0.5, ring: 3.5, layers: true, det: 0, pan: 0.12, send: 0.34 },
+  taiko: { gain: 0.55, a: 0.001, rel: 0.4, ring: 2, det: 4, lp: [700, 9000], pan: 0, send: 0.3 },
+  tom: { gain: 0.95, a: 0.001, rel: 0.3, ring: 1, det: 6, lp: [1200, 10000], pan: -0.1, send: 0.26 },
+  wood: { gain: 1.2, a: 0.001, rel: 0.2, ring: 0.4, det: 8, pan: 0.15, send: 0.3 },
+};
+// 타악 이름 → [악기, 음]
+export const PERC = {
+  taiko: ['taiko', 36], taiko2: ['taiko', 43], taiko3: ['taiko', 50],
+  tom: ['tom', 45], tom2: ['tom', 52], tom3: ['tom', 60],
+  wood: ['wood', 60], wood2: ['wood', 72],
+  timp: ['timp', 42], timp2: ['timp', 49], timp3: ['timp', 54],
+};
+const XF = 0.32; // 긴 음을 이어 붙일 때 겹치는 시간
+// 겹치는 동안 크기가 꺼지지 않게 둥근 곡선으로 넘긴다
+const XF_IN = Float32Array.from({ length: 33 }, (_, i) => Math.sin((i / 32) * Math.PI / 2));
+const XF_OUT = Float32Array.from({ length: 33 }, (_, i) => Math.cos((i / 32) * Math.PI / 2));
+
+// 풀어 둔 샘플. AudioContext를 새로 만들어도(뒤에 갔다 돌아왔을 때) 다시 받지 않는다.
+const DECODED = new Map(); // 파일 → { buf, secs, at } | Promise
+const KEEP_SECS = 220;     // 이보다 많이 풀려 있으면 지금 곡이 안 쓰는 녹음부터 내려놓는다 (메모리)
+// 그 악기로 midis 음들을 내는 데 필요한 녹음들 (음마다 가장 가까운 것). midis가 없으면 전부.
+function rowsFor(inst, midis) {
+  const rows = SAMPLES[inst] ?? [];
+  if (!midis) return rows;
+  const out = new Set();
+  const tags = [...new Set(rows.map((r) => r[4]))];
+  for (const m of midis) for (const tag of tags) {
+    let best = null;
+    for (const r of rows) if (r[4] === tag && (!best || Math.abs(r[0] - m) < Math.abs(best[0] - m))) best = r;
+    if (best) out.add(best);
+  }
+  return [...out];
+}
+const assetBase = () => (typeof window !== 'undefined' && window.__flAssets ? `${window.__flAssets}audio/music/` : null);
+const decode = (ctx, ab) => new Promise((ok, no) => { const p = ctx.decodeAudioData(ab, ok, no); if (p?.catch) p.catch(no); });
+
 /* ---------- 엔진 ---------- */
 
 export class Engine {
@@ -149,6 +223,43 @@ export class Engine {
     return b;
   }
   group(kind = 'music', level = 1) { return new Group(this, kind, level); }
+
+  /* 샘플 받아 오기. base: 샘플 폴더 주소. 없으면(웹 판, node 점검) 아무것도 받지 않고 음악은 쉰다. */
+  get sampleBase() { return this._base === undefined ? assetBase() : this._base; }
+  set sampleBase(v) { this._base = v; }
+  /** 그 악기의 녹음 가운데 지금 풀려 있는 것들 */
+  zones(inst) {
+    const out = [];
+    for (const [m, file, c, d, tag] of SAMPLES[inst] ?? []) { const x = DECODED.get(file); if (x && x.buf) out.push({ m, c, d, tag, buf: x.buf }); }
+    return out;
+  }
+  loadFile(file) {
+    const have = DECODED.get(file);
+    if (have) { if (have.buf) have.at = Date.now(); return have.buf ? Promise.resolve(true) : have; }
+    const base = this.sampleBase;
+    if (!base || typeof fetch !== 'function') return Promise.resolve(false);
+    const p = fetch(base + file)
+      .then((r) => { if (!r.ok) throw new Error(`${file} ${r.status}`); return r.arrayBuffer(); })
+      .then((ab) => decode(this.ctx, ab))
+      .then((buf) => { DECODED.set(file, { buf, secs: buf.duration, at: Date.now() }); return true; })
+      .catch(() => { DECODED.delete(file); return false; }); // 못 받았으면 다음에 다시 해 본다
+    DECODED.set(file, p);
+    return p;
+  }
+  /**
+   * 곡에 필요한 녹음을 받아 온다. needs: { 악기: [음들] 또는 null(전부) }. 다 되면 true.
+   * 그 곡이 실제로 내는 음에 가까운 녹음만 받으므로 빨리 끝나고 메모리도 덜 쓴다.
+   */
+  async load(needs) {
+    const files = new Set();
+    for (const [inst, midis] of Object.entries(needs)) for (const r of rowsFor(inst, midis)) files.add(r[1]);
+    const ok = (await Promise.all([...files].map((f) => this.loadFile(f)))).every(Boolean);
+    let total = 0; const idle = [];
+    for (const [k, d] of DECODED) if (d.buf) { total += d.secs; if (!files.has(k)) idle.push([k, d]); }
+    idle.sort((a, b) => a[1].at - b[1].at);
+    for (const [k, d] of idle) { if (total <= KEEP_SECS) break; DECODED.delete(k); total -= d.secs; }
+    return ok;
+  }
 }
 
 // 악기 통로 설정: 크기, 좌우 위치, 울림에 보내는 양
@@ -178,7 +289,7 @@ const FORMANTS = {
 
 export class Group {
   constructor(engine, kind, level = 1) {
-    this.e = engine; this.ctx = engine.ctx; this.dead = false; this.level = level;
+    this.e = engine; this.ctx = engine.ctx; this.dead = false; this.level = level; this.kind = kind;
     this.dry = this.ctx.createGain(); this.wet = this.ctx.createGain();
     this.dry.gain.value = level; this.wet.gain.value = level;
     this.dry.connect(engine.vol[kind].dry); this.wet.connect(engine.vol[kind].wet);
@@ -206,6 +317,82 @@ export class Group {
     o.connect(g); o.start(); this.lfos.push(o);
     return g;
   }
+  // 샘플 악기의 통로: 낮은 웅웅거림 걷기 → 자리 → 울림
+  sbus(name) {
+    let b = this.buses[name];
+    if (b) return b;
+    const c = this.ctx, cfg = INST[name];
+    const input = c.createGain(); let tail = input;
+    if (cfg.hp) { const f = c.createBiquadFilter(); f.type = 'highpass'; f.frequency.value = cfg.hp; f.Q.value = 0.6; tail.connect(f); tail = f; }
+    const pan = c.createStereoPanner(); pan.pan.value = cfg.spread ? 0 : cfg.pan; tail.connect(pan);
+    const send = c.createGain(); send.gain.value = cfg.send;
+    pan.connect(this.dry); pan.connect(send); send.connect(this.wet);
+    return (this.buses[name] = { in: input });
+  }
+  /** 샘플 악기의 음 하나 */
+  sample(inst, t, midi, dur, vel, o = {}) {
+    const cfg = INST[inst]; const all = cfg ? this.e.zones(inst) : [];
+    if (!all.length) return;
+    const c = this.ctx;
+    let zs = all;
+    if (cfg.layers) { const tag = vel > 0.72 ? 'ff' : 'mf'; zs = all.filter((z) => z.tag === tag); if (!zs.length) zs = all; }
+    // 가장 가까운 녹음을 고르되, 비슷하게 가까운 것이 있으면 가끔 그쪽을 쓴다 (같은 음이 되풀이될 때 똑같이 들리지 않게)
+    let z = zs[0], z2 = null;
+    for (const x of zs) { if (Math.abs(x.m - midi) < Math.abs(z.m - midi)) { z2 = z; z = x; } else if (x !== z && (!z2 || Math.abs(x.m - midi) < Math.abs(z2.m - midi))) z2 = x; }
+    if (z2 && Math.abs(z2.m - midi) - Math.abs(z.m - midi) <= 2 && Math.abs(z2.m - midi) <= 4 && Math.random() < 0.3) z = z2;
+    const det = cfg.det ?? 3;
+    const rate = 2 ** ((midi - z.m) / 12 - z.c / 1200 + ((Math.random() * 2 - 1) * det) / 1200);
+    const t0 = Math.max(t - (cfg.lead ?? 0), c.currentTime + 0.003);
+    const peak = cfg.gain * (0.16 + 0.84 * Math.min(1.2, vel) ** 1.35) * (o.gain ?? 1);
+    const slur = !!o.slur && !!cfg.loop; // 이음줄: 녹음의 첫머리(혀·활이 닿는 소리)를 건너뛰고 부드럽게 들어간다
+    const a = o.attack ?? (slur ? Math.max(cfg.a, 0.045) : cfg.a); const rel = o.damp ? 0.06 : o.release ?? cfg.rel;
+    const hold = Math.max(a + 0.01, o.damp ? dur : dur + (cfg.ring ?? 0));
+    const end = t0 + hold + rel * 1.7;
+    const g = c.createGain();
+    g.gain.setValueAtTime(0, t0);
+    if (cfg.swell && dur > 0.9) { // 활과 숨: 긴 음은 조금 부풀었다 잦아든다
+      g.gain.linearRampToValueAtTime(peak * 0.8, t0 + a);
+      g.gain.linearRampToValueAtTime(peak, t0 + Math.max(a + 0.05, hold * 0.45));
+      g.gain.linearRampToValueAtTime(peak * 0.82, t0 + hold);
+    } else { g.gain.linearRampToValueAtTime(peak, t0 + a); g.gain.setValueAtTime(peak, t0 + hold); }
+    g.gain.setTargetAtTime(0, t0 + hold, rel / 3);
+    let head = g;
+    if (cfg.lp) { // 여리게 내면 어둡게
+      const f = c.createBiquadFilter(); f.type = 'lowpass'; f.Q.value = 0.4;
+      f.frequency.value = cfg.lp[0] + (cfg.lp[1] - cfg.lp[0]) * Math.min(1, vel) ** 2 * (o.dark ? 0.4 : 1);
+      f.connect(g); head = f;
+    }
+    if (cfg.spread) {
+      const p = c.createStereoPanner(); p.pan.value = Math.max(-0.8, Math.min(0.8, cfg.pan + (cfg.spread * (60 - midi)) / 30));
+      g.connect(p); p.connect(this.sbus(inst).in);
+    } else g.connect(this.sbus(inst).in);
+    const tailCut = cfg.tail ?? 0.2;
+    let at = t0, off = (cfg.skip ?? 0) + (slur ? 0.09 : 0);
+    for (let k = 0; k < 40; k++) {
+      const src = c.createBufferSource(); src.buffer = z.buf; src.playbackRate.value = rate;
+      const avail = (Math.min(z.d, z.buf.duration) - tailCut - off) / rate;
+      const last = !cfg.loop || at + avail >= end || avail < XF * 2.5;
+      if (k === 0 && last) src.connect(head);
+      else {
+        const sg = c.createGain(); src.connect(sg); sg.connect(head);
+        // 독주 악기는 물결의 위상을 맞춰 곧게 넘기고, 여럿이 내는 소리(합주·합창)는 둥근 곡선으로 넘긴다
+        if (k === 0) sg.gain.setValueAtTime(1, at);
+        else if (cfg.solo) { sg.gain.setValueAtTime(0, at); sg.gain.linearRampToValueAtTime(1, at + XF); }
+        else { sg.gain.setValueAtTime(0, at); sg.gain.setValueCurveAtTime(XF_IN, at, XF); }
+        if (!last) {
+          if (cfg.solo) { sg.gain.setValueAtTime(1, at + avail - XF); sg.gain.linearRampToValueAtTime(0, at + avail); }
+          else sg.gain.setValueCurveAtTime(XF_OUT, at + avail - XF, XF);
+        }
+      }
+      src.start(at, off);
+      src.stop(last ? end + 0.05 : at + avail + 0.02);
+      if (last) break;
+      const posOld = off + (avail - XF) * rate; // 겹치기 시작할 때 앞 조각이 읽고 있는 자리
+      at += avail - XF; off = (cfg.skip ?? 0) + (cfg.re ?? 0.6) + Math.random() * 0.15;
+      if (cfg.solo) { const T0 = 1 / (440 * 2 ** ((z.m - 69) / 12 + z.c / 1200)); off += (((posOld - off) % T0) + T0) % T0; }
+    }
+  }
+
   bus(name) {
     let b = this.buses[name];
     if (b) return b;
@@ -244,6 +431,8 @@ export class Group {
   /** 음 하나. t: 시작 시각(초), dur: 길이(초), vel: 세기 0~1 */
   note(inst, t, midi, dur, vel = 0.7, o = {}) {
     if (this.dead) return;
+    if (this.kind === 'music') { this.sample(inst, t, midi, dur, vel, o ?? {}); return; }
+    o = o ?? {};
     const c = this.ctx;
     t = Math.max(t, c.currentTime + 0.003);
     const f = mtof(midi);
@@ -403,6 +592,7 @@ export class Group {
   /** 타악기 한 번 */
   perc(type, t, vel = 0.8) {
     if (this.dead) return;
+    if (this.kind === 'music') { const p = PERC[type]; if (p) this.sample(p[0], t, p[1], 0.1, vel); return; }
     const c = this.ctx;
     t = Math.max(t, c.currentTime + 0.003);
     const out = this.bus('perc').in;
