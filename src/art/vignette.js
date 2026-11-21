@@ -21,9 +21,10 @@ import { PLATES2 } from './vignettePlates2.js';
 import { PLATES3 } from './vignettePlates3.js';
 import { PLATES4 } from './vignettePlates4.js';
 import { PLATES5 } from './vignettePlates5.js';
+import { PLATES6 } from './vignettePlates6.js';
 import { regionOfSite } from './mapTrail.js';
 
-const PLATES = { ...PLATES1, ...PLATES2, ...PLATES3, ...PLATES4, ...PLATES5 };
+const PLATES = { ...PLATES1, ...PLATES2, ...PLATES3, ...PLATES4, ...PLATES5, ...PLATES6 };
 
 const hasDom = typeof document !== 'undefined';
 const safe = (fn, d = null) => { try { return fn(); } catch { return d; } };
@@ -31,11 +32,13 @@ const SCALE = 1.5; // 그리는 크기: 960x360
 
 /* ---------- 그리기 ---------- */
 // 판마다 당겨 그릴 중심(x)과 배율
-const FOCUS = { exile: [330, 1.1], works: [340, 1.08], cuisine: [330, 1.08], revolt: [330, 1.1], frontier: [330, 1.1], herd: [320, 1.1], haunt: [330, 1.1], mine: [340, 1.1], bondage: [330, 1.1], heist: [330, 1.1], trial: [330, 1.08], wedding: [410, 1.15], funeral: [330, 1.2], birth: [300, 1.1], muster: [380, 1.25], square: [330, 1.15], plague: [330, 1.25], monsters: [330, 1.2], famine: [330, 1.15], fire: [300, 1.25], prison: [380, 1.15], voyage: [330, 1.15], court: [400, 1.1], festival: [320, 1.3], chapel: [330, 1.1], dragon: [320, 1], road: [300, 1.25], bedside: [330, 1.15], ritual: [320, 1.2], depths: [330, 1.1], seal: [330, 1.1], trade: [330, 1.1], beast: [310, 1.15], mentor: [320, 1.1], nature: [330, 1.1], beastlife: [330, 1.1], peoples: [320, 1.1], feud: [330, 1.1], explore: [330, 1.1], army: [330, 1.1], love: [360, 1.25], tower: [330, 1.1] };
+const FOCUS = { spy: [330, 1.1], mana: [330, 1.1], farm: [330, 1.08], exile: [330, 1.1], works: [340, 1.08], cuisine: [330, 1.08], revolt: [330, 1.1], frontier: [330, 1.1], herd: [320, 1.1], haunt: [330, 1.1], mine: [340, 1.1], bondage: [330, 1.1], heist: [330, 1.1], trial: [330, 1.08], wedding: [410, 1.15], funeral: [330, 1.2], birth: [300, 1.1], muster: [380, 1.25], square: [330, 1.15], plague: [330, 1.25], monsters: [330, 1.2], famine: [330, 1.15], fire: [300, 1.25], prison: [380, 1.15], voyage: [330, 1.15], court: [400, 1.1], festival: [320, 1.3], chapel: [330, 1.1], dragon: [320, 1], road: [300, 1.25], bedside: [330, 1.15], ritual: [320, 1.2], depths: [330, 1.1], seal: [330, 1.1], trade: [330, 1.1], beast: [310, 1.15], mentor: [320, 1.1], nature: [330, 1.1], beastlife: [330, 1.1], peoples: [320, 1.1], feud: [330, 1.1], explore: [330, 1.1], army: [330, 1.1], love: [360, 1.25], tower: [330, 1.1] };
 // 늘 밤이나 해 질 녘이어야 하는 그림
-const TOD = { 'exile:boat-night': 'night', 'exile:hall': 'night', 'exile:hall-plot': 'night', 'exile:fleet': 'dawn', 'exile:island': 'dusk', 'works:open': 'day', 'cuisine:create': 'night', 'cuisine:feast': 'dusk', 'cuisine:taster': 'dusk', 'cuisine:contest': 'day', 'revolt:secret': 'night', 'revolt:march': 'dusk', 'revolt:gallows': 'dawn', 'revolt:gallows-me': 'dawn', 'frontier:raid': 'night', 'herd:camp': 'dusk', 'herd:rustle': 'night', 'herd:steed': 'dawn', 'haunt:house': 'night', 'haunt:grave': 'night', 'haunt:grave-kneel': 'night', 'haunt:seance': 'night', 'haunt:fraud': 'night', 'haunt:item': 'night', 'mine:picket': 'dusk', 'mine:collapse': 'dusk', 'bondage:coffle': 'dusk', 'bondage:free': 'dawn', 'bondage:free-kin': 'dawn', 'heist:roof': 'night', 'heist:plan': 'night', 'heist:split': 'night', 'heist:vault': 'night', 'heist:vault-twist': 'night', 'trial:dock': 'day', 'trial:plead': 'day', 'trial:bench': 'day', 'nature:flood': 'night', 'nature:storm': 'night', 'nature:winter': 'dusk', 'nature:granary': 'dusk', 'nature:drought': 'day', 'nature:locust': 'day', 'beastlife:bond': 'night', 'beastlife:grave': 'dusk', 'peoples:elf_fall': 'night', 'peoples:beast_totem': 'night', 'peoples:beast_hunt': 'dusk', 'feud:turned': 'dusk', 'feud:plot': 'night', 'feud:strike': 'night', 'feud:peace': 'dawn', 'seal:stone': 'night', 'seal:visitor': 'night', 'seal:alley': 'dusk' };
+const TOD = { 'spy:recruit': 'night', 'spy:steal': 'night', 'spy:caught': 'night', 'spy:drop': 'dusk', 'spy:tail': 'night', 'spy:exposed': 'dawn', 'mana:spring': 'dusk', 'mana:storm': 'night', 'mana:sick': 'night', 'mana:dry': 'day', 'farm:plow': 'dawn', 'farm:sow': 'day', 'farm:harvest': 'day', 'farm:water': 'day', 'farm:barn': 'dusk', 'farm:sell': 'day', 'exile:boat-night': 'night', 'exile:hall': 'night', 'exile:hall-plot': 'night', 'exile:fleet': 'dawn', 'exile:island': 'dusk', 'works:open': 'day', 'cuisine:create': 'night', 'cuisine:feast': 'dusk', 'cuisine:taster': 'dusk', 'cuisine:contest': 'day', 'revolt:secret': 'night', 'revolt:march': 'dusk', 'revolt:gallows': 'dawn', 'revolt:gallows-me': 'dawn', 'frontier:raid': 'night', 'herd:camp': 'dusk', 'herd:rustle': 'night', 'herd:steed': 'dawn', 'haunt:house': 'night', 'haunt:grave': 'night', 'haunt:grave-kneel': 'night', 'haunt:seance': 'night', 'haunt:fraud': 'night', 'haunt:item': 'night', 'mine:picket': 'dusk', 'mine:collapse': 'dusk', 'bondage:coffle': 'dusk', 'bondage:free': 'dawn', 'bondage:free-kin': 'dawn', 'heist:roof': 'night', 'heist:plan': 'night', 'heist:split': 'night', 'heist:vault': 'night', 'heist:vault-twist': 'night', 'trial:dock': 'day', 'trial:plead': 'day', 'trial:bench': 'day', 'nature:flood': 'night', 'nature:storm': 'night', 'nature:winter': 'dusk', 'nature:granary': 'dusk', 'nature:drought': 'day', 'nature:locust': 'day', 'beastlife:bond': 'night', 'beastlife:grave': 'dusk', 'peoples:elf_fall': 'night', 'peoples:beast_totem': 'night', 'peoples:beast_hunt': 'dusk', 'feud:turned': 'dusk', 'feud:plot': 'night', 'feud:strike': 'night', 'feud:peace': 'dawn', 'seal:stone': 'night', 'seal:visitor': 'night', 'seal:alley': 'dusk' };
 // 날씨가 정해진 그림
-const WX = { 'exile:boat-night': 'cloudy', 'exile:fleet': 'clear', 'works:open': 'clear', 'herd:rustle': 'clear', 'haunt:house': 'fog', 'haunt:grave': 'clear', 'haunt:grave-kneel': 'clear', 'heist:roof': 'clear', 'frontier:raid': 'clear', 'bondage:free': 'clear', 'bondage:free-kin': 'clear', 'revolt:gallows': 'cloudy', 'revolt:gallows-me': 'cloudy', 'nature:drought': 'clear', 'nature:locust': 'clear', 'nature:quake': 'cloudy', 'nature:flood': 'rain', 'nature:storm': 'storm', 'nature:winter': 'snow', 'nature:granary': 'cloudy', 'beastlife:bond': 'clear' };
+const WX = { 'spy:tail': 'cloudy', 'spy:exposed': 'cloudy', 'mana:spring': 'clear', 'mana:storm': 'clear', 'mana:dry': 'clear', 'farm:plow': 'clear', 'farm:sow': 'cloudy', 'farm:harvest': 'clear', 'farm:water': 'clear', 'farm:barn': 'clear', 'farm:sell': 'clear', 'exile:boat-night': 'cloudy', 'exile:fleet': 'clear', 'works:open': 'clear', 'herd:rustle': 'clear', 'haunt:house': 'fog', 'haunt:grave': 'clear', 'haunt:grave-kneel': 'clear', 'heist:roof': 'clear', 'frontier:raid': 'clear', 'bondage:free': 'clear', 'bondage:free-kin': 'clear', 'revolt:gallows': 'cloudy', 'revolt:gallows-me': 'cloudy', 'nature:drought': 'clear', 'nature:locust': 'clear', 'nature:quake': 'cloudy', 'nature:flood': 'rain', 'nature:storm': 'storm', 'nature:winter': 'snow', 'nature:granary': 'cloudy', 'beastlife:bond': 'clear' };
+// 너무 어둡게 나오는 그림은 어두운 곳만 한 겹 밝힌다 (screen)
+const LIFT = { depths: 'rgba(120,100,84,.28)', 'nature:flood': 'rgba(84,104,132,.28)', 'nature:storm': 'rgba(84,104,132,.26)', 'explore:deepwood': 'rgba(84,116,84,.3)', 'explore:heart-deepwood': 'rgba(84,116,84,.3)', 'explore:heart-ash': 'rgba(124,92,80,.34)', 'feud:strike': 'rgba(84,92,124,.24)', 'seal:dream': 'rgba(110,84,92,.26)', 'exile:boat-night': 'rgba(84,104,132,.3)', 'beastlife:bond': 'rgba(84,100,130,.2)' };
 const cache = new Map();
 export function vignetteImage(spec) {
   if (!hasDom || !spec || !PLATES[spec.plate]) return '';
@@ -57,6 +60,8 @@ export function vignetteImage(spec) {
     const [fx, fk] = FOCUS[spec.plate] ?? [320, 1.15];
     ctx.translate(fx, VH); ctx.scale(fk, fk); ctx.translate(-fx, -VH);
     PLATES[spec.plate]({ ctx, S, P, D, R: rng(seed), t: toner(S), q: D.seed % 89, k, month, year, me, other, variant: spec.variant ?? null });
+    const lf = LIFT[`${spec.plate}:${spec.variant ?? ''}`] ?? LIFT[spec.plate];
+    if (lf) { ctx.save(); ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.globalCompositeOperation = 'screen'; ctx.fillStyle = lf; ctx.fillRect(0, 0, cv.width, cv.height); ctx.restore(); }
     url = canvasUrl(cv, 'image/jpeg', 0.86);
   } catch { url = ''; }
   if (!url) return '';
@@ -94,7 +99,7 @@ const BY_ID = {
   haunt_fraud: 'haunt:fraud', haunt_cursed_buy: 'haunt:item', haunt_dying_curse: 'funeral:visit', haunt_night: 'haunt:house', haunt_ancestor: 'haunt:grave-kneel', haunt_wraith_call: 'haunt:grave', haunt_curse_strike: 'haunt:item',
   frontier_call: 'square:herald', frontier_refugees: 'muster:refugee', frontier_claim: 'frontier:clearing', frontier_elect: 'frontier:clearing',
   works_corvee: 'square:notice',
-  mana_crave: 'night', mana_child: 'ritual:study',
+  mana_crave: 'mana:sick', mana_child: 'ritual:study',
   wilds_herd: 'monsters', wilds_refugees: 'muster:refugee', wilds_settle: 'trade:builder', wilds_buyer: 'trade:alchemy',
   school_call: 'square:notice', school_dorm: 'night', school_noble: 'court', school_alum_help: 'road:return', school_alum_plea: 'dusk', school_alum_rival: 'square:guards', school_reunion: 'festival', school_parent_alum: 'road:return',
   law_accused: 'trial:dock', law_wrong: 'square:notice', law_witness: 'trial:plead', law_judge: 'trial:bench', law_pardon: 'prison', law_stain: 'road',
@@ -110,7 +115,7 @@ const BY_SCENE = {
   haunt_spot: 'haunt:house', haunt_medium: 'haunt:seance', haunt_rite: 'haunt:seance', haunt_item: 'haunt:item', haunt_lift: 'chapel:inquisition',
   frontier_charter: 'court', frontier_gather: 'frontier:wagons', frontier_arrive: 'frontier:wagons', frontier_work: 'frontier:clearing', frontier_natives: 'frontier:natives', frontier_name: 'frontier:clearing', frontier_raid: 'frontier:raid', frontier_winter: 'nature:winter',
   works_overseer: 'works:site', works_guild: 'works:site', works_skim: 'works:site', works_fall: 'works:fall', works_fund: 'works:site', works_open: 'works:open',
-  mana_well: 'ritual:study', mana_storm: 'nature:quake', mana_siege: 'square:guards',
+  mana_well: 'mana:spring', mana_storm: 'mana:storm', mana_siege: 'mana:claim',
   nature_drought: 'nature:drought', nature_flood: 'nature:flood', nature_winter: 'nature:winter', nature_quake: 'nature:quake', nature_locust: 'nature:locust', nature_storm: 'nature:storm', nature_granary: 'nature:granary',
   beast_buy: 'beastlife:market', beast_sell: 'beastlife:market', beast_event: 'beastlife:care', beast_familiar: 'beastlife:bond', beast_death: 'beastlife:grave',
   heir: 'bedside:last',
@@ -141,9 +146,9 @@ const BY_SCENE = {
   // 14단계: 장사 길과 상단 (trade_event는 아래에서 일에 따라 고른다)
   trade_market: 'beastlife:market', trade_caravan: 'road', trade_bandits: 'feud:strike', trade_toll: 'square:guards', trade_house: 'mentor:found', trade_rival: 'feud:plot', trade_event: 'beastlife:market',
   // 14단계: 글과 예술 (기존 그림을 이어 붙임)
-  // 25단계: 첩보와 밀정 (새 삽화가 오기 전까지 있는 판을 붙임)
-  spy_recruit: 'night', spy_job: 'seal:alley', spy_caught: 'depths', spy_exposed: 'seal:alley', spy_turn: 'feud:plot',
-  spy_double: 'seal:map', spy_hunter: 'feud:strike',
+  // 25단계: 첩보와 밀정 (spy_job·spy_hunter는 아래에서 일에 따라 고른다)
+  spy_recruit: 'spy:recruit', spy_job: 'spy:drop', spy_caught: 'spy:caught', spy_exposed: 'spy:exposed', spy_turn: 'spy:recruit',
+  spy_double: 'spy:drop', spy_hunter: 'spy:tail',
   // 24단계: 유배와 망명 (새 삽화가 오기 전까지 있는 판을 붙임)
   exile_decree: 'exile:boat', exile_life: 'exile:island', exile_pardon: 'road:return', exile_spotted: 'seal:alley', exile_choose: 'seal:map',
   exile_host: 'exile:hall', exile_plot_ev: 'exile:hall-plot', exile_return: 'exile:fleet',
@@ -196,7 +201,7 @@ const BY_SCENE = {
   // 20단계: 유랑극단 (기존 그림을 이어 붙임)
   troupe_arrive: 'festival', troupe_show: 'trade:bard', troupe_manage: 'road', troupe_fire: 'road', troupe_move: 'road', troupe_event: 'road',
   herd_market: 'beastlife:market', herd_tend: 'herd:pasture', herd_steed: 'herd:steed', herd_band: 'herd:camp', herd_band_life: 'herd:camp', herd_event: 'herd:pasture',
-  farm_land: 'square:notice', farm_sow: 'nature:granary', farm_manage: 'night', farm_market: 'beastlife:market', farm_harvest: 'nature:granary', farm_event: 'feud:offer',
+  farm_land: 'farm:plow', farm_sow: 'farm:sow', farm_manage: 'farm:barn', farm_market: 'farm:sell', farm_harvest: 'farm:harvest', farm_event: 'feud:offer',
   cuisine_taste: 'cuisine:stall', cuisine_kitchen: 'cuisine:kitchen', cuisine_post: 'cuisine:kitchen', cuisine_create: 'cuisine:create', cuisine_contest: 'cuisine:contest', cuisine_feast: 'cuisine:feast', cuisine_event: 'cuisine:kitchen', cuisine_cook: 'cuisine:kitchen', cuisine_serve: 'cuisine:feast',
   heist_target: 'heist:plan', heist_crew: 'heist:plan', heist_scout: 'heist:roof', heist_day: 'heist:roof', heist_twist: 'heist:vault-twist', heist_split: 'heist:split', heist_event: 'heist:plan',
   company_found: 'muster', company_board: 'army:camp', company_fight: 'army:clash', company_manage: 'army:camp', company_rules: 'army:camp', company_take: 'muster', company_event: 'army:camp',
@@ -252,7 +257,7 @@ export function vignetteFor(g, { title = '', text = '', outcome = false } = {}) 
     if (kind === 'voc_path' || kind === 'voc_event') { const sc = g.life.scene; pick = VOC_ART[sc.path ?? sc.ev] ?? JOB_ART[g.life?.job?.id] ?? null; }
     if (kind === 'peoples_rite' && g.life.scene.id) pick = `peoples:${g.life.scene.id}`;
     if (kind === 'herd_event') pick = { sick: 'herd:pasture', wolves: 'monsters', rustlers: 'herd:rustle', neighbor: 'feud:offer', dealer: 'beastlife:market', raid: 'herd:rustle', race: 'herd:steed', dzud: 'nature:winter' }[g.life.scene.ev] ?? pick;
-    if (kind === 'farm_event') pick = { water: 'nature:drought', boundary: 'feud:offer', blight: 'nature:locust', hands: 'feud:plot', tenant: 'famine', buyer: 'square:notice', thief: 'seal:alley', levy: 'square:guards' }[g.life.scene.ev] ?? pick;
+    if (kind === 'farm_event') pick = { water: 'farm:water', boundary: 'feud:offer', blight: 'nature:locust', hands: 'feud:plot', tenant: 'famine', buyer: 'farm:sell', thief: 'seal:alley', levy: 'square:guards' }[g.life.scene.ev] ?? pick;
     if (kind === 'cuisine_event') pick = { plot: 'feud:plot', suspect: 'cuisine:taster', taster: 'cuisine:taster', rival: 'cuisine:contest', shortage: 'cuisine:create', guest: 'cuisine:feast', apprentice: 'cuisine:kitchen', spoiled: 'cuisine:create' }[g.life.scene.ev] ?? pick;
     if (kind === 'law_trial') pick = safe(() => g.law.cases.find((c) => c.id === g.life.scene.cid)?.role) === 'accused' ? 'trial:dock' : 'trial:plead';
     if (pick === 'works:site' && /^w_(road|canal|pass|tunnel|aqueduct)$/.test(g.life?.scene?.id ?? '')) pick = 'works:dig';
@@ -265,6 +270,8 @@ export function vignetteFor(g, { title = '', text = '', outcome = false } = {}) 
     if (id === 'peoples_name') pick = { silverleaf: 'peoples:elf_dew', hammer: 'peoples:dwarf_fire', fur: 'peoples:beast_totem' }[g.life?.place] ?? pick;
     if (kind === 'explore_leg' || kind === 'explore_heart' || kind === 'explore_name') { const rg = kind === 'explore_name' ? regionOfSite(g.life.scene.site) : g.explore?.exp?.region; if (rg) pick = kind === 'explore_leg' ? `explore:${rg}` : `explore:heart-${rg}`; }
     if (kind === 'trade_event') pick = TRADE_ART[g.life.scene.ev] ?? pick;
+    if (kind === 'spy_job') pick = { letter: 'spy:steal', extract: 'spy:tail', rumor: 'spy:drop', watch: 'spy:tail', burn: 'spy:tail' }[g.life.scene.mission] ?? pick;
+    if (kind === 'spy_hunter') pick = { offer: 'spy:recruit' }[g.life.scene.ev] ?? pick;
     if (kind === 'voc_beast') pick = BEAST_ART[g.life.scene.beast] ?? 'beast:boar';
     if (!pick) pick = BY_TITLE.find(([re, , need]) => re.test(title) && (!need || kind || atSea(g)))?.[1] ?? null;
   }

@@ -14,16 +14,16 @@ const mine = (v, o = {}) => ({ cloth: v.me.cloth, hair: v.me.hair, female: v.me.
 const folk = (i, o = {}) => ({ cloth: CL[i % 6], hair: HR[i % 6], female: i % 3 === 1, long: i % 3 === 1, ...o });
 const dimOf = (v) => v.S.tod === 'night' || v.S.tod === 'dusk';
 /** 쇠스랑 */
-const fork = (v, x, y, len, tilt = 0) => { const { ctx, t } = v, c = t('#3a2c20'), tx = x + Math.sin(tilt) * len, ty = y - Math.cos(tilt) * len; stroke(ctx, [x, y, tx, ty], 1.6, c); for (const k of [-1, 0, 1]) stroke(ctx, [tx + k * 3, ty + 1, tx + k * 3 + Math.sin(tilt) * 9, ty - Math.cos(tilt) * 9], 1, t('#70747a')); stroke(ctx, [tx - 3, ty + 1, tx + 3, ty + 1], 1, t('#70747a')); };
+export const fork = (v, x, y, len, tilt = 0) => { const { ctx, t } = v, c = t('#3a2c20'), tx = x + Math.sin(tilt) * len, ty = y - Math.cos(tilt) * len; stroke(ctx, [x, y, tx, ty], 1.6, c); for (const k of [-1, 0, 1]) stroke(ctx, [tx + k * 3, ty + 1, tx + k * 3 + Math.sin(tilt) * 9, ty - Math.cos(tilt) * 9], 1, t('#70747a')); stroke(ctx, [tx - 3, ty + 1, tx + 3, ty + 1], 1, t('#70747a')); };
 /** 창 */
-const spear = (v, x, y, len, tilt = 0) => { const { ctx, t } = v, tx = x + Math.sin(tilt) * len, ty = y - Math.cos(tilt) * len; stroke(ctx, [x, y, tx, ty], 1.5, t('#3a2c20')); poly(ctx, [tx - 2, ty, tx + Math.sin(tilt) * 8, ty - Math.cos(tilt) * 8, tx + 2, ty], t('#a8aeb6')); };
+export const spear = (v, x, y, len, tilt = 0) => { const { ctx, t } = v, tx = x + Math.sin(tilt) * len, ty = y - Math.cos(tilt) * len; stroke(ctx, [x, y, tx, ty], 1.5, t('#3a2c20')); poly(ctx, [tx - 2, ty, tx + Math.sin(tilt) * 8, ty - Math.cos(tilt) * 8, tx + 2, ty], t('#a8aeb6')); };
 /** 곡괭이 */
 const pick = (v, x, y, len, tilt = 0) => { const { ctx, t } = v, tx = x + Math.sin(tilt) * len, ty = y - Math.cos(tilt) * len; stroke(ctx, [x, y, tx, ty], 1.8, t('#4a3a2a')); ctx.strokeStyle = t('#787c84'); ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(tx - 9, ty + 4); ctx.quadraticCurveTo(tx, ty - 4, tx + 9, ty + 4); ctx.stroke(); };
-const torch = (v, x, y, h, s = 5) => { rect(v.ctx, x - 1.1, y - h, 2.2, h, v.t('#2a2018')); flame(v, x, y - h, s); };
+export const torch = (v, x, y, h, s = 5) => { rect(v.ctx, x - 1.1, y - h, 2.2, h, v.t('#2a2018')); flame(v, x, y - h, s); };
 /** 통나무 울: x0~x1에 뾰족한 말뚝 */
-const palisade = (v, x0, x1, y, h, c = '#4a3a2a') => { const { ctx, t, R } = v; for (let x = x0; x < x1; x += 9) { const hh = h * (0.9 + R() * 0.16); poly(ctx, [x, y, x, y - hh, x + 4, y - hh - 6, x + 8, y - hh, x + 8, y], t(R() < 0.5 ? c : dark(c, 0.14))); } rect(ctx, x0, y - h * 0.55, x1 - x0, 2.4, t(dark(c, 0.35))); };
+export const palisade = (v, x0, x1, y, h, c = '#4a3a2a') => { const { ctx, t, R } = v; for (let x = x0; x < x1; x += 9) { const hh = h * (0.9 + R() * 0.16); poly(ctx, [x, y, x, y - hh, x + 4, y - hh - 6, x + 8, y - hh, x + 8, y], t(R() < 0.5 ? c : dark(c, 0.14))); } rect(ctx, x0, y - h * 0.55, x1 - x0, 2.4, t(dark(c, 0.35))); };
 /** 포장 수레 */
-function wagon(v, x, y, s, d) {
+export function wagon(v, x, y, s, d) {
   const { ctx, t } = v; ctx.save(); ctx.translate(x, y); ctx.scale(d * s, s);
   oval(ctx, 0, 2, 44, 4, rgba('#000000', 0.2));
   rect(ctx, -34, -26, 68, 14, t('#5a4632')); stroke(ctx, [34, -18, 58, -16], 2, t('#3a2c20'));
@@ -33,9 +33,9 @@ function wagon(v, x, y, s, d) {
   ctx.restore();
 }
 /** 양 한 마리 */
-const sheep = (v, x, y, s, d) => { const { ctx, t } = v; oval(ctx, x, y + s * 0.55, s * 1.1, s * 0.16, rgba('#000000', 0.16)); stroke(ctx, [x - s * 0.5, y, x - s * 0.5, y + s * 0.55], s * 0.16, t('#2a2420')); stroke(ctx, [x + s * 0.45, y, x + s * 0.45, y + s * 0.55], s * 0.16, t('#2a2420')); oval(ctx, x, y - s * 0.1, s, s * 0.6, t('#d8d2c2')); oval(ctx, x - s * 0.2, y - s * 0.3, s * 0.6, s * 0.4, t('#e6e0d0')); oval(ctx, x + d * s * 0.95, y - s * 0.3, s * 0.3, s * 0.26, t('#2a2420')); };
+export const sheep = (v, x, y, s, d) => { const { ctx, t } = v; oval(ctx, x, y + s * 0.55, s * 1.1, s * 0.16, rgba('#000000', 0.16)); stroke(ctx, [x - s * 0.5, y, x - s * 0.5, y + s * 0.55], s * 0.16, t('#2a2420')); stroke(ctx, [x + s * 0.45, y, x + s * 0.45, y + s * 0.55], s * 0.16, t('#2a2420')); oval(ctx, x, y - s * 0.1, s, s * 0.6, t('#d8d2c2')); oval(ctx, x - s * 0.2, y - s * 0.3, s * 0.6, s * 0.4, t('#e6e0d0')); oval(ctx, x + d * s * 0.95, y - s * 0.3, s * 0.3, s * 0.26, t('#2a2420')); };
 /** 소 옆모습 */
-function cow(v, x, y, h, d, coat = '#4a3426') {
+export function cow(v, x, y, h, d, coat = '#4a3426') {
   const { ctx, t } = v, c = t(coat), dk = t(dark(coat, 0.4)); ctx.save(); ctx.translate(x, y); ctx.scale(d * h / 100, h / 100); ctx.lineCap = 'round';
   oval(ctx, 0, 3, 58, 5, rgba('#000000', 0.2));
   for (const [x0, x1, n] of [[-36, -44, 1], [34, 42, 1], [-24, -18, 0], [22, 14, 0]]) stroke(ctx, [x0, -44, x1, 0], n ? 7 : 6, n ? c : dk);
