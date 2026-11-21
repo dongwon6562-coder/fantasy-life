@@ -9,6 +9,7 @@ import './underworld/index.js';
 import './domain/index.js';
 import './realms/index.js';
 import './races/index.js';
+import './ageless/core.js'; // 불로의 뼈대: 몸 나이가 멈추는 규칙과 공용 상태(g.ageless), 길 등록. 길마다 갈래가 따로 얹는다
 import './realms/life.js';
 import './faith/index.js';
 import './court/index.js';

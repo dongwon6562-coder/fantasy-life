@@ -50,6 +50,7 @@ export const ageYears = (p) => Math.floor(p.ageMonths / 12);
 let bodyAgeFn = (p) => ageYears(p);
 export const bodyAgeOf = (p) => bodyAgeFn(p);
 export function setBodyAge(fn) { bodyAgeFn = fn; }
+export const getBodyAge = () => bodyAgeFn; // 앞의 규칙을 감싸서 새 규칙을 얹을 때 (불로: src/ageless/)
 // 다른 종족끼리, 엘프끼리는 아이가 드물다 (src/races/가 바꾼다)
 let fertilityFn = () => 1;
 export function setFertility(fn) { fertilityFn = fn; }
