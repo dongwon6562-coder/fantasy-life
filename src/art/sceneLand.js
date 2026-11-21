@@ -194,8 +194,12 @@ export function fields(L, ground, P, S, R, o = {}) {
 }
 
 /** 수면: 멀리는 하늘빛, 가까이는 물빛. 해나 달의 빛기둥과 잔물결 */
+// 물이 그려진 곳 (움직임: 물결 반짝임, sceneMotion.js). 그림 하나를 그릴 때마다 비운다.
+let waterLog = [];
+export function takeWater() { const w = waterLog; waterLog = []; return w; }
 export function water(L, topFn, botFn, P, S, R, o = {}) {
   const { x0 = 0, x1 = W, y0 = HZ, y1 = H } = o;
+  if (!P.frozen && waterLog.length < 6 && x1 - x0 > 60) waterLog.push([Math.round(x0), Math.round(x1), Math.round(Math.max(y0, topFn((x0 + x1) / 2)) + 2), Math.round(Math.min(y1, botFn((x0 + x1) / 2)))]);
   L.save();
   L.beginPath(); trace(L, topFn, x0, x1, 8); for (let x = x1; x >= x0; x -= 8) L.lineTo(x, botFn(x)); L.closePath(); L.clip();
   const far = mixh(P.water, S.low, 0.55), near = P.frozen ? '#c8d4da' : dark(P.water, 0.12);
