@@ -40,6 +40,8 @@ const GROUPS = [
   ['왕가의 피', [['다락의 족보', 'claim:scroll'], ['증거를 태우다', 'claim:burn'], ['옹립', 'claim:acclaim'], ['밤의 손님', 'claim:offer'], ['가짜 왕손', 'claim:pretender']]],
   ['성유물', [['유물 발견', 'relic:find'], ['유물의 선택', 'relic:chosen'], ['유물의 거부', 'relic:rejected'], ['유물 쟁탈', 'relic:contest'], ['가짜 유물', 'relic:fake']]],
   ['약초꾼과 약방', [['약초 캐기', 'apothecary:gather'], ['약 달이기', 'apothecary:brew'], ['밤의 약탕기', 'apothecary:poison'], ['약방', 'apothecary:shop'], ['돌림병의 줄', 'apothecary:queue']]],
+  ['불로', [['노아', 'ageless:noa'], ['일곱째 서클', 'ageless:seventh'], ['용의 참이름', 'ageless:truename'], ['쐐기에서 새는 숨', 'ageless:breath'], ['옮겨 가는 몸', 'ageless:vessel'], ['이름을 바꾸고 떠나는 새벽', 'ageless:depart'], ['뒤를 막고 선 사람', 'ageless:rear']]],
+  ['타고남', [['타고남', 'gift']]],
   ['다른 종족의 땅', [['엘프: 이슬 받기', 'peoples:elf_dew'], ['엘프: 낙엽의 노래', 'peoples:elf_fall'], ['드워프: 조상의 불 지키기', 'peoples:dwarf_fire'], ['드워프: 첫 망치', 'peoples:dwarf_hammer'], ['수인: 큰 사냥', 'peoples:beast_hunt'], ['수인: 이름 새기는 밤', 'peoples:beast_totem']]],
   ['지도에 없는 땅', [['서리 너머', 'explore:frost'], ['뿌리 아래 골짜기', 'explore:deepwood'], ['구름 위 고원', 'explore:cloud'], ['안개 군도', 'explore:mist'], ['재의 사막', 'explore:ash'], ['첫 왕의 얼음 무덤', 'explore:heart-frost'], ['세계수의 옛 뿌리', 'explore:heart-deepwood'], ['하늘 계단', 'explore:heart-cloud'], ['잠긴 왕궁', 'explore:heart-mist'], ['첫 왕들의 무덤 골짜기', 'explore:heart-ash']]],
   ['군대·사랑·마탑', [['행군', 'army:march'], ['병영', 'army:camp'], ['진급', 'army:promote'], ['전열', 'army:clash'], ['눈길', 'love:meet'], ['함께 걷는 길', 'love:walk'], ['부부 싸움', 'love:quarrel'], ['들킨 비밀', 'love:caught'], ['마탑 안', 'tower:hall'], ['마탑 회의', 'tower:vote']]],
