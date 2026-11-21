@@ -122,6 +122,9 @@ function rulers(g, rng, say, record) {
 function drift(g, rng) {
   const P = PS(g);
   const ids = nations();
+  // 빼앗긴 땅은 한 번만 훑어 둔다 (나라 쌍마다 모든 땅을 훑던 것: 25단계 헤드)
+  const taken = [];
+  for (const [lid, l] of Object.entries(LANDS)) { const o = landOwner(g, lid); if (o !== l.home) taken.push([o, l.home]); }
   for (const a of ids) for (const b of ids) {
     if (a >= b || key(a, b) === 'leonia|valhart') continue;
     const k = key(a, b);
@@ -137,7 +140,7 @@ function drift(g, rng) {
     for (const w of warsOf(g, a)) { const f = foeIn(w, a); if (f !== b && warsOf(g, b).some((x) => foeIn(x, b) === f)) target += 20; }
     if (neighbors(g, a, b)) target -= 12 * (NATURE[a].greed + NATURE[b].greed);
     // 빼앗긴 땅은 잊히지 않는다
-    for (const [lid, l] of Object.entries(LANDS)) { const o = landOwner(g, lid); if (o !== l.home && [a, b].includes(o) && [a, b].includes(l.home)) target -= 25; }
+    for (const [o, h] of taken) if ((o === a || o === b) && (h === a || h === b)) target -= 25;
     P.rel[k] = clamp((P.rel[k] ?? 0) + (target - (P.rel[k] ?? 0)) * 0.012 + rng.normal(0, 1.2), -100, 100);
   }
   // 국경의 작은 충돌: 이웃끼리 사이가 틀어진다

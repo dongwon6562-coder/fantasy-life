@@ -157,7 +157,7 @@ function slave(seed, place = 'saltmare', opts = {}) {
 
 // 3) 섬기기, 신임, 몰래 모은 돈, 몸값
 {
-  const g = slave(20);
+  const g = slave(22); // 25단계: 마나 흐름으로 난수가 밀려 20번 판은 섬기는 사이 먼저 풀려났다
   const s = V(g).slave;
   for (let k = 0; k < 10; k++) act(g, 'bondage_serve');
   ok(s.trust >= 40 && s.savings > 0, `trust ${s.trust} savings ${s.savings}`);

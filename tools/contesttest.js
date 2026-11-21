@@ -96,7 +96,7 @@ function drained(g, kind, data) {
 
 /* 1) 도박판 */
 {
-  const g = adult(91000);
+  const g = adult(91001); // 25단계: 마나 흐름으로 난수가 밀려 91000번 판은 노름 도중 병으로 죽었다
   placeAt(g, 'harfen');
   g.player.money = 500;
   if (!availableActions(g).some((a) => a.id === 'contest_gamble')) fail('no gamble action at harfen');
