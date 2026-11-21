@@ -5,7 +5,7 @@ import { gainSkill } from '../game.js';
 import { reportCrime } from '../crime.js';
 import { deed } from '../repute/index.js';
 import { courtState } from '../court/index.js';
-import { activeAt } from '../nature/state.js';
+import { activeAt, KINDS as NATURE_KINDS } from '../nature/state.js';
 import { J } from '../narrative/text.js';
 import { CU, clamp, here, free, stat, cookSkill, atPost, cookPower, fullDish, dj, addFame, logCook, bestDish, leavePost, placeName, tasterName, postTitle } from './core.js';
 import { lordOf } from './life.js';
@@ -31,7 +31,7 @@ defineScene('cuisine_event', {
       case 'suspect': return `연회 이튿날 아침, 손님 하나가 피를 토하고 쓰러졌다는 소식이 왔다. 의원은 독이라고 했다. 경비병들이 부엌 문 앞에 섰다. 모두의 눈이 ${postTitle(st.post)}인 나에게 쏠렸다.`;
       case 'taster': return `${lord}의 저녁상. 시식관 ${J(st.taster.name, '이/가')} 포도주를 한 모금 머금더니 잔을 떨어뜨렸다. 입술이 파랗다. 그 잔은 주인의 것이었다. 부엌의 누군가가, 혹은 부엌에 드나든 누군가가 넣은 것이다.`;
       case 'rival': return `${J(st.rival.name, '이/가')} 장터에서 떠들고 다닌다. 내 요리를 먹고 배앓이를 한 사람이 셋이라고, 내 비법은 남의 것을 훔친 거라고. 단골 몇이 발길을 끊었다.`;
-      case 'shortage': { const n = shortHere(g); return `${n ? `${J(n.name, '이/가')} 들어 ` : '배가 늦게 들어와 '}광이 비었다. 고기는 두 배 값이고 밀가루는 바닥났다. 그런데 이번 주에도 ${lord}의 상은 차려야 한다.`; }
+      case 'shortage': { const n = shortHere(g); return `${n ? `${J(n.name ?? NATURE_KINDS[n.kind]?.name ?? '흉년', '이/가')} 들어 ` : '배가 늦게 들어와 '}광이 비었다. 고기는 두 배 값이고 밀가루는 바닥났다. 그런데 이번 주에도 ${lord}의 상은 차려야 한다.`; }
       case 'guest': return `낡은 외투를 입은 노인이 ${dj(d, '을/를')} 한 그릇 비우더니 요리사를 불렀다. 외투 안에 금실 수가 보인다. "이 요리, 어디서 배웠소? 내 집 요리사로 삼고 싶을 정도요. 아니면 비법을 파시오."`;
       case 'apprentice': return '열두어 살 된 아이가 사흘째 부엌 뒷문에 앉아 있다. 쫓아도 다시 온다. "설거지라도 할게요. 어깨너머로만 보게 해 주세요." 손가락에 데인 자국이 가득하다. 혼자 불을 다뤄 본 손이다.';
       case 'spoiled': return '오늘 아침 들어온 고기에서 냄새가 난다. 정육상은 멀쩡하다며 웃는다. 오늘 저녁 손님은 스무 명, 다른 고기를 구할 시간은 빠듯하다.';
