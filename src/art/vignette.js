@@ -139,6 +139,9 @@ const BY_SCENE = {
   // 14단계: 장사 길과 상단 (trade_event는 아래에서 일에 따라 고른다)
   trade_market: 'beastlife:market', trade_caravan: 'road', trade_bandits: 'feud:strike', trade_toll: 'square:guards', trade_house: 'mentor:found', trade_rival: 'feud:plot', trade_event: 'beastlife:market',
   // 14단계: 글과 예술 (기존 그림을 이어 붙임)
+  // 25단계: 첩보와 밀정 (새 삽화가 오기 전까지 있는 판을 붙임)
+  spy_recruit: 'night', spy_job: 'seal:alley', spy_caught: 'depths', spy_exposed: 'seal:alley', spy_turn: 'feud:plot',
+  spy_double: 'seal:map', spy_hunter: 'feud:strike',
   // 24단계: 유배와 망명 (새 삽화가 오기 전까지 있는 판을 붙임)
   exile_decree: 'exile:boat', exile_life: 'exile:island', exile_pardon: 'road:return', exile_spotted: 'seal:alley', exile_choose: 'seal:map',
   exile_host: 'exile:hall', exile_plot_ev: 'exile:hall-plot', exile_return: 'exile:fleet',
