@@ -33,7 +33,7 @@ function play(g, months, prefer = COURT_ACTS, pick = {}, rate = 0.85) {
     const choices = [];
     for (let i = 0; i < slotsFor(g); i++) {
       const w = acts.filter((a) => prefer.includes(a.id));
-      let a = w.length && rng.chance(rate) ? rng.pick(w) : rng.pick(acts.filter((x) => !x.needsTarget && x.id !== 'travel' && x.id !== 'house_move' && !x.id.startsWith('contest_') && !x.id.startsWith('poor_') && !x.id.startsWith('lineage_') && !x.id.startsWith('revolt_')));
+      let a = w.length && rng.chance(rate) ? rng.pick(w) : rng.pick(acts.filter((x) => !x.needsTarget && x.id !== 'travel' && x.id !== 'house_move' && !x.id.startsWith('contest_') && !x.id.startsWith('poor_') && !x.id.startsWith('lineage_') && !x.id.startsWith('revolt_') && !x.id.startsWith('spy_')));
       if (g.player.fatigue > 80) a = acts.find((x) => x.id === 'rest') ?? a;
       seen.acts[a.id] = (seen.acts[a.id] ?? 0) + 1;
       choices.push({ id: a.id });
@@ -78,7 +78,7 @@ for (let run = 0; run < 12; run++) {
   L(g).renown = 45;
   g.player.stats.cha = 30 + run; g.player.stats.int = 30; g.player.skills.letters = 40;
   // 궁정 출세만 재려고, 고발장이 오면 합의로 덮는다 (법정 일로 옥에 가면 관직과 상관없는 운이 섞인다)
-  play(g, 12 * 12, COURT_ACTS, { law_accused: 1, law_trial: 0, court_offer: 0, court_marriage: (pe) => (pe.choices.length > 1 && run % 2 ? 0 : pe.choices.length - 1), court_plot: run % 3 === 0 ? 0 : (pe) => pe.choices.length - 1 });
+  play(g, 12 * 12, COURT_ACTS, { law_accused: 1, spy_recruit: 1, law_trial: 0, court_offer: 0, court_marriage: (pe) => (pe.choices.length > 1 && run % 2 ? 0 : pe.choices.length - 1), court_plot: run % 3 === 0 ? 0 : (pe) => pe.choices.length - 1 });
   const c = courtState(g);
   if (c.office >= 0) offices++;
   top = Math.max(top, c.office);

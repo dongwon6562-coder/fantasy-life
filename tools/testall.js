@@ -12,7 +12,7 @@ const logDir = new URL('../.testlogs/', import.meta.url);
 mkdirSync(logDir, { recursive: true });
 
 // 오래 걸리는 것부터 시작해야 전체가 빨리 끝난다
-const SLOW = ['breaktest', 'fuzzd', 'reltest', 'legendtest', 'domaintest', 'seatest', 'deeptest', 'faithtest', 'vocationtest'];
+const SLOW = ['breaktest', 'racetest', 'fuzzd', 'faithtest', 'domaintest', 'eventtest', 'reltest', 'lifetest', 'legendtest', 'seatest', 'deeptest', 'vocationtest'];
 const weight = (cmd) => { const i = SLOW.findIndex((s) => cmd.includes(s)); return i < 0 ? 99 : i; };
 const queue = [...jobs].sort((a, b) => weight(a) - weight(b));
 
