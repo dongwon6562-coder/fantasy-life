@@ -35,6 +35,10 @@ export function renderHealthNow(game) {
 export function renderHealthBlock(game) {
   const s = safe(() => healthInfo(game));
   if (!s) return '';
+  // 같은 고장의 같은 병은 한 줄로 (해마다 도는 늪 열병이 목록을 다 채우지 않게)
+  const pm = new Map();
+  for (const p of s.past) { const k = `${p.region} ${p.name}`; if (!pm.has(k)) pm.set(k, []); pm.get(k).push(p.y); }
+  const past = [...pm];
   const any = s.chronic.length || s.lineage.length || s.past.length || s.cured || s.quacked || s.log.length || s.outbreaks.length;
   if (!any) return '';
   const chips = [];
@@ -46,7 +50,7 @@ export function renderHealthBlock(game) {
     ${s.lineage.length ? `<div class="ct-tags">${s.lineage.map((l) => `<span class="ct-tag heir">집안 내력: ${esc(l.name)}${l.gens > 1 ? ` · ${l.gens}대째` : ''}</span>`).join('')}</div>` : ''}
     ${chips.length ? `<div class="sm-chips">${chips.map(([k, v, down]) => `<span class="sm-chip${down ? ' down' : ''}"><span>${esc(k)}</span><b>${esc(v)}</b></span>`).join('')}</div>` : ''}
     ${s.outbreaks.length ? `<p class="note">지금 도는 병: ${s.outbreaks.map((o) => `${esc(o.region)} ${esc(o.name)} (${esc(o.sevWord)})`).join(', ')}</p>` : ''}
-    ${s.past.length ? `<details class="pl-more"><summary>지나간 큰 돌림병 ${s.past.length}가지</summary><ul class="pl-news">${s.past.map((p) => `<li><time>${p.y}년</time><span>${esc(p.region)} ${esc(p.name)}</span></li>`).join('')}</ul></details>` : ''}
+    ${past.length ? `<details class="pl-more"><summary>지나간 큰 돌림병 ${past.length}가지</summary><ul class="pl-news">${past.map(([k, ys]) => `<li><time>${ys[0]}년</time><span>${esc(k)}${ys.length > 1 ? ` · ${ys.length}번 (${ys.slice(1, 4).join(', ')}년${ys.length > 4 ? ' 등' : ''}에도)` : ''}</span></li>`).join('')}</ul></details>` : ''}
     ${s.log.length ? `<details class="pl-more"><summary>앓고 고친 일 ${s.log.length}가지</summary><ul class="pl-news">${s.log.map((n) => `<li><time>${n.y}년${n.m ? ` ${n.m}월` : ''}</time><span>${esc(n.text)}</span></li>`).join('')}</ul></details>` : ''}
   </div>`;
 }
