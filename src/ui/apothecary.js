@@ -29,7 +29,7 @@ export function renderApoNow(game, ui = {}) {
       ${s.satchel.length ? `<p class="note">약 보따리: ${s.satchel.map((h) => `${esc(h.name)} ${h.count}첩`).join(', ')}</p>` : ''}
       ${s.book.length ? `<p class="note">${can.length ? `지금 달일 수 있는 약: ${can.map((r) => `${r.poison ? '<b class="warn">' : ''}${esc(r.name)}${r.poison ? '</b>' : ''}`).join(', ')}` : '가진 약초로 달일 수 있는 처방이 없다'}</p>` : ''}
       ${s.here.length ? `<p class="note">이 고장에 지금 나는 약초: ${s.here.map((h) => esc(h.name)).join(', ')}</p>` : ''}
-      ${s.doctor && s.doctor.grudge >= 15 ? `<p class="note">의원 ${esc(s.doctor.name)}${s.doctor.grudge >= 40 ? ' · <b class="warn">나를 돌팔이라고 떠들고 다닌다</b>' : ' · 내 약방을 못마땅해한다'}</p>` : ''}
+      ${s.doctor && s.doctor.grudge >= 15 ? `<p class="note">${esc(s.doctor.name)}${s.doctor.grudge >= 40 ? ' · <b class="warn">나를 돌팔이라고 떠들고 다닌다</b>' : ' · 내 약방을 못마땅해한다'}</p>` : ''}
     </div>
   </details>`;
 }
