@@ -11,7 +11,7 @@ import { run as runHooks, HOOKS } from './hooks.js';
 
 export function rngOf(game) { return makeRng(game.rngState); }
 
-export function newGame({ name, sex, familyId, mode, seed }) {
+export function newGame({ name, sex, familyId, mode, seed, birth }) {
   const game = {
     version: 1,
     mode, // 'once' | 'free'
@@ -24,6 +24,7 @@ export function newGame({ name, sex, familyId, mode, seed }) {
     lastResults: [], // 지난 달 내 행동 결과
     pendingEvent: null,
     over: false,
+    birth: birth && typeof birth === 'object' ? birth : null, // 시작 때 고른 타고남 (src/heredity/가 읽고 지운다)
   };
   setNextId(1);
   const rng = rngOf(game);
@@ -128,10 +129,13 @@ export function gainStat(game, id, base) {
   p.stats[id] = Math.min(100, p.stats[id] + g);
   return g;
 }
+// 타고난 큰 재능이 그 기술을 빨리 늘게 한다 (src/heredity/가 바꾼다)
+let skillBoost = () => 1;
+export function setSkillBoost(fn) { skillBoost = typeof fn === 'function' ? fn : () => 1; }
 export function gainSkill(game, id, base, statId) {
   const p = game.player;
   const helper = statId ? 0.7 + p.stats[statId] / 100 : 1;
-  const g = 0.3 * base * helper * growthFactor(game) * (1 - p.skills[id] / 120);
+  const g = 0.3 * base * helper * growthFactor(game) * skillBoost(game, id) * (1 - p.skills[id] / 120);
   p.skills[id] = Math.min(100, p.skills[id] + g);
   return g;
 }
