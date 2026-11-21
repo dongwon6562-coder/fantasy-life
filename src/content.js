@@ -90,3 +90,7 @@ import './ageless/dragonname.js'; // 불로의 길 '용의 참이름': 고대어
 import './ageless/bloodyears.js'; // 불로의 길 '핏줄의 세월': 자식의 세월을 열 해씩 받아 산다. 받은 자식은 그만큼 늙는다
 import './ageless/after.js'; // 불로가 된 뒤의 삶: 늙지 않는다는 소문, 이름 바꾸고 떠나기, 왕과 교단, 먼저 떠나보내기
 import './farewell/index.js'; // 스스로 고르는 죽음: 뒤를 막기·쐐기·역병 마을·배신 대신 죽음·불로를 내려놓기 (뜻 있는 순간의 선택지로만)
+import './ageless/seventh.js'; // 불로, 대가 없는 길 일곱째 서클: 짙은 해에 태어남 + 6서클 + 노아의 시험(한 삶에 한 번), 옛 기록의 조각
+import './ageless/sealbreath.js'; // 불로, 대가 있는 길 봉인의 숨: 쐐기 틈의 마신의 숨, 한 해마다 봉인이 깎임, 쐐기 지키는 이들이 쫓음
+import './ageless/vessel.js'; // 불로, 금지 마법 그릇 옮기기: 남의 젊은 몸으로 옮겨 감, 그 몸의 식구와 기억, 삭는 그릇
+import './ageless/imprint.js'; // 불로, 금지 마법 마지막 새김: 자식에게 나를 새김, 대를 이어도 눈을 뜨는 것은 나, 그 아이는 사라짐
