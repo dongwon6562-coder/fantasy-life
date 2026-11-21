@@ -1,4 +1,4 @@
-// 24단계 삽화: 봉기, 개척촌, 목축·유목, 망자와 저주, 광산, 노예 시장, 큰 한탕, 재판정.
+// 24단계 삽화: 봉기, 개척촌, 목축·유목, 망자와 저주, 광산, 노예 시장, 큰 한탕, 재판정, 요리사, 유배와 망명, 큰 공사.
 import { fbm1, rgba, dark, light } from './sceneKit.js';
 import { VW, VH, HZ, sky, far, townFar, ground, road, room, windowAt, glow, candle, pool, smoke, person, crowd, lying, tree, banner, crows, flame, blaze, finish, zoom } from './vignetteKit.js';
 import { cottage, horseSil, dogSil } from './vignettePlates4.js';
@@ -485,6 +485,262 @@ function trial(v) {
   finish(v, { inside: true });
 }
 
+/* ---------- 요리사 ---------- */
+/** 큰 부엌. variant kitchen: 화덕과 도마, create: 빈 솥 앞에 혼자 */
+function cuisineKitchen(v) {
+  const { ctx } = v, alone = v.variant === 'create'; room(v, { wall: '#4a4038', floor: '#2e2620', fy: 174 });
+  ctx.save(); zoom(v, 330, 240, 1.12);
+  windowAt(v, 560, 40, 36, 54);
+  // 화덕: 돌 아치와 불, 걸어 둔 솥
+  rect(ctx, 60, 40, 190, 136, '#5a5248'); rect(ctx, 50, 34, 210, 10, '#6a6258'); poly(ctx, [80, 34, 100, 0, 210, 0, 230, 34], '#4e463e');
+  ctx.fillStyle = '#0e0a08'; ctx.beginPath(); ctx.moveTo(86, 176); ctx.lineTo(86, 110); ctx.quadraticCurveTo(155, 62, 224, 110); ctx.lineTo(224, 176); ctx.fill();
+  if (!alone) { blaze(v, 155, 174, 70, 44); } else { for (let i = 0; i < 5; i++) glow(v, 130 + i * 12, 170, 10, '#ff7030', 0.35); }
+  glow(v, 155, 150, alone ? 90 : 170, '#ff9a48', alone ? 0.16 : 0.3);
+  stroke(ctx, [96, 100, 214, 100], 2, '#1c1816'); stroke(ctx, [155, 100, 155, 122], 1.6, '#1c1816'); ctx.fillStyle = '#1c1a1c'; ctx.beginPath(); ctx.ellipse(155, 124, 30, 26, 0, 0, Math.PI); ctx.fill(); rect(ctx, 123, 120, 64, 5, '#2a282a');
+  if (!alone) for (let i = 0; i < 6; i++) glow(v, 140 + i * 6, 112 - i * 9, 9 + i * 2, '#d8d0c0', 0.08);
+  // 걸어 둔 것들
+  rect(ctx, 290, 34, 230, 4, '#2a2018');
+  for (const [x, k] of [[304, 0], [330, 1], [356, 2], [392, 0], [424, 3], [456, 1], [492, 2]]) { stroke(ctx, [x, 38, x, 48], 0.8, '#1c1612'); if (k === 0) { oval(ctx, x, 60, 9, 9, '#3a3632'); stroke(ctx, [x, 48, x, 52], 2, '#3a3632'); } else if (k === 1) { poly(ctx, [x - 5, 48, x + 5, 48, x + 2, 76, x - 2, 76], '#6a7a44'); } else if (k === 2) { for (let i = 0; i < 4; i++) oval(ctx, x + (i % 2 ? 3 : -3), 52 + i * 6, 4, 4.6, '#d8cfb0'); } else { poly(ctx, [x - 7, 48, x + 7, 48, x + 5, 78, x, 84, x - 5, 78], '#8a3a30'); stroke(ctx, [x - 4, 56, x + 4, 56], 0.8, '#d8c0a8'); } }
+  // 긴 도마 상
+  const tx = 410, ty = 204;
+  poly(ctx, [tx - 110, ty - 40, tx + 110, ty - 40, tx + 124, ty - 26, tx - 124, ty - 26], '#6a5238'); rect(ctx, tx - 124, ty - 26, 248, 6, '#3e2e20'); rect(ctx, tx - 114, ty - 20, 7, 44, '#32261a'); rect(ctx, tx + 108, ty - 20, 7, 44, '#32261a');
+  if (!alone) { oval(ctx, tx - 70, ty - 34, 16, 5, '#d8d0b8'); oval(ctx, tx - 70, ty - 36, 10, 4, '#8a5a30'); for (let i = 0; i < 5; i++) oval(ctx, tx - 24 + i * 9, ty - 34 - (i % 2), 4, 3, i % 2 ? '#c85a30' : '#6a8a3a'); stroke(ctx, [tx + 30, ty - 30, tx + 58, ty - 36], 2, '#c4ccd4'); stroke(ctx, [tx + 20, ty - 29, tx + 30, ty - 30], 3, '#2a1c14'); oval(ctx, tx + 84, ty - 34, 12, 6, '#3a3632'); }
+  else { ctx.fillStyle = '#1c1a1c'; ctx.beginPath(); ctx.ellipse(tx - 20, ty - 34, 24, 18, 0, 0, Math.PI); ctx.fill(); rect(ctx, tx - 46, ty - 37, 52, 4, '#2a282a'); candle(v, tx + 60, ty - 34, 10); poly(ctx, [tx + 14, ty - 37, tx + 44, ty - 38, tx + 46, ty - 29, tx + 12, ty - 28], '#cfc2a2'); }
+  if (!alone) {
+    person(v, 262, 232, 92, folk(4, { raw: true, f: -1, pose: 'bow', rim: WARM, rimDir: -1 }));
+    person(v, tx + 96, ty + 30, 84, { raw: true, f: -1, cloth: '#c8c0ac', hair: HR[1], child: false, arm: 'fwd', rim: WARM, rimDir: -1 });
+    person(v, 556, 236, 70, folk(3, { raw: true, f: -1, child: true }));
+  }
+  person(v, tx - 40, ty + 34, 104, mine(v, { raw: true, f: alone ? 1 : -1, arm: alone ? 'chest' : 'fwd', rim: WARM, rimDir: -1 }));
+  ctx.restore(); finish(v, { inside: true });
+}
+/** 연회. variant feast: 상을 올리는 나, taster: 시식관이 잔을 든 자리 */
+function cuisineFeast(v) {
+  const { ctx } = v, taster = v.variant === 'taster'; room(v, { wall: '#4e4238', floor: '#32281e', fy: 172 });
+  for (const x of [90, 230, 430, 570]) windowAt(v, x, 22, 34, 80, { arch: true });
+  for (const [x, c] of [[160, '#6a2420'], [330, '#2e3a5a'], [500, '#6a2420']]) { poly(ctx, [x - 20, 10, x + 20, 10, x + 20, 84, x, 96, x - 20, 84], c); stroke(ctx, [x - 10, 30, x + 10, 30], 1.4, '#c9a25a'); stroke(ctx, [x, 22, x, 60], 1.4, '#c9a25a'); }
+  // 높은 상
+  const ty = 150;
+  const seat = (x, o) => { ctx.save(); ctx.beginPath(); ctx.rect(x - 40, 0, 80, ty - 2); ctx.clip(); person(v, x, ty + 34, 100, { raw: true, f: 0, ...o }); ctx.restore(); };
+  rect(ctx, 316, 66, 28, 70, '#3a2a1c'); poly(ctx, [312, 66, 330, 50, 348, 66], '#3a2a1c');
+  seat(330, { cloth: '#5a1e24', hair: '#8a8478', robe: true, old: true }); seat(250, { cloth: '#2e4a44', hair: '#6a4a2a', female: true, long: true }); seat(410, { cloth: '#3a3e5a', hair: '#2a1e16' }); seat(170, { cloth: '#54463a', hair: '#1c1614' }); seat(490, { cloth: '#4a3a4e', hair: '#8a6a44', female: true, long: true });
+  rect(ctx, 110, ty, 440, 26, '#e0d8c4'); rect(ctx, 110, ty + 22, 440, 8, '#b8ae98'); for (let x = 130; x < 550; x += 30) stroke(ctx, [x, ty + 4, x, ty + 26], 0.6, 'rgba(0,0,0,.08)');
+  for (const x of [150, 210, 290, 370, 450, 510]) { oval(ctx, x, ty - 1, 11, 3, '#c8b070'); rect(ctx, x + 14, ty - 9, 4, 9, '#b8a060'); }
+  for (const x of [250, 410]) { rect(ctx, x - 1.5, ty - 20, 3, 20, '#b8a060'); for (const k of [-7, 0, 7]) candle(v, x + k, ty - 20 - (k ? 0 : 4), 6); }
+  oval(ctx, 330, ty - 3, 22, 5, '#b8a060'); oval(ctx, 330, ty - 8, 15, 7, '#8a4a28');
+  pool(v, 330, 200, 260, 26, '#ffb060', 0.14);
+  if (taster) {
+    person(v, 300, 226, 100, { raw: true, f: 1, cloth: '#3a3a44', hair: '#5a4030', arm: 'up', rim: WARM, rimDir: 1 }); rect(ctx, 312, 132, 6, 8, '#c8b070'); glow(v, 315, 136, 14, '#ffd890', 0.3);
+    person(v, 470, 234, 100, mine(v, { raw: true, f: -1, arm: 'chest', rim: WARM, rimDir: -1 }));
+    for (const x of [70, 590]) { person(v, x, 220, 94, { raw: true, f: x < 330 ? 1 : -1, cloth: '#5a5e66', hair: '#2a1e16', hat: true }); spear({ ...v, t: (c) => c }, x + (x < 330 ? -12 : 12), 220, 114, 0); }
+  } else {
+    person(v, 220, 234, 100, mine(v, { raw: true, f: 1, arm: 'fwd', rim: WARM, rimDir: 1 })); oval(ctx, 252, 178, 20, 5, '#b8a060'); ctx.fillStyle = '#c8b070'; ctx.beginPath(); ctx.ellipse(252, 176, 15, 13, 0, Math.PI, 0); ctx.fill(); oval(ctx, 252, 162, 2.4, 2.4, '#8a7038');
+    person(v, 470, 232, 88, { raw: true, f: -1, cloth: '#c8c0ac', hair: HR[3], arm: 'fwd', rim: WARM, rimDir: -1 }); rect(ctx, 440, 172, 8, 14, '#8a7a5c');
+    person(v, 560, 236, 84, { raw: true, f: -1, cloth: '#c8c0ac', hair: HR[0], female: true, long: true });
+  }
+  finish(v, { inside: true });
+}
+/** 요리 겨루기: 장터에 놓인 두 화로 */
+function cuisineContest(v) {
+  const { ctx, t } = v, dim = dimOf(v), rim = dim ? WARM : null; sky(v); far(v); townFar(v, 320, HZ + 20, { s: 0.8, n: 7 });
+  const gy = () => 172; ground(v, gy); poly(ctx, [0, 184, VW, 184, VW, VH, 0, VH], t('#8e8066'));
+  for (let i = 0; i < 9; i++) { const x = 60 + i * 66; stroke(ctx, [x, 84, x + 66, 84], 0.8, t('#3a2c20')); poly(ctx, [x + 22, 84, x + 34, 84, x + 28, 98], t(['#8a2f2a', '#c9a25a', '#3a5a8a'][i % 3])); }
+  // 심사석
+  rect(ctx, 250, 140, 160, 30, t('#5a4632')); rect(ctx, 246, 136, 168, 5, t('#6e5840'));
+  for (const [x, i] of [[280, 0], [330, 3], [380, 1]]) { ctx.save(); ctx.beginPath(); ctx.rect(x - 30, 0, 60, 138); ctx.clip(); person(v, x, 172, 90, folk(i, { f: 0, robe: i === 3, old: i === 3, rim, rimDir: 1 })); ctx.restore(); }
+  const station = (x, d) => { rect(ctx, x - 44, 196, 88, 6, t('#6a5238')); rect(ctx, x - 40, 202, 6, 28, t('#3e2e20')); rect(ctx, x + 34, 202, 6, 28, t('#3e2e20')); rect(ctx, x + d * 60 - 12, 204, 24, 24, t('#5a5248')); flame(v, x + d * 60, 204, 5); ctx.fillStyle = t('#1c1a1c'); ctx.beginPath(); ctx.ellipse(x + d * 60, 196, 13, 9, 0, 0, Math.PI); ctx.fill(); oval(ctx, x - 16, 194, 10, 3, t('#d8d0b8')); for (let i = 0; i < 3; i++) oval(ctx, x + 8 + i * 8, 193, 3.4, 2.6, t(i % 2 ? '#c85a30' : '#6a8a3a')); };
+  station(170, -1); station(490, 1);
+  person(v, 176, 236, 100, mine(v, { f: 1, arm: 'fwd', rim, rimDir: 1 }));
+  person(v, 484, 236, 100, { f: -1, cloth: v.other.cloth, hair: v.other.hair, female: v.other.female, long: v.other.long, arm: 'fwd', rim, rimDir: -1 });
+  ctx.save(); ctx.translate(0, 40); crowd(v, 220, 440, 236, 6, 68, { dark: 0.55 }); ctx.restore();
+  finish(v, { noLeaves: true });
+}
+/** 고장의 맛: 장터의 먹거리 좌판 */
+function cuisineStall(v) {
+  const { ctx, t } = v, dim = dimOf(v), rim = dim ? WARM : null; sky(v); far(v); townFar(v, 140, HZ + 20, { s: 0.7, n: 6 });
+  const gy = () => 172; ground(v, gy); poly(ctx, [0, 184, VW, 184, VW, VH, 0, VH], t('#8e8066'));
+  const sx = 400;
+  rect(ctx, sx - 110, 96, 5, 110, t('#3e2e20')); rect(ctx, sx + 105, 96, 5, 110, t('#3e2e20'));
+  poly(ctx, [sx - 126, 100, sx - 100, 70, sx + 100, 70, sx + 126, 100], t('#8a3a30')); for (let i = 0; i < 6; i++) poly(ctx, [sx - 126 + i * 42, 100, sx - 84 + i * 42, 100, sx - 105 + i * 42, 110], t(i % 2 ? '#d8cfb0' : '#8a3a30'));
+  rect(ctx, sx - 116, 170, 232, 36, t('#5a4632')); rect(ctx, sx - 120, 164, 240, 7, t('#6e5840'));
+  for (const [x, c] of [[-90, '#c85a30'], [-56, '#6a8a3a'], [-20, '#d8b040'], [20, '#8a5a30'], [58, '#b8a070'], [92, '#6a3a4a']]) { poly(ctx, [sx + x - 14, 164, sx + x + 14, 164, sx + x + 10, 154, sx + x - 10, 154], t('#7a6a4c')); ctx.fillStyle = t(c); ctx.beginPath(); ctx.ellipse(sx + x, 154, 11, 7, 0, Math.PI, 0); ctx.fill(); }
+  for (const [x, k] of [[-80, 0], [-50, 1], [-16, 0], [30, 1], [70, 0]]) { stroke(ctx, [sx + x, 100, sx + x, 112], 0.8, t('#1c1612')); if (k) poly(ctx, [sx + x - 5, 112, sx + x + 5, 112, sx + x + 2, 138, sx + x - 2, 138], t('#6a7a44')); else for (let i = 0; i < 3; i++) oval(ctx, sx + x + (i % 2 ? 3 : -3), 116 + i * 6, 4, 4.6, t('#b85a40')); }
+  smoke(v, sx + 150, 190, 80, 12, '#cfc8bc', 0.2); rect(ctx, sx + 138, 190, 26, 18, t('#5a5248')); oval(ctx, sx + 151, 190, 14, 4, t('#1c1a1c'));
+  ctx.save(); ctx.beginPath(); ctx.rect(sx - 60, 0, 120, 166); ctx.clip(); person(v, sx + 10, 204, 96, folk(1, { f: -1, arm: 'fwd', rim, rimDir: -1 })); ctx.restore();
+  person(v, sx - 150, 236, 100, mine(v, { f: 1, arm: 'fwd', rim, rimDir: 1 })); oval(ctx, sx - 122, 176, 7, 4, t('#d8d0b8'));
+  person(v, 150, 232, 90, folk(4, { f: 1 })); person(v, 110, 236, 60, folk(2, { f: 1, child: true }));
+  finish(v, { noLeaves: true });
+}
+
+/* ---------- 유배와 망명 ---------- */
+/** 돛배 한 척 (멀리 또는 가까이) */
+function sailboat(v, x, y, s, d, o = {}) {
+  const { ctx, t } = v; ctx.save(); ctx.translate(x, y); ctx.scale(d * s, s);
+  poly(ctx, [-50, -8, 54, -10, 40, 10, -36, 10], t('#3a2c22')); stroke(ctx, [-50, -8, 54, -10], 2, t('#5a4632'));
+  stroke(ctx, [0, -8, 2, -92], 3, t('#2a2018')); if (!o.furled) { poly(ctx, [4, -88, 44, -30, 6, -24], t('#c0b8a4')); poly(ctx, [-2, -80, -34, -26, -2, -22], t('#a8a090')); } else stroke(ctx, [-20, -70, 24, -72], 5, t('#b8b0a0'));
+  if (o.flag) poly(ctx, [2, -92, 20, -88, 2, -82], t(o.flag));
+  ctx.restore();
+}
+const sea = (v, y0, c = '#4e6478') => { const { ctx, t, R } = v; rect(ctx, 0, y0, VW, VH - y0, t(c)); for (let i = 0; i < 80; i++) { const y = y0 + 2 + R() * (VH - y0), x = R() * VW, l = 8 + R() * 30; stroke(ctx, [x, y, x + l, y + (R() - 0.5) * 2], 0.9, rgba('#dfe8f0', 0.1 + R() * 0.14)); } };
+/** 유배지: 바위섬의 돌집 */
+function exileIsland(v) {
+  const { ctx, t, R } = v; sky(v); sea(v, 128, '#52626e');
+  // 멀리 지나가는 배
+  sailboat(v, 520, 138, 0.22, -1);
+  // 바위 땅
+  ctx.fillStyle = t('#6a6860'); ctx.beginPath(); ctx.moveTo(0, VH); ctx.lineTo(0, 150); ctx.quadraticCurveTo(120, 132, 240, 150); ctx.quadraticCurveTo(360, 176, 470, 190); ctx.quadraticCurveTo(560, 204, 640, 232); ctx.lineTo(VW, VH); ctx.fill();
+  for (let i = 0; i < 30; i++) { const x = R() * 520, y = 160 + R() * 70; stroke(ctx, [x, y, x + 10 + R() * 24, y + 3 + R() * 6], 1, rgba('#000000', 0.16)); }
+  for (let i = 0; i < 40; i++) { const x = R() * 300, y = 158 + R() * 60; stroke(ctx, [x, y, x + 2, y - 4 - R() * 5], 0.9, rgba(t('#8a8a5a'), 0.7)); }
+  for (const [x, y, s] of [[500, 206, 16], [560, 222, 22], [440, 200, 10]]) poly(ctx, [x - s, y + s * 0.5, x - s * 0.6, y - s * 0.5, x + s * 0.5, y - s * 0.7, x + s, y + s * 0.5], t('#56544e'));
+  for (let i = 0; i < 12; i++) stroke(ctx, [420 + R() * 200, 206 + R() * 30, 440 + R() * 200, 206 + R() * 30].map((n, k, a) => (k === 2 ? a[0] + 14 : k === 3 ? a[1] - 1 : n)), 1.2, rgba('#eef2f4', 0.4));
+  // 돌집
+  const hx = 150, hy = 176;
+  rect(ctx, hx - 44, hy - 36, 88, 36, t('#7a766c')); for (let i = 0; i < 12; i++) stroke(ctx, [hx - 40 + R() * 76, hy - 30 + R() * 26, hx - 30 + R() * 70, hy - 30 + R() * 26].map((n, k, a) => (k === 2 ? a[0] + 10 : k === 3 ? a[1] : n)), 0.8, rgba('#000000', 0.2));
+  poly(ctx, [hx - 52, hy - 34, hx - 10, hy - 62, hx + 30, hy - 60, hx + 52, hy - 34], t('#4a4038')); rect(ctx, hx - 10, hy - 26, 18, 26, t('#1e1814')); rect(ctx, hx + 20, hy - 26, 12, 10, t('#1e1814'));
+  smoke(v, hx + 28, hy - 62, 50, 9, '#b8b4ac', 0.2);
+  tree(v, 60, 172, 70, { bare: true });
+  stroke(ctx, [226, 170, 226, 146], 1.4, t('#3a2c20')); stroke(ctx, [270, 176, 270, 150], 1.4, t('#3a2c20')); stroke(ctx, [226, 150, 270, 154], 0.8, t('#3a2c20')); for (let i = 0; i < 4; i++) poly(ctx, [232 + i * 9, 151 + i, 238 + i * 9, 152 + i, 236 + i * 9, 164 + i], t('#9a9484'));
+  crows(v, 380, 70, 3, 50);
+  person(v, 356, 220, 100, mine(v, { f: 1, cloak: true }));
+  finish(v, { noLeaves: true });
+}
+/** 떠나는 배 / 몰래 건너는 배. variant boat: 낮, 호송. boat-night: 밤, 등불을 가린 배 */
+function exileBoat(v) {
+  const { ctx, t } = v, night = v.variant === 'boat-night', rim = night ? 'rgba(200,220,250,.85)' : null; sky(v);
+  townFar(v, night ? 500 : 140, 122, { s: 0.9, n: 8 }); rect(ctx, 0, 120, VW, 10, t('#4a4a44'));
+  sea(v, 128, night ? '#2a3644' : '#4e6478');
+  if (night) for (const x of [440, 470, 520, 560]) { glow(v, x, 116, 8, '#ffb060', 0.5); stroke(ctx, [x, 130, x, 150], 1, 'rgba(255,180,100,.2)'); }
+  // 나룻배
+  const bx = 320, by = 204;
+  if (night) { glow(v, bx, by - 20, 200, '#8aa4c8', 0.22, 60); for (let i = 0; i < 16; i++) stroke(ctx, [bx - 160 + i * 20, by + 20 + (i % 3) * 5, bx - 146 + i * 20, by + 20 + (i % 3) * 5], 1, 'rgba(200,220,250,.25)'); }
+  ctx.fillStyle = rgba('#0a1018', 0.3); ctx.beginPath(); ctx.ellipse(bx, by + 14, 120, 8, 0, 0, TAU); ctx.fill();
+  ctx.save(); ctx.beginPath(); ctx.rect(0, 0, VW, by + 2); ctx.clip();
+  person(v, bx - 60, by + 30, 96, { f: 1, cloth: '#3a3a44', hair: '#2a1e16', hat: !night, hood: night, pose: 'sit', arm: 'fwd', rim, rimDir: 1 });
+  person(v, bx + 10, by + 28, 100, mine(v, { f: night ? 1 : -1, pose: 'sit', cloak: true, hood: night, arm: 'chest', rim, rimDir: 1 }));
+  if (!night) { person(v, bx + 70, by + 14, 96, { f: -1, cloth: '#5a5e66', hair: '#2a1e16', hat: true }); spear(v, bx + 84, by, 100, 0.04); }
+  else person(v, bx + 66, by + 30, 90, { f: -1, cloth: '#2a2630', hair: '#1c1614', hood: true, pose: 'sit', rim, rimDir: 1 });
+  ctx.restore();
+  poly(ctx, [bx - 118, by - 14, bx + 122, by - 16, bx + 100, by + 12, bx - 92, by + 12], t('#3e3026')); stroke(ctx, [bx - 118, by - 14, bx + 122, by - 16], 2.4, t('#5e4a36')); stroke(ctx, [bx - 100, by - 2, bx + 106, by - 3], 0.8, rgba('#000000', 0.3));
+  stroke(ctx, [bx - 44, by - 30, bx - 110, by + 26], 2.4, t('#5a4632')); poly(ctx, [bx - 106, by + 20, bx - 122, by + 34, bx - 112, by + 36], t('#5a4632'));
+  if (night) { rect(ctx, bx + 112, by - 30, 7, 10, t('#2a2018')); glow(v, bx + 115, by - 25, 16, '#ffb060', 0.35); }
+  else sailboat(v, 540, 150, 0.5, -1, { flag: '#8a2f2a' });
+  for (let i = 0; i < 5; i++) stroke(ctx, [bx - 150 - i * 20, by + 10 + i * 5, bx - 126 - i * 14, by + 8 + i * 5], 1, rgba('#dfe8f0', 0.3));
+  finish(v, { noLeaves: true });
+}
+/** 망명 궁정: 빌려 쓰는 낡은 방 */
+function exileHall(v) {
+  const { ctx } = v; room(v, { wall: '#40382e', floor: '#2a221a', fy: 172 });
+  ctx.save(); zoom(v, 330, 240, 1.12);
+  windowAt(v, 130, 40, 34, 60); windowAt(v, 540, 40, 34, 60);
+  // 빛바랜 깃발, 낡은 의자
+  poly(ctx, [290, 12, 370, 12, 370, 92, 330, 104, 290, 92], '#5a3a36'); poly(ctx, [352, 70, 370, 60, 370, 92, 356, 96], '#40382e'); ctx.strokeStyle = 'rgba(200,170,100,.5)'; ctx.lineWidth = 1.4; ctx.beginPath(); ctx.arc(330, 50, 14, 0, TAU); ctx.stroke(); stroke(ctx, [330, 30, 330, 70], 1.2, 'rgba(200,170,100,.5)');
+  rect(ctx, 306, 96, 48, 76, '#3a2a1c'); rect(ctx, 300, 150, 60, 8, '#4a3626');
+  person(v, 330, 196, 100, { raw: true, f: 0, pose: 'sit', cloth: '#4a2a3a', hair: v.other.hair, female: v.other.female, long: v.other.long, cloak: true, arm: 'chest', rim: WARM, rimDir: -1 });
+  ctx.strokeStyle = '#b89a50'; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(330, 104, 7, Math.PI, 0); ctx.stroke();
+  // 금 간 벽, 양동이
+  stroke(ctx, [450, 20, 462, 60, 454, 90, 470, 130], 1, 'rgba(0,0,0,.4)'); poly(ctx, [470, 160, 490, 160, 487, 174, 473, 174], '#4a4640');
+  candle(v, 250, 150, 8); rect(ctx, 244, 150, 12, 22, '#3a2a1c'); pool(v, 290, 204, 150, 22, '#ffb060', 0.16);
+  [[196, 224, 0, 1], [150, 232, 5, 1], [470, 226, 3, -1], [520, 232, 1, -1]].forEach(([x, y, i, f]) => person(v, x, y, 94, folk(i, { raw: true, f, cloak: i !== 1, old: i === 5, rim: WARM, rimDir: f })));
+  person(v, 410, 228, 100, mine(v, { raw: true, f: -1, pose: v.variant === 'hall-plot' ? 'stand' : 'bow', arm: 'chest', rim: WARM, rimDir: -1 }));
+  if (v.variant === 'hall-plot') { rect(ctx, 250, 196, 70, 5, '#54402e'); rect(ctx, 256, 201, 5, 24, '#3e2e22'); rect(ctx, 310, 201, 5, 24, '#3e2e22'); poly(ctx, [262, 193, 306, 192, 308, 197, 260, 198], '#cfc2a2'); }
+  ctx.restore(); finish(v, { inside: true });
+}
+/** 귀환의 배: 새벽의 부두, 배 세 척 */
+function exileFleet(v) {
+  const { ctx, t } = v; sky(v); glow(v, 480, 120, 200, '#ffe0a8', 0.3); sea(v, 130);
+  sailboat(v, 250, 160, 0.7, 1, { flag: '#8a2f2a' }); sailboat(v, 400, 150, 0.5, 1, { flag: '#8a2f2a' }); sailboat(v, 510, 144, 0.36, 1, { flag: '#8a2f2a' });
+  poly(ctx, [0, 190, 420, 196, 440, 208, 440, VH, 0, VH], t('#5a4a3a')); for (let i = 0; i < 14; i++) stroke(ctx, [i * 32, 191, i * 32 - 8, VH], 1, rgba('#000000', 0.25)); for (const x of [120, 280, 430]) { rect(ctx, x - 5, 172, 10, 60, t('#32281e')); oval(ctx, x, 172, 5, 2, t('#5a4a3a')); }
+  stroke(ctx, [280, 176, 262, 158], 1.4, t('#b8a880'));
+  crowd(v, 20, 250, 222, 9, 80, { rim: 'rgba(255,220,160,.4)', rimDir: 1 });
+  for (const x of [50, 130, 210]) spear(v, x, 196, 96, 0.03);
+  banner(v, 170, 204, 110, '#8a2f2a', { d: 1, w: 34, len: 40 });
+  person(v, 330, 232, 100, mine(v, { f: 1, cloak: true, rim: 'rgba(255,220,160,.5)', rimDir: 1 }));
+  person(v, 380, 226, 96, { f: 1, cloth: '#4a2a3a', hair: v.other.hair, female: v.other.female, long: v.other.long, cloak: true, arm: 'fwd', rim: 'rgba(255,220,160,.5)', rimDir: 1 });
+  finish(v, { noLeaves: true });
+}
+
+/* ---------- 큰 공사 ---------- */
+/** 비계: x0~x1, 바닥 y, 층 n */
+const scaffold = (v, x0, x1, y, n, lh = 30) => { const { ctx, t } = v, c = t('#5a4632'); for (let x = x0; x <= x1 + 1; x += (x1 - x0) / Math.max(1, Math.round((x1 - x0) / 44))) stroke(ctx, [x, y, x, y - n * lh - 8], 2, c); for (let i = 1; i <= n; i++) { rect(ctx, x0 - 4, y - i * lh, x1 - x0 + 8, 3, t('#6e5840')); if (i % 2) stroke(ctx, [x0, y - i * lh, x0 + 44, y - (i - 1) * lh], 1.2, c); else stroke(ctx, [x1, y - i * lh, x1 - 44, y - (i - 1) * lh], 1.2, c); } };
+/** 디딤바퀴 기중기 */
+function crane(v, x, y, s) {
+  const { ctx, t } = v, c = t('#4a3a2a'); ctx.save(); ctx.translate(x, y); ctx.scale(s, s);
+  stroke(ctx, [-16, 0, 0, -90, 16, 0], 3, c); stroke(ctx, [0, -90, 70, -120], 3, c); stroke(ctx, [0, -60, 40, -106], 1.6, c);
+  ctx.strokeStyle = c; ctx.lineWidth = 3; ctx.beginPath(); ctx.arc(0, -22, 20, 0, TAU); ctx.stroke(); for (let i = 0; i < 4; i++) stroke(ctx, [-Math.cos(i * 0.785) * 20, -22 - Math.sin(i * 0.785) * 20, Math.cos(i * 0.785) * 20, -22 + Math.sin(i * 0.785) * 20], 1, c);
+  stroke(ctx, [70, -120, 70, -50], 1, t('#b8a880')); rect(ctx, 58, -50, 24, 16, t('#a49c8e')); stroke(ctx, [58, -50, 70, -58, 82, -50], 0.8, t('#b8a880'));
+  ctx.restore();
+}
+const block = (v, x, y, w = 22, h = 13) => { const { ctx, t } = v; rect(ctx, x - w / 2, y - h, w, h, t('#a49c8e')); rect(ctx, x - w / 2, y - h, w, 2.4, t('#bcb4a4')); oval(ctx, x, y, w * 0.6, 2, rgba('#000000', 0.18)); };
+/** 짓는 터. variant site: 올라가는 성벽·성당, fall: 무너진 비계 */
+function worksSite(v) {
+  const { ctx, t, R } = v, fall = v.variant === 'fall', dim = dimOf(v), rim = dim ? WARM : null; sky(v); far(v); townFar(v, 90, HZ + 20, { s: 0.6, n: 5 });
+  const gy = () => 174; ground(v, gy); poly(ctx, [0, 186, VW, 186, VW, VH, 0, VH], t('#8a7c64'));
+  // 반쯤 올라간 돌벽: 뾰족 아치 창 자리
+  const wx = 300, st = t('#9a9284'), st2 = t('#857e72');
+  ctx.fillStyle = st; ctx.beginPath(); ctx.moveTo(wx, 190); ctx.lineTo(wx, 70); ctx.lineTo(wx + 60, 70); ctx.lineTo(wx + 60, 44); ctx.lineTo(wx + 130, 44); ctx.lineTo(wx + 130, 84); ctx.lineTo(wx + 210, 84); ctx.lineTo(wx + 210, 110); ctx.lineTo(wx + 300, 110); ctx.lineTo(wx + 300, 140); ctx.lineTo(VW, 140); ctx.lineTo(VW, 190); ctx.fill();
+  for (let y = 56; y < 190; y += 12) for (let x = wx + ((y / 12) % 2) * 12; x < VW; x += 24) if (y > (x < wx + 60 ? 70 : x < wx + 130 ? 44 : x < wx + 210 ? 84 : x < wx + 300 ? 110 : 140)) stroke(ctx, [x, y, x, y + 12], 0.6, rgba('#000000', 0.14));
+  for (const x of [wx + 36, wx + 96, wx + 170]) { ctx.fillStyle = t('#3a3632'); ctx.beginPath(); ctx.moveTo(x - 12, 190); ctx.lineTo(x - 12, 130); ctx.quadraticCurveTo(x - 12, 108, x, 98); ctx.quadraticCurveTo(x + 12, 108, x + 12, 130); ctx.lineTo(x + 12, 190); ctx.fill(); }
+  rect(ctx, wx - 6, 186, VW, 6, st2);
+  if (!fall) { scaffold(v, wx + 10, wx + 200, 190, 4); crane(v, wx - 44, 190, 1.05); }
+  else {
+    scaffold(v, wx + 130, wx + 200, 190, 3);
+    for (let i = 0; i < 14; i++) { const x = wx - 30 + R() * 170, y = 150 + R() * 60, a = (R() - 0.5) * 2.4, l = 30 + R() * 50; stroke(ctx, [x, y, x + Math.cos(a) * l, y + Math.sin(a) * l * 0.6], 2 + R() * 2, t(R() < 0.5 ? '#5a4632' : '#6e5840')); }
+    for (let i = 0; i < 10; i++) block(v, wx - 20 + R() * 150, 204 + R() * 26, 14 + R() * 12, 9 + R() * 6);
+    for (let i = 0; i < 20; i++) glow(v, wx - 30 + R() * 180, 110 + R() * 90, 26 + R() * 34, '#c8b89a', 0.07);
+  }
+  // 돌 더미와 수레, 일꾼
+  for (const [x, y] of [[90, 214], [114, 214], [102, 201], [150, 226]]) block(v, x, y);
+  if (!fall) {
+    person(v, 212, 230, 92, folk(0, { f: 1, pose: 'bow', rim, rimDir: 1 })); block(v, 240, 214); stroke(ctx, [226, 200, 252, 200], 1, t('#b8a880'));
+    ctx.save(); ctx.beginPath(); ctx.rect(0, 0, VW, 99); ctx.clip(); person(v, wx + 160, 122, 60, folk(2, { f: -1, arm: 'up', rim, rimDir: -1 })); ctx.restore();
+    person(v, 560, 232, 90, folk(4, { f: -1, arm: 'fwd', rim, rimDir: -1 })); stroke(ctx, [540, 176, 530, 150], 2, t('#4a3a2a')); rect(ctx, 524, 144, 12, 8, t('#787c84'));
+    person(v, 470, 236, 100, mine(v, { f: -1, arm: 'fwd', rim, rimDir: -1 })); poly(ctx, [436, 178, 458, 174, 460, 186, 438, 190], t('#cfc2a2'));
+  } else {
+    lying(v, wx + 30, 232, 70, { cover: '#8a8474' }); person(v, wx + 14, 238, 88, folk(1, { f: 1, pose: 'kneel', rim, rimDir: 1 }));
+    person(v, 212, 230, 92, folk(0, { f: 1, arm: 'fwd', rim, rimDir: 1 })); person(v, 560, 232, 90, folk(4, { f: -1, arm: 'chest', rim, rimDir: -1 }));
+    person(v, 470, 236, 100, mine(v, { f: -1, arm: 'fwd', rim, rimDir: -1 }));
+  }
+  finish(v, { noLeaves: true });
+}
+/** 땅을 파는 공사: 운하·수로·큰길 */
+function worksDig(v) {
+  const { ctx, t, R } = v; sky(v); far(v); townFar(v, 560, HZ + 16, { s: 0.6, n: 5 });
+  const gy = (x) => 160 - fbm1(x / 220 + v.q, 3) * 6; ground(v, gy, { tufts: 160 });
+  // 멀어지는 도랑과 양쪽 흙 둑
+  ctx.fillStyle = t('#4a3c2c'); ctx.beginPath(); ctx.moveTo(120, VH); ctx.quadraticCurveTo(300, 190, 470, 156); ctx.lineTo(486, 156); ctx.quadraticCurveTo(420, 200, 430, VH); ctx.fill();
+  ctx.fillStyle = t('#8a7452'); ctx.beginPath(); ctx.moveTo(40, VH); ctx.quadraticCurveTo(250, 180, 462, 154); ctx.lineTo(470, 156); ctx.quadraticCurveTo(300, 190, 120, VH); ctx.fill();
+  ctx.beginPath(); ctx.moveTo(430, VH); ctx.quadraticCurveTo(420, 200, 486, 156); ctx.lineTo(494, 155); ctx.quadraticCurveTo(470, 200, 520, VH); ctx.fill();
+  ctx.fillStyle = rgba(t('#4e6478'), 0.8); ctx.beginPath(); ctx.moveTo(400, 176); ctx.quadraticCurveTo(440, 164, 472, 157); ctx.lineTo(484, 157); ctx.quadraticCurveTo(450, 172, 436, 184); ctx.fill();
+  for (let i = 0; i < 30; i++) oval(ctx, 60 + R() * 420, 196 + R() * 40, 3 + R() * 5, 1.6, rgba('#000000', 0.12));
+  for (let i = 0; i < 8; i++) { const k = i / 8, x = 150 + k * 300; stroke(ctx, [x - 30 + k * 26, 236 - k * 76, x - 30 + k * 26, 220 - k * 70], 2 - k, t('#4a3a2a')); }
+  // 파는 사람들
+  [[236, 236, 0, 1], [300, 222, 2, -1], [352, 206, 4, 1]].forEach(([x, y, i, f], n) => { person(v, x, y, 88 - n * 12, folk(i, { f, pose: 'bow' })); stroke(ctx, [x + f * 10, y - (56 - n * 8), x + f * 26, y - 6], 1.6, t('#4a3a2a')); poly(ctx, [x + f * 22, y - 8, x + f * 32, y - 8, x + f * 28, y + 2], t('#787c84')); });
+  // 흙 수레와 감독
+  rect(ctx, 520, 204, 50, 16, t('#5a4632')); ctx.fillStyle = t('#6a5640'); ctx.beginPath(); ctx.ellipse(545, 204, 24, 9, 0, Math.PI, 0); ctx.fill(); ctx.strokeStyle = t('#2a2018'); ctx.lineWidth = 2.4; ctx.beginPath(); ctx.arc(545, 222, 9, 0, TAU); ctx.stroke(); cow(v, 604, 232, 44, 1, '#5a4030');
+  stroke(ctx, [70, 236, 70, 150], 1.6, t('#3a2c20')); poly(ctx, [70, 150, 92, 156, 70, 164], t('#8a2f2a'));
+  person(v, 130, 236, 100, mine(v, { f: 1, arm: 'fwd' })); poly(ctx, [150, 176, 172, 172, 174, 184, 152, 188], t('#cfc2a2'));
+  finish(v);
+}
+/** 완공: 큰 돌다리 위의 사람들 */
+function worksOpen(v) {
+  const { ctx, t } = v; sky(v); far(v); townFar(v, 540, HZ + 14, { s: 0.7, n: 6 });
+  const gy = (x) => 150 - fbm1(x / 200 + v.q, 3) * 6; ground(v, gy);
+  rect(ctx, 0, 176, VW, VH - 176, t('#4e6478')); for (let i = 0; i < 30; i++) { const x = (i * 97) % VW, y = 184 + ((i * 37) % 50); stroke(ctx, [x, y, x + 24, y + 1], 0.9, rgba('#dfe8f0', 0.2)); }
+  // 다리
+  const by = (x) => 150 - 16 * (1 - ((x - 320) / 320) ** 2), st = t('#a09888');
+  ctx.fillStyle = st; ctx.beginPath(); ctx.moveTo(0, 214); for (let x = 0; x <= VW; x += 16) ctx.lineTo(x, by(x)); ctx.lineTo(VW, 214); ctx.fill();
+  for (const cx of [110, 320, 530]) { ctx.fillStyle = t('#3a4654'); ctx.beginPath(); ctx.ellipse(cx, 216, 82, 46, 0, Math.PI, 0); ctx.fill(); ctx.strokeStyle = t('#7c7468'); ctx.lineWidth = 4; ctx.beginPath(); ctx.ellipse(cx, 216, 84, 48, 0, Math.PI, 0); ctx.stroke(); }
+  for (const px of [4, 215, 425, 636]) { rect(ctx, px - 14, 150, 28, 80, st); poly(ctx, [px - 14, 230, px, 244, px + 14, 230], t('#857e72')); }
+  ctx.fillStyle = st; ctx.beginPath(); for (let x = 0; x <= VW; x += 16) ctx[x ? 'lineTo' : 'moveTo'](x, by(x) - 9); for (let x = VW; x >= 0; x -= 16) ctx.lineTo(x, by(x)); ctx.fill(); for (let x = 8; x < VW; x += 20) stroke(ctx, [x, by(x) - 9, x, by(x)], 0.8, rgba('#000000', 0.2));
+  // 다리 위의 사람들과 깃발
+  for (let i = 0; i < 13; i++) { const x = 60 + i * 42 + (i % 3) * 6; ctx.save(); ctx.beginPath(); ctx.rect(x - 20, 0, 40, by(x) - 8); ctx.clip(); person(v, x, by(x) + 6, 42 + (i % 3) * 3, folk(i, { f: i < 7 ? 1 : -1, arm: i % 4 === 0 ? 'up' : undefined })); ctx.restore(); }
+  for (const [x, c] of [[215, '#8a2f2a'], [425, '#c9a25a'], [320, '#8a2f2a']]) banner(v, x, by(x) - 8, 46, c);
+  // 앞 둑의 나
+  poly(ctx, [0, 226, 190, 220, 230, 240, 0, 240], t('#6a7a4a'));
+  person(v, 120, 238, 100, mine(v, { f: 1, arm: 'chest' })); person(v, 70, 236, 60, folk(3, { f: 1, child: true, arm: 'up' }));
+  finish(v);
+}
+
 export const PLATES5 = {
   /** 봉기. variant: secret(헛간 모임) march(문 앞) gallows(꺾인 뒤) */
   revolt(v) { const k = v.variant ?? 'secret'; return k === 'march' ? revoltMarch(v) : k.startsWith('gallows') ? revoltGallows(v) : revoltSecret(v); },
@@ -502,4 +758,10 @@ export const PLATES5 = {
   heist(v) { const k = v.variant ?? 'plan'; return k === 'roof' ? heistRoof(v) : k.startsWith('vault') ? heistVault(v) : heistPlan(v); },
   /** 재판정. variant: dock plead bench */
   trial,
+  /** 유배와 망명. variant: island boat boat-night hall hall-plot fleet */
+  exile(v) { const k = v.variant ?? 'island'; return k.startsWith('boat') ? exileBoat(v) : k.startsWith('hall') ? exileHall(v) : k === 'fleet' ? exileFleet(v) : exileIsland(v); },
+  /** 큰 공사. variant: site fall dig open */
+  works(v) { const k = v.variant ?? 'site'; return k === 'dig' ? worksDig(v) : k === 'open' ? worksOpen(v) : worksSite(v); },
+  /** 요리사. variant: kitchen create feast taster contest stall */
+  cuisine(v) { const k = v.variant ?? 'kitchen'; return k === 'feast' || k === 'taster' ? cuisineFeast(v) : k === 'contest' ? cuisineContest(v) : k === 'stall' ? cuisineStall(v) : cuisineKitchen(v); },
 };
