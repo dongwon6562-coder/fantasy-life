@@ -53,6 +53,8 @@ const RACES = {
 RACES.half_demon = { ...HUMAN, hair: RACES.demon.hair, hairW: [3, 1, 2, 2, 2], hairN: RACES.demon.hairN, eyes: RACES.demon.eyes, eyesW: RACES.demon.eyesW, eyesN: RACES.demon.eyesN };
 
 const raceOf = (p) => (RACES[p?.race] ? p.race : 'human');
+// 시작 화면에서 고를 수 있는 머리·눈 빛깔 이름 (번호가 곧 팔레트 자리)
+export const lookChoices = (race = 'human') => { const R = RACES[race] ?? HUMAN; return { hair: [...R.hairN], eyes: [...R.eyesN] }; };
 const keyOf = (p) => `${p.id}|${p.name}|${p.lastName}|${p.sex}`;
 
 /* ---------- 나이를 보는 눈 ----------
@@ -102,6 +104,8 @@ function genesOf(game, p, depth = 0) {
     inh.skin = Math.min(inh.skin, R.skin.length - 1); inh.hair = Math.min(inh.hair, R.hair.length - 1); inh.eyes = Math.min(inh.eyes, R.eyes.length - 1);
     g = inh;
   }
+  // 시작 때 고른 머리·눈 빛깔 (src/heredity/, 첫 사람만)
+  if (p.looks) { g = { ...g }; for (const key of ['hair', 'eyes']) if (Number.isInteger(p.looks[key])) g[key] = p.looks[key]; }
   if (geneCache.size > 4000) geneCache.clear();
   geneCache.set(k, g);
   return g;
