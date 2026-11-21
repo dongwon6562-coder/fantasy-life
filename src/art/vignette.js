@@ -146,6 +146,8 @@ const BY_SCENE = {
   // 14단계: 장사 길과 상단 (trade_event는 아래에서 일에 따라 고른다)
   trade_market: 'beastlife:market', trade_caravan: 'road', trade_bandits: 'feud:strike', trade_toll: 'square:guards', trade_house: 'mentor:found', trade_rival: 'feud:plot', trade_event: 'beastlife:market',
   // 14단계: 글과 예술 (기존 그림을 이어 붙임)
+  // 26단계: 숨은 왕가의 피 (새 삽화가 오기 전까지 있는 판을 붙임)
+  claim_reveal: 'bedside', claim_suitor: 'feud:plot', claim_threat: 'night', claim_pretender: 'square:herald', claim_crown: 'square:guards',
   // 25단계: 첩보와 밀정 (spy_job·spy_hunter는 아래에서 일에 따라 고른다)
   spy_recruit: 'spy:recruit', spy_job: 'spy:drop', spy_caught: 'spy:caught', spy_exposed: 'spy:exposed', spy_turn: 'spy:recruit',
   spy_double: 'spy:drop', spy_hunter: 'spy:tail',
