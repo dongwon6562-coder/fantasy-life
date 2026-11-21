@@ -1601,10 +1601,11 @@ html.motion .month-card .mc-in strong { animation: mc-glow 1.6s ease-out; }
 /* ---------- 30단계 화면 몰입: 오늘의 장면, 한 줄씩 드러나기, 부드러운 전환 ---------- */
 .today { display: grid; gap: 10px; }
 .today > h2 { margin-bottom: 0; }
-.td-lead {
-  margin: 0; font-family: var(--f-display); font-size: 17px; line-height: 1.7; color: #eadcbf; letter-spacing: .01em;
-  padding: 2px 0 2px 14px; border-left: 2px solid var(--brass-dim); font-style: italic;
-}
+.td-lead { display: grid; gap: 4px; padding: 2px 0 2px 14px; border-left: 2px solid var(--brass-dim); }
+.td-lead p { margin: 0; line-height: 1.7; }
+.td-lead p:first-child { font-family: var(--f-display); font-size: 17px; color: #eadcbf; letter-spacing: .01em; font-style: italic; }
+.td-lead p + p { font-size: 14px; color: var(--muted); }
+.td-feel { margin: 0; font-style: italic; color: #d9cbb0; line-height: 1.7; }
 .td-sec { display: grid; gap: 8px; padding-top: 10px; border-top: 1px solid rgba(201, 162, 90, .14); }
 .td-sec > h3.sub { margin: 0; font-size: 13px; letter-spacing: .12em; color: var(--brass); }
 .today .news li.rumor { color: var(--muted); font-style: italic; border-left-style: dashed; }
