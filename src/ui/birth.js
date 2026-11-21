@@ -4,6 +4,7 @@
 import { birthOptions } from '../heredity/index.js';
 import { icon } from '../art/icons.js';
 import { esc } from './util.js';
+import { vignetteImage } from '../art/vignette.js';
 
 const ICON = { hammer: 'smith', herb: 'herb' };
 const opts = (race) => { try { return birthOptions(race); } catch (e) { console.error(e); return null; } };
@@ -15,8 +16,11 @@ export function renderBirthPick(s, race) {
   const traits = s.traits ?? [];
   const picked = traits.length + (s.hair != null ? 1 : 0) + (s.eyes != null ? 1 : 0);
   const trName = (id) => o.traits.find((t) => t.id === id)?.name ?? '';
+  let art = '';
+  try { art = vignetteImage({ plate: 'gift', year: 500, month: 3 }); } catch (e) { console.error(e); }
   return `<section class="birth-pick">
     <h2>타고난 것</h2>
+    ${art ? `<img class="bt-art" src="${art}" alt="창으로 드는 빛 아래 요람에 누운 아이">` : ''}
     <div class="seg birth-mode" role="group" aria-label="타고난 것">
       ${o.modes.map((m) => `<button data-bmode="${m.id}" aria-pressed="${mode === m.id}">${esc(m.name)}</button>`).join('')}
     </div>
