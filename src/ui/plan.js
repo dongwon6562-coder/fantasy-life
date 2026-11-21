@@ -124,6 +124,7 @@ const GROUPS = [
   ['mine', '광산', /^mine_/],
   ['farm', '내 농장', /^farm_/],
   ['apo', '약초와 약방', /^apo_/],
+  ['brew', '양조장', /^brew_/],
   ['herd', '목축과 유목', /^herd_/],
   ['frontier', '개척', /^frontier_/],
   ['learn', '배움과 수련', /^(school_|study|train_body|sword_|meditate|magic_|legend_lesson|research|seal_study|tower_(join|duty|exam|craft))/],
