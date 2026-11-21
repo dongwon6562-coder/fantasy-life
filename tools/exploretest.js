@@ -280,6 +280,7 @@ function expedition(g, rid, opt = {}) {
     if (!e.cache.some((f) => f.id === id)) e.cache.push({ id, region: 'ash', site: null, year: g.date.year });
     // 저절로 찾아온 다른 사람(같은 장면 종류)이 줄에 있으면 그쪽이 먼저 떠서 엉뚱한 것을 내준다
     L(g).queue = L(g).queue.filter((q) => q.kind !== 'explore_seek');
+    if (g.crime) g.crime.jailed = null; // 옥에 갇히면(무작위) 장면이 뜨지 않는다
     scene(g, 'explore_seek', { id, who }, re);
   }
   // 병으로 일찍 죽으면(무작위) 장면이 뜨지 않으니 보지 않는다
