@@ -155,6 +155,8 @@ const BY_SCENE = {
   // 14단계: 글과 예술 (기존 그림을 이어 붙임)
   // 27단계: 불로 (나머지 장면은 갈래가 들어오는 대로 잇는다)
   imprint_rite: 'ageless:imprint', seventh_call: 'ageless:noa', seventh_trial: 'ageless:seventh', sealbreath_draw: 'ageless:breath', vessel_rite: 'ageless:vessel',
+  // 28단계 도우미2: 사절과 볼모
+  envoy_talks: 'envoy:table', envoy_incident: 'envoy:break', envoy_pledge: 'night', envoy_kid_war: 'bedside', envoy_hostage_sent: 'envoy:march', envoy_hostage_life: 'envoy:hostage', envoy_hostage_war: 'square:guards', envoy_hostage_return: 'road:return', envoy_between: 'feud:plot',
   // 27단계 도우미2: 노아 실마리·불로의 두 길·불로가 된 뒤·스스로 고르는 죽음
   noah_sighting: 'ageless:noa', noah_journey: 'night', noah_meet: 'ageless:noa', dragonname_tablet: 'seal:map', dragonname_call: 'ageless:truename',
   bloodyears_offer: 'bedside', bloodyears_rite: 'night', bloodyears_due: 'bedside', after_rumor: 'ageless:depart', after_hunted: 'square:guards',
