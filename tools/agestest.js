@@ -5,7 +5,7 @@ import { resolveEvent } from '../src/events.js';
 import { L } from '../src/adventure/core.js';
 const bands = [[0, 2], [3, 6], [7, 11], [12, 15], [16, 25], [26, 40], [41, 55], [56, 90]];
 const st = bands.map(() => ({ m: 0, quiet: 0, ev: 0, sc: 0, acts: 0, kinds: new Set() }));
-for (let run = 0; run < 4; run++) {
+for (let run = 0; run < 8; run++) {
   const g = newGame({ name: 'a', sex: run % 2 ? 'm' : 'f', familyId: ['farmer', 'merchant', 'fallen_knight'][run % 3], mode: 'free', seed: 93000 + run * 7 });
   for (let m = 0; m < 12 * 75 && !g.over; m++) {
     const age = playerAge(g); const b = bands.findIndex(([a, z]) => age >= a && age <= z); const S = st[b];

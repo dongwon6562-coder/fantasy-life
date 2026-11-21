@@ -12,6 +12,7 @@ import { makePerson, byId, ageYears, has } from '../npc.js';
 import { JOBS, ADULT_JOB_CHOICES } from '../data.js';
 import { L, defineScene, queueScene, sceneQueued, traveling, note, chron, tired, stress, up, gains, check } from '../adventure/core.js';
 import { isJailed } from '../crime.js';
+import { giftFromBlood } from '../heredity/core.js';
 import { TEMPERS, GIFTS, PATHS, CRAFT_SKILLS, SKILL_JOB, SKILL_NAME, WILLS, LEAVE_PLACES } from './data.js';
 
 export { TEMPERS, GIFTS, PATHS, WILLS };
@@ -39,7 +40,8 @@ function newRec(rng, p, { adopted = false } = {}) {
   if (has(p, 'timid') || has(p, 'reserved')) temper = rng.chance(0.5) ? 'quiet' : temper;
   if (has(p, 'brave')) temper = rng.chance(0.5) ? 'bold' : temper;
   const giftKeys = Object.keys(GIFTS).filter((x) => x !== 'magic');
-  const gift = rng.chance(0.12) ? 'magic' : rng.pick(giftKeys);
+  // 핏줄이 있으면 그 핏줄에서 (src/heredity/, 27단계), 없으면 예전처럼
+  const gift = giftFromBlood(p.blood, rng) ?? (rng.chance(0.12) ? 'magic' : rng.pick(giftKeys));
   return {
     temper, gift, giftKnown: age >= 8,
     path: age >= 13 ? 'free' : null, craft: null,
