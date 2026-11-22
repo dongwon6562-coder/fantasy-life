@@ -5,6 +5,7 @@
 //   royalty: 매달 들어오는 사용료(은화), stolen: 도둑맞은 연구, rivalSeen: 도용 사건이 뜬 연구
 import { HOOKS } from '../hooks.js';
 import { INVENTIONS } from '../history/powers.js';
+import { HAND } from '../techtree/nodes.js';
 import { circleOf } from '../game.js';
 import { L } from '../adventure/core.js';
 
@@ -53,18 +54,21 @@ export const DESIGNS = {
 // 지금 연구할 수 있는 발명: 아직 나오지 않았고, 시대보다 너무 앞서지 않은 것 (다음 둘까지)
 export function inventable(g) {
   const tech = g.realm?.tech ?? 0;
-  return INVENTIONS.filter((v) => !invented(g, v.id) && v.id !== g.research?.claim && tech >= v.at - 0.6).slice(0, 2).map((v) => v.id);
+  // 34단계: 기술 나무의 열린 끝(선행 기술이 다 나온 것)만, 세상보다 너무 앞서지 않은 것 가운데 앞선 셋
+  return INVENTIONS.filter((v) => !invented(g, v.id) && v.id !== g.research?.claim && (v.needs ?? []).every((n) => invented(g, n)) && tech >= v.at - 0.8).sort((a, b) => b.at - a.at).slice(0, 3).map((v) => v.id);
 }
 export const designable = (g) => Object.entries(DESIGNS).filter(([id, d]) => !RS(g).made.includes(id) && d.needs.every((n) => invented(g, n))).map(([id]) => id);
 export const inventionOf = (id) => INVENTIONS.find((v) => v.id === id) ?? null;
 // 발명 하나에 드는 품: 뒤의 것일수록 크다 (달 단위로 1이 대략 한 달의 몫)
-export const workOf = (p) => (p.kind === 'design' ? DESIGNS[p.id]?.work ?? 5 : 6 + Math.max(0, INVENTIONS.findIndex((v) => v.id === p.id)) * 0.9);
-export const handOf = (p) => (p.kind === 'design' ? DESIGNS[p.id]?.hand : NEED[p.id]) ?? 'smith';
-export const nameOf = (p) => (p.kind === 'design' ? DESIGNS[p.id]?.name : INV_NAME[p.id]) ?? '연구';
+export const workOf = (p) => (p.kind === 'design' ? DESIGNS[p.id]?.work ?? 5 : 6 + (INVENTIONS.find((v) => v.id === p.id)?.at ?? 0) * 2.2); // 34단계: 나무가 커져서 순번 대신 눈금으로
+export const handOf = (p) => (p.kind === 'design' ? DESIGNS[p.id]?.hand : NEED[p.id] ?? HAND[INVENTIONS.find((v) => v.id === p.id)?.field]) ?? 'smith';
+export const nameOf = (p) => (p.kind === 'design' ? DESIGNS[p.id]?.name : INV_NAME[p.id] ?? INVENTIONS.find((v) => v.id === p.id)?.name) ?? '연구';
 export const INV_NAME = {
   firestone: '화석(火石)', streetlamp: '등석 가로등', warmstone: '온석 화로', manamill: '마석 방아', press: '마도 인쇄기', signal: '마도 전신탑',
   erngrind: '작은 마석 방아', plow: '마석 쟁기', forge: '마석 화로', healstone: '정화석 붕대', ironcart: '마석로 쇠수레', railroad: '쇠수레 길',
 };
+// 34단계: 기술 나무의 나머지 마디 이름 (예전 열두 가지 이름은 그대로)
+for (const v of INVENTIONS) INV_NAME[v.id] ??= v.name;
 
 // 이 연구에 맞는 솜씨 (0~100 남짓)
 export function aptitude(g, hand) {

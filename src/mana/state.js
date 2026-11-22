@@ -48,7 +48,8 @@ export const costMul = (t) => clamp(1 - t * 0.0035, 0.75, 1.35);
 export const sellMul = (t) => clamp(1 - t * 0.002, 0.85, 1.2);
 export function syncMana(g) {
   if (!BASE) BASE = Object.fromEntries(Object.entries(ITEMS).map(([id, it]) => [id, { cost: it.cost, sell: it.sell }]));
-  const t = g?.mana?.tide ?? 0;
+  // 34단계: 마석 고갈 걱정(g.later.deplete)이 크면 마나가 옅은 해처럼 비싸다
+  const t = (g?.mana?.tide ?? 0) - (g?.later?.deplete ?? 0) * 0.4;
   for (const [id, b] of Object.entries(BASE)) {
     if (!ITEMS[id]) continue;
     ITEMS[id].cost = Math.max(1, Math.round(b.cost * costMul(t)));
