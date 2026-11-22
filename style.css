@@ -1597,3 +1597,45 @@ html.motion .month-card .mc-in strong { animation: mc-glow 1.6s ease-out; }
 }
 /* 지도: 양피지를 짙은 나무 액자에 끼운 듯 */
 .mapbox { border: 1px solid #5a4630; box-shadow: 0 0 0 3px #1b1510, 0 0 0 4px rgba(201, 162, 90, .35), inset 0 0 30px rgba(80, 52, 20, .35), 0 6px 18px rgba(0, 0, 0, .4); }
+
+/* ---------- 30단계 화면 몰입: 오늘의 장면, 한 줄씩 드러나기, 부드러운 전환 ---------- */
+.today { display: grid; gap: 10px; }
+.today > h2 { margin-bottom: 0; }
+.td-lead { display: grid; gap: 4px; padding: 2px 0 2px 14px; border-left: 2px solid var(--brass-dim); }
+.td-lead p { margin: 0; line-height: 1.7; }
+.td-lead p:first-child { font-family: var(--f-display); font-size: 17px; color: #eadcbf; letter-spacing: .01em; font-style: italic; }
+.td-lead p + p { font-size: 14px; color: var(--muted); }
+.td-feel { margin: 0; font-style: italic; color: #d9cbb0; line-height: 1.7; }
+.td-sec { display: grid; gap: 8px; padding-top: 10px; border-top: 1px solid rgba(201, 162, 90, .14); }
+.td-sec > h3.sub { margin: 0; font-size: 13px; letter-spacing: .12em; color: var(--brass); }
+.today .news li.rumor { color: var(--muted); font-style: italic; border-left-style: dashed; }
+.today .news li.rumor.fix { color: var(--ink); font-style: normal; }
+.td-feast { margin: 0; font-size: 14px; line-height: 1.7; color: var(--ink); padding: 8px 12px; border: 1px solid rgba(201, 162, 90, .28); border-radius: 6px; background: rgba(201, 162, 90, .06); }
+.td-feast b { color: var(--brass); margin-right: 4px; }
+.td-met .news li { border-left-color: rgba(201, 162, 90, .55); }
+.td-sum .month-sum h3.sub { margin: 0; font-size: 13px; letter-spacing: .12em; color: var(--brass); }
+.td-more > summary { cursor: pointer; color: var(--muted); font-size: 13px; padding: 4px 0; }
+.td-more[open] > summary { margin-bottom: 8px; }
+.today .world-mini { margin-top: 2px; }
+
+/* 한 줄씩 드러나기: .rv 안의 .ln이 차례로 떠오른다. 누르면(.done) 바로 다 보인다. */
+.rv .ln { animation: ln-in .7s ease-out backwards; animation-delay: calc(.12s + var(--ln, 0) * var(--st, .22s)); }
+@keyframes ln-in { from { opacity: 0; transform: translateY(5px); filter: blur(1.5px); } }
+html .event.rv .opt, html .event.rv #ev-close { animation: opt-rv .4s ease-out backwards; animation-delay: calc(var(--base, 0s) + .45s + var(--i, 0) * .07s); }
+@keyframes opt-rv { from { opacity: 0; visibility: hidden; transform: translateY(6px); } }
+html .rv.done .ln, html .rv.done .opt, html .rv.done #ev-close { animation: none; }
+.event.rv .ev-text, .event.rv .outcome { cursor: pointer; }
+
+/* 사건 창이 걷힐 때 */
+html.motion .overlay.out { animation: ov-out .2s ease-in forwards; }
+html.motion .overlay.out .event { animation: ev-out .2s ease-in forwards; }
+@keyframes ov-out { to { opacity: 0; } }
+@keyframes ev-out { to { opacity: 0; transform: translateY(6px) scale(.985); } }
+/* 사건 창이 열릴 때: 어둠이 먼저 깔리고 편지가 떠오른다 */
+html.motion .overlay.fresh:not(.out) { animation: ov-in .25s ease-out; }
+html.motion .overlay:not(.fresh):not(.out) .event { animation: none; }
+@keyframes ov-in { from { background-color: rgba(10, 8, 6, 0); } }
+html.motion .main.enter { animation: view-in .38s ease-out; }
+/* 달 넘김 카드나 장면 연출(src/art/stage.js)이 화면을 덮는 동안에는 글 드러내기를 멈춰 두고, 걷히면 이어 간다 */
+body:has(.month-card:not(.out)) .rv .ln, body:has(.month-card:not(.out)) .event.rv .opt, body:has(.month-card:not(.out)) .event.rv #ev-close,
+body:has(.fl-stage:not(.off)) .rv .ln, body:has(.fl-stage:not(.off)) .event.rv .opt, body:has(.fl-stage:not(.off)) .event.rv #ev-close { animation-play-state: paused; }
