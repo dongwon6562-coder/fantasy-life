@@ -35,7 +35,8 @@ const has = (p, t) => !!p?.traits?.includes?.(t);
 const ownRng = (g, salt = 0) => makeRng({ s: ((g.rngState?.s ?? 331) ^ Math.imul(mi(g) * 173 + salt + 61, 2654435761)) | 0 });
 const aff = (p, n) => { if (!p) return; rel(p); p.affection = clamp((p.affection ?? 0) + n, -100, 100); };
 const jobWord = (p) => (p?.job && p.job !== 'child' && p.job !== 'idle' ? JOBS[p.job]?.name ?? null : null);
-const free = (g) => playerAge(g) >= 16 && !traveling(g) && !isJailed(g) && !g.over && !g.explore?.exp;
+// 노예로 묶여 있거나 유배 중일 때는 벗 장면을 띄우지 않는다 (그쪽 갈래가 삶을 맡는다)
+const free = (g) => playerAge(g) >= 16 && !traveling(g) && !isJailed(g) && !g.over && !g.explore?.exp && !g.bondage?.slave && !g.exile?.banish && !g.army?.captive && !L(g).heirPending;
 const MAX_ACTIVE = 5;
 
 /* ---------- 상태 ---------- */
@@ -86,7 +87,6 @@ function addFriend(g, p, where, depth) {
   const f = { pid: p.id, since: mi(g), where, depth: clamp(depth, 0, 100), lastMet: mi(g), state: 'close', wed: !!p.spouseId, debt: null, jealous: 0, shown: false, betrayedAt: null, forgiven: null, diedAt: null, kidsAt: -99 };
   s.list.push(f);
   if (s.list.length > 16) { const i = s.list.findIndex((x) => x.state !== 'close'); s.list.splice(i >= 0 ? i : 0, 1); }
-  rel(p); p.known = true;
   return f;
 }
 const whereNow = (g) => (g.army?.campaign ? 'war' : enrolled(g) ? 'school' : L(g).job ? 'work' : 'tavern');
@@ -167,7 +167,7 @@ function makeTick(g, rng) {
     const b = byId(g, bid);
     if (b?.alive && !sworn(g, b.id)) { addFriend(g, b, 'child', clamp(b.affection ?? 40, 30, 80)); log(g, `소꿉친구 ${J(b.name, '과/와')} 어른이 되어서도 벗으로 남았다.`); }
   }
-  if (age < 16 || !free(g) || active(s).length >= MAX_ACTIVE || mi(g) - s.newAt < 18 || !rng.chance(0.07)) return false;
+  if (age < 16 || !free(g) || active(s).length >= MAX_ACTIVE || mi(g) - s.newAt < 12 || !rng.chance(0.12)) return false;
   const pool = living(g).filter((p) => !p.isPlayer && p.known && ageYears(p) >= 16 && Math.abs(ageYears(p) - age) <= 15 && placeOf(p) === here(g)
     && (p.affection ?? 0) >= 25 && !fOf(g, p.id) && !isKin(g, p) && !sworn(g, p.id) && !['spouse', 'lover', 'ex', 'enemy'].includes(p.bond) && (p.rivalry ?? 0) < 40);
   s.newAt = mi(g);
@@ -179,7 +179,7 @@ function makeTick(g, rng) {
     return true;
   }
   // 낯선 고장이나 새 일터: 거기서 처음 보는 또래와 벗이 된다 (사람은 벗이 되기로 했을 때 만든다)
-  if (!rng.chance(0.5)) return false;
+  if (!rng.chance(0.7)) return false;
   const sex = rng.chance(me(g).sex === 'm' ? 0.75 : 0.35) ? 'm' : 'f';
   const tmp = { name: rng.pick(sex === 'm' ? MALE_NAMES : FEMALE_NAMES), lastName: rng.pick(LAST_NAMES), traits: [rng.pick(TRAITS).id] };
   const job = where === 'war' ? 'guard' : where === 'school' ? 'apprentice' : where === 'work' ? (L(g).job?.id && JOBS[L(g).job.id] ? L(g).job.id : 'laborer') : rng.pick(['laborer', 'smith', 'carpenter', 'merchant', 'hunter', 'cook', 'weaver', 'miller']);
@@ -452,7 +452,7 @@ defineScene('fr_legacy', {
     const st = S(g); const x = st.legacy.find((y) => y.pid === s.pid); if (x) x.asked = true;
     const p = byId(g, s.pid);
     if (!p?.alive) return '그 사람은 오지 않았다.';
-    if (key === 'yes') { addFriend(g, p, 'legacy', 40); aff(p, 10); log(g, `부모 대의 벗의 자식 ${J(p.name, '과/와')} 벗이 되었다.`); return '부모들 이야기로 시작해서 우리 이야기로 끝났다. 어느새 그 집 부모와 우리 부모가 앉던 자리에 앉아 있었다.'; }
+    if (key === 'yes') { p.known = true; addFriend(g, p, 'legacy', 40); aff(p, 10); log(g, `부모 대의 벗의 자식 ${J(p.name, '과/와')} 벗이 되었다.`); return '부모들 이야기로 시작해서 우리 이야기로 끝났다. 어느새 그 집 부모와 우리 부모가 앉던 자리에 앉아 있었다.'; }
     aff(p, -3); return `${J(p.name, '은/는')} 웃으며 고개를 끄덕였다. "그래, 그것도 맞다." 가는 길에 우리 집 담장을 한 번 쓰다듬었다.`;
   },
 });

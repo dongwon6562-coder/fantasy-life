@@ -138,7 +138,7 @@ ok(scenes.fr_meet > 0, '벗 사귀기 장면');
     if (m === 30 && !lazy.spouseId) { const w = makePerson(rng, { ageMonths: 24 * 12, sex: 'f' }); g.people.push(w); lazy.spouseId = w.id; w.spouseId = lazy.id; }
     if (m === 200) kill(g, envy.alive ? lazy : envy, '사고');
     endMonth(g, [{ id: 'rest' }]); resolveAll(g); checkMonth(g);
-    if (me(g).ageMonths < 60 * 12 && m > 240) me(g).ageMonths = 61 * 12;
+    if (me(g).ageMonths < 60 * 12 && m > 240) { me(g).ageMonths = 61 * 12; for (const f of s.list) { const p = byId(g, f.pid); if (p?.alive) p.ageMonths = Math.max(p.ageMonths, 58 * 12); } }
   }
   const got = Object.fromEntries(Object.keys(scenes).map((k) => [k, scenes[k] - (before[k] ?? 0)]));
   for (const k of ['fr_jealous', 'fr_reunion', 'fr_wedding', 'fr_old']) ok(got[k] > 0, `저절로 안 뜸 ${k} ${JSON.stringify(got)}`);
