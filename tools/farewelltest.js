@@ -165,7 +165,7 @@ const dead = (g) => !!L(g).pendingDeath || g.over;
   ok(has(g, 'dragonname_study'), 'study available');
   for (let t = 0; t < 12 && dragonnameState(g).frags < 3; t++) { dragonnameState(g).studyAt = -99; act(g, 'dragonname_study'); }
   ok(dragonnameState(g).frags >= 1, `frags ${dragonnameState(g).frags}`);
-  L(g).place = 'gorge'; homePlace.set(g, 'gorge');
+  L(g).place = 'gorge'; homePlace.set(g, 'gorge'); realmState(g).cur = 'dwarf'; // 국경 장면에서 돌아서면 비석 장면이 버려진다 (32단계: 사건 순서가 바뀌어 드러남)
   scene(g, 'dragonname_tablet', {}, idxOf(/베낀다/));
   dragonnameState(g).frags = 5;
   const D = DS(g).dragons; D.ash.known = 1; D.ash.state = 'sleep';
