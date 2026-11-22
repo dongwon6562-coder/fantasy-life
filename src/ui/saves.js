@@ -3,12 +3,12 @@
 // - 'life-<시각>': 새 삶을 시작하거나 다른 삶을 불러올 때, 하던 삶을 지우지 않고 옮겨 두는 칸.
 //   한 번뿐인 삶도 그 삶의 '하나뿐인 저장'이 자리만 옮기는 것이라 되돌리기는 생기지 않는다(복사본을 남기지 않는다).
 // - 'slot1'~'slot6': 자유 모드에서 손으로 저장하는 칸.
-import { load, saveSlot, decodeSave } from '../save.js';
+import { load, saveSlot, decodeSave, flushSave } from '../save.js';
 
 const KEY = 'fantasy-life:';
 export const SLOT_COUNT = 6;
 const QUOTA = 5 * 1024 * 1024; // 브라우저·폰 앱 저장 공간은 대개 5MB 안팎
-const ls = () => { try { return window.localStorage; } catch { return null; } };
+const ls = () => { try { flushSave(); return window.localStorage; } catch { return null; } }; // 기다리던 자동 저장을 먼저 끝낸다 (save.js autosaveSoon)
 const raw = (k) => { try { return ls()?.getItem(KEY + k) ?? null; } catch { return null; } };
 
 // 같은 삶인지: 새 삶을 시작할 때 화면이 붙이는 uid. 예전 저장은 처음 태어난 사람과 태어난 해로 가린다.
