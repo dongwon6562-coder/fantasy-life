@@ -1674,3 +1674,12 @@ body:has(.fl-stage:not(.off)) .rv .ln, body:has(.fl-stage:not(.off)) .event.rv .
 .tt-field[open] > summary { border-bottom: 1px solid var(--line); margin-bottom: 10px; }
 .tt-field .er-list { margin-bottom: 12px; }
 .card b.warn, .block b.warn, .era b.warn, .era span.warn { color: #e3917f; }
+
+/* ---------- 35단계 벗·기술이 퍼지는 길·목수와 석공 ---------- */
+.fr-one { display: grid; gap: 4px; padding: 8px 0; border-bottom: 1px dashed var(--line); }
+.fr-one:last-of-type { border-bottom: 0; }
+.fr-one p { margin: 0; }
+.fr-past { display: flex; flex-wrap: wrap; gap: 6px; margin: 8px 0 0; }
+.sp-chron { margin-top: 6px; }
+.sp-row em { font-style: normal; font-size: 11px; color: #e3917f; margin-left: 4px; }
+.sp-note { margin: -2px 0 6px; font-size: 12px; }
