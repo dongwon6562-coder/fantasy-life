@@ -91,6 +91,6 @@ for (const k of ['greet', 'mine', 'reunion', 'theirs', 'witness', 'between']) ok
 ok((scenes.enc_ask ?? 0) > 0, '부탁 장면 없음');
 const sec = (Date.now() - t0) / 1000;
 console.log(`${sec.toFixed(1)}초`);
-ok(sec < 60, '1분 넘음');
+ok(sec < (process.env.FL_PARALLEL ? 120 : 60), '1분 넘음');
 if (fail) { console.log(`encountertest: ${fail} FAIL`); process.exit(1); }
 console.log('encountertest OK');

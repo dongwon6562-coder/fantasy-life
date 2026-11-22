@@ -218,6 +218,6 @@ const contact = (g, trust = 50) => { DM(g).contact = { name: '사로스', trust,
 }
 
 const sec = Math.round((Date.now() - T0) / 1000);
-check(sec < 60, `1분 넘음 ${sec}초`);
+check(sec < (process.env.FL_PARALLEL ? 120 : 60), `1분 넘음 ${sec}초`);
 console.log(fail ? `마족 점검 실패 ${fail}` : `OK (${sec}초)`);
 process.exit(fail ? 1 : 0);
