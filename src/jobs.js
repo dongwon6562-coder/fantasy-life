@@ -177,7 +177,7 @@ export function doWork(g, rng, def, opt = {}) {
   const sk = def.skill ? up(skillName(def.skill), k) : null;
   return `${line} 은화 ${wage}닢을 받았다.${extra}${gains([sk, up(statName(def.stat), st), def.stat2 ? up(statName(def.stat2), st2) : null])}`;
 }
-const SK = { sword: '검술', magic: '마법', letters: '글과 학문', farming: '농사', cooking: '요리', trade: '장사', herbs: '약초' };
+const SK = { sword: '검술', magic: '마법', letters: '글과 학문', farming: '농사', cooking: '요리', trade: '장사', herbs: '약초', smithing: '대장일', sailing: '뱃일' };
 const ST = { str: '힘', agi: '민첩', int: '지능', wil: '의지', cha: '매력', sen: '감각' };
 const skillName = (id) => SK[id] ?? id;
 const statName = (id) => ST[id] ?? id;
