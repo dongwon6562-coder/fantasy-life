@@ -130,6 +130,8 @@ const GROUPS = [
   ['cloth', '옷감과 바느질', /^cloth_/],
   ['demon', '해협 너머 마족', /^demon_/],
   ['newage', '새 시대', /^(na_|city_)/],
+  ['builder', '목수와 석공', /^builder_/],
+  ['spread', '기술 퍼뜨리기', /^spread_/],
   ['herd', '목축과 유목', /^herd_/],
   ['frontier', '개척', /^frontier_/],
   ['learn', '배움과 수련', /^(school_|study|train_body|sword_|meditate|magic_|legend_lesson|research|seal_study|tower_(join|duty|exam|craft)|ruin_(read|restore|book))/],
