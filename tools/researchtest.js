@@ -1,5 +1,6 @@
 import './lsshim.js';
 import '../src/content.js';
+import { INVENTIONS } from '../src/history/powers.js';
 // 연구 점검: 연구실이 있는 곳에서만, 고르고, 한 달씩 품을 들여, 발명은 세상에 나오고(시대가 당겨짐) 새 물건은 손에 남는다.
 // 도용·노트 사기·늙은 손, 대 잇기와 예전 저장, 30년 흐름.
 import { newGame, endMonth, availableActions, slotsFor, rngOf } from '../src/game.js';
@@ -124,6 +125,8 @@ const pickScene = (g, word) => {
   let inv = 0, made = 0, tried = 0;
   for (let run = 0; run < 4; run++) {
     const g = newGame({ name: '흐름', sex: run % 2 ? 'm' : 'f', familyId: ['merchant', 'farmer', 'fallen_knight', 'dwarf_smith'][run], mode: 'free', seed: 600 + run });
+    // 34단계: 기술 나무가 천천히 자라 35년 안에 연구할 거리가 거의 열리지 않았다. 마석 방아 무렵까지 나온 판으로 시작한다 (예전 판의 15년 차쯤)
+    for (const t of INVENTIONS) if (t.at <= 1.1 && !g.history.inventions.includes(t.id)) g.history.inventions.push(t.id);
     for (let m = 0; m < 12 * 35 && !g.over; m++) {
       const rng = rngOf(g);
       if (m === 12 * 15) { L(g).place = ['harfen', 'leocast', 'harfen', 'hammer'][run]; g.player.stats.int = Math.max(g.player.stats.int, 35); }
