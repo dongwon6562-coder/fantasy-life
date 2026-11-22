@@ -99,6 +99,6 @@ for (const k of ['grow', 'job', 'wed', 'baby']) ok((kinds[k] ?? 0) > 0, `${k} �
 for (const k of ['sib_blame', 'sib_share', 'sib_rival', 'sib_trade', 'sib_estate']) ok((scenes[k] ?? 0) > 0, `${k} 장면 없음`);
 const sec = (Date.now() - t0) / 1000;
 console.log(`${sec.toFixed(1)}초`);
-ok(sec < 60, '1분 넘음');
+ok(sec < (process.env.FL_PARALLEL ? 120 : 60), '1분 넘음');
 if (fail) { console.log(`siblingtest: ${fail} FAIL`); process.exit(1); }
 console.log('siblingtest OK');

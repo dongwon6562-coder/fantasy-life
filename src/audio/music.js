@@ -384,11 +384,15 @@ export class MusicPlayer {
     const c = this.cur = { track, group, pos: { sec: 0, bar: 0, loop: 0 }, next: start, loop, ready: false, perf: {} };
     if (!loop) this.lastMood = id;
     // 이 곡의 악기 샘플을 받아 온 뒤에 시작한다. 받을 곳이 없으면(웹 판) 조용히 쉰다.
-    Promise.resolve(this.e.load ? this.e.load(needsOf(track)) : true).then((ok) => {
-      if (this.cur !== c || !ok) return;
-      c.ready = true; c.next = Math.max(c.next, this.e.ctx.currentTime + 0.08);
-      this.tick();
-    }).catch(() => {});
+    // 하나라도 못 받으면 곡 전체가 멈춰 있던 것을 고침(35단계, 아이폰에서 음악만 안 남): 두 번 더 받아 보고, 그래도 모자라면 받은 악기로라도 연주한다.
+    const go = () => { if (this.cur !== c) return; c.ready = true; c.next = Math.max(c.next, this.e.ctx.currentTime + 0.08); this.tick(); };
+    const tryLoad = (left) => Promise.resolve(this.e.load ? this.e.load(needsOf(track)) : true).then((ok) => {
+      if (this.cur !== c) return;
+      if (ok || !this.e.sampleBase) return ok ? go() : undefined;
+      if (left > 0) setTimeout(() => tryLoad(left - 1), 3000);
+      else go();
+    }).catch(() => { if (this.cur === c && left <= 0) go(); else if (this.cur === c) setTimeout(() => tryLoad(left - 1), 3000); });
+    tryLoad(2);
   }
   stop(fade = 1.5) {
     if (this.cur) { this.cur.group.stop(fade); this.cur = null; }
