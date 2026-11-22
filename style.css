@@ -1640,3 +1640,17 @@ html.motion .main.enter { animation: view-in .38s ease-out; }
 /* 달 넘김 카드나 장면 연출(src/art/stage.js)이 화면을 덮는 동안에는 글 드러내기를 멈춰 두고, 걷히면 이어 간다 */
 body:has(.month-card:not(.out)) .rv .ln, body:has(.month-card:not(.out)) .event.rv .opt, body:has(.month-card:not(.out)) .event.rv #ev-close,
 body:has(.fl-stage:not(.off)) .rv .ln, body:has(.fl-stage:not(.off)) .event.rv .opt, body:has(.fl-stage:not(.off)) .event.rv #ev-close { animation-play-state: paused; }
+
+/* ---------- 33단계 시작 화면 집안 고르기: 집안이 많을 때 짧은 칸 + 아래 자세히 ---------- */
+.fam-filter { margin-bottom: 10px; flex-wrap: wrap; }
+.fam-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(200px, 100%), 1fr)); gap: 8px; }
+.choice.fam-mini { gap: 4px; padding: 12px 14px; min-height: 0; }
+.choice.fam-mini strong { font-size: 16px; }
+.choice.fam-mini span:last-child { font-size: 13px; line-height: 1.55; }
+.fam-detail { margin-top: 12px; padding: 14px 16px; border: 1px solid var(--brass-dim); border-radius: 8px; background: var(--grain), rgba(201, 162, 90, .05); display: grid; gap: 8px; }
+.fam-detail .fd-top { display: grid; gap: 2px; }
+.fam-detail strong { font-family: var(--f-display); font-size: 19px; }
+.fam-detail .tag { color: var(--brass); font-size: 12px; letter-spacing: .06em; }
+.fam-detail p { margin: 0; line-height: 1.75; }
+.fam-detail .note b { color: var(--brass); margin-right: 4px; font-weight: 600; }
+.fam-hint { margin-top: 10px; }

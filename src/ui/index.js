@@ -92,6 +92,7 @@ import { renderSpiritNow, renderSpiritBlock } from './spirit.js';
 import { renderBrewNow, renderBrewBlock } from './brew.js';
 import { renderEnvoyNow, renderEnvoyBlock } from './envoy.js';
 import { renderSiblings } from './siblings.js';
+import { renderFamilyPick, bindFamilyPick } from './famPick.js';
 import { renderRuinsBlock, renderRuins } from './ruins.js';
 import { renderOrderBlock, renderOrders } from './order.js';
 import { renderFoundingBlock, renderFoundings, renderFoundingChron } from './founding.js';
@@ -202,14 +203,7 @@ function renderSetup() {
         </section>
         <section>
           <h2>태어날 집안</h2>
-          <div class="choice-row">
-            ${fams.map((f) => `
-              <button class="choice" data-family="${f.id}" aria-pressed="${s.family === f.id}">
-                <span class="tag">${esc(f.standing)} · 집안 돈 은화 ${f.money}닢</span>
-                <strong>${esc(f.name)}</strong>
-                <span>${esc(f.desc)}</span>
-              </button>`).join('')}
-          </div>
+          ${renderFamilyPick(fams, s)}
         </section>
         ${renderBirthPick(s, race)}
         <section>
@@ -232,6 +226,7 @@ function renderSetup() {
 
   $$('[data-mode]').forEach((b) => b.onclick = () => { s.mode = b.dataset.mode; renderSetup(); });
   $$('[data-family]').forEach((b) => b.onclick = () => { s.family = b.dataset.family; renderSetup(); });
+  bindFamilyPick(s, renderSetup);
   $$('[data-race]').forEach((b) => b.onclick = () => {
     if (s.race !== b.dataset.race) resetLooks(s);
     s.race = b.dataset.race;
