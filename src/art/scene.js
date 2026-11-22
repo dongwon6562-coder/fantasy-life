@@ -36,7 +36,7 @@ export function conditionText(year, month) {
 const cache = new Map();
 /** 풍경 그림 (data URL). 브라우저에서만 동작. */
 export function sceneImage({ year, month, famine = false, plague = false, place = 'ern', calamity = null }) {
-  const key = `${year}-${month}-${famine}-${plague}-${place}-${calamity ?? ''}`;
+  const key = `${year}-${month}-${!!famine}-${!!plague}-${place}-${calamity ?? ''}`;
   if (cache.has(key)) return cache.get(key);
   if (typeof document === 'undefined') return '';
   let url = '';

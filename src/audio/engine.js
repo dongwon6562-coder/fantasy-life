@@ -200,15 +200,18 @@ export class Engine {
     this.master.connect(hp); hp.connect(this.comp); this.comp.connect(pre); pre.connect(this.clip); this.clip.connect(post); post.connect(ctx.destination);
     this.out = post;
     // 울림 둘: 음악·환경음은 넓은 홀, 효과음은 가까운 작은 방
-    const verb = (secs, opt, gain) => {
-      const c = ctx.createConvolver(); c.buffer = makeIR(ctx, secs, opt);
+    // 긴 울림(홀·돌방)은 만드는 데 폰에서 0.3초 넘게 걸려 첫 누름이 멈췄다 (32단계 헤드). 화면이 뜬 뒤 쉬는 틈에 채운다(그 전엔 울림 없이 난다).
+    const verb = (secs, opt, gain, later = 0) => {
+      const c = ctx.createConvolver();
+      const fill = () => { try { c.buffer = makeIR(ctx, secs, opt); } catch { /* 울림 없이도 소리는 난다 */ } };
+      if (later && typeof setTimeout !== 'undefined') setTimeout(fill, later); else fill();
       const g = ctx.createGain(); g.gain.value = gain; c.connect(g);
       return { in: c, out: g };
     };
-    this.hall = verb(3.1, {}, 1.6);
+    this.hall = verb(3.1, {}, 1.6, 900);
     this.room = verb(0.7, { pre: 0.004, hi: 0.5, lo: 1 }, 1.1);
     // 돌로 지은 큰 방과 굴: 효과음과 환경음이 그 안에 있는 것처럼 길게 울린다 (30단계, setSpace)
-    this.stone = verb(2.4, { pre: 0.032, hi: 0.42, lo: 1.35 }, 1.25);
+    this.stone = verb(2.4, { pre: 0.032, hi: 0.42, lo: 1.35 }, 1.25, 1800);
     // 음악은 중요한 효과음이 날 때 잠깐 물러난다 (duck)
     this.duckGain = ctx.createGain();
     this.duckGain.connect(this.master);

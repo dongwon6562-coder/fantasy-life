@@ -3,7 +3,7 @@
 // - 'life-<시각>': 새 삶을 시작하거나 다른 삶을 불러올 때, 하던 삶을 지우지 않고 옮겨 두는 칸.
 //   한 번뿐인 삶도 그 삶의 '하나뿐인 저장'이 자리만 옮기는 것이라 되돌리기는 생기지 않는다(복사본을 남기지 않는다).
 // - 'slot1'~'slot6': 자유 모드에서 손으로 저장하는 칸.
-import { load, saveSlot, decodeSave, flushSave } from '../save.js';
+import { load, saveSlot, decodeSave, flushSave, cachedInfo, infoOf, lifeId } from '../save.js';
 
 const KEY = 'fantasy-life:';
 export const SLOT_COUNT = 6;
@@ -11,30 +11,11 @@ const QUOTA = 5 * 1024 * 1024; // 브라우저·폰 앱 저장 공간은 대개 
 const ls = () => { try { flushSave(); return window.localStorage; } catch { return null; } }; // 기다리던 자동 저장을 먼저 끝낸다 (save.js autosaveSoon)
 const raw = (k) => { try { return ls()?.getItem(KEY + k) ?? null; } catch { return null; } };
 
-// 같은 삶인지: 새 삶을 시작할 때 화면이 붙이는 uid. 예전 저장은 처음 태어난 사람과 태어난 해로 가린다.
-export function lifeId(g) {
-  if (g.uid) return g.uid;
-  const first = g.life?.ancestors?.[0];
-  const meP = g.people?.find((p) => p.id === g.player?.id);
-  const born = first ? first.born : g.date.year - Math.floor((meP?.ageMonths ?? 0) / 12);
-  return `${first?.id ?? g.player?.id}|${born}|${g.player?.familyId ?? ''}|${g.mode}`;
-}
+export { lifeId };
 export const newUid = () => `${Date.now().toString(36)}${Math.floor(Math.random() * 1e6).toString(36)}`;
 
-function info(key, text) {
-  try {
-    const g = decodeSave(text);
-    const meP = g.people.find((p) => p.id === g.player.id);
-    return {
-      key, kb: Math.round(text.length * 2 / 1024),
-      id: lifeId(g), name: g.player.name, lastName: g.player.lastName,
-      age: Math.floor((meP?.ageMonths ?? 0) / 12), year: g.date.year, month: g.date.month,
-      mode: g.mode, over: !!g.over, gen: g.life?.gen ?? 1, race: meP?.race ?? 'human',
-      shelved: key.startsWith('life-') ? +key.slice(5) : null,
-      savedAt: g.savedAt ?? null,
-    };
-  } catch { return { key, broken: true, kb: Math.round(text.length * 2 / 1024) }; }
-}
+// 풀어 본 결과는 저장이 그대로인 동안 다시 쓴다 (save.js cachedInfo·infoOf, 32단계 헤드)
+const info = (key, text) => cachedInfo('info:' + key, text, () => { try { return infoOf(key, text, decodeSave(text)); } catch { return { key, broken: true, kb: Math.round(text.length * 2 / 1024) }; } });
 
 /** 저장된 모든 칸. auto, 보관된 삶(최근 것부터), 손 저장 칸 순서. */
 export function listSaves() {
