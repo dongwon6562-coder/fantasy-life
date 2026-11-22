@@ -63,7 +63,7 @@ function drum(v, x, y, r, len, c, a = 0) {
   ctx.restore();
 }
 /** 선 기둥 (홈이 팬 몸통, 머릿돌). broken이면 위가 깨져 있다 */
-function column(v, x, y, w, h, c, o = {}) {
+export function column(v, x, y, w, h, c, o = {}) {
   const { ctx, R } = v;
   rect(ctx, x - w * 0.7, y - w * 0.3, w * 1.4, w * 0.3, dark(c, 0.2));
   ctx.fillStyle = c; ctx.beginPath(); ctx.moveTo(x - w / 2, y - w * 0.3); ctx.lineTo(x - w * 0.44, y - h);
@@ -91,7 +91,7 @@ function glyph(ctx, cx, cy, s, seed, c, w = 1) {
   if (hash(seed, 5) < 0.35) { ctx.fillStyle = c; ctx.beginPath(); ctx.arc(cx + (hash(seed, 6) - 0.5) * s * 0.5, cy + s * 0.72, w * 0.9, 0, TAU); ctx.fill(); }
 }
 /** 돌무더기 */
-function rubble(v, x, y, w, n, c) {
+export function rubble(v, x, y, w, n, c) {
   const { ctx, R } = v;
   for (let i = 0; i < n; i++) { const px = x + (R() - 0.5) * w, s = 3 + R() * 7, py = y - R() * s * 0.4; poly(ctx, [px - s, py, px - s * 0.6, py - s * 0.8, px + s * 0.3, py - s, px + s, py - s * 0.3, px + s * 0.8, py], R() < 0.5 ? c : dark(c, 0.2)); }
 }
