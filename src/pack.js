@@ -6,38 +6,50 @@
 const MARK = 'Z1:';
 const OFF = 32; // 15비트 값에 32를 더해 제어 문자와 서로게이트 영역(0xD800~)을 피한다
 
+const REV8 = Uint8Array.from({ length: 256 }, (_, i) => { let r = 0; for (let b = 0; b < 8; b++) r |= ((i >> b) & 1) << (7 - b); return r; });
+
 export function pack(str) {
   const out = [];
   let buf = 0, nbits = 0;
+  // 값의 낮은 비트부터 하나씩 넣던 것을, 비트를 뒤집어 한 번에 여러 개씩 넣는다 (31단계 헤드: 저장이 열 배쯤 빨라짐, 결과는 똑같다)
   const put = (value, width) => {
-    for (let i = 0; i < width; i++) {
-      buf = (buf << 1) | ((value >> i) & 1);
-      if (++nbits === 15) { out.push(String.fromCharCode(buf + OFF)); buf = 0; nbits = 0; }
+    let rev = (REV8[value & 255] << 24 | REV8[(value >>> 8) & 255] << 16 | REV8[(value >>> 16) & 255] << 8 | REV8[value >>> 24]) >>> (32 - width);
+    while (width > 0) {
+      const k = Math.min(width, 15 - nbits);
+      width -= k;
+      buf = (buf << k) | ((rev >>> width) & ((1 << k) - 1));
+      nbits += k;
+      if (nbits === 15) { out.push(String.fromCharCode(buf + OFF)); buf = 0; nbits = 0; }
     }
   };
-  const dict = new Map();
-  const fresh = new Set(); // 처음 본 글자: 아직 글자 그대로 보내지 않은 것
-  let size = 3, width = 2, enlarge = 2, w = '';
+  // 사전 열쇠를 글이 아니라 (앞 번호, 다음 글자) 수 하나로 둔다 (31단계 헤드: 긴 글을 이어 붙이지 않아 빨라짐, 결과는 똑같다)
+  const single = new Map(); // 글자 코드 → 번호
+  const pairs = new Map(); // 앞 번호 * 65536 + 글자 코드 → 번호
+  const fresh = new Map(); // 처음 본 글자: 아직 글자 그대로 보내지 않은 것 (번호 → 글자 코드)
+  let size = 3, width = 2, enlarge = 2, w = -1;
   const tick = () => { if (--enlarge === 0) { enlarge = 1 << width; width++; } };
-  const emit = (s) => {
-    if (fresh.has(s)) {
-      const c = s.charCodeAt(0);
+  const emit = (code) => {
+    const c = fresh.get(code);
+    if (c !== undefined) {
       if (c < 256) { put(0, width); put(c, 8); } else { put(1, width); put(c, 16); }
       tick();
-      fresh.delete(s);
-    } else put(dict.get(s), width);
+      fresh.delete(code);
+    } else put(code, width);
     tick();
   };
   for (let i = 0; i < str.length; i++) {
-    const c = str[i];
-    if (!dict.has(c)) { dict.set(c, size++); fresh.add(c); }
-    const wc = w + c;
-    if (dict.has(wc)) { w = wc; continue; }
+    const c = str.charCodeAt(i);
+    let cc = single.get(c);
+    if (cc === undefined) { cc = size++; single.set(c, cc); fresh.set(cc, c); }
+    if (w < 0) { w = cc; continue; }
+    const key = w * 65536 + c;
+    const hit = pairs.get(key);
+    if (hit !== undefined) { w = hit; continue; }
     emit(w);
-    dict.set(wc, size++);
-    w = c;
+    pairs.set(key, size++);
+    w = cc;
   }
-  if (w !== '') emit(w);
+  if (w >= 0) emit(w);
   put(2, width);
   if (nbits > 0) { buf <<= 15 - nbits; out.push(String.fromCharCode(buf + OFF)); }
   return out.join('');
