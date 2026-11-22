@@ -47,6 +47,7 @@ export function outfitOf(job, sex, stage, r1, r2, r3) {
     case 'tutor': return { kind: 'gown', main: pick(['#4a4238', '#3e4448', '#4a3e44'], r1), trim: '#6a6252', under: LINEN, shawl: fem && r2 < 0.5 ? '#7a7260' : null, head: fem && r3 < 0.35 ? 'coif' : null, headCol: '#d8d0bc' };
     case 'alchemist': return { kind: 'apron', main: pick(['#34343e', '#3a3430', '#2e3a3a'], r1), under: r2 < 0.5 ? LINEN : null, apron: '#4a3a2a', apronStrap: true, soot: true, rolled: r2 > 0.4, head: r3 < 0.5 ? 'skullcap' : null, headCol: '#2a2622' };
     case 'mason': return { kind: 'apron', main: pick(['#6a665e', '#5e5a50', '#6e6252'], r1), under: null, apron: '#5a4a38', apronStrap: true, dust: true, rolled: true, head: r3 < 0.35 ? 'coif' : r3 < 0.5 ? 'hood' : null, headCol: '#8a8474' };
+    case 'tailor': return { kind: fem ? 'dress' : 'doublet', main: pick(['#4a3f52', '#3f4a4a', '#55443a', '#3a4458'], r1), trim: '#a8987a', under: LINEN, neck: fem ? 'square' : undefined, tabs: !fem, pin: true, scarfNeck: r2 < 0.5 ? pick(['#c9b98f', '#7a2f2a', '#2f4a73'], r3) : null, embroidHem: fem, head: fem && r3 < 0.3 ? 'coif' : null, headCol: '#d8d0bc' };
     case 'weaver': return { kind: 'dress', main: pick(['#6d4b52', '#5a4a66', '#4f5a62'], r1), under: LINEN, neck: 'square', shawl: '#9a8a6a', embroidHem: true, head: r3 < 0.35 ? 'scarf' : null, headCol: '#9a8a6a' };
     case 'elder': return { kind: 'robe', main: '#3e3428', trim: '#8a7a5a', fur: '#8a7a62', chain: r2 < 0.5 ? '#8a7a5a' : null };
     case 'gang_boss': return { kind: 'coat', main: pick(['#22201f', '#2a1f22', '#1f262a'], r1), trim: '#6a5a3a', under: '#3a3230', scarfNeck: pick(['#5a1f1f', '#3a3a3a', '#4a3a1f'], r2), earring: true };
@@ -116,6 +117,24 @@ export function wearTier(o, tier, job, sex, r1, r2) {
     if (out.head === 'strawhat') out.head = null;
   } else if (tier >= 4 && FINE_KINDS.has(o.kind) && !o.chain && o.kind !== 'cloak') out.chain = o.trim ?? GOLD;
   return out;
+}
+
+// 지어 입은 옷 (옷감과 재봉사, 33단계): 상복은 검게, 혼례 옷은 붉게, 물들인 옷은 그 빛깔로
+const ARMOR_KINDS = new Set(['mail', 'plate']);
+export function wearCloth(o, garb) {
+  if (!o || !garb || o.kind === 'swaddle') return o;
+  const out = { ...o };
+  if (garb.kind === 'mourn') {
+    if (ARMOR_KINDS.has(o.kind)) { out.cloth = '#23211f'; out.cloak = o.cloak ? '#1c1a19' : null; return out; }
+    Object.assign(out, { main: '#2a2725', trim: '#3a3632', under: o.under ? '#bdb5a4' : o.under, chain: null, ornate: false, embroid: false, embroidHem: false, jewel: null, scarfNeck: null, patch: false, torn: false });
+    if (out.headCol && out.head) out.headCol = '#23211f';
+    return out;
+  }
+  if (garb.kind === 'band') { out.trim = '#1c1a18'; out.main = mixHex(o.main, '#2a2725', 0.25); return out; }
+  const col = garb.col ?? o.main;
+  if (ARMOR_KINDS.has(o.kind)) { out.cloth = col; return out; }
+  if (garb.kind === 'bridal') return { ...out, main: col, trim: GOLD, embroidHem: true, embroid: true, patch: false, torn: false };
+  return { ...out, main: mixHex(o.main, col, 0.8), patch: false, torn: false, embroidHem: out.embroidHem || CLOTH_KINDS.has(o.kind) };
 }
 
 /* ---------- 그리기 ---------- */

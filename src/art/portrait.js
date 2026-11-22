@@ -6,7 +6,7 @@
 // 그림체: 어두운 바탕의 세밀화. 빛은 왼쪽 위에서 온다. 큰 눈·둥근 볼 같은 만화풍은 피한다.
 // 바깥에서 쓰는 것: portrait(game, p, opt), moodOf(game, p), looksOf(game, p), setAgeLens(fn)
 import { INK, hashStr, rngFrom, weighted, mixHex, shade, tint, f, clamp, lerp, spline, mirrored } from './portraitKit.js';
-import { outfitOf, wearTier, drawGarb, drawHeadwear } from './portraitGarb.js';
+import { outfitOf, wearTier, wearCloth, drawGarb, drawHeadwear } from './portraitGarb.js';
 import { lifeOf, drawLifeMarks } from './portraitLife.js';
 import { hairStyleOf, drawHair, beardOf, drawBeard } from './portraitHair.js';
 import { paintDefs, paintOver, hairWrap, clothWrap, faceShadow } from './portraitPaint.js';
@@ -257,7 +257,7 @@ function drawFace(game, p, age, stage, scars, ring, mood, detail, life) {
   const sw = stage === 'baby' ? 25 : stage === 'child' ? 27 + (age - 3) * 0.5 : (male ? 39 : 33.5) + (dwarf ? 4 : 0) - (elf ? 1.5 : 0) - (stage === 'teen' ? 3 : 0);
   const sy = baseY + (male ? 4.2 : 5) + kid * 1.5;
   const r1 = r(), r2 = r(), r3 = r();
-  const o = wearTier(outfitOf(life.job, p.sex, stage, r1, r2, r3), life.tier, life.job, p.sex, r1, r2);
+  const o = wearCloth(wearTier(outfitOf(life.job, p.sex, stage, r1, r2, r3), life.tier, life.job, p.sex, r1, r2), life.garb);
   const gctx = { cx, chin, hw, male, kid, stage, uid, detail, nw: neckW, baseY, sw, sy };
   const garb = drawGarb(o, gctx);
   const hdim = { cx, cy, hw, hh, top, eyeY, browY };
