@@ -6,6 +6,7 @@
 // 주문은 '주문 연구'로 하나씩 익힌다. 스승이 있으면 훨씬 빠르다.
 // 서클 자체는 game.js의 circleOf(마력량 + 마법 기술)가 정한다. 고서클은 여전히 아주 드물다.
 import { ACTIONS } from '../actions.js';
+import { J } from '../narrative/text.js';
 import { HOOKS } from '../hooks.js';
 import { playerAge, gainSkill, gainStat, circleOf } from '../game.js';
 import { living } from '../npc.js';
@@ -79,10 +80,10 @@ ACTIONS.push(
         m.known.push(sp.id);
         m.study = null;
         if (t?.p) remember(g, t.p, `${sp.name} 주문을 가르쳐 주었다`, 1, { tag: 'spell' });
-        return `${t ? `${t.name}의 도움으로 ` : ''}마침내 ${sp.name}을(를) 익혔다. ${sp.desc} (마법 +${k.toFixed(1)})`;
+        return `${t ? `${t.name}의 도움으로 ` : ''}마침내 ${J(sp.name, '을/를')} 익혔다. ${sp.desc} (마법 +${k.toFixed(1)})`;
       }
       const pct = m.study.prog < 0.35 ? '아직 술식의 뼈대도 잡히지 않는다' : m.study.prog < 0.7 ? '술식이 머릿속에서 모양을 갖추기 시작했다' : '거의 다 왔다. 마력이 원을 따라 흐르다 끝에서 흩어진다';
-      return `${sp.name}을(를) 연구했다. ${pct}.${t ? ` ${t.name}이(가) 틀린 곳을 짚어 주었다.` : ''} (마법 +${k.toFixed(1)})`;
+      return `${J(sp.name, '을/를')} 연구했다. ${pct}.${t ? ` ${J(t.name, '이/가')} 틀린 곳을 짚어 주었다.` : ''} (마법 +${k.toFixed(1)})`;
     },
   },
   {
