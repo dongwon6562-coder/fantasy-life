@@ -68,7 +68,7 @@ function adult(seed, family = 'merchant') {
     if (!g.over) return g;
   }
 }
-function placeAt(g, place) { const l = L(g); l.place = place; l.travel = null; l.home = 'inn'; l.queue = []; l.scene = null; g.pendingEvent = null; const R = realmState(g); R.cur = PLACES[place].realm ?? 'leonia'; R.last = place; if (g.army) Object.assign(g.army, { service: null, campaign: null, captive: null }); if (l.job?.id === 'soldier') l.job = null; if (g.crime) g.crime.jailed = null; if (g.explore) g.explore.exp = null; T(g).road = null; }
+function placeAt(g, place) { const l = L(g); l.place = place; l.travel = null; l.home = 'inn'; l.queue = []; l.scene = null; g.pendingEvent = null; const R = realmState(g); R.cur = PLACES[place].realm ?? 'leonia'; R.last = place; if (g.army) Object.assign(g.army, { service: null, campaign: null, captive: null }); if (l.job?.id === 'soldier') l.job = null; if (g.crime) { g.crime.jailed = null; g.crime.bounty = {}; } if (g.explore) g.explore.exp = null; T(g).road = null; }
 const heal = (g) => { g.player.injuries = []; g.player.fatigue = 0; g.player.stress = 10; };
 function scene(g, kind, data, re, opt = {}) {
   let done = false, chose = null;
