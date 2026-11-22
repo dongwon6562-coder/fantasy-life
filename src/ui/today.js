@@ -6,6 +6,9 @@ import { natureInfo } from '../nature/index.js';
 import { streetLine, rumorLines, rumorInfo } from '../rumor/index.js';
 import { sceneLine, sensesLine } from '../senses/index.js';
 import { encounterLines } from '../encounter/index.js';
+import { siblingLines } from '../siblings/index.js';
+import { ruinsLine } from '../ruins/index.js';
+import { orderLine } from '../order/index.js';
 import { placeName } from '../places.js';
 import { esc } from './util.js';
 
@@ -18,8 +21,14 @@ const txt = (x) => (typeof x === 'string' ? x : x.text);
 export const TODAY_SOURCES = {
   lead: [sceneLine, streetLine, (g) => natureInfo(g)?.sky], // 몸으로 느끼는 지금 (src/senses), 거리 풍경 (src/rumor), 없으면 하늘과 땅. 앞의 둘까지
   did: [sensesLine], // 지난달을 몸으로 느낀 한두 문장 (src/senses): '지난달 한 일' 머리에
-  met: [(g) => encounterLines(g).map((x) => ({ text: x.text, cls: x.kind ? `ek-${String(x.kind).replace(/[^\w-]/g, '')}` : '' }))], // 먼저 다가온 사람들 (src/encounter)
-  heard: [(g) => rumorLines(g).map((h) => ({ text: h.text, cls: h.fix ? 'rumor fix' : 'rumor' }))], // 소문 (src/rumor)
+  met: [
+    (g) => encounterLines(g).map((x) => ({ text: x.text, cls: x.kind ? `ek-${String(x.kind).replace(/[^\w-]/g, '')}` : '' })), // 먼저 다가온 사람들 (src/encounter)
+    siblingLines, orderLine, // 형제자매 (src/siblings), 기사단 형제들 (src/order)
+  ],
+  heard: [
+    (g) => rumorLines(g).map((h) => ({ text: h.text, cls: h.fix ? 'rumor fix' : 'rumor' })), // 소문 (src/rumor)
+    ruinsLine, // 이 고장에서 보이는 유적 (src/ruins)
+  ],
 };
 
 const pick = (kind, game) => TODAY_SOURCES[kind].flatMap((fn) => safe(() => arr(fn(game)), []));
@@ -31,8 +40,8 @@ export function renderToday(game, parts = {}) {
   const lead = pick('lead', game).slice(0, 2);
   const did = pick('did', game)[0];
   const feast = safe(() => rumorInfo(game).feast); // 이달 이 고장 축제
-  const met = pick('met', game).slice(0, 3);
-  const heard = pick('heard', game).slice(0, 3);
+  const met = pick('met', game).slice(0, 4);
+  const heard = pick('heard', game).slice(0, 4);
   const news = game.news ?? [];
   const quiet = !news.length && !met.length && !heard.length;
   // 소식이 많으면(여러 달 건너뛰었거나 난리 난 해) 가까운 사람 일과 소문 다섯만 펼치고 나머지는 접는다
