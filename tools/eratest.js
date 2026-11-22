@@ -1,5 +1,6 @@
 import './lsshim.js';
 import '../src/content.js';
+import { INVENTIONS } from '../src/history/powers.js';
 // 시대 점검: 발명이 나오면 일자리·물건·글이 열리고, 발명 전에는 보이지 않는지. 물건의 효과, 쇠수레 표, 30년 흐름.
 import { newGame, endMonth, availableActions, slotsFor, rngOf, me } from '../src/game.js';
 import { resolveEvent } from '../src/events.js';
@@ -55,7 +56,8 @@ const adult = (g) => { me(g).ageMonths = 22 * 12; (g.flags ??= {}).adult = true;
   let jobsOpened = 0, bought = 0;
   for (let run = 0; run < 4; run++) {
     const g = newGame({ name: '흐름', sex: 'm', familyId: ['farmer', 'merchant', 'fallen_knight'][run % 3], mode: 'free', seed: 400 + run });
-    g.realm.tech = 1.2; // 시대가 빨리 오게
+    // 시대가 빨리 오게. 34단계부터 기술 값은 기술 나무가 정하므로 tech 대신 마석 방아·인쇄기·전신탑까지 나온 판으로 시작한다
+    for (const t of INVENTIONS) if (t.at <= 1.62 && !g.history.inventions.includes(t.id)) g.history.inventions.push(t.id);
     for (let m = 0; m < 12 * 30 && !g.over; m++) {
       const rng = rngOf(g);
       const acts = availableActions(g);

@@ -89,7 +89,7 @@ const SETUP = {
     const S = SETUP[id];
     let ranks = 0, fame = 0, money = 0, evs = 0;
     for (let run = 0; run < 3; run++) {
-      const g = adult(30100 + run * 13 + id.length * 101);
+      const g = adult(30110 + run * 13 + id.length * 101); // 34단계: 기술 나무로 세계 흐름이 바뀌자 학자 세 판의 승급이 +1에 그쳤다(다른 일은 +3). 판 씨앗만 옮김
       placeAt(g, S.place);
       Object.assign(g.player.stats, S.st ?? {});
       Object.assign(g.player.skills, S.sk ?? {});
@@ -245,7 +245,7 @@ function pathGame(seed, id, setup) {
 
 /* ---------- 5) 음유시인 떠돌기, 물약, 옛 저장, 대 잇기, 저절로 ---------- */
 {
-  const g = adult(35000);
+  const g = adult(35003); // 34단계: 세계 흐름이 바뀌자 물약 파는 달에 다른 사건으로 돈이 나가 '팔았다'가 안 보였다. 판 씨앗만 옮김
   placeAt(g, 'barka'); g.player.stats.cha = 35; g.player.skills.music = 30; takeJob(g, 'bard');
   placeAt(g, 'harfen');
   const m0 = g.player.money;

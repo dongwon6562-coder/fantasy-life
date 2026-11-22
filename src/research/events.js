@@ -8,7 +8,8 @@ import { RS, INV_NAME, DESIGNS, inventionOf, invented, labHere } from './state.j
 import { inventNow } from './actions.js';
 import { INVENTIONS } from '../history/powers.js';
 
-const idx = (id) => Math.max(0, INVENTIONS.findIndex((v) => v.id === id));
+// 34단계: 나무가 커져서 순번 대신 눈금으로 (예전 열두 가지와 같은 크기)
+const idx = (id) => Math.round((INVENTIONS.find((v) => v.id === id)?.at ?? 0) * 2.4);
 const renown = (g, n) => { L(g).renown = (L(g).renown ?? 0) + n; };
 const topCompany = (g) => [...(H(g)?.companies ?? [])].sort((a, b) => b.fortune - a.fortune)[0] ?? null;
 // 경쟁자: history의 학자·마법사, 없으면 큰 상단
