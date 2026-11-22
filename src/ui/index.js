@@ -5,7 +5,7 @@ import {
 } from '../game.js';
 import { resolveEvent } from '../events.js';
 import { FAMILIES, STATS, SKILLS, skillGrade, VILLAGE, REGION } from '../data.js';
-import { autosave, summary } from '../save.js';
+import { autosave, autosaveSoon, summary } from '../save.js';
 import { portrait } from '../art/portrait.js';
 import { sceneImage, conditionText, prewarmScene } from '../art/scene.js';
 import { icon } from '../art/icons.js';
@@ -117,9 +117,15 @@ let lastView = null;  // 바로 전 화면 (바뀌면 살짝 떠오르며 나타
 let ovFresh = false;  // 이번 그림에서 사건 창이 새로 열리나
 let lastMonth = null; // 바로 전에 그린 달 (달이 바뀌면 이번 달 화면도 살짝 떠오른다)
 
+// 폰 폭(860px 아래)이나 지도에서는 옆 '나' 칸이 CSS로 숨는데, 그래도 매달 통째로 그리고 있었다.
+// 오래 한 판에서는 이 칸만 화면 요소 2천 개가 넘어 한 달 넘기기가 네 배 느려졌다 (31단계 헤드). 숨을 때는 아예 그리지 않는다.
+const NARROW = '(max-width: 860px)';
+const narrow = () => { try { return matchMedia(NARROW).matches; } catch { return false; } };
+
 export function start() {
   applyPrefs();
   try { matchMedia('(prefers-reduced-motion: reduce)').addEventListener('change', applyPrefs); } catch { /* 옛 브라우저 */ }
+  try { matchMedia(NARROW).addEventListener('change', () => { if (game && document.querySelector('.wrap.game')) renderGame(); }); } catch { /* 옛 브라우저 */ }
   stopGuide();
   lastArt = null; lastView = null; lastMonth = null;
   renderSetup();
@@ -605,7 +611,7 @@ function renderGame() {
     </nav>
     <div class="wrap game">
       <div class="layout view-${ui.view}">
-        ${ui.view === 'me' ? '' : renderSheet().replace('class="sheet"', 'class="sheet side"')}
+        ${ui.view === 'me' || ui.view === 'map' || narrow() ? '' : renderSheet().replace('class="sheet"', 'class="sheet side"')}
         <div class="main${lastView !== ui.view || (ui.view === 'month' && lastMonth !== monthKey) ? ' enter' : ''}">${main}</div>
       </div>
     </div>
@@ -671,7 +677,6 @@ function advance(times = 1, untilEvent = false) {
   for (let k = 0; k < times; k++) {
     passed++;
     endMonth(game, slotsFor(game) ? ui.plan.map((c) => ({ ...c })) : []);
-    autosave(game);
     if (game.pendingEvent || game.over) break;
     if (untilEvent && slotsFor(game) > 0) break;
   }
@@ -681,6 +686,7 @@ function advance(times = 1, untilEvent = false) {
   showMonthCard(before, passed);
   renderGame();
   window.scrollTo({ top: 0 });
+  autosaveSoon(game);
 }
 
 function bindGame() {
@@ -738,8 +744,8 @@ function bindGame() {
     const title = game.pendingEvent.title;
     const text = resolveEvent(game, rngOf(game), +b.dataset.choice);
     ui.outcome = { title, text };
-    autosave(game);
     renderGame();
+    autosaveSoon(game);
   });
   const ec = $('#ev-close');
   if (ec) ec.onclick = () => {

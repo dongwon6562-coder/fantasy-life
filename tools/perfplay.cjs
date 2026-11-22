@@ -6,12 +6,24 @@ const { chromium } = require('playwright');
   const cdp = await p.context().newCDPSession(p);
   await cdp.send('Emulation.setCPUThrottlingRate', { rate: 4 });
   await p.addInitScript(() => localStorage.setItem('fantasy-life:prefs', JSON.stringify({ monthCard: false, guideSeen: { all: 1 } })));
+  // LONG=저장 파일(weightwatch.js SAVE_OUT): 오래 한 판을 불러와 켜기와 달 넘기기를 잰다 (31단계 헤드)
+  if (process.env.LONG) {
+    const save = require('fs').readFileSync(process.env.LONG, 'utf8');
+    await p.addInitScript((s) => { if (!sessionStorage.getItem('fl-long')) { localStorage.setItem('fantasy-life:auto', s); sessionStorage.setItem('fl-long', '1'); } }, save);
+    let t1 = Date.now();
+    await p.goto('file://' + process.cwd() + '/dist/www/index.html');
+    await p.waitForSelector('#cont-auto');
+    console.log('오래 한 판 첫 화면', Date.now() - t1, 'ms');
+    t1 = Date.now(); await p.click('#cont-auto'); await p.waitForSelector('#go, [data-choice], #ev-close'); console.log('이어 하기 누르고', Date.now() - t1, 'ms');
+  }
   let t0 = Date.now();
-  await p.goto('file://' + process.cwd() + '/dist/www/index.html');
-  await p.waitForSelector('[data-family="merchant"]');
-  console.log('첫 화면까지', Date.now() - t0, 'ms (CPU 4배 느리게)');
-  await p.click('[data-family="merchant"]'); await p.fill('#pname', '레나');
-  t0 = Date.now(); await p.click('#begin'); await p.waitForSelector('#go, [data-choice]'); console.log('시작 누르고 첫 달', Date.now() - t0, 'ms');
+  if (!process.env.LONG) {
+    await p.goto('file://' + process.cwd() + '/dist/www/index.html');
+    await p.waitForSelector('[data-family="merchant"]');
+    console.log('첫 화면까지', Date.now() - t0, 'ms (CPU 4배 느리게)');
+    await p.click('[data-family="merchant"]'); await p.fill('#pname', '레나');
+    t0 = Date.now(); await p.click('#begin'); await p.waitForSelector('#go, [data-choice]'); console.log('시작 누르고 첫 달', Date.now() - t0, 'ms');
+  }
   const step = async () => p.evaluate(() => {
     const t = performance.now();
     const c = document.querySelector('[data-choice]'); if (c) { c.click(); document.querySelector('#ev-close')?.click(); return ['ev', performance.now() - t]; }
@@ -20,8 +32,8 @@ const { chromium } = require('playwright');
     const go = document.querySelector('#go'); if (go) { go.click(); return ['go', performance.now() - t]; }
     return ['none', 0];
   });
-  let months = 0; const goT = []; const evT = []; let marks = [60, 120];
-  for (let i = 0; i < 6000 && months < 130; i++) {
+  let months = 0; const goT = []; const evT = []; let marks = process.env.LONG ? [20, 40] : [60, 120];
+  for (let i = 0; i < 6000 && months < (process.env.LONG ? 45 : 130); i++) {
     const [k, t] = await step();
     if (k === 'go') { months++; goT.push(t); await p.waitForTimeout(400); } else if (k === 'skip') { months += 6; } else if (k === 'ev') evT.push(t); else if (k === 'none') break;
     if (months >= marks[0]) {
