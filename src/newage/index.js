@@ -1,4 +1,4 @@
-// 34단계: 새 시대의 사람과 갈등. 상태는 g.newage 하나, 화면 연결점은 newageLines(g) / newageLine(g) / newageInfo(g).
+// 34단계: 새 시대의 사람과 갈등. (작은 기술 id는 era/later.js SMALL·LATE도 함께 본다) 상태는 g.newage 하나, 화면 연결점은 newageLines(g) / newageLine(g) / newageInfo(g).
 // 기술은 한꺼번에 오지 않는다(동원 11/22). 발명(invented)이 하나씩 쌓일 때마다 작은 갈등부터 생기고, 큰 공장·신문·비밀 모임은 먼 훗날의 일이다.
 // 앞쪽(작은 변화):
 // - 일손이 남는 마을(마을 방아 erngrind·마석 쟁기 plow): 마을마다 새 연장이 하나씩 들어오고, 남는 일손(hands)이 쌓여 품삯이 내리고 젊은이가 떠난다.
@@ -46,18 +46,20 @@ const LEAN_W = [['crown', 3], ['reform', 3], ['trade', 2], ['church', 2], ['radi
 /* ---------- 무엇이 열렸나 ---------- */
 export function openOf(g) {
   const n = nInv(g);
-  const papers = inv(g, 'press') && inv(g, 'signal') && inv(g, 'ironcart');
+  // 신문은 era/later.js의 newspaper가 나오거나, 인쇄기·전신탑·쇠수레가 다 모였을 때. 공장은 factory 또는 마석 화로+쇠수레.
+  const papers = inv(g, 'newspaper') || (inv(g, 'press') && inv(g, 'signal') && inv(g, 'ironcart'));
+  const factory = inv(g, 'factory') || (inv(g, 'forge') && inv(g, 'ironcart'));
   return {
     // 앞쪽: 작은 변화
-    hands: inv(g, 'erngrind') || inv(g, 'plow'),
+    hands: Object.keys(T.VTOOL).some((id) => inv(g, id)),
     books: inv(g, 'press'),
     guild: Object.keys(T.SHOP).some((id) => inv(g, id)),
     rich: n >= 3,
     generation: n >= 2,
     // 뒤쪽: 먼 훗날
-    breakers: inv(g, 'forge') && inv(g, 'ironcart'),
+    breakers: factory,
     press: papers,
-    society: papers && inv(g, 'railroad'),
+    society: papers && (inv(g, 'railroad') || inv(g, 'factory')),
   };
 }
 const anyOpen = (o) => Object.values(o).some(Boolean);
@@ -119,7 +121,8 @@ const ctxW = (g, rng, pl) => {
   return { place: placeName(pl), rich: r?.name ?? `${rng.pick(T.RICH_SURNAMES)} 집안`, old: o?.name ?? rng.pick(T.OLD_HOUSES), mill: T.RICH_TRADES[r?.trade ?? 'mill'], idea: soc ? T.IDEAS[soc.idea].name : T.IDEAS.equal.name, tool: toolOf(g, pl) };
 };
 
-const toolOf = (g, pl) => { const t = (g.newage?.tools?.[pl] ?? []).slice(-1)[0] ?? (inv(g, 'plow') ? 'plow' : 'erngrind'); return T.VTOOL[t]; };
+const toolOf = (g, pl) => T.VTOOL[toolIdOf(g, pl)];
+const toolIdOf = (g, pl) => (g.newage?.tools?.[pl] ?? []).slice(-1)[0] ?? [...Object.keys(T.VTOOL)].reverse().find((id) => inv(g, id)) ?? 'erngrind';
 const nextTool = (g, v) => Object.keys(T.VTOOL).find((id) => inv(g, id) && !S(g).tools[v]?.includes(id)) ?? null;
 
 /* ---------- 세상의 흐름 (플레이어 없이도) ---------- */
@@ -154,7 +157,7 @@ function breakerTick(g, rng) {
   const bread = g.realm?.bread ?? 1;
   const t = tech(g);
   for (const pl of CITIES) {
-    const machines = (pl === 'harfen' || pl === 'leocast' || inv(g, 'railroad') || t >= 5) && inv(g, 'forge') && inv(g, 'ironcart');
+    const machines = (pl === 'harfen' || pl === 'leocast' || inv(g, 'railroad') || t >= 5) && openOf(g).breakers;
     const a = s.anger[pl] ?? 0;
     const grow = machines ? 0.5 + (bread > 1.3 ? 0.6 : 0) + (g.world?.famine ? 0.5 : 0) : -0.4;
     s.anger[pl] = clamp(a + grow - 0.25 + rng.normal(0, 0.3), 0, 100);
@@ -321,8 +324,8 @@ function guildTick(g, rng) {
 const noble = (g) => g.player.familyId === 'fallen_knight' || g.player.familyId === 'count_bastard' || !!g.player.title || !!g.domain;
 const parentOf = (g) => [byId(g, me(g)?.fatherId), byId(g, me(g)?.motherId)].find((p) => p?.alive && ageYears(p) >= 40) ?? null;
 const kidOf = (g) => (me(g)?.childIds ?? []).map((id) => byId(g, id)).find((p) => p?.alive && !p.away && ageYears(p) >= 16 && ageYears(p) <= 28) ?? null;
-const NEW_THING = (g) => (inv(g, 'railroad') ? '쇠수레 길' : inv(g, 'ironcart') ? '쇠수레' : inv(g, 'forge') ? '마석 화로' : inv(g, 'plow') ? '마석 쟁기' : inv(g, 'press') ? '찍어 낸 책' : inv(g, 'manamill') || inv(g, 'erngrind') ? '마석 방아' : inv(g, 'warmstone') ? '온석 화로' : '화석');
-const NEW_WORK = (g) => (inv(g, 'ironcart') ? '쇠수레 공장' : inv(g, 'forge') ? '마석 화로 대장간' : inv(g, 'press') ? '인쇄소' : inv(g, 'manamill') ? '마석 방앗간' : inv(g, 'warmstone') ? '온석 화로 공방' : '화석 공방');
+const NEW_THING = (g) => (inv(g, 'railroad') ? '쇠수레 길' : inv(g, 'factory') ? '공장' : inv(g, 'ironcart') ? '쇠수레' : inv(g, 'forge') ? '마석 화로' : inv(g, 'plow') ? '마석 쟁기' : inv(g, 'press') ? '찍어 낸 책' : inv(g, 'manamill') || inv(g, 'erngrind') ? '마석 방아' : inv(g, 'betterplow') ? '개량 쟁기' : inv(g, 'windmill') ? '풍차' : inv(g, 'warmstone') ? '온석 화로' : inv(g, 'glass') ? '유리' : '화석');
+const NEW_WORK = (g) => (inv(g, 'factory') ? '공장' : inv(g, 'ironcart') ? '쇠수레 공장' : inv(g, 'forge') ? '마석 화로 대장간' : inv(g, 'press') ? '인쇄소' : inv(g, 'manamill') ? '마석 방앗간' : inv(g, 'windmill') ? '풍차 방앗간' : inv(g, 'warmstone') ? '온석 화로 공방' : inv(g, 'glass') ? '유리 공방' : '화석 공방');
 const OLD_THING = (g) => ({ farmer: '밭', merchant: '장사', fallen_knight: '칼', sexton: '종', capital_artisan: '손', port_folk: '바다', march_guard: '성벽' }[g.player.familyId] ?? '땀');
 const aff = (p, n) => { if (!p) return; rel(p); p.affection = clamp((p.affection ?? 0) + n, -100, 100); };
 
@@ -434,7 +437,7 @@ defineScene('na_village', {
   resolve(g, rng, s, key) {
     const st = S(g); st.me.done.village = mi(g);
     if (key === 'keep') { st.holdout[s.pl] = clamp((st.holdout[s.pl] ?? 50) + 15, 0, 100); deed(g, 'loyal', 3, '마을의 옛 방식을 편들었다', s.pl); return '촌장이 내 손을 잡았다. 젊은이 몇은 회의가 끝나기도 전에 나갔다. 그해 가을에도 마을은 옛날처럼 일했다. 품팔이 일꾼들은 고맙다는 말 대신 술을 한 잔 샀다.'; }
-    if (key === 'new') { st.holdout[s.pl] = clamp((st.holdout[s.pl] ?? 50) - 15, 0, 100); if (!st.tools[s.pl].includes(s.tool)) { st.tools[s.pl].push(s.tool); st.hands[s.pl] = clamp((st.hands[s.pl] ?? 0) + 20, 0, 100); chron(g, `${placeName(s.pl)}에 ${J(T.VTOOL[s.tool], '이/가')} 처음 들어오다.`, 35); } g.player.money += 10; return s.tool === 'plow' ? '새 쟁기가 들어왔다. 한 사람이 두 사람 몫의 밭을 간다. 그해 가을 품팔이 일꾼 셋이 일거리를 못 찾았다. 그중 하나가 내 집 앞을 지나갔다.' : '새 방아가 들어섰다. 빵값이 조금 내렸다. 옛 방앗간 주인은 그해 겨울 도시로 떠났다. 떠나며 내 집 앞을 지나갔다.'; }
+    if (key === 'new') { st.holdout[s.pl] = clamp((st.holdout[s.pl] ?? 50) - 15, 0, 100); if (!st.tools[s.pl].includes(s.tool)) { st.tools[s.pl].push(s.tool); st.hands[s.pl] = clamp((st.hands[s.pl] ?? 0) + 20, 0, 100); chron(g, `${placeName(s.pl)}에 ${J(T.VTOOL[s.tool], '이/가')} 처음 들어오다.`, 35); } g.player.money += 10; return s.tool !== 'erngrind' && s.tool !== 'windmill' ? '새 쟁기가 들어왔다. 한 사람이 두 사람 몫의 밭을 간다. 그해 가을 품팔이 일꾼 셋이 일거리를 못 찾았다. 그중 하나가 내 집 앞을 지나갔다.' : '새 방아가 들어섰다. 빵값이 조금 내렸다. 옛 방앗간 주인은 그해 겨울 도시로 떠났다. 떠나며 내 집 앞을 지나갔다.'; }
     return '마을이 정할 일이라고 했다. 회의는 밤늦도록 이어졌고 결론은 나지 않았다. 다음 해에도 같은 회의가 열릴 것이다.';
   },
 });
@@ -509,7 +512,7 @@ defineScene('na_guild', {
     const st = S(g); st.me.done.guild = mi(g);
     const x = st.shops.find((y) => y.id === s.sid);
     if (key === 'guild') { if (x) x.heat = clamp(x.heat + 8, 0, 100); deed(g, 'loyal', 2, `${s.guild} 조합 편에 섰다`, s.pl); return `서약서에 이름을 적었다. 조합장이 내 어깨를 두드렸다. 그날 저녁 장터에서 ${s.shop} 물건을 든 이웃을 보고 눈을 돌렸다. 이웃도 눈을 돌렸다.`; }
-    if (key === 'shop') { g.player.money += 20; gainSkill(g, s.inv === 'press' ? 'letters' : s.inv === 'manamill' ? 'farming' : 'smithing', 1, 'agi'); deed(g, 'loyal', -1, `조합을 두고 ${s.shop}에 일하러 갔다`, s.pl); return `${s.shop}에서 석 주를 일했다. 견습 칠 년 걸리던 일을 사흘 만에 배웠다. 대신 하나만 배웠다. 품삯은 정말 후했다. 조합 사람들은 이제 내게 인사하지 않는다.`; }
+    if (key === 'shop') { g.player.money += 20; gainSkill(g, s.inv === 'press' || s.inv === 'clock' ? 'letters' : s.inv === 'manamill' || s.inv === 'windmill' ? 'farming' : 'smithing', 1, 'agi'); deed(g, 'loyal', -1, `조합을 두고 ${s.shop}에 일하러 갔다`, s.pl); return `${s.shop}에서 석 주를 일했다. 견습 칠 년 걸리던 일을 사흘 만에 배웠다. 대신 하나만 배웠다. 품삯은 정말 후했다. 조합 사람들은 이제 내게 인사하지 않는다.`; }
     return '양쪽 다 정중하게 돌려보냈다. 조합장은 "중간은 없네" 했고 공방 주인은 "곧 알게 될 걸세" 했다.';
   },
 });
@@ -537,7 +540,7 @@ function playerTick(g, rng, o) {
   if (o.hands && VILLAGES.includes(pl) && (s.holdout[pl] ?? 0) >= 20 && nextTool(g, pl) && (!done.village || mi(g) - done.village >= 48) && rng.chance(0.08)) return q('na_village', { pl, tool: nextTool(g, pl) });
   if (o.hands && VILLAGES.includes(pl) && (s.hands[pl] ?? 0) >= 20 && age >= 18 && (!done.hands || mi(g) - done.hands >= 60) && rng.chance(0.07)) {
     const boss = (g.player.skills.farming ?? 0) >= 25 && g.player.money >= 80 || !!g.farm?.fields;
-    return q('na_hands', { pl, tool: toolOf(g, pl) === T.VTOOL.plow ? 'plow' : 'erngrind', boss });
+    return q('na_hands', { pl, tool: toolIdOf(g, pl), boss });
   }
   if (o.books && ((g.player.skills.letters ?? 0) >= 12 || s.lit >= 15) && (!done.book || mi(g) - done.book >= 84) && rng.chance(0.03 + s.lit / 1500)) return q('na_book', { book: rng.pick(BOOK) });
   if (o.guild && age >= 16) {

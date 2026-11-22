@@ -64,6 +64,18 @@ const EARLY = ['firestone', 'streetlamp', 'warmstone', 'manamill', 'press', 'sig
   x = o(EARLY); ok(x.hands && x.books && x.guild && x.rich && !x.press && !x.breakers && !x.society, `앞쪽 여덟 ${JSON.stringify(x)}`);
   x = o([...EARLY, 'forge', 'healstone', 'ironcart']); ok(x.press && x.breakers && !x.society, '쇠수레 뒤');
   x = o([...EARLY, 'forge', 'healstone', 'ironcart', 'railroad']); ok(x.society, '쇠수레 길 뒤');
+  // era/later.js의 작은 기술과 뒤 시대 id
+  x = o(['collar', 'windmill', 'glass']); ok(x.hands && x.guild && !x.books && !x.press && !x.breakers, `작은 기술 ${JSON.stringify(x)}`);
+  x = o(['press', 'newspaper']); ok(x.press && !x.society, '신문 id');
+  x = o(['press', 'newspaper', 'factory']); ok(x.breakers && x.society, '공장 id');
+}
+// 2b. 작은 기술만 있는 30년 (목사리·풍차·개량 쟁기·유리·벽돌)
+{
+  const g = newGame({ name: '클라라', sex: 'f', familyId: 'farmer', mode: 'free', seed: 3406 });
+  const SM = ['collar', 'windmill', 'betterplow', 'glass', 'brick'];
+  months(g, 30 * 12, (gg) => setInv(gg, SM));
+  const s = newageState(g);
+  ok(VILLAGES.some((v) => s.tools[v].length) && s.shops.length >= 2 && !s.books.length && !s.papers.length, `작은 기술 30년 ${JSON.stringify(s.tools)} ${s.shops.length}`);
 }
 // 3. 앞쪽 발명만 있는 60년: 작은 갈등은 돌고, 먼 훗날 것은 없다
 let early;

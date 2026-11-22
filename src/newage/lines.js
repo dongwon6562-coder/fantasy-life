@@ -76,7 +76,7 @@ export const PARENT_ASK = (c) => `${J(c.par, '이/가')} 저녁상에서 숟가�
 export const CHILD_ASK = (c) => `${J(c.kid, '이/가')} 짐 보따리를 문간에 내려놓고 말했다. "${c.place}에 가서 ${c.newWork}에서 일하겠어요. 여기 있으면 저도 늙은이처럼 살게 돼요." 나도 젊을 때 비슷한 말을 했던 것 같다.`;
 
 /* ---------- 앞쪽: 작은 변화가 쌓이며 ---------- */
-export const VTOOL = { erngrind: '마석 방아', plow: '마석 쟁기' };
+export const VTOOL = { collar: '새 말 목사리', windmill: '풍차', betterplow: '개량 쟁기', erngrind: '마석 방아', plow: '마석 쟁기' };
 /* 새 공방과 옛 조합 — 발명 id → { shop, guild } */
 export const SHOP = {
   firestone: { shop: '화석 공방', guild: '부싯돌 장수' },
@@ -84,6 +84,10 @@ export const SHOP = {
   manamill: { shop: '마석 방아', guild: '방앗간' },
   press: { shop: '인쇄소', guild: '필경사' },
   forge: { shop: '마석 화로 대장간', guild: '대장장이' },
+  windmill: { shop: '풍차 방앗간', guild: '물레방앗간' },
+  glass: { shop: '유리 공방', guild: '도기장이' },
+  brick: { shop: '벽돌 가마', guild: '석수' },
+  clock: { shop: '시계 공방', guild: '종 치는 사람' },
 };
 /* 일손이 남는 마을 — c: { place, tool } */
 export const HANDS_LINE = [
