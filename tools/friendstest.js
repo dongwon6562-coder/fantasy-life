@@ -60,15 +60,15 @@ function life(seed, years, opts = {}) {
 
 // 1. 그냥 사는 삶: 열여섯 넘어 벗이 생기고, 장면이 뜨고, NPC끼리도 벗이 생긴다
 let made = 0; let npcPairs = 0; let npcEnds = 0;
-for (let k = 0; k < 4; k++) {
-  const g = life(3500 + k, 45, { stay: k < 2 });
+for (let k = 0; k < 6; k++) {
+  const g = life(3500 + k, 45, { stay: k < 3 });
   const s = friendsState(g);
   made += s.list.length; npcPairs += s.npc.length; npcEnds += s.npc.filter((x) => x.end).length;
   ok(s.list.every((f) => f.depth >= 0 && f.depth <= 100), 'depth 범위');
   ok(s.list.every((f) => { const p = byId(g, f.pid); return p && !p.isPlayer && p.id !== me(g).spouseId; }), '벗 목록에 나나 배우자');
   checkInfo(g);
 }
-ok(made >= 6, `벗이 너무 적음 ${made}`);
+ok(made >= 8, `벗이 너무 적음 ${made}`);
 ok(npcPairs >= 8 && npcEnds >= 1, `NPC 벗 ${npcPairs} 끝 ${npcEnds}`);
 ok(scenes.fr_meet > 0, '벗 사귀기 장면');
 

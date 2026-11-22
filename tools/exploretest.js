@@ -90,7 +90,8 @@ function expedition(g, rid, opt = {}) {
   let m = 0;
   while (E(g).exp && m++ < 24 && !g.over) {
     const acts = availableActions(g).map((a) => a.id);
-    if (acts.some((id) => !['rest', 'meditate', 'train_body', 'explore_turnback'].includes(id))) fail('action not filtered', acts.join(','));
+    // 탐사 중에 붙잡혀 옥에 갇히면 옥살이 행동만 남는다 (expedition.js가 일부러 열어 둠)
+    if (!g.crime?.jailed && acts.some((id) => !['rest', 'meditate', 'train_body', 'explore_turnback'].includes(id))) fail('action not filtered', acts.join(','));
     if (opt.each) opt.each(g, m);
     month(g, ['rest'], opt.pick);
     if (opt.heal !== false) { g.player.injuries = g.player.injuries.filter((i) => !i.mortal); g.player.fatigue = Math.min(g.player.fatigue, 50); }

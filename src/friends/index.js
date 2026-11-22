@@ -461,7 +461,8 @@ defineScene('fr_legacy', {
 function playerTick(g, rng) {
   const s = S(g);
   const now = mi(g);
-  if (!free(g) || now - s.sceneAt < 6) return;
+  // 다른 장면이 기다리고 있으면 끼어들지 않는다
+  if (!free(g) || now - s.sceneAt < 6 || L(g).queue.length || g.pendingEvent) return;
   const q = (kind, data) => { queueScene(g, kind, data); s.sceneAt = now; return true; };
   const age = playerAge(g);
   // 선대의 벗, 대를 이은 벗
