@@ -89,6 +89,17 @@ console.log(`해마다 늘어난 돈(대략): ${JSON.stringify(seen.income)}`);
 if (verbose) for (const s of samples) console.log('·', s);
 for (const k of ['harvest', 'craft_order', 'open_shop', 'shop_manage', 'apprentice_pick', 'apprentice_done', 'company_offer']) if (!seen.scenes.has(k)) { problems++; console.log('장면이 한 번도 나오지 않음:', k); }
 for (const t of Object.keys(TRADES)) if (!seen.orders[t]) { problems++; console.log('의뢰가 한 번도 없음:', t); }
+// 걸작은 드물다. 다른 갈래가 늘면 무작위 흐름이 바뀌어 위 판들에서 안 나올 수도 있으니, 그때는 명장 한 사람을 열 해 더 본다
+for (let t = 0; t < 3 && !seen.masterworks.length; t++) {
+  const trade = ['smithing', 'herbs', 'cooking'][t];
+  const g = newGame({ name: '장인', sex: 'm', familyId: 'farmer', mode: 'free', seed: 12900 + t });
+  while (playerAge(g) < 16 && !g.over) month(g);
+  if (g.over) continue;
+  L(g).place = PLACE[trade]; L(g).travel = null; L(g).home = 'inn';
+  g.player.skills[trade] = 95; takeJob(g, TRADES[trade].job);
+  for (let m = 0; m < 120 && !g.over; m++) { g.player.skills[trade] = Math.max(g.player.skills[trade], 95); month(g); }
+  seen.masterworks.push(...C(g).masterworks.map((x) => `${TRADES[x.trade].name}:${x.name}`));
+}
 if (!seen.masterworks.length) { problems++; console.log('걸작이 한 번도 나오지 않음'); }
 console.log(problems ? `FAIL ${problems}` : 'OK');
 if (problems) process.exit(1);

@@ -218,7 +218,8 @@ for (const k of ['elder_care', 'elder_retire', 'elder_visit', 'elder_journey', '
 // 기억이 흐려진 노인: 다른 장면에 밀려 한 번도 못 봤으면, 형편(흐림)을 맞춰 두고 다시 본다
 for (let t = 0; t < 3 && !seen.scenes.elder_forget; t++) {
   const g = elder(300 + t, 78);
-  for (let m = 0; m < 36 && !seen.scenes.elder_forget && !g.over; m++) { elderState(g).fog = Math.max(elderState(g).fog, 60); L(g).queue = L(g).queue.filter((x) => /^elder_/.test(x.kind)); play(g, 1, ['rest'], {}, 1); }
+  // 흐림을 보려는 판이니 그동안 노인이 세상을 뜨지 않게 한다 (노환은 흐름에 따라 일찍 올 수 있다)
+  for (let m = 0; m < 36 && !seen.scenes.elder_forget && !g.over && playerAge(g) >= 70; m++) { L(g).pendingDeath = null; elderState(g).dying = null; elderState(g).frail = Math.min(elderState(g).frail ?? 0, 50); elderState(g).fog = Math.max(elderState(g).fog, 60); L(g).queue = L(g).queue.filter((x) => /^elder_/.test(x.kind)); play(g, 1, ['rest'], {}, 1); }
 }
 for (const k of ['elder_retire', 'elder_amends', 'elder_journey', 'elder_memoir', 'elder_funeral_wish', 'elder_forget', 'elder_deathbed', 'elder_funeral', 'elder_grave_foe', 'elder_grave_stranger', 'elder_memoir_read']) ok(seen.scenes[k] > 0, `scene never seen: ${k}`);
 console.log('행동:', JSON.stringify(Object.fromEntries(Object.entries(seen.acts).filter(([k]) => k.startsWith('elder_')))));
