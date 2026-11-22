@@ -134,8 +134,11 @@ export function lifeOf(game, p, age, stage, optScars) {
   if (me) hard += clamp(((game.player.stress ?? 0) - 60) / 120, 0, 0.25);
   L.hard = stage === 'baby' ? 0 : clamp(hard * (kid ? 0.6 : 1));
 
+  // 지어 입은 옷 (나만, 아이 때는 빼고): 상복·혼례 옷·물들인 옷
+  const cw = me && !kid ? game.cloth?.wear : null;
+  if (cw && (cw.kind === 'mourn' || cw.kind === 'band' || cw.kind === 'bridal' || cw.kind === 'fine')) L.garb = { kind: cw.kind, col: cw.col ?? null };
   const w = L.wounds;
-  L.key = `${L.job}|${L.tier}|${L.scars.join(',')}|${L.nicks}|${L.patch}|${Object.keys(w).join('')}|${Math.round(L.weather * 4)}|${Math.round(L.hard * 4)}`;
+  L.key = `${L.job}|${L.tier}|${L.scars.join(',')}|${L.nicks}|${L.patch}|${Object.keys(w).join('')}|${Math.round(L.weather * 4)}|${Math.round(L.hard * 4)}${L.garb ? `|${L.garb.kind}${L.garb.col ?? ''}` : ''}`;
   return L;
 }
 

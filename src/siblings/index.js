@@ -368,6 +368,8 @@ function monthTick(g) {
     scenes(g, rng, sibs);
   } else farNews(g, rng, sibs, out);
   st.month = out.slice(0, 2);
+  // 두 줄 밖으로 밀려 안 보인 먼 소식은 앞 문장을 쓴 것으로 치지 않는다 (33단계: 같은 앞 문장이 다시 보이던 일)
+  for (const x of out.slice(2)) if (x.kind === 'far' && x.form != null) { const u = st.farUsed[x.id]; const i = u?.lastIndexOf(x.form) ?? -1; if (i >= 0) u.splice(i, 1); }
   for (const x of st.month) st.log.push({ y: g.date.year, m: g.date.month, text: x.text });
   if (st.log.length > 24) st.log.splice(0, st.log.length - 24);
   if (g.date.month === 1) for (const id of Object.keys(st.seen)) { const p = byId(g, Number(id)); if (!p || (!p.alive && st.seen[id].alive === false)) delete st.seen[id]; }

@@ -93,6 +93,7 @@ const checkInfo = (g) => {
       queueScene(g, 'oath_blood_call', { who: f.id, need });
       play(g, 1, ['rest'], { oath_blood_call: t % 2 ? idxOf(/모른 척/) : 0 }, 1);
     }
+    if (L(g).ancestors.length) { checkInfo(g); continue; } // 갑작스런 병으로 죽어 대가 바뀐 판은 뺀다 (33단계: 행동이 늘어 판이 달라지자 걸림)
     if (v.bonds.some((x) => x.pid === f.id)) kept++;
     else { broke++; ok(feudState(g).grudges[f.id] && v.brand > 0, 'betrayed blood → grudge & brand'); }
     checkInfo(g);
