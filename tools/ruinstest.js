@@ -257,6 +257,6 @@ const months = (g, n) => { const rng = makeRng({ s: 77 }); for (let i = 0; i < n
 }
 
 const sec = Math.round((Date.now() - T0) / 1000);
-check(sec < 60, `1분 넘음 ${sec}초`);
+check(sec < (process.env.FL_PARALLEL ? 120 : 60), `1분 넘음 ${sec}초`);
 console.log(fail ? `유적 점검 실패 ${fail}` : `OK (${sec}초)`);
 process.exit(fail ? 1 : 0);

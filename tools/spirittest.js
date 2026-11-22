@@ -232,6 +232,6 @@ const pactWith = (g, id) => { SP(g).pact = { id, since: g.date.year * 12 + g.dat
 }
 
 const sec = Math.round((Date.now() - T0) / 1000);
-check(sec < 60, `1분 넘음 ${sec}초`);
+check(sec < (process.env.FL_PARALLEL ? 120 : 60), `1분 넘음 ${sec}초`);
 console.log(fail ? `정령 점검 실패 ${fail}` : `OK (${sec}초)`);
 process.exit(fail ? 1 : 0);
