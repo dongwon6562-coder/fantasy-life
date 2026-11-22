@@ -28,6 +28,7 @@ function resolveAll(g, pickIdx) {
     const out = resolveEvent(g, rngOf(g), idx);
     if (mine) { ok(!bad(String(out)), `bad out ${kind}: ${out}`); keep(kind, `${pe.text.slice(0, 80)}… [${pe.choices[idx]}] → ${String(out).slice(0, 90)}`); }
     ok(g.player.money >= 0, `money < 0 after ${kind}`);
+    ok(Object.values(g.player.skills).every(Number.isFinite) && Object.values(g.player.stats).every(Number.isFinite), `기술·능력 NaN after ${kind}`);
   }
 }
 const setInv = (g, ids) => { g.history.inventions = [...ids]; };

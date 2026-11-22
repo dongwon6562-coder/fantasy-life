@@ -509,7 +509,7 @@ defineScene('na_guild', {
     const st = S(g); st.me.done.guild = mi(g);
     const x = st.shops.find((y) => y.id === s.sid);
     if (key === 'guild') { if (x) x.heat = clamp(x.heat + 8, 0, 100); deed(g, 'loyal', 2, `${s.guild} 조합 편에 섰다`, s.pl); return `서약서에 이름을 적었다. 조합장이 내 어깨를 두드렸다. 그날 저녁 장터에서 ${s.shop} 물건을 든 이웃을 보고 눈을 돌렸다. 이웃도 눈을 돌렸다.`; }
-    if (key === 'shop') { g.player.money += 20; gainSkill(g, s.inv === 'press' ? 'letters' : s.inv === 'manamill' ? 'farming' : 'smithing', 1, 'dex'); deed(g, 'loyal', -1, `조합을 두고 ${s.shop}에 일하러 갔다`, s.pl); return `${s.shop}에서 석 주를 일했다. 견습 칠 년 걸리던 일을 사흘 만에 배웠다. 대신 하나만 배웠다. 품삯은 정말 후했다. 조합 사람들은 이제 내게 인사하지 않는다.`; }
+    if (key === 'shop') { g.player.money += 20; gainSkill(g, s.inv === 'press' ? 'letters' : s.inv === 'manamill' ? 'farming' : 'smithing', 1, 'agi'); deed(g, 'loyal', -1, `조합을 두고 ${s.shop}에 일하러 갔다`, s.pl); return `${s.shop}에서 석 주를 일했다. 견습 칠 년 걸리던 일을 사흘 만에 배웠다. 대신 하나만 배웠다. 품삯은 정말 후했다. 조합 사람들은 이제 내게 인사하지 않는다.`; }
     return '양쪽 다 정중하게 돌려보냈다. 조합장은 "중간은 없네" 했고 공방 주인은 "곧 알게 될 걸세" 했다.';
   },
 });
