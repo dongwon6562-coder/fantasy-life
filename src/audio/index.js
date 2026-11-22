@@ -35,6 +35,8 @@ const rest = () => safe(() => engine.ctx.suspend()?.catch?.(() => {}));
 
 const settings = { on: true, music: 0.7, sfx: 0.8, mix: false, ...(hasDom ? safe(() => JSON.parse(localStorage.getItem(KEY))) ?? {} : {}) };
 // 음량은 설정 화면(src/ui/settings.js)의 음악·효과음 칸과 같은 값을 쓴다. 켜기·끄기만 여기 따로 둔다.
+// 34단계: 예전에 켜 둔 '다른 앱 소리와 함께'는 한 번 꺼서, 업데이트 뒤엔 다른 게임들처럼 음악이 나게 한다.
+if (hasDom && settings.mixV !== 2) { settings.mix = false; settings.mixV = 2; safe(() => localStorage.setItem(KEY, JSON.stringify(settings))); }
 safe(() => { settings.music = prefs().music; settings.sfx = prefs().sfx; });
 onPrefs((p, k) => { if ((k === 'music' || k === 'sfx') && p[k] !== settings[k]) set({ [k]: p[k] }); });
 let game = null;      // 지금 하고 있는 게임
@@ -47,15 +49,9 @@ const sameGround = (a, b) => a != null && home(a) === home(b);
 const listeners = new Set();
 // 다른 앱 소리(음악, 유튜브)와 함께: 아이폰은 '재생' 종류로 소리를 내면 다른 앱 소리를 끊는다.
 // 함께 듣기일 때는 '배경' 종류로 바꿔 섞어 내고, 게임 음악은 쉬게 한다(효과음과 주변 소리는 그대로).
-// 앱이 앞으로 올 때 아이폰 쪽(AppDelegate)이 다른 소리가 흐르는지 window.__flOther로 알려 준다. (24단계, 동원 요청)
-let otherAudio = false;
-const mixing = () => settings.mix || otherAudio;
+// 34단계(동원 "다른 게임들처럼 소리 나게"): 저절로 음악을 끄던 것은 뺐다. 게임 음악은 늘 흐르고, 함께 듣기는 설정에서 직접 켤 때만.
+const mixing = () => settings.mix;
 function applySession() { safe(() => { if (navigator.audioSession) navigator.audioSession.type = mixing() ? 'ambient' : 'playback'; }); }
-if (hasDom) {
-  const readOther = () => { const v = !!window.__flOther; if (v !== otherAudio) { otherAudio = v; applySession(); applyVolume(); listeners.forEach((f) => f()); } };
-  safe(() => window.addEventListener('fl-other-audio', readOther));
-  readOther();
-}
 
 /* ---------- 게임 상태 받아 두기 ---------- */
 const keep = (g) => { game = g; };
@@ -334,7 +330,7 @@ function mountSettings(host, { floating = false } = {}) {
   const draw = () => {
     if (!host.isConnected) { listeners.delete(draw); return; }
     const b = q('[data-a="on"]'); b.textContent = settings.on ? '켜짐' : '꺼짐'; b.setAttribute('aria-pressed', String(settings.on));
-    const mb = q('[data-a="mix"]'); mb.textContent = settings.mix ? '켜짐' : otherAudio ? '저절로 켜짐' : '꺼짐'; mb.setAttribute('aria-pressed', String(mixing()));
+    const mb = q('[data-a="mix"]'); mb.textContent = settings.mix ? '켜짐' : '꺼짐'; mb.setAttribute('aria-pressed', String(mixing()));
     for (const k of ['music', 'sfx']) {
       const i = q(`[data-a="${k}"]`); const v = Math.round(settings[k] * 100);
       if (document.activeElement !== i) i.value = v;
@@ -345,7 +341,7 @@ function mountSettings(host, { floating = false } = {}) {
   };
   q('[data-a="on"]').onclick = () => { set({ on: !settings.on }); unlock(); if (settings.on) sfx('confirm'); };
   // 저절로 켜진 상태에서 누르면 이번에는 끈다(다시 앞으로 올 때 새로 본다)
-  q('[data-a="mix"]').onclick = () => { if (!settings.mix && otherAudio) otherAudio = false; else set({ mix: !settings.mix }); applySession(); applyVolume(); listeners.forEach((f) => f()); };
+  q('[data-a="mix"]').onclick = () => { set({ mix: !settings.mix }); applySession(); applyVolume(); listeners.forEach((f) => f()); };
   for (const k of ['music', 'sfx']) {
     q(`[data-a="${k}"]`).oninput = (e) => set({ [k]: e.target.value / 100 });
     q(`[data-a="${k}"]`).onchange = () => { if (k === 'sfx') sfx('confirm'); };
