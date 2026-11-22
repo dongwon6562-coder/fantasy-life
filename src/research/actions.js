@@ -77,11 +77,11 @@ function finish(g, rng) {
     r.fame += 3;
     L(g).renown = (L(g).renown ?? 0) + 3;
     g.chronicle.push({ y: g.date.year, m: g.date.month, text: `${g.player.name}, ${J(DESIGNS[p.id].name, '을/를')} 만들다.`, rel: 100 });
-    return `마침내 ${DESIGNS[p.id].name}이(가) 제대로 돌아갔다. ${DESIGNS[p.id].desc} 세상에 하나뿐인 물건이다. 아직은.`;
+    return `마침내 ${J(DESIGNS[p.id].name, '이/가')} 제대로 돌아갔다. ${DESIGNS[p.id].desc} 세상에 하나뿐인 물건이다. 아직은.`;
   }
   // 발명은 이름을 어떻게 걸지 고르는 사건으로 넘어간다
   r.claim = p.id;
-  return `${INV_NAME[p.id]}이(가) 돌아갔다. 손이 떨렸다. 이것을 세상에 어떻게 내놓을지 정해야 한다.`;
+  return `${J(INV_NAME[p.id], '이/가')} 돌아갔다. 손이 떨렸다. 이것을 세상에 어떻게 내놓을지 정해야 한다.`;
 }
 
 defineScene('research_pick', {

@@ -56,7 +56,8 @@ export function siblingsState(g) {
   s.nephewAsk ??= []; // 견습을 부탁한 조카
   s.uncles ??= {};    // id → { word, stance, at, done, helpAt }
   s.gen ??= 0;
-  s.toldWed ??= []; // 혼인 소식을 전한 먼 형제
+  s.toldWed ??= [];
+  s.farUsed ??= {};  // 형제 id → 쓴 소식 앞 문장 // 혼인 소식을 전한 먼 형제
   return s;
 }
 const S = siblingsState;
@@ -100,7 +101,7 @@ const amEldest = (g) => { const sibs = siblingsOf(g); const m = me(g); return si
 export function siblingLines(g) {
   const s = g?.siblings;
   if (!s?.month?.length) return [];
-  return s.month.map((x) => ({ text: x.text, id: x.id ?? null, name: x.name ?? null, kind: x.kind }));
+  return s.month.map((x) => ({ text: x.text, id: x.id ?? null, name: x.name ?? null, kind: x.kind, form: x.form }));
 }
 export function siblingLine(g) {
   const l = siblingLines(g);
@@ -228,7 +229,14 @@ function farNews(g, rng, sibs, out) {
   const kind = f?.trouble === 'sick' ? 'sick' : f?.trouble ? 'poor' : (p.wealth ?? 0) > 120 ? 'rich' : mate && !st.toldWed.includes(p.id) ? 'wed' : kids ? 'kids' : rng.chance(0.5) ? 'miss' : 'plain';
   if (kind === 'wed') st.toldWed.push(p.id);
   c.news = T.FAR_NEWS[kind](c);
-  push(g, out, 'far', p, pick(g, rng, T.FAR, 'far', c));
+  c.gift = rng.pick(T.FAR_GIFT); c.back = rng.pick(T.FAR_BACK);
+  // 같은 형제에게는 같은 앞 문장이 다시 나오지 않게 (다 나오면 처음부터)
+  // 가장 최근에 쓴 다섯 앞 문장은 피한다 (일곱 가지가 돌아가며 나온다)
+  const usedF = (st.farUsed[p.id] ??= []);
+  const opts = T.FAR.map((f, i) => i).filter((i) => !usedF.slice(-(T.FAR.length - 2)).includes(i));
+  const fi = rng.pick(opts); usedF.push(fi); if (usedF.length > T.FAR.length) usedF.shift();
+  push(g, out, 'far', p, T.FAR[fi](c));
+  out[out.length - 1].form = fi;
 }
 // 정이 깊은 형제는 내가 바닥일 때 먼저 손을 내민다
 function sacrifice(g, rng, sibs, out) {
@@ -658,11 +666,11 @@ defineScene('sib_nephew', {
   },
 });
 defineScene('sib_uncle', {
-  title: (g, s) => `${S(g).uncles[s.uncle]?.word ?? '집안 어른'}의 말`,
+  title: (g, s) => `${S(g).uncles[s.uncle]?.word ?? '친척'}의 말`,
   need: (g, s) => !!byId(g, s.uncle)?.alive,
   text: (g, s) => {
-    const u = byId(g, s.uncle); const w = S(g).uncles[s.uncle]?.word ?? '집안 어른';
-    return `${w} ${J(u.name, '이/가')} 집안 어른들을 모아 놓고 말했다. "집안이 어린 손에 흔들리고 있소. 내가 맡아 보겠소. 장부와 열쇠를 넘기거라." 모인 사람들이 나를 본다.`;
+    const u = byId(g, s.uncle); const w = S(g).uncles[s.uncle]?.word ?? '친척';
+    return `${w} ${J(u.name, '이/가')} 친척들을 모아 놓고 말했다. "집안이 어린 손에 흔들리고 있소. 내가 맡아 보겠소. 장부와 열쇠를 넘기거라." 모인 사람들이 나를 본다.`;
   },
   choices: (g) => {
     const out = [{ label: '장부를 넘긴다', key: 'yield' }, { label: '집안의 주인은 나라고 맞선다', key: 'stand' }];
@@ -685,8 +693,7 @@ defineScene('sib_uncle', {
 
 /* ---------- 대 잇기 ---------- */
 // 옛 주인의 형제는 새 주인에게 큰아버지·작은아버지·고모·외삼촌·이모가 된다
-function uncleWord(old, sib, direct) {
-  if (!direct) return '집안 어른';
+function uncleWord(old, sib) {
   const older = sib.ageMonths > old.ageMonths;
   if (old.sex === 'm') return sib.sex === 'm' ? (older ? '큰아버지' : '작은아버지') : '고모';
   return sib.sex === 'm' ? '외삼촌' : '이모';
@@ -698,18 +705,21 @@ HOOKS.heir.push((g, rng, old) => {
   const oldP = old ? byId(g, old.id) : null;
   const m = me(g);
   if (!oldP) return;
+  // 새 주인이 옛 주인의 자식일 때만 그 형제가 삼촌·고모가 된다 (손주·조카·형제가 이으면 따로 부를 말이 마땅치 않아 두지 않는다)
   const direct = m.fatherId === oldP.id || m.motherId === oldP.id;
+  if (!direct) { st.uncles = {}; st.seen = {}; return; }
+  const mine = new Set(siblingsOf(g, { all: true }).map((p) => p.id));
   const sibIds = new Set();
   for (const pid of [oldP.fatherId, oldP.motherId]) for (const id of byId(g, pid)?.childIds ?? []) sibIds.add(id);
   sibIds.delete(oldP.id);
   const keep = {};
   for (const id of sibIds) {
     const p = byId(g, id);
-    if (!p || !p.alive || p.isPlayer || ageYears(p) < 18) continue;
+    if (!p || !p.alive || p.isPlayer || ageYears(p) < 18 || mine.has(id)) continue;
     rel(p);
     const covet = (p.affection < 15 || p.rivalry >= 40) && (has(p, 'ambitious') || has(p, 'greedy') || p.rivalry >= 55);
     const help = !covet && p.affection >= 25;
-    keep[id] = { word: uncleWord(oldP, p, direct), stance: covet ? 'covet' : help ? 'help' : 'quiet', at: mi(g), done: false, helpAt: mi(g) };
+    keep[id] = { word: uncleWord(oldP, p), stance: covet ? 'covet' : help ? 'help' : 'quiet', at: mi(g), done: false, helpAt: mi(g) };
     p.known = true;
   }
   // 옛 삼촌들 가운데 아직 살아 있는 이는 이제 두 대 위 어른이다: 남기지 않는다
