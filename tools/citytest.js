@@ -202,8 +202,11 @@ const adv = (g, n = 1) => { for (let i = 0; i < n; i++) { g.date.month = (g.date
   const p = clone(g); direct(p, 'city_landlord', {}, 'pay'); p.player.money = 1; adv(p, 2); if (p.player.money < 0) fail('rent negative');
   const k = clone(g); const kid = makePerson(makeRng({ s: 3 }), { sex: 'm', ageMonths: 10 * 12 }); kid.place = 'harfen'; k.people.push(kid); me(k).childIds = [...(me(k).childIds ?? []), kid.id];
   for (const key of ['send', 'home', 'school']) { const r = direct(clone(k), 'city_sendkid', { kid: kid.id }, key); if (r.missing || r.skipped) fail('sendkid', key); }
-  const sent = clone(k); direct(sent, 'city_sendkid', { kid: kid.id }, 'send'); const fm = sent.player.familyMoney; adv(sent, 3);
-  if (sent.player.familyMoney < fm + 6) fail('kid wages', sent.player.familyMoney - fm);
+  const sent = clone(k); direct(sent, 'city_sendkid', { kid: kid.id }, 'send'); sent.player.familyMoney = 200; // 집안 돈이 거의 없으면 달 씀씀이가 품삯을 그대로 먹어 버린다
+  // 34단계(헤드): 사건이 늘어 집안 돈이 다른 데로도 새니, 아이를 안 보낸 같은 판과 견주어 품삯만 잰다
+  const ctl = clone(sent); CS(ctl).me.kids = [];
+  adv(sent, 3); adv(ctl, 3);
+  if (sent.player.familyMoney < ctl.player.familyMoney + 4) fail('kid wages', sent.player.familyMoney - ctl.player.familyMoney);
   const v = clone(globalThis.MILL); placeAt(v, 'ern'); let moved = 0;
   const villagers = () => v.people.filter((x) => x.alive && (x.place ?? 'ern') === 'ern').length;
   const v0 = villagers(); adv(v, 12 * 6); moved = v0 - villagers();

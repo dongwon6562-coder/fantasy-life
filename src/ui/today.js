@@ -15,6 +15,10 @@ import { harborLine } from '../harbor/index.js';
 import { originLines } from '../origins/index.js';
 import { demonsLine } from '../demons/index.js';
 import { clothLine } from '../cloth/index.js';
+import { techLine } from '../techtree/index.js';
+import { laterLine } from '../later_era/index.js';
+import { cityLine } from '../cityday/index.js';
+import { newageLines } from '../newage/index.js';
 import { placeName } from '../places.js';
 import { esc } from './util.js';
 
@@ -25,7 +29,7 @@ const txt = (x) => (typeof x === 'string' ? x : x.text);
 // 다른 갈래가 붙는 자리: lead(풍경, 앞의 두 줄), did(지난달 머리 한 줄), met(마주친 사람들), heard(들려온 소문)
 // 함수는 game을 받아 글 한 줄, 줄들, {text, cls} 가운데 하나를 돌려준다.
 export const TODAY_SOURCES = {
-  lead: [sceneLine, demonsLine, harborLine, mountLine, clothLine, streetLine, (g) => natureInfo(g)?.sky], // 몸으로 느끼는 지금 (src/senses), 해협 너머 마족 (src/demons), 포구 (src/harbor), 하늘 짐승 (src/mount), 옷감과 옷차림 (src/cloth), 거리 풍경 (src/rumor), 없으면 하늘과 땅. 앞의 셋까지
+  lead: [sceneLine, demonsLine, cityLine, laterLine, harborLine, mountLine, clothLine, streetLine, (g) => natureInfo(g)?.sky], // 몸으로 느끼는 지금 (src/senses), 해협 너머 마족 (src/demons), 포구 (src/harbor), 하늘 짐승 (src/mount), 옷감과 옷차림 (src/cloth), 공장 거리와 빈 마을 (src/cityday), 새 기술과 세력 (src/later_era), 거리 풍경 (src/rumor), 없으면 하늘과 땅. 앞의 셋까지
   did: [sensesLine], // 지난달을 몸으로 느낀 한두 문장 (src/senses): '지난달 한 일' 머리에
   met: [
     (g) => encounterLines(g).map((x) => ({ text: x.text, cls: x.kind ? `ek-${String(x.kind).replace(/[^\w-]/g, '')}` : '' })), // 먼저 다가온 사람들 (src/encounter)
@@ -35,6 +39,7 @@ export const TODAY_SOURCES = {
     (g) => rumorLines(g).map((h) => ({ text: h.text, cls: h.fix ? 'rumor fix' : 'rumor' })), // 소문 (src/rumor)
     ruinsLine, // 이 고장에서 보이는 유적 (src/ruins)
     foundingLines, // 내 나라의 일 (src/founding)
+    newageLines, techLine, // 새 시대의 사람들 (src/newage), 이 고장에서 한창인 연구 (src/techtree)
   ],
 };
 

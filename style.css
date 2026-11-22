@@ -1657,3 +1657,20 @@ body:has(.fl-stage:not(.off)) .rv .ln, body:has(.fl-stage:not(.off)) .event.rv .
 .fam-h { margin: 14px 0 8px; font-size: 14px; letter-spacing: .1em; color: var(--brass); font-family: var(--f-body, inherit); }
 .fam-h:first-child { margin-top: 0; }
 .fam-h small { color: var(--muted); font-size: 12px; margin-left: 4px; }
+
+/* ---------- 34단계 기술 나무 (연대기 '시대' 칸) ---------- */
+.era h3 small, .era .sub small { font-size: 12px; color: var(--muted); font-weight: 400; margin-left: 6px; letter-spacing: .04em; }
+.tt-rumor { font-style: italic; }
+.er-src { font-size: 12px; color: var(--brass); }
+.tt-fields { display: grid; gap: 6px; margin-top: 10px; }
+.tt-field { border: 1px solid var(--line); border-radius: 8px; padding: 0 12px; background: rgba(201, 162, 90, .03); }
+.tt-field > summary { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 10px; padding: 10px 0; cursor: pointer; list-style: none; min-height: 44px; }
+.tt-field > summary::-webkit-details-marker { display: none; }
+.tt-field > summary span:first-child { font-weight: 600; }
+.tt-field > summary em { font-style: normal; font-size: 12px; color: var(--muted); }
+.tt-dots { display: flex; flex-wrap: wrap; gap: 4px; min-width: 0; }
+.tt-dots i { width: 7px; height: 7px; border-radius: 50%; background: var(--mana); opacity: .75; }
+.tt-dots i.big { width: 10px; height: 10px; opacity: 1; box-shadow: 0 0 6px rgba(127, 179, 213, .6); }
+.tt-field[open] > summary { border-bottom: 1px solid var(--line); margin-bottom: 10px; }
+.tt-field .er-list { margin-bottom: 12px; }
+.card b.warn, .block b.warn, .era b.warn, .era span.warn { color: #e3917f; }

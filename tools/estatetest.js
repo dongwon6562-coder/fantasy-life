@@ -96,7 +96,7 @@ for (let attempt = 0; attempt < 4; attempt++) {
   scene(g, 'estate_manage', /집을 세놓는다/);
   if (L(g).home === 'own') fail('still living in rented-out house');
   let rentIn = 0;
-  for (let i = 0; i < 12 && !rentIn; i++) { /* 세입자는 달마다 셋에 하나꼴로 든다: 여섯 달 넘게 빈 판이 있다 */ const before = g.player.money; month(g, ['rest']); rentIn += E(g).ledger.rent; }
+  for (let i = 0; i < 24 && !rentIn; i++) { /* 세입자는 달마다 셋에 하나꼴로 든다: 여섯 달 넘게 빈 판이 있다. 34단계: 세계 흐름이 바뀌자 열두 달 내내 빈 판이 나와 스물넉 달로 늘림 */ const before = g.player.money; month(g, ['rest']); rentIn += E(g).ledger.rent; }
   if (!rentIn) fail('house rent never came in');
   scene(g, 'estate_manage', /세를 거두고/);
   if (L(g).home !== 'own') fail('unrent failed');

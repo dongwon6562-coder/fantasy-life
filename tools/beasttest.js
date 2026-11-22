@@ -148,9 +148,17 @@ function scene(g, kind, data, re, opt = {}) {
   addAnimal(g, 'hawk', { ageYears: 2, trained: 100, bond: 70 });
   // 매사냥 벌이만 재려고, 돈이 크게 드는 장터 성유물 사기는 이 석 달 동안 막아 둔다 (31단계: 사건이 늘어 이 판에 끼었다)
   (g.evLast ??= {}).relic_fake = g.date.year * 12 + g.date.month;
-  const m0 = g.player.money;
-  for (let i = 0; i < 3; i++) month(g, ['beast_hawking']);
-  if (g.player.money <= m0 - 10) fail('hawking earned nothing');
+  // 매사냥 벌이는 달 넘김(endMonth)만으로 잰다. 그 뒤 사건(곡물 창고·삶의 장면 등)이 돈을 쓰는 것은 셈에 넣지 않는다 (34단계: 사건이 늘어 또 끼었다)
+  let earned = 0;
+  for (let i = 0; i < 3; i++) {
+    g.player.fatigue = 0;
+    const b = g.player.money;
+    const hawk = availableActions(g).find((x) => x.id === 'beast_hawking');
+    if (hawk) { endMonth(g, Array.from({ length: slotsFor(g) }, () => ({ id: 'beast_hawking' }))); earned += g.player.money - b; }
+    let guard = 0;
+    while (g.pendingEvent && guard++ < 6) resolveEvent(g, rngOf(g), 0);
+  }
+  if (earned <= 0) fail('hawking earned nothing', earned);
   // 그사이 다른 사건이 말을 앗아 갔으면 다시 들인다 (점검이 사건 굴림에 갈리지 않게)
   if (!alive(g).some((a) => a.kind === 'warhorse')) addAnimal(g, 'warhorse', { ageYears: 5, trained: 100, bond: 70 });
   const agi0 = g.player.stats.agi;

@@ -60,7 +60,7 @@ export function manaMonth(g) {
   // 샘
   WELL_IDS.forEach((id, i) => {
     const w = S.wells[id], d = WELLS[id], wr = manaRng(g, 11 + i * 5), pn = placeName(d.place);
-    const target = clamp(48 + d.base + S.tide * 0.55 - Math.max(0, era(g) - 1) * 5, 0, 100);
+    const target = clamp(48 + d.base + S.tide * 0.55 - Math.min(3, Math.max(0, era(g) - 1)) * 5 - (g.later?.deplete ?? 0) * 0.1, 0, 100); // 34단계: 시대 몫은 셋까지, 그 뒤는 마석 고갈 걱정이 샘을 말린다
     w.flow = clamp(w.flow + (target - w.flow) * 0.08 + wr.normal(0, 2), 0, 100);
     if (!w.dry && w.flow < 6) { w.dry = true; say(`${pn} ${J(d.name, '이/가')} 말랐다. 샘지기들이 바닥을 들여다보며 기다린다.`, false, d.place); mlog(g, `${J(d.name, '이/가')} 말랐다.`); }
     else if (w.dry && w.flow > 18) { w.dry = false; say(`말랐던 ${pn} ${J(d.name, '이/가')} 다시 솟는다.`, false, d.place); }

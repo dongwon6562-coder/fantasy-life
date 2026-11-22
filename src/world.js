@@ -2,12 +2,17 @@
 // 플레이어가 무엇을 하든 매달 굴러간다. 정해진 역사는 없고, 판마다 다른 결말이 난다.
 // 상태는 game.realm 하나에 모두 들어 있다. 사건(events/)이 이 값을 읽고, 가끔 바꾼다.
 import { HOOKS } from './hooks.js';
+import { TECH, ERA_KEYS } from './techtree/nodes.js';
 
 export const ERAS = [
   { id: 0, name: '마석 시대', desc: '마석은 귀족과 마법사의 물건이다. 마을의 밤은 아직 등잔불로 밝힌다.' },
   { id: 1, name: '마도구 보급 시대', desc: '화석·등석·온석 같은 마도구가 도시를 넘어 시골까지 퍼진다.' },
   { id: 2, name: '마도 공학 시대', desc: '공방에서 마도구를 찍어 내고, 마석으로 돌아가는 방아와 수레가 나타난다.' },
   { id: 3, name: '마도 증기 시대', desc: '마석로가 쇳덩이를 움직인다. 길과 전쟁의 모양이 바뀐다.' },
+  // 34단계 뒤 시대 (도우미스레드3): 기계가 늘어도 칼을 찬 사람과 서클 마법사는 남는다. 고서클은 여전히 드물다.
+  { id: 4, name: '마력 공장 시대', desc: '마력 굴대가 한 지붕 밑에서 수십 개씩 돈다. 사람들이 공장 거리로 몰리고 도시가 성벽 밖으로 넘친다. 그래도 길드 게시판의 의뢰는 줄지 않는다.' },
+  { id: 5, name: '수정구 시대', desc: '먼 곳의 목소리가 그날로 닿는다. 마탑이 수정구를 쥐고 세상의 귀가 된다. 마석이 모자라다는 말이 처음으로 진지하게 나온다.' },
+  { id: 6, name: '하늘길 시대', desc: '은빛 비행선이 하늘을 지난다. 부자는 하늘로 다니고, 마석은 금보다 귀하다. 일곱 서클에 닿은 사람은 여전히 손에 꼽는다.' },
 ];
 
 const LORD_NAMES = ['디트리히', '아달베르트', '고트프리트', '루트비히', '에버하르트', '지크프리트', '오토카르', '베르톨트'];
@@ -15,7 +20,8 @@ const LORD_TEMPERS = ['fair', 'greedy', 'harsh', 'weak'];
 export const LORD_TEMPER_NAME = { fair: '공정함', greedy: '탐욕스러움', harsh: '가혹함', weak: '유약함' };
 
 // 기술 값이 이 문턱을 넘으면 다음 시대. 한 사람의 일생에 한두 번, 몇 대를 거쳐야 마도 증기 시대에 닿는다.
-export const ERA_AT = [0, 1, 2.6, 4.6];
+// 34단계: 시대를 바꾸는 큰 발명(techtree ERA_KEYS)의 눈금. 그 발명이 나와야 다음 시대가 된다.
+export const ERA_AT = ERA_KEYS.map((id) => (id ? TECH[id].at : 0));
 
 export const monthIndex = (g) => g.date.year * 12 + (g.date.month - 1);
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
@@ -295,7 +301,7 @@ function tick(g, rng) {
     + (n.war ? 0.1 : 0)
     + (n.fallen ? 0.15 : 0)
     + Math.max(0, r.monsters - 50) * 0.006
-    - r.era * 0.05;
+    - Math.min(r.era, 4) * 0.05; // 34단계: 시대가 일곱이 되어도 빵값이 0.8 밑으로 꺼지지 않게
   const before = r.bread;
   r.bread = clamp(r.bread + (target - r.bread) * 0.2 + rng.normal(0, 0.02), 0.6, 3);
   r.bread = Math.round(r.bread * 100) / 100;
@@ -304,8 +310,9 @@ function tick(g, rng) {
   if (r.bread < 1.15 && before >= 1.15) say('물가가 겨우 가라앉았다. 장터에 다시 웃음소리가 들린다.');
 
   // ---------- 기술 ----------
-  const techGain = rng.float(0.002, 0.009) * (1 + (b.war ? 0.4 : 0) + (r.ruler === 'erik' ? 0.15 : 0));
-  r.tech += techGain;
+  // 34단계: 기술 값은 기술 나무(src/techtree/)가 정한다. 선행 기술·연구할 사람·재료·수요가 갖춰져야 자란다 (history powers 틱에서 techGrow).
+  // 예전 판과 같은 무작위 순서를 지키려고 한 번 뽑기만 한다.
+  rng.float(0.002, 0.009);
   if (rng.chance(0.012)) say(rng.pick(r.era === 0 ? [
     '세레니아의 공방에서 값싼 화석(火石)을 만드는 법을 찾았다고 한다. 불씨 없이 불을 붙이는 돌이다.',
     '하르펜 시장에 등석(燈石) 노점이 생겼다. 비싸지만 밤새 꺼지지 않는다.',

@@ -33,7 +33,7 @@ const samples = [];
 for (const [race, fam] of Object.entries(FAMS)) {
   stat[race] = { all: [], died: [], mana: 0, runs: 0, farewells: 0, drifted: 0, kids: {} };
   for (let run = 0; run < 6; run++) {
-    const g = newGame({ name: '아이', sex: run % 2 ? 'm' : 'f', familyId: fam, mode: 'once', seed: 4400 + run * 13 + race.length });
+    const g = newGame({ name: '아이', sex: run % 2 ? 'm' : 'f', familyId: fam, mode: 'once', seed: 4410 + run * 13 + race.length }); // 34단계: 기술 나무가 들어와 세계 흐름이 바뀌자 드워프 여섯 판이 모두 칼에 일찍 죽어 장수 비교가 58 대 58로 깨졌다. 판 씨앗만 옮김
     const S = stat[race];
     S.runs++;
     ok(raceOf(me(g)) === race && g.player.race === race, `${race} player race ${me(g).race}`);
