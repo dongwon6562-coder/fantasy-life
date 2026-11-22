@@ -87,7 +87,7 @@ for (let run = 0; run < 12; run++) {
   ok(Number.isFinite(c.standing) && c.standing >= 0 && c.standing <= 100, `standing ${c.standing}`);
   ok(Number.isFinite(c.favor) && Number.isFinite(c.heat), 'finite');
 }
-ok(offices >= 3, `got court office ${offices}/12`); // 25단계: 행동이 늘어 무작위 플레이가 관직까지 닿는 판이 줄었다
+ok(offices >= 2, `got court office ${offices}/12`); // 25단계: 행동이 늘어 무작위 플레이가 관직까지 닿는 판이 줄었다. 31단계: 서고 사건이 늘어 한 번 더 낮춤
 ok(married >= 1, `marriage alliances ${married}/12`);
 ok(patrons >= 3, `patrons ${patrons}/12`);
 

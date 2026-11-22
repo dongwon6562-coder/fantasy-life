@@ -12,7 +12,7 @@ import { peace } from './world.js';
 
 const here = (g) => L(g).place;
 const capitalOf = (g) => nations().find((id) => REALMS[id].capital === here(g)) ?? null;
-const free = (g) => isAdult(g) && !L(g).travel && !isJailed(g);
+const free = (g) => isAdult(g) && !L(g).travel && !isJailed(g) && !g.explore?.exp; // 원정 중엔 고장 일에 끼지 않는다 (31단계 헤드3: 원정 중 첩자 일로 옥에 가던 것)
 const renown = (g) => L(g).renown ?? 0;
 const say = (g) => (text, big = false) => { (g.worldNews ??= []).push(text); pnews(g, text); if (big) g.realm?.log?.push({ y: g.date.year, m: g.date.month, text: text.split('.')[0] }); };
 const record = (g) => (text) => g.realm?.log?.push({ y: g.date.year, m: g.date.month, text });

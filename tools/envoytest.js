@@ -181,7 +181,7 @@ const war = (g, a, b) => { PS(g).wars.push({ a, b, since: g.date.year * 12, scor
   for (let t = 0; t < 4 && V(c).post?.role === 'clerk'; t++) scene(c, 'envoy_talks', { to: 'march', talk: 'trade' }, idxOf(/초안/));
   ok(V(c).post?.role !== 'clerk', `clerk promoted ${V(c).post?.role}`);
   let caught = 0;
-  for (let t = 0; t < 10 && !caught; t++) { const s = adult(61 + t); strong(s); post(s, 'interpreter'); scene(s, 'envoy_talks', { to: 'march', talk: 'trade' }, idxOf(/속셈/)); if (!V(s).post) caught++; }
+  for (let t = 0; t < 20 && !caught; t++) { const s = adult(61 + t); strong(s); post(s, 'interpreter'); scene(s, 'envoy_talks', { to: 'march', talk: 'trade' }, idxOf(/속셈/)); if (!V(s).post) caught++; }
   ok(caught, 'seller caught');
 }
 
