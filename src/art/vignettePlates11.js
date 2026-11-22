@@ -42,7 +42,7 @@ function throne(ctx, x, y, s, c, rot = 0) {
   ctx.restore();
 }
 /** 바다: y0부터 아래. rough가 클수록 물결이 거칠다 */
-function seaAt(v, y0, o = {}) {
+export function seaAt(v, y0, o = {}) {
   const { ctx, t, R, P, S } = v, c = o.color ?? P.water ?? '#4e6478', rough = o.rough ?? 1;
   const g = ctx.createLinearGradient(0, y0, 0, VH); g.addColorStop(0, t(mixh(c, S.low, 0.55))); g.addColorStop(0.4, t(c)); g.addColorStop(1, t(dark(c, 0.42)));
   ctx.fillStyle = g; ctx.fillRect(0, y0, VW, VH - y0 + 30);
@@ -54,7 +54,7 @@ function seaAt(v, y0, o = {}) {
   }
 }
 /** 작은 고깃배 옆모습. y는 물금, s 1이면 길이 66쯤. o.sail 'set'|'furled'|'torn'|null, o.lamp 뱃머리 등불, o.crew [[dx, h, 옷]] */
-function skiff(v, x, y, s, d, o = {}) {
+export function skiff(v, x, y, s, d, o = {}) {
   const { ctx, t } = v, hull = t(o.hull ?? '#30261e'), cloth = t(o.cloth ?? '#a89878');
   for (const [dx, h, po] of o.crew ?? []) person(v, x + d * dx * s, y - 1 * s, h, { f: d, ...po });
   ctx.save(); ctx.translate(x, y); ctx.rotate(o.roll ?? 0); ctx.scale(d * s, s); ctx.lineCap = 'round';
@@ -75,7 +75,7 @@ function skiff(v, x, y, s, d, o = {}) {
 /** 물 위의 흰 거품 줄 */
 const foam = (v, x, y, w, a = 0.5) => { const { ctx, R } = v; ctx.strokeStyle = rgba(v.t('#e8eef0'), a); ctx.lineWidth = 1.2; ctx.lineCap = 'round'; for (let i = 0; i < 5; i++) { const px = x + (R() - 0.5) * w, pw = 4 + R() * 9; ctx.beginPath(); ctx.moveTo(px, y + R() * 3); ctx.lineTo(px + pw, y + R() * 3); ctx.stroke(); } };
 /** 갈매기 몇 마리 (까마귀보다 옅고 날개가 길다) */
-function gulls(v, x, y, n, spread = 60) {
+export function gulls(v, x, y, n, spread = 60) {
   const { ctx, R } = v; ctx.strokeStyle = rgba(v.t('#e8e6e0'), 0.9); ctx.lineWidth = 1.1; ctx.lineCap = 'round';
   for (let i = 0; i < n; i++) { const px = x + (R() - 0.5) * spread * 2, py = y + (R() - 0.5) * spread * 0.6, s = 3 + R() * 3.4; ctx.beginPath(); ctx.moveTo(px - s * 1.3, py - s * 0.2); ctx.quadraticCurveTo(px - s * 0.5, py - s * 0.8, px, py); ctx.quadraticCurveTo(px + s * 0.5, py - s * 0.8, px + s * 1.3, py - s * 0.2); ctx.stroke(); }
 }
@@ -373,7 +373,7 @@ function mountTame(v) {
 
 /* ---------- 포구 ---------- */
 /** 포구의 집들: 돌담 위 낮은 지붕, 그물 장대 */
-function quay(v, x0, x1, y, lit) {
+export function quay(v, x0, x1, y, lit) {
   const { ctx, t } = v;
   for (let x = x0, i = 0; x < x1; x += 34, i++) { const w = 30 + hash(i, 3) * 10, h = 14 + hash(i, 4) * 8; cottage(v, x + w / 2, y - hash(i, 5) * 3, w, h, { lit: lit && hash(i, 6) < 0.6, snow: !!v.P.snow }); }
   rect(ctx, x0 - 10, y - 2, x1 - x0 + 20, 7, t('#4a4640'));
