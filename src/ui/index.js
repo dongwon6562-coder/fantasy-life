@@ -92,7 +92,7 @@ import { renderSpiritNow, renderSpiritBlock } from './spirit.js';
 import { renderBrewNow, renderBrewBlock } from './brew.js';
 import { renderEnvoyNow, renderEnvoyBlock } from './envoy.js';
 import { renderSiblings } from './siblings.js';
-import { renderFamilyPick, bindFamilyPick } from './famPick.js';
+import { renderFamilyPick } from './famPick.js';
 import { renderRuinsBlock, renderRuins } from './ruins.js';
 import { renderOrderBlock, renderOrders } from './order.js';
 import { renderFoundingBlock, renderFoundings, renderFoundingChron } from './founding.js';
@@ -226,7 +226,6 @@ function renderSetup() {
 
   $$('[data-mode]').forEach((b) => b.onclick = () => { s.mode = b.dataset.mode; renderSetup(); });
   $$('[data-family]').forEach((b) => b.onclick = () => { s.family = b.dataset.family; renderSetup(); });
-  bindFamilyPick(s, renderSetup);
   $$('[data-race]').forEach((b) => b.onclick = () => {
     if (s.race !== b.dataset.race) resetLooks(s);
     s.race = b.dataset.race;

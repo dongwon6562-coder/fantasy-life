@@ -1642,8 +1642,8 @@ body:has(.month-card:not(.out)) .rv .ln, body:has(.month-card:not(.out)) .event.
 body:has(.fl-stage:not(.off)) .rv .ln, body:has(.fl-stage:not(.off)) .event.rv .opt, body:has(.fl-stage:not(.off)) .event.rv #ev-close { animation-play-state: paused; }
 
 /* ---------- 33단계 시작 화면 집안 고르기: 집안이 많을 때 짧은 칸 + 아래 자세히 ---------- */
-.fam-filter { margin-bottom: 10px; flex-wrap: wrap; }
-.fam-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(200px, 100%), 1fr)); gap: 8px; }
+.fam-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(200px, 100%), 1fr)); grid-auto-flow: row dense; gap: 8px; }
+.fam-grid .fam-detail { grid-column: 1 / -1; margin-top: 0; }
 .choice.fam-mini { gap: 4px; padding: 12px 14px; min-height: 0; }
 .choice.fam-mini strong { font-size: 16px; }
 .choice.fam-mini span:last-child { font-size: 13px; line-height: 1.55; }
@@ -1654,3 +1654,6 @@ body:has(.fl-stage:not(.off)) .rv .ln, body:has(.fl-stage:not(.off)) .event.rv .
 .fam-detail p { margin: 0; line-height: 1.75; }
 .fam-detail .note b { color: var(--brass); margin-right: 4px; font-weight: 600; }
 .fam-hint { margin-top: 10px; }
+.fam-h { margin: 14px 0 8px; font-size: 14px; letter-spacing: .1em; color: var(--brass); font-family: var(--f-body, inherit); }
+.fam-h:first-child { margin-top: 0; }
+.fam-h small { color: var(--muted); font-size: 12px; margin-left: 4px; }
