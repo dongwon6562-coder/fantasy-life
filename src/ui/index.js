@@ -136,10 +136,20 @@ export function start() {
 
 /* ---------- 시작 화면 ---------- */
 const beginNote = (s) => `${s.family ? '' : '집안을 골라 주세요. '}${birthReady(s) ? '' : '큰 재능을 하나 골라 주세요. '}${s.name.trim() ? '' : '이름을 지어 주세요.'}`;
+const TITLE_ART = { year: 500, month: 3 };
+let titleArtReady = false;
 function renderSetup() {
   const s = ui.setup;
   const auto = summary('auto');
-  const art = sceneImage({ year: 500, month: 3 });
+  // 첫 화면 그림은 그리는 데 폰에서 0.15초쯤 걸린다. 글과 단추를 먼저 띄우고 그림은 바로 뒤에 채운다 (32단계 헤드).
+  const art = titleArtReady ? sceneImage(TITLE_ART) : '';
+  if (!titleArtReady) setTimeout(() => {
+    titleArtReady = true;
+    const url = sceneImage(TITLE_ART), ph = document.querySelector('.title-hero .hero-ph');
+    if (url && ph) ph.outerHTML = `<img src="${url}" alt="${esc(VILLAGE)}의 이른 봄 풍경">`;
+    // '이어 하기'를 누르면 바로 보일 풍경도 미리 그려 둔다
+    if (auto?.scene && !auto.over) prewarmScene(auto.scene);
+  }, 30);
   let races = [];
   try { races = playableRaces(); } catch (e) { console.error(e); }
   const race = s.race ?? 'human';
@@ -147,7 +157,7 @@ function renderSetup() {
   const fams = races.length ? familiesOf(race) : FAMILIES;
   root().innerHTML = `
     <div class="title-hero">
-      ${art ? `<img src="${art}" alt="${esc(VILLAGE)}의 이른 봄 풍경">` : ''}
+      ${art ? `<img src="${art}" alt="${esc(VILLAGE)}의 이른 봄 풍경">` : '<div class="hero-ph" aria-hidden="true"></div>'}
       <div class="title-cap">
         <span class="eyebrow">용사력 500년 · ${esc(REGION)}</span>
         <h1>${esc(VILLAGE)}에서 태어나다</h1>
@@ -526,7 +536,9 @@ function renderMap() {
 function renderEvent() {
   const e = game.pendingEvent;
   if (!e && !ui.outcome) return '';
-  const art = sceneImage({ year: game.date.year, month: game.date.month, famine: game.world?.famine, plague: game.world?.plague, place: L(game).place, calamity: calamityNow() });
+  const sceneArgs = { year: game.date.year, month: game.date.month, famine: !!game.world?.famine, plague: !!game.world?.plague, place: L(game).place, calamity: calamityNow() };
+  game.sceneArgs = sceneArgs; // 저장에 같이 남아, 다음에 켤 때 처음 화면이 떠 있는 동안 이 풍경을 미리 그린다 (32단계 헤드)
+  const art = sceneImage(sceneArgs);
   const head = `${art ? `<div class="ev-art" aria-hidden="true"><i style="background-image:url(${art})"></i></div>` : ''}`;
   // 한 줄씩 드러나기: 이 창을 처음 그릴 때만 (다시 그리면 바로 다 보인다)
   const key = ui.outcome ? `o:${ui.outcome.title}:${String(ui.outcome.text).length}` : `e:${e.id}:${e.title}:${game.date.year * 12 + game.date.month}`;
@@ -594,7 +606,9 @@ function renderGame() {
   ovFresh = !document.querySelector('.overlay:not(.out)'); // 사건 창이 새로 열리면 어둠이 깔리며 (창 안 글만 바뀌면 그대로)
   const mi = monthInfo(game);
   const p = game.player;
-  const art = sceneImage({ year: game.date.year, month: game.date.month, famine: game.world?.famine, plague: game.world?.plague, place: L(game).place, calamity: calamityNow() });
+  const sceneArgs = { year: game.date.year, month: game.date.month, famine: !!game.world?.famine, plague: !!game.world?.plague, place: L(game).place, calamity: calamityNow() };
+  game.sceneArgs = sceneArgs; // 저장에 같이 남아, 다음에 켤 때 처음 화면이 떠 있는 동안 이 풍경을 미리 그린다 (32단계 헤드)
+  const art = sceneImage(sceneArgs);
   let main = '';
   if (ui.view === 'month') main = game.over ? renderOver() : renderCrisis(game) + renderNews() + nowCards([renderBondageNow(game), renderExileNow(game), renderLawNow(game), renderSecretNow(game), renderEnvoyNow(game), renderSpyNow(game, ui), renderHeistNow(game, ui), renderClaimNow(game, ui), renderRevoltNow(game), renderPoorNow(game), renderArmyNow(game), renderAftermathNow(game), renderDragonNow(game), renderHauntNow(game), renderExploreNow(game), renderFrontierNow(game), renderWildsNow(game), renderMineNow(game), renderHerdLine(game), renderTradeNow(game), renderWorksNow(game), renderNatureNow(game), renderManaNow(game), renderRelicNow(game), renderAgelessNow(game), renderSpiritNow(game), renderHealthNow(game), renderMysteryNow(game), renderOmenNow(game), renderLineageNow(game), renderSchoolNow(game), renderTroupeNow(game)]) + renderYouthCard(game, ui) + renderCompanyNow(game, ui) + renderFarmNow(game, ui) + renderHerdNow(game, ui) + renderCuisineNow(game, ui) + renderApoNow(game, ui) + renderBrewNow(game, ui) + renderInnNow(game, ui) + renderWorkshop(game, ui) + renderPlan(game, ui);
   else if (ui.view === 'me') main = renderSheet();
