@@ -12,6 +12,9 @@ import { orderLine } from '../order/index.js';
 import { foundingLines } from '../founding/index.js';
 import { mountLine } from '../mount/index.js';
 import { harborLine } from '../harbor/index.js';
+import { originLines } from '../origins/index.js';
+import { demonsLine } from '../demons/index.js';
+import { clothLine } from '../cloth/index.js';
 import { placeName } from '../places.js';
 import { esc } from './util.js';
 
@@ -22,11 +25,11 @@ const txt = (x) => (typeof x === 'string' ? x : x.text);
 // 다른 갈래가 붙는 자리: lead(풍경, 앞의 두 줄), did(지난달 머리 한 줄), met(마주친 사람들), heard(들려온 소문)
 // 함수는 game을 받아 글 한 줄, 줄들, {text, cls} 가운데 하나를 돌려준다.
 export const TODAY_SOURCES = {
-  lead: [sceneLine, harborLine, mountLine, streetLine, (g) => natureInfo(g)?.sky], // 몸으로 느끼는 지금 (src/senses), 포구 (src/harbor), 하늘 짐승 (src/mount), 거리 풍경 (src/rumor), 없으면 하늘과 땅. 앞의 셋까지
+  lead: [sceneLine, demonsLine, harborLine, mountLine, clothLine, streetLine, (g) => natureInfo(g)?.sky], // 몸으로 느끼는 지금 (src/senses), 해협 너머 마족 (src/demons), 포구 (src/harbor), 하늘 짐승 (src/mount), 옷감과 옷차림 (src/cloth), 거리 풍경 (src/rumor), 없으면 하늘과 땅. 앞의 셋까지
   did: [sensesLine], // 지난달을 몸으로 느낀 한두 문장 (src/senses): '지난달 한 일' 머리에
   met: [
     (g) => encounterLines(g).map((x) => ({ text: x.text, cls: x.kind ? `ek-${String(x.kind).replace(/[^\w-]/g, '')}` : '' })), // 먼저 다가온 사람들 (src/encounter)
-    siblingLines, orderLine, // 형제자매 (src/siblings), 기사단 형제들 (src/order)
+    originLines, siblingLines, orderLine, // 태어난 집안 사람들 (src/origins), 형제자매 (src/siblings), 기사단 형제들 (src/order)
   ],
   heard: [
     (g) => rumorLines(g).map((h) => ({ text: h.text, cls: h.fix ? 'rumor fix' : 'rumor' })), // 소문 (src/rumor)
