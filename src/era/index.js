@@ -5,6 +5,8 @@ import './goods.js';
 import './jobs.js';
 import './lines.js';
 import './events.js';
+import './later.js'; // 34단계 뒤 시대의 물건과 일, 사라지는 옛 일
 export { invented, owns, eraIdx } from './state.js';
 export { GOODS, shopList, priceOf } from './goods.js';
 export { eraJobIds, ERA_JOB_NEED, syncEraJobs } from './jobs.js';
+export { LATE, SMALL, lateJobIds, LATE_JOB_NEED, FADING, fadeOf, fadeCut, syncLateJobs } from './later.js';
