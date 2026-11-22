@@ -6,6 +6,9 @@ import { natureInfo } from '../nature/index.js';
 import { streetLine, rumorLines, rumorInfo } from '../rumor/index.js';
 import { sceneLine, sensesLine } from '../senses/index.js';
 import { encounterLines } from '../encounter/index.js';
+import { siblingLines } from '../siblings/index.js';
+import { ruinsLine } from '../ruins/index.js';
+import { orderLine } from '../order/index.js';
 import { placeName } from '../places.js';
 import { esc } from './util.js';
 
@@ -18,8 +21,14 @@ const txt = (x) => (typeof x === 'string' ? x : x.text);
 export const TODAY_SOURCES = {
   lead: [sceneLine, streetLine, (g) => natureInfo(g)?.sky], // 몸으로 느끼는 지금 (src/senses), 거리 풍경 (src/rumor), 없으면 하늘과 땅. 앞의 둘까지
   did: [sensesLine], // 지난달을 몸으로 느낀 한두 문장 (src/senses): '지난달 한 일' 머리에
-  met: [(g) => encounterLines(g).map((x) => ({ text: x.text, cls: x.kind ? `ek-${String(x.kind).replace(/[^\w-]/g, '')}` : '' }))], // 먼저 다가온 사람들 (src/encounter)
-  heard: [(g) => rumorLines(g).map((h) => ({ text: h.text, cls: h.fix ? 'rumor fix' : 'rumor' }))], // 소문 (src/rumor)
+  met: [
+    (g) => encounterLines(g).map((x) => ({ text: x.text, cls: x.kind ? `ek-${String(x.kind).replace(/[^\w-]/g, '')}` : '' })), // 먼저 다가온 사람들 (src/encounter)
+    siblingLines, orderLine, // 형제자매 (src/siblings), 기사단 형제들 (src/order)
+  ],
+  heard: [
+    (g) => rumorLines(g).map((h) => ({ text: h.text, cls: h.fix ? 'rumor fix' : 'rumor' })), // 소문 (src/rumor)
+    ruinsLine, // 이 고장에서 보이는 유적 (src/ruins)
+  ],
 };
 
 const pick = (kind, game) => TODAY_SOURCES[kind].flatMap((fn) => safe(() => arr(fn(game)), []));
@@ -31,10 +40,18 @@ export function renderToday(game, parts = {}) {
   const lead = pick('lead', game).slice(0, 2);
   const did = pick('did', game)[0];
   const feast = safe(() => rumorInfo(game).feast); // 이달 이 고장 축제
-  const met = pick('met', game).slice(0, 3);
-  const heard = pick('heard', game).slice(0, 3);
+  const met = pick('met', game).slice(0, 4);
+  const heard = pick('heard', game).slice(0, 4);
   const news = game.news ?? [];
   const quiet = !news.length && !met.length && !heard.length;
+  // 소식이 많으면(여러 달 건너뛰었거나 난리 난 해) 가까운 사람 일과 소문 다섯만 펼치고 나머지는 접는다
+  const heardList = () => {
+    const all = [...news.map((n) => ({ text: n.text, cls: n.rel >= 40 ? 'close' : '', w: n.rel >= 40 ? 2 : 0 })), ...heard.map((x) => ({ text: txt(x), cls: (typeof x === 'object' && x.cls) || 'rumor', w: 1 }))];
+    if (all.length <= 6) return `<ul class="news">${all.map((x) => li(x)).join('')}</ul>`;
+    const top = new Set([...all].sort((a, b) => b.w - a.w).slice(0, 5));
+    const shown = all.filter((x) => top.has(x)), rest = all.filter((x) => !top.has(x));
+    return `<ul class="news">${shown.map((x) => li(x)).join('')}</ul><details class="td-more"><summary>그 밖의 소식 ${rest.length}가지</summary><ul class="news">${rest.map((x) => `<li${x.cls ? ` class="${esc(x.cls)}"` : ''}>${esc(x.text)}</li>`).join('')}</ul></details>`;
+  };
   const li = (x, cls = '') => { const c = (typeof x === 'object' && x.cls) || cls; return `<li class="ln${c ? ` ${esc(c)}` : ''}" style="--ln:${i++}">${esc(txt(x))}</li>`; };
   const body = `
     <h2 ${ln()}>${esc(safe(() => placeName(game), '') || '이 고장')}</h2>
@@ -42,7 +59,7 @@ export function renderToday(game, parts = {}) {
     ${feast ? `<p class="td-feast ln" style="--ln:${i++}"><b>${esc(feast.name)}</b> ${esc(feast.text)}</p>` : ''}
     ${parts.results ? `<div class="td-sec td-did"><h3 ${ln('sub')}>지난달 한 일</h3>${did ? `<p class="td-feel ln" style="--ln:${i++}">${esc(txt(did))}</p>` : ''}${parts.results.replace(/<li>/g, () => `<li ${ln()}>`)}</div>` : ''}
     ${met.length ? `<div class="td-sec td-met"><h3 ${ln('sub')}>마주친 사람들</h3><ul class="news">${met.map((x) => li(x)).join('')}</ul></div>` : ''}
-    ${news.length || heard.length ? `<div class="td-sec td-heard"><h3 ${ln('sub')}>들려온 소식</h3><ul class="news">${news.map((n) => `<li class="ln${n.rel >= 40 ? ' close' : ''}" style="--ln:${i++}">${esc(n.text)}</li>`).join('')}${heard.map((x) => li(x, 'rumor')).join('')}</ul></div>` : ''}
+    ${news.length || heard.length ? `<div class="td-sec td-heard"><h3 ${ln('sub')}>들려온 소식</h3>${heardList()}</div>` : ''}
     ${quiet ? `<p class="note ln" style="--ln:${i++}">조용한 달이었다. 별다른 소문은 없다.</p>` : ''}
     ${parts.summary ? `<div class="td-sec td-sum ln" style="--ln:${i++}">${parts.summary}</div>` : ''}
     ${parts.world ? `<div class="ln" style="--ln:${i++}">${parts.world}</div>` : ''}`;
