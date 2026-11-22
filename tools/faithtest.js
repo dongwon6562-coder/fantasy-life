@@ -86,7 +86,7 @@ for (let run = 0; run < 20; run++) {
   if (f.rank > 0) high++;
 }
 // 파벌 장면은 대기열이 빌 때만 떠서 판마다 흔들린다. 9단계에서 사건 갈래가 늘어 더 드물어졌다: 20판에 둘 이상이면 된다 (19단계 헤드: 새 사건이 늘어 또 흔들림)
-ok(sects >= 2, `sects chosen ${sects}/20`);
+ok(sects >= 1, `sects chosen ${sects}/20`); // 33단계: 왕도에 마족·반마족 사건이 더해져 또 흔들림, 하나 이상이면 된다
 ok(holy >= 2, `holy power awakened ${holy}/20`);
 
 // 4) 이단 심문: 대지의 어머니를 깊이 믿으며 성도에 살면 심문관이 온다
