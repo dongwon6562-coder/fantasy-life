@@ -146,6 +146,8 @@ function scene(g, kind, data, re, opt = {}) {
   // 매사냥, 말 달리기
   placeAt(g, 'verden');
   addAnimal(g, 'hawk', { ageYears: 2, trained: 100, bond: 70 });
+  // 매사냥 벌이만 재려고, 돈이 크게 드는 장터 성유물 사기는 이 석 달 동안 막아 둔다 (31단계: 사건이 늘어 이 판에 끼었다)
+  (g.evLast ??= {}).relic_fake = g.date.year * 12 + g.date.month;
   const m0 = g.player.money;
   for (let i = 0; i < 3; i++) month(g, ['beast_hawking']);
   if (g.player.money <= m0 - 10) fail('hawking earned nothing');

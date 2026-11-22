@@ -7,6 +7,7 @@ import { REALMS } from '../realms/data.js';
 import { LANDS } from '../politics/data.js';
 import { KINDS as CALAMITY, REGIONS } from '../nature/state.js';
 import { DRAGONS } from '../dragon/state.js';
+import { RUINS } from '../ruins/state.js';
 import { INVENTIONS } from '../history/powers.js';
 import { LORDS } from '../revolt/index.js';
 import { placeName } from './state.js';
@@ -217,6 +218,20 @@ export const KINDS = {
     ],
     song: (d) => `${J(DRAGONS[d.id]?.name ?? '용', '이/가')} 깨어난 해를 부른 노래. 노래가 바뀔 때마다 탄 마을 이름도 바뀐다.`,
   },
+  ruin_woke: {
+    at: (d) => RUINS[d.id]?.from ?? 'leocast', big: true, official: false,
+    truth: (d) => `${placeName(RUINS[d.id]?.from)} 근처 ${RUINS[d.id]?.name ?? '옛 유적'}에서 ${J(RUINS[d.id]?.wake.name ?? '무언가', '이/가')} 깨어났다고 한다. 그쪽 사람들이 짐을 싼다.`,
+    wrong: [
+      (d) => `${placeName(RUINS[d.id]?.from)} 땅 밑에서 마신의 졸개가 기어 나왔다는 말이 돈다.`,
+      (d) => `${placeName(RUINS[d.id]?.from)} 쪽 도굴꾼들이 무덤을 잘못 건드려 저주가 퍼졌다는 말이 돈다. 그 고장 물건은 사지 말라고들 한다.`,
+    ],
+    song: (d) => `${RUINS[d.id]?.name ?? '옛 유적'}에서 깨어난 것을 부른 노래. 부를 때마다 그것의 키가 한 길씩 커진다.`,
+  },
+  ruin_sealed: {
+    at: (d) => RUINS[d.id]?.from ?? 'leocast', big: false, official: false,
+    truth: (d) => `세레니아 마탑이 ${placeName(RUINS[d.id]?.from)}의 ${J(RUINS[d.id]?.name ?? '옛 유적', '을/를')} 봉했다고 한다. 들머리에 마탑 표식이 붙었다.`,
+    wrong: [(d) => `마탑이 ${placeName(RUINS[d.id]?.from)} 유적에서 보물을 몽땅 실어 갔다는 말이 돈다.`],
+  },
   plague: {
     at: () => 'harfen', big: false, official: false,
     truth: () => '하르펜에서 돌림병이 돈다고 한다.',
@@ -247,6 +262,7 @@ const KEYS = (g) => {
     rise: Object.fromEntries((g.revolt?.risings ?? []).map((x) => [x.id, x.phase])),
     drag: Object.fromEntries(Object.entries(g.dragon?.dragons ?? {}).map(([k, v]) => [k, v?.state])),
     inv: [...(g.history?.inventions ?? [])],
+    ruin: Object.fromEntries(Object.entries(g.ruins?.sites ?? {}).map(([k, v]) => [k, v?.woke ?? null])),
   };
 };
 export const take = KEYS;
@@ -295,6 +311,11 @@ export function diff(g, a, b) {
   }
   for (const [id, st] of Object.entries(b.drag)) if (st === 'awake' && a.drag[id] !== 'awake') push('dragon', { id });
   for (const id of b.inv) if (!a.inv.includes(id)) push('invention', { id });
+  for (const [id, st] of Object.entries(b.ruin ?? {})) {
+    const was = a.ruin?.[id] ?? null;
+    if (st === 'awake' && was !== 'awake') push('ruin_woke', { id });
+    if (st === 'sealed' && was !== 'sealed') push('ruin_sealed', { id });
+  }
   return out.filter((x) => KINDS[x.k]);
 }
 

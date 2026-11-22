@@ -2,6 +2,7 @@
 // 고장마다 그달의 거리 풍경 한 줄, 철마다 축제와 풍습, 시대가 바뀌는 것이 일상에서 보이게. 새 행동은 없다.
 // 화면용: streetLine(g) 거리 풍경 한 줄, rumorLines(g) 이번 달 들려온 소식 [{ text, via, wrong, fix }], feastLine(g), rumorInfo(g)
 import { HOOKS } from '../hooks.js';
+import { circleOf } from '../game.js';
 import { PLACES } from '../places.js';
 import { ERAS } from '../world.js';
 import { RS, mi, here, dist, isTown, isPort, realmAt, rumorRng, placeName, fill } from './state.js';
@@ -27,6 +28,8 @@ export const VIA = {
 };
 const invented = (g, id) => !!g.history?.inventions?.includes(id);
 const LEONIA_SIGNAL = ['harfen', 'leocast'];
+// 재의 거울(31단계 유적 술식)을 쓰는 사람에게는 먼 소식의 거짓이 덜 묻어 온다
+const mirror = (g) => !!g.ruins?.known?.includes('ash_mirror') && !!g.player && circleOf(g) >= 4;
 
 function label(g, via, f, pl) {
   const from = placeName(f.pl);
@@ -98,7 +101,7 @@ function deliver(g, rng, pl) {
     let text, wrong = false, fix = false;
     if (x.kind === 'rumor') {
       f.h1 = true;
-      if (K.wrong?.length && rng.chance(VIA[via].wrong)) { f.wrong = rng.int(0, K.wrong.length - 1); f.wvia = via; wrong = true; text = K.wrong[f.wrong](f.d, g, rng); }
+      if (K.wrong?.length && rng.chance(VIA[via].wrong * (mirror(g) ? 0.4 : 1))) { f.wrong = rng.int(0, K.wrong.length - 1); f.wvia = via; wrong = true; text = K.wrong[f.wrong](f.d, g, rng); }
       else { text = K.truth(f.d, g); if (!officialRoute(g, f, pl, dist(f.pl, pl))) f.h2 = true; }
     } else if (x.kind === 'true') { f.h1 = true; f.h2 = true; text = K.truth(f.d, g); }
     else {
