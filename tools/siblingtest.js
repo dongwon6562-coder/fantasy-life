@@ -36,13 +36,13 @@ function resolveAll(g) {
     ok(g.player.money >= 0 && g.player.familyMoney >= 0, `money < 0 after ${kind}`);
   }
 }
-function play(seed, years, setup) {
+function play(seed, years, setup, stay = false) {
   const g = newGame({ name: seed % 2 ? '바우' : '엘린', sex: seed % 2 ? 'm' : 'f', familyId: ['farmer', 'merchant', 'fallen_knight'][seed % 3], mode: 'free', seed });
   addSib(g, 4, 'm'); addSib(g, 7, 'f');
   setup?.(g);
   const rng = rngOf(g);
   for (let m = 0; m < years * 12 && !g.over; m++) {
-    const acts = availableActions(g); const ch = [];
+    const acts = availableActions(g).filter((a) => !stay || !/travel|move/.test(a.id)); const ch = [];
     for (let i = 0; i < slotsFor(g) && acts.length; i++) ch.push({ id: rng.pick(acts).id });
     endMonth(g, ch);
     resolveAll(g);
@@ -61,6 +61,11 @@ for (let s = 1; s <= 6; s++) play(700 + s, 45);
 // 늙은 부모와 가업, 부모의 죽음과 나눔
 play(801, 40, (g) => { const f = byId(g, me(g).fatherId); f.job = 'smith'; f.ageMonths = 40 * 12; f.wealth = 150; const mo = byId(g, me(g).motherId); mo.ageMonths = 44 * 12; });
 play(802, 40, (g) => { const f = byId(g, me(g).fatherId); f.job = 'baker'; f.ageMonths = 42 * 12; f.wealth = 120; });
+// 가업 장면은 부모 곁에 있어야 뜬다: 떠돌지 않는 삶 하나 (34단계에 무작위 흐름이 바뀌어 덧붙임)
+play(803, 6, (g) => {
+  const m = me(g); m.ageMonths = 20 * 12; const f = byId(g, m.fatherId); f.job = 'smith'; f.ageMonths = 60 * 12; f.wealth = 130;
+  for (const [i, id] of g.player.familyIds.slice(-2).entries()) { const p = byId(g, id); p.ageMonths = (17 + i * 5) * 12; p.job = 'farmer'; }
+}, true);
 // 대 잇기 뒤 삼촌·고모: 오래 산다
 for (let s = 0; s < 3; s++) play(900 + s, 90);
 
