@@ -163,6 +163,8 @@ function rowsFor(inst, midis) {
   return [...out];
 }
 const assetBase = () => (typeof window !== 'undefined' && window.__flAssets ? `${window.__flAssets}audio/music/` : null);
+// 아이폰에서 음악이 안 날 때 설정 칸에 보여 줄 숫자 (35단계: 효과음만 나고 음악이 안 난다는 말을 받고)
+export const LOADS = { ok: 0, fail: 0, err: '' };
 const decode = (ctx, ab) => new Promise((ok, no) => { const p = ctx.decodeAudioData(ab, ok, no); if (p?.catch) p.catch(no); });
 
 // 곳마다 울림을 섞는 양. 음악은 늘 홀에서 울리고(이야기 바깥의 소리), 굴에서만 조금 더 젖는다.
@@ -297,12 +299,12 @@ export class Engine {
     const have = DECODED.get(file);
     if (have) { if (have.buf) have.at = Date.now(); return have.buf ? Promise.resolve(true) : have; }
     const base = this.sampleBase;
-    if (!base || typeof fetch !== 'function') return Promise.resolve(false);
+    if (!base || typeof fetch !== 'function') { LOADS.err = base ? 'fetch 없음' : '음악 파일 자리 없음'; return Promise.resolve(false); }
     const p = fetch(base + file)
       .then((r) => { if (!r.ok) throw new Error(`${file} ${r.status}`); return r.arrayBuffer(); })
       .then((ab) => decode(this.ctx, ab))
-      .then((buf) => { DECODED.set(file, { buf, secs: buf.duration, at: Date.now() }); return true; })
-      .catch(() => { DECODED.delete(file); return false; }); // 못 받았으면 다음에 다시 해 본다
+      .then((buf) => { DECODED.set(file, { buf, secs: buf.duration, at: Date.now() }); LOADS.ok++; return true; })
+      .catch((e) => { DECODED.delete(file); LOADS.fail++; LOADS.err = String(e?.message ?? e ?? '').slice(0, 60); return false; }); // 못 받았으면 다음에 다시 해 본다
     DECODED.set(file, p);
     return p;
   }
