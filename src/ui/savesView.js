@@ -63,8 +63,8 @@ export function renderSlotsBlock(game, st = {}) {
     if (st.saved === n) btn = '<span class="sv-ok">저장했다</span>';
     else if (st.failed === n) btn = '<span class="warn">저장 공간이 모자라다</span>';
     else if (x && st.confirmSave === n) btn = `<span class="sv-confirm"><span class="note">${other ? '다른 삶의 저장이다. ' : ''}덮어쓸까?</span><button class="primary sm" data-sv-save="${n}">덮어쓰기</button><button class="ghost sm" data-sv-cancel>그만두기</button></span>`;
-    else btn = `<button class="${x ? 'ghost' : 'primary'} sm" ${x ? `data-sv-asksave="${n}"` : `data-sv-save="${n}"`}>${x ? '덮어쓰기' : '여기에 저장'}</button>`;
-    return `<li class="sv-row${x ? '' : ' empty'}"><div class="sv-txt"><span class="lbl">${n}번 칸${x?.savedAt ? ` · ${when(x.savedAt)}` : ''}</span>
+    else btn = `<button class="ghost sm${x ? '' : ' sv-here'}" ${x ? `data-sv-asksave="${n}"` : `data-sv-save="${n}"`}>${x ? '덮어쓰기' : '여기에 저장'}</button>`;
+    return `<li class="sv-row${x ? '' : ' empty'}"><span class="sv-n" aria-hidden="true">${n}</span><div class="sv-txt"><span class="lbl">${n}번 칸${x?.savedAt ? ` · ${when(x.savedAt)}` : ''}</span>
         ${x ? (x.broken ? '<strong>읽을 수 없는 저장</strong>' : `<strong>${who(x)}${other ? ' <em>다른 삶</em>' : ''}</strong><span class="note">${facts(x)}</span>`) : '<span class="note">비어 있음</span>'}</div>
       <div class="sv-btns">${btn}${x ? delBtn(st, key) : ''}</div></li>`;
   }).join('');

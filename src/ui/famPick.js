@@ -5,6 +5,9 @@ import { PLACES } from '../places.js';
 import { originOf } from '../origins/index.js';
 import { VILLAGE } from '../data.js';
 import { esc } from './util.js';
+import { shield, crestFor } from '../art/ornament.js';
+// 집안마다 이름으로 정해지는 문장(늘 같다)
+const crestOf = (f, size) => { try { return shield({ ...crestFor(`${f.name} ${f.standing}`, f.id.length), size }); } catch { return ''; } };
 
 const safe = (fn, d = null) => { try { return fn() ?? d; } catch (e) { console.error(e); return d; } };
 const first = (t) => { const m = String(t ?? '').match(/^.*?[.!?](\s|$)/); return (m ? m[0] : String(t ?? '')).trim(); };
@@ -22,6 +25,7 @@ export function renderFamilyPick(fams, s) {
   }
   const home = fams.filter((f) => !f.home), away = fams.filter((f) => f.home);
   const card = (f) => `<button class="choice fam-mini" data-family="${f.id}" aria-pressed="${s.family === f.id}">
+      <span class="fm-crest">${crestOf(f, 30)}</span>
       <strong>${esc(f.name)}</strong>
       <span class="tag">${esc(f.standing)} · 은화 ${f.money}닢${where(f) ? ` · ${esc(where(f))}` : ''}</span>
       <span>${esc(first(f.desc))}</span>
@@ -29,7 +33,7 @@ export function renderFamilyPick(fams, s) {
   const detail = (f) => {
     const o = safe(() => originOf(f.id));
     return `<div class="fam-detail" aria-live="polite">
-      <div class="fd-top"><strong>${esc(f.name)}</strong><span class="tag">${esc(f.standing)} · 집안 돈 은화 ${f.money}닢 · ${esc(where(f) || VILLAGE)}에서 태어난다</span></div>
+      <div class="fd-top"><span class="fm-crest">${crestOf(f, 48)}</span><strong>${esc(f.name)}</strong><span class="tag">${esc(f.standing)} · 집안 돈 은화 ${f.money}닢 · ${esc(where(f) || VILLAGE)}에서 태어난다</span></div>
       <p>${esc(f.desc)}</p>
       ${o?.want ? `<p class="note"><b>집안이 바라는 것</b> ${esc(o.want.name)}: ${esc(o.want.text)}</p>` : ''}
       ${o?.burden ? `<p class="note"><b>짊어진 것</b> ${esc(o.burden.name)}: ${esc(o.burden.text)}</p>` : ''}

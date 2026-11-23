@@ -4,6 +4,8 @@
 //   prefs().music   // 0~1
 //   onPrefs((p) => setVolume(p.music, p.sfx));  // 값이 바뀔 때마다 불린다
 // 같은 내용이 window의 'fl-prefs' 이벤트(detail = 설정값)로도 나간다.
+import { icon } from '../art/icons.js';
+
 const KEY = 'fantasy-life:prefs';
 const DEFAULTS = {
   text: 'm',          // 글자 크기: m 보통, l 크게, xl 아주 크게
@@ -83,12 +85,12 @@ export function renderSettings() {
   const p = prefs();
   return `<section class="card settings">
     <h2>설정 <small>이 기기에만 저장된다</small></h2>
-    <div class="set-row"><span class="lbl">글자 크기</span>${seg('text', [['m', '보통'], ['l', '크게'], ['xl', '아주 크게']])}</div>
-    <div class="set-row"><span class="lbl">화면 움직임</span>${seg('motion', [['auto', '기기 따름'], ['full', '켜기'], ['reduce', '줄이기']])}</div>
-    <div class="set-row"><span class="lbl">달 넘김 카드</span>${seg('monthCard', [[true, '보기'], [false, '안 보기']])}</div>
-    <div class="set-row"><span class="lbl">글 드러내기</span>${seg('reveal', [[true, '한 줄씩'], [false, '한꺼번에']])}</div>
+    <div class="set-row"><span class="lbl">${icon('quill', 18)}글자 크기</span>${seg('text', [['m', '보통'], ['l', '크게'], ['xl', '아주 크게']])}</div>
+    <div class="set-row"><span class="lbl">${icon('wing', 18)}화면 움직임</span>${seg('motion', [['auto', '기기 따름'], ['full', '켜기'], ['reduce', '줄이기']])}</div>
+    <div class="set-row"><span class="lbl">${icon('hourglass', 18)}달 넘김 카드</span>${seg('monthCard', [[true, '보기'], [false, '안 보기']])}</div>
+    <div class="set-row"><span class="lbl">${icon('scroll', 18)}글 드러내기</span>${seg('reveal', [[true, '한 줄씩'], [false, '한꺼번에']])}</div>
     <div class="audio-host" id="audio-host">
-      <div class="set-row vols"><span class="lbl">소리</span><div class="vol-list">${slider('music', '음악')}${slider('sfx', '효과음')}</div></div>
+      <div class="set-row vols"><span class="lbl">${icon('lute', 18)}소리</span><div class="vol-list">${slider('music', '음악')}${slider('sfx', '효과음')}</div></div>
       <p class="note">소리는 화면을 처음 누른 뒤부터 난다.</p>
     </div>
     <div class="actions-row"><button class="ghost sm" id="guide-again">처음 안내 다시 보기</button></div>
