@@ -339,7 +339,7 @@ function mountSettings(host, { floating = false } = {}) {
     const tr = TRACKS.find((t) => t.id === player?.playing);
     q('.now').innerHTML = settings.on && mixing() ? '다른 앱 소리와 함께 듣는 중. 게임 음악은 쉰다.' : settings.on && tr ? `지금 흐르는 곡: <b>${tr.name}</b>` : settings.on ? (engine ? '곡 사이. 지금은 주변 소리만 흐른다.' : '화면을 누르면 음악이 시작된다.') : '소리가 꺼져 있다.';
     // 소리 상태 한 줄 (음악이 안 날 때 무엇이 막혔는지 동원이 읽어 줄 수 있게)
-    q('.now').innerHTML += `<br><small style="opacity:.6">장치 ${engine ? engine.ctx.state : '없음'} · 음악 ${Math.round(settings.music * 100)} · 곡 파일 ${LOADS.ok}개${LOADS.fail ? ` · 못 받음 ${LOADS.fail} (${LOADS.err.replace(/[<>&]/g, '')})` : ''}</small>`;
+    q('.now').innerHTML += `<br><small style="opacity:.6">장치 ${engine ? engine.ctx.state : '없음'} · 음악 ${Math.round(settings.music * 100)} · 곡 파일 ${LOADS.ok}개${LOADS.fail ? ` · 못 받음 ${LOADS.fail}` : ''}${LOADS.noteErr ? ` · 음 오류 ${LOADS.noteErr}` : ''} · 곡 ${player?.playing ?? '쉼'}${LOADS.err ? ` (${LOADS.err.replace(/[<>&]/g, '')})` : ''}</small>`;
   };
   q('[data-a="on"]').onclick = () => { set({ on: !settings.on }); unlock(); if (settings.on) sfx('confirm'); };
   // 저절로 켜진 상태에서 누르면 이번에는 끈다(다시 앞으로 올 때 새로 본다)
