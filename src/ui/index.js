@@ -14,6 +14,8 @@ import { L, traveling } from '../adventure/core.js';
 import { placeName, HOME_NAMES } from '../places.js';
 import { jobTitle } from '../jobs.js';
 import { medallion, crest, divider, ORNAMENT_CSS } from '../art/ornament.js';
+import { interiorImage, sceneFor } from '../art/sceneInterior.js';
+const ROOM_NAME = { hearth: '집 안', tavern: '주점 안', hall: '큰 방', temple: '신전 안', workshop: '일터' };
 import { memberships } from '../factions.js';
 import { lineage } from '../heir.js';
 import { worldSummary } from '../world.js';
@@ -650,7 +652,10 @@ function renderGame() {
   const p = game.player;
   const sceneArgs = { year: game.date.year, month: game.date.month, famine: !!game.world?.famine, plague: !!game.world?.plague, place: L(game).place, calamity: calamityNow() };
   game.sceneArgs = sceneArgs; // 저장에 같이 남아, 다음에 켤 때 처음 화면이 떠 있는 동안 이 풍경을 미리 그린다 (32단계 헤드)
-  const art = sceneImage(sceneArgs);
+  // 38단계: 이번 달 한 일이 실내 쪽이면 머리 그림을 실내로 (길 위·재앙 든 달은 바깥 풍경, 도우미4 sceneInterior.js)
+  const room = (() => { try { return sceneFor(game, sceneArgs.calamity); } catch (e) { console.error(e); return null; } })();
+  const roomArt = room ? (() => { try { return interiorImage({ kind: room.kind, year: sceneArgs.year, month: sceneArgs.month, place: sceneArgs.place }); } catch (e) { console.error(e); return ''; } })() : '';
+  const art = roomArt || sceneImage(sceneArgs);
   let main = '';
   if (ui.view === 'month') main = game.over ? renderOver() : renderCrisis(game) + renderNews() + nowCards([renderBondageNow(game), renderExileNow(game), renderLawNow(game), renderSecretNow(game), renderEnvoyNow(game), renderSpyNow(game, ui), renderHeistNow(game, ui), renderClaimNow(game, ui), renderRevoltNow(game), renderPoorNow(game), renderArmyNow(game), renderAftermathNow(game), renderDragonNow(game), renderHauntNow(game), renderExploreNow(game), renderFrontierNow(game), renderWildsNow(game), renderMineNow(game), renderHerdLine(game), renderTradeNow(game), renderWorksNow(game), renderNatureNow(game), renderManaNow(game), renderRelicNow(game), renderAgelessNow(game), renderSpiritNow(game), renderHealthNow(game), renderMysteryNow(game), renderOmenNow(game), renderLineageNow(game), renderSchoolNow(game), renderTroupeNow(game)]) + renderYouthCard(game, ui) + renderCompanyNow(game, ui) + renderFarmNow(game, ui) + renderHerdNow(game, ui) + renderCuisineNow(game, ui) + renderApoNow(game, ui) + renderBrewNow(game, ui) + renderHarborNow(game, ui) + renderClothNow(game, ui) + renderBuilderNow(game, ui) + renderCarrierNow(game, ui) + renderHunterNow(game, ui) + renderInnNow(game, ui) + renderWorkshop(game, ui) + renderPlan(game, ui);
   else if (ui.view === 'me') main = renderSheet();
@@ -664,7 +669,7 @@ function renderGame() {
     <header class="scene ${hero ? 'hero' : 'slim'}">
       <div class="scene-pic">
       ${art && lastArt && lastArt !== art && !reducedMotion() ? `<img class="prev" src="${lastArt}" alt="" aria-hidden="true">` : ''}
-      ${art ? `<img class="${lastArt && lastArt !== art ? 'xfade' : ''}" src="${art}" alt="${esc(placeName(game))} 풍경: ${mi.season}, ${esc(conditionText(game.date.year, game.date.month))}">` : ''}
+      ${art ? `<img class="${lastArt && lastArt !== art ? 'xfade' : ''}" src="${art}" alt="${esc(placeName(game))} ${roomArt ? ROOM_NAME[room.kind] ?? '안' : '풍경'}: ${mi.season}, ${esc(conditionText(game.date.year, game.date.month))}">` : ''}
       ${hero ? `<div class="hero-place"><span>${esc(placeName(game))}</span></div>` : ''}
       <div class="scene-cap">
         ${hero ? '' : `<h1 class="view-title">${esc(viewName)}</h1>`}
