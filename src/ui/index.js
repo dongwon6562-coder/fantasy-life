@@ -15,7 +15,7 @@ import { placeName, HOME_NAMES } from '../places.js';
 import { jobTitle } from '../jobs.js';
 import { byId } from '../npc.js';
 import { medallion, crest, divider, frameCss, ORNAMENT_CSS } from '../art/ornament.js';
-import { interiorImage, sceneFor } from '../art/sceneInterior.js';
+import { interiorImage, interiorCached, sceneFor } from '../art/sceneInterior.js';
 const ROOM_NAME = { hearth: '집 안', tavern: '주점 안', hall: '큰 방', temple: '신전 안', workshop: '일터' };
 import { memberships } from '../factions.js';
 import { lineage } from '../heir.js';
@@ -650,6 +650,23 @@ const VIEWS = [
   ['save', '설정', 'gear'],
 ];
 
+let roomTimer = null;
+function paintRoomLater(args, monthKey, roomName) {
+  if (typeof setTimeout === 'undefined') return;
+  if (roomTimer) clearTimeout(roomTimer);
+  roomTimer = setTimeout(() => {
+    roomTimer = null;
+    if (!game || game.date.year * 12 + game.date.month !== monthKey) return;
+    let url = '';
+    try { url = interiorImage(args); } catch (e) { console.error(e); }
+    const img = document.querySelector('header.scene .scene-pic img:not(.prev)');
+    if (!url || !img || lastMonth !== monthKey) return;
+    if (!reducedMotion()) { img.classList.remove('xfade'); void img.offsetWidth; img.classList.add('xfade'); }
+    img.src = url; img.alt = img.alt.replace(/ 풍경:/, ` ${roomName}:`);
+    lastArt = url;
+  }, 160);
+}
+
 function renderGame() {
   if (unmountMap) { unmountMap(); unmountMap = null; }
   const monthKey = game.date.year * 12 + game.date.month;
@@ -660,7 +677,9 @@ function renderGame() {
   game.sceneArgs = sceneArgs; // 저장에 같이 남아, 다음에 켤 때 처음 화면이 떠 있는 동안 이 풍경을 미리 그린다 (32단계 헤드)
   // 38단계: 이번 달 한 일이 실내 쪽이면 머리 그림을 실내로 (길 위·재앙 든 달은 바깥 풍경, 도우미4 sceneInterior.js)
   const room = (() => { try { return sceneFor(game, sceneArgs.calamity); } catch (e) { console.error(e); return null; } })();
-  const roomArt = room ? (() => { try { return interiorImage({ kind: room.kind, year: sceneArgs.year, month: sceneArgs.month, place: sceneArgs.place }); } catch (e) { console.error(e); return ''; } })() : '';
+  // 실내 그림은 그려 둔 것만 바로 쓰고, 없으면 바깥 풍경을 먼저 띄운 뒤 화면 뒤에서 그려 바꿔 끼운다 (39단계 헤드: 폰에서 달 넘기기 270ms → 가볍게)
+  const roomArgs = room ? { kind: room.kind, year: sceneArgs.year, month: sceneArgs.month, place: sceneArgs.place } : null;
+  const roomArt = roomArgs ? (() => { try { return interiorCached(roomArgs); } catch (e) { console.error(e); return ''; } })() : '';
   const art = roomArt || sceneImage(sceneArgs);
   let main = '';
   if (ui.view === 'month') main = game.over ? renderOver() : renderCrisis(game) + renderNews() + nowCards([renderBondageNow(game), renderExileNow(game), renderLawNow(game), renderSecretNow(game), renderEnvoyNow(game), renderSpyNow(game, ui), renderHeistNow(game, ui), renderClaimNow(game, ui), renderRevoltNow(game), renderPoorNow(game), renderArmyNow(game), renderAftermathNow(game), renderDragonNow(game), renderHauntNow(game), renderExploreNow(game), renderFrontierNow(game), renderWildsNow(game), renderMineNow(game), renderHerdLine(game), renderTradeNow(game), renderWorksNow(game), renderNatureNow(game), renderManaNow(game), renderRelicNow(game), renderAgelessNow(game), renderSpiritNow(game), renderHealthNow(game), renderMysteryNow(game), renderOmenNow(game), renderLineageNow(game), renderSchoolNow(game), renderTroupeNow(game)]) + renderYouthCard(game, ui) + renderCompanyNow(game, ui) + renderFarmNow(game, ui) + renderHerdNow(game, ui) + renderCuisineNow(game, ui) + renderApoNow(game, ui) + renderBrewNow(game, ui) + renderHarborNow(game, ui) + renderClothNow(game, ui) + renderBuilderNow(game, ui) + renderCarrierNow(game, ui) + renderHunterNow(game, ui) + renderInnNow(game, ui) + renderWorkshop(game, ui) + renderPlan(game, ui);
@@ -696,6 +715,7 @@ function renderGame() {
     </div>
     ${game.over ? '' : renderEvent()}`;
   lastArt = art; lastView = ui.view; lastMonth = monthKey;
+  if (roomArgs && !roomArt) paintRoomLater(roomArgs, monthKey, ROOM_NAME[room.kind] ?? '안');
   if (!game.over) { const ny = game.date.month === 12 ? game.date.year + 1 : game.date.year, nm = game.date.month === 12 ? 1 : game.date.month + 1; prewarmScene({ year: ny, month: nm, famine: game.world?.famine, plague: game.world?.plague, place: L(game).place, calamity: calamityNow() }); }
   bindGame();
   if (ui.view === 'map') {
