@@ -2045,3 +2045,7 @@ details.act-group[open] > .act-grid { margin-top: 10px; }
 .setup .seg.race-seg button { border: 1px solid #4a3d2e; border-radius: var(--r-pill); min-height: 42px; }
 .setup .seg.race-seg button + button { border-left: 1px solid #4a3d2e; }
 .setup .seg.race-seg button[aria-pressed="true"] { border-color: #6f5122; }
+/* 39단계 거둔 아이 */
+.ad-head { display: flex; gap: 12px; align-items: center; }
+.ad-head p { margin: 0; }
+.ad-kid.gone { opacity: .7; }
