@@ -1683,3 +1683,184 @@ body:has(.fl-stage:not(.off)) .rv .ln, body:has(.fl-stage:not(.off)) .event.rv .
 .sp-chron { margin-top: 6px; }
 .sp-row em { font-style: normal; font-size: 11px; color: #e3917f; margin-left: 4px; }
 .sp-note { margin: -2px 0 6px; font-size: 12px; }
+
+/* ==========================================================================
+   38단계 새 틀: 폰 먼저. 글자 단계·간격·모서리·그림자 토큰, '지금 이 순간' 큰 풍경,
+   얇은 머리줄, 엄지로 닿는 아래 탭 막대, 화면 넘김. 바탕 질감(29단계)은 그대로 쓴다.
+   ========================================================================== */
+:root {
+  --fs-xs: 12px; --fs-sm: 13.5px; --fs-md: 15px; --fs-lg: 17px; --fs-xl: 20px; --fs-2xl: 26px; --fs-3xl: 34px;
+  --lh-tight: 1.25; --lh-body: 1.65; --lh-read: 1.8;
+  --sp-1: 4px; --sp-2: 8px; --sp-3: 12px; --sp-4: 16px; --sp-5: 24px; --sp-6: 32px;
+  --r-sm: 6px; --r-md: 10px; --r-lg: 14px; --r-pill: 999px;
+  --elev-1: 0 1px 0 rgba(0, 0, 0, .5), 0 4px 12px rgba(0, 0, 0, .28);
+  --elev-2: 0 2px 0 rgba(0, 0, 0, .5), 0 12px 30px rgba(0, 0, 0, .45);
+  --ink-soft: #d9cbb0;
+  --hero-h: clamp(230px, 64vw, 380px);
+  --slim-h: 112px;
+}
+
+/* ---------- 머리: 풍경 그림 칸 ---------- */
+.scene { border-bottom: 0; background: #0e0b08; }
+.scene-pic { position: relative; overflow: hidden; }
+.scene-pic img { display: block; width: 100%; object-fit: cover; object-position: 50% 60%; }
+.scene.hero .scene-pic img { height: var(--hero-h); }
+.scene.slim .scene-pic img { height: var(--slim-h); filter: saturate(.85) brightness(.8); }
+.scene.slim .scene-pic { min-height: var(--slim-h); }
+/* 위쪽(상태 표시줄·소리 단추)과 아래쪽(글)이 읽히게 그림 위아래를 어둡게 */
+.scene-pic::before { content: ''; position: absolute; inset: 0; z-index: 1; pointer-events: none;
+  background: linear-gradient(180deg, rgba(10, 8, 6, .55) 0%, rgba(10, 8, 6, 0) 26%, rgba(10, 8, 6, 0) 48%, rgba(12, 9, 6, .82) 100%); }
+.scene.slim .scene-pic::before { background: linear-gradient(180deg, rgba(10, 8, 6, .5), rgba(12, 9, 6, .9)); }
+.scene-cap { z-index: 2; background: none; padding-top: 0; }
+.scene .date strong { font-size: var(--fs-3xl); letter-spacing: .02em; }
+.scene .date .cond { font-size: var(--fs-sm); color: var(--ink-soft); opacity: 1; }
+.scene .purse { font-size: var(--fs-sm); gap: 2px 12px; }
+
+/* 지금 있는 곳: 왼쪽 위 작은 놋쇠 이름표 */
+.hero-place { position: absolute; z-index: 2; top: 12px; left: max(14px, env(safe-area-inset-left, 0px)); right: 64px; pointer-events: none; }
+.hero-place span { display: inline-flex; align-items: center; gap: 7px; max-width: 100%; padding: 4px 12px 4px 10px; border-radius: var(--r-pill);
+  font-size: var(--fs-xs); letter-spacing: .14em; color: #f1e3c3; background: rgba(16, 12, 8, .55); border: 1px solid rgba(201, 162, 90, .35);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis; backdrop-filter: blur(3px); }
+.hero-place span::before { content: ''; width: 5px; height: 5px; flex: none; background: var(--brass); transform: rotate(45deg); }
+
+/* 큰 풍경: 날짜를 크게, 돈은 오른쪽 아래 */
+.scene.hero .scene-cap { padding-bottom: 40px; }
+.scene.hero .date strong { font-size: clamp(30px, 9vw, 42px); }
+
+/* 얇은 머리줄: 화면 이름 + 한 줄 날짜 */
+.scene.slim .scene-cap { inset: 0; padding: 12px max(16px, env(safe-area-inset-right, 0px)) 12px max(16px, env(safe-area-inset-left, 0px));
+  display: grid; grid-template-columns: minmax(0, 1fr) auto; grid-template-rows: 1fr auto; align-items: end; gap: 2px 12px; }
+.view-title { grid-column: 1 / -1; align-self: end; font-size: var(--fs-2xl); line-height: var(--lh-tight); color: #f3e6c9;
+  text-shadow: 0 2px 10px rgba(0, 0, 0, .7); padding-right: 48px; }
+.scene.slim .date { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0 8px; min-width: 0; }
+.scene.slim .date .yr { font-size: var(--fs-xs); letter-spacing: .08em; }
+.scene.slim .date strong { font-family: var(--f-body); font-size: var(--fs-sm); font-weight: 600; line-height: 1.4; color: var(--ink); }
+.scene.slim .date .cond { font-size: var(--fs-xs); }
+.scene.slim .purse { font-size: var(--fs-xs); justify-content: end; flex-direction: column; align-items: end; gap: 0; }
+
+/* 내 초상과 상태 띠: 풍경 아래 끝에 걸친 가죽 판, 누르면 '나' */
+.hero-me { position: relative; z-index: 3; display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 12px;
+  width: calc(100% - 24px); max-width: 1156px; margin: -30px auto 10px; padding: 8px 14px 8px 8px; text-align: left; color: var(--ink);
+  border: 1px solid #5a4630; border-radius: var(--r-lg); background: var(--grain), linear-gradient(180deg, #2d241a, #211a13);
+  box-shadow: inset 0 1px 0 rgba(255, 228, 176, .08), inset 0 0 0 1px rgba(201, 162, 90, .1), var(--elev-2); }
+.hero-me:active { transform: translateY(1px); }
+.hero-me .portrait { border-radius: 50%; }
+.hm-txt { display: grid; gap: 1px; min-width: 0; }
+.hm-txt b { font-family: var(--f-display); font-size: var(--fs-lg); line-height: 1.3; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.hm-txt span { font-size: var(--fs-xs); color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.hm-meters { display: grid; gap: 4px; justify-items: end; }
+.hm { display: grid; grid-template-columns: auto 64px; align-items: center; gap: 6px; font-size: 11px; color: var(--muted); }
+.hm i { display: block; height: 5px; border-radius: var(--r-pill); background: rgba(0, 0, 0, .45); box-shadow: inset 0 0 0 1px rgba(201, 162, 90, .18); overflow: hidden; }
+.hm i b { display: block; height: 100%; border-radius: inherit; background: linear-gradient(90deg, #8a6d38, var(--brass)); }
+.hm.warn { color: #e3917f; }
+.hm.warn i b { background: linear-gradient(90deg, #7a3326, var(--blood)); }
+.hm-hurt { font-size: 11px; color: #e3917f; padding: 0 7px; border: 1px solid rgba(192, 98, 79, .5); border-radius: var(--r-pill); }
+@media (max-width: 360px) {
+  .hero-me { gap: 9px; padding-right: 10px; }
+  .hm { grid-template-columns: auto 44px; }
+}
+
+/* ---------- 아래 탭 막대: 엄지 자리. 고른 탭은 놋쇠 알약 ---------- */
+@media (max-width: 860px) {
+  :root { --nav-h: calc(66px + env(safe-area-inset-bottom, 0px)); }
+  .nav { padding: 6px max(6px, env(safe-area-inset-left, 0px)) calc(4px + env(safe-area-inset-bottom, 0px)); gap: 0; border-top-color: #3b3126; }
+  .nav button { border-top: 0; padding: 4px 2px; gap: 3px; font-size: 11px; letter-spacing: .02em; min-height: 52px; background: none !important; }
+  .nav button .ico { padding: 3px 14px; box-sizing: content-box; border-radius: var(--r-pill); transition: background-color .2s, color .2s; }
+  .nav button[aria-current="page"] { color: #f1e3c3; }
+  .nav button[aria-current="page"] .ico { color: #1d140b; background: linear-gradient(180deg, #dcb873, #b9904a); box-shadow: inset 0 1px 0 rgba(255, 241, 205, .5), 0 0 12px rgba(201, 162, 90, .25); }
+}
+
+/* ---------- 같은 틀: 카드·덩이 ---------- */
+.card { border-radius: var(--r-lg); }
+.card > h2 { font-size: var(--fs-xl); line-height: var(--lh-tight); }
+.card > h2 small { font-size: var(--fs-xs); }
+.block h3 { font-size: var(--fs-lg); }
+.note { line-height: var(--lh-body); }
+
+/* ---------- 화면 넘김: 탭을 바꾸면 본문이 옆에서 살짝 들어온다 ---------- */
+html.motion .main.enter { animation: view-in38 .32s cubic-bezier(.2, .7, .2, 1); }
+@keyframes view-in38 { from { opacity: 0; transform: translateY(10px); } }
+html.motion .scene.slim .view-title { animation: title-in .35s ease-out; }
+@keyframes title-in { from { opacity: 0; transform: translateX(-8px); } }
+html.motion .hero-me { animation: strip-in .45s cubic-bezier(.2, .7, .2, 1) backwards .05s; }
+@keyframes strip-in { from { opacity: 0; transform: translateY(8px); } }
+
+/* ---------- 할 일 고르기: 아이콘 타일 격자 + 아래 칸 받침 ---------- */
+.act { border-radius: var(--r-md); }
+.act .ic { width: 42px; height: 42px; border: 1px solid rgba(201, 162, 90, .4);
+  background: radial-gradient(circle at 50% 35%, rgba(201, 162, 90, .22), rgba(201, 162, 90, .05) 70%);
+  box-shadow: inset 0 1px 0 rgba(255, 236, 200, .08), 0 2px 6px rgba(0, 0, 0, .35); }
+.act .nm { font-size: var(--fs-md); }
+.act .ds { font-size: 12.5px; line-height: 1.5; }
+.act::after { content: ''; position: absolute; left: 12px; right: 12px; bottom: -1px; height: 2px; border-radius: 2px; background: var(--brass); opacity: 0; transition: opacity .15s; }
+.act[aria-pressed="true"]::after { opacity: .9; }
+.act[aria-pressed="true"] .ic { box-shadow: 0 0 0 3px rgba(201, 162, 90, .18), 0 2px 8px rgba(0, 0, 0, .4); }
+.act .cnt { background: linear-gradient(180deg, #dcb873, #b9904a); }
+@media (max-width: 520px) {
+  .act { padding: 12px 10px 10px; row-gap: 6px; }
+  .act .ic { width: 40px; height: 40px; }
+  .act .ds { -webkit-line-clamp: 2; }
+}
+.act-tools { gap: 6px; }
+.act-tools button { min-height: 36px; padding: 4px 12px; font-size: var(--fs-sm); white-space: nowrap; }
+.act-tools .note { font-size: var(--fs-sm); }
+.act-group h4 { font-size: var(--fs-xs); }
+@media (max-width: 860px) {
+  .ways-row .note { display: none; }
+  /* 칸 받침: 칸 넷과 '보낸다' 단추를 한 장의 가죽 판에 */
+  .card.plan > .slotbar { background: var(--grain), linear-gradient(180deg, #2a2219, #211a13); border-top: 1px solid rgba(201, 162, 90, .28);
+    padding-top: 10px; gap: 6px; border-radius: var(--r-lg) var(--r-lg) 0 0; box-shadow: 0 -12px 18px -8px rgba(0, 0, 0, .65); }
+  .card.plan > .sticky-go { background: var(--grain), #211a13; padding-bottom: 10px; }
+}
+.slotchip { border-radius: var(--r-md); background: rgba(0, 0, 0, .28); border-style: dashed; border-color: #4a3d2e; }
+.slotchip:has(.nm:not(:empty)) { border-style: solid; background: linear-gradient(180deg, rgba(255, 236, 200, .04), rgba(0, 0, 0, .2)); }
+.slotchip .wk { font-family: var(--f-display); letter-spacing: .04em; }
+.slotchip[aria-selected="true"] { background: linear-gradient(180deg, #3a2f22, #2a2219); border-style: solid; }
+.slotchip[aria-selected="true"] .wk { color: var(--brass); }
+.slotchip[aria-selected="true"]::after { background: #2e251b; }
+
+/* ---------- 사건 창: 삽화가 크게, 선택지는 큰 단추 ---------- */
+.ev-art { height: clamp(150px, 34vw, 220px); }
+.ev-art::after { background: linear-gradient(rgba(233, 218, 180, 0) 50%, rgba(233, 218, 180, .7) 92%, #ecdcb6); }
+.ev-body { gap: 14px; }
+.event h2 { font-size: var(--fs-2xl); line-height: 1.3; }
+.event p { font-size: 15.5px; line-height: var(--lh-read); }
+.event .opts { gap: 10px; }
+.event .opt { grid-template-columns: 32px 1fr; gap: 12px; min-height: 56px; padding: 12px 16px 12px 12px; border-radius: var(--r-md); font-size: var(--fs-md); line-height: 1.5;
+  box-shadow: 0 1px 0 rgba(255, 255, 255, .4) inset, 0 2px 0 rgba(111, 81, 34, .18); }
+.event .opt .n { width: 30px; height: 30px; font-family: var(--f-display); font-size: 14px; font-weight: 700; }
+.event .opt:active:not(:disabled) { transform: translateY(1px); box-shadow: 0 1px 2px rgba(111, 81, 34, .3) inset; }
+@media (max-width: 860px) {
+  /* 폰: 아래에서 올라오는 판. 양옆 끝까지, 위 모서리만 둥글게, 잡는 손잡이 */
+  .overlay { padding-left: 0; padding-right: 0; padding-bottom: 0; }
+  .event { max-width: 620px; border-radius: 18px 18px 0 0; border-bottom: 0; position: relative; padding-bottom: env(safe-area-inset-bottom, 0px); }
+  .event::before { content: ''; position: absolute; z-index: 2; top: 8px; left: 50%; width: 40px; height: 4px; margin-left: -20px; border-radius: 4px; background: rgba(255, 245, 220, .55); box-shadow: 0 1px 3px rgba(0, 0, 0, .4); }
+  .ev-art { height: clamp(160px, 46vw, 240px); }
+  .ev-body { padding: 2px 18px 18px; }
+}
+@media (max-width: 520px) {
+  .event h2 { font-size: 22px; }
+  .event p { font-size: 15px; line-height: 1.75; }
+  .event .opt { min-height: 54px; padding: 11px 14px 11px 10px; font-size: 15px; }
+}
+
+/* ---------- 같은 틀: 바로 가기 줄·칩·인물 수첩 ---------- */
+.view-jump { background: linear-gradient(180deg, var(--bg) 70%, rgba(23, 19, 15, 0)); padding-top: 8px; padding-bottom: 10px; gap: 6px; }
+.view-jump button, .act-jump button { border-radius: var(--r-pill); min-height: 36px; padding: 4px 14px; font-size: var(--fs-sm); border-color: #4a3d2e; }
+.view-jump button:active, .act-jump button:active { background: rgba(201, 162, 90, .14); border-color: var(--brass-dim); }
+.chip { border-radius: var(--r-pill); padding: 2px 10px; background: rgba(0, 0, 0, .2); }
+.card, .sheet { border-radius: var(--r-lg); }
+.block + .block { border-top-color: rgba(201, 162, 90, .14); }
+
+/* ---------- 시작 화면: 큰 풍경 아래 같은 틀 ---------- */
+.title-hero { max-height: none; border-bottom: 0; }
+.title-hero img, .title-hero .hero-ph { height: clamp(260px, 72vw, 420px); object-position: 50% 60%; }
+.title-hero::before { content: ''; position: absolute; inset: 0; z-index: 1; pointer-events: none;
+  background: linear-gradient(180deg, rgba(10, 8, 6, .45) 0%, rgba(10, 8, 6, 0) 28%, rgba(10, 8, 6, 0) 45%, rgba(23, 19, 15, .92) 92%, var(--bg)); }
+.title-cap { z-index: 2; background: none; padding-bottom: 20px; }
+.title-cap .eyebrow { font-size: var(--fs-xs); }
+.title-cap h1 { font-size: clamp(30px, 8.5vw, 48px); line-height: 1.2; letter-spacing: .01em; }
+.choice { border-radius: var(--r-lg); }
+.setup h2 { font-size: var(--fs-xl); }
+.primary { border-radius: var(--r-md); }
+.ghost { border-radius: var(--r-md); }

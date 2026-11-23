@@ -614,6 +614,19 @@ function renderOver() {
   </section>`;
 }
 
+// '지금 이 순간' 맨 아래 띠: 내 초상과 이름·나이·일, 몸과 마음 한눈에. 누르면 '나' 화면
+function heroStrip() {
+  const p = game.player, meP = me(game);
+  const job = (() => { try { return jobTitle(game); } catch { return ''; } })();
+  const hurt = p.injuries?.length ?? 0;
+  const meter = (k, v, warn) => `<span class="hm${warn ? ' warn' : ''}"><span>${k}</span><i><b style="width:${Math.max(0, Math.min(100, v))}%"></b></i></span>`;
+  return `<button class="hero-me" id="hero-me" aria-label="나 보기">
+    ${portrait(game, meP, { size: 56, scars: p.scars ?? [], ring: '#c9a25a', title: p.name })}
+    <span class="hm-txt"><b>${esc(p.name)}</b><span>${playerAge(game)}살${job ? ` · ${esc(job)}` : ''}</span></span>
+    <span class="hm-meters">${meter('피로', p.fatigue, p.fatigue > 70)}${meter('마음', 100 - p.stress, p.stress > 70)}${hurt ? `<span class="hm-hurt">다침 ${hurt}</span>` : ''}</span>
+  </button>`;
+}
+
 const VIEWS = [
   ['month', '이번 달', 'scroll'],
   ['me', '나', 'body'],
@@ -639,14 +652,21 @@ function renderGame() {
   else if (ui.view === 'map') main = withJump([['map', '지도', renderMap()], ['pol', '대륙 정세', renderPolitics(game, ui)], ['occupied', '점령지', renderOccupied(game)], ['outlaws', '산적', renderOutlaws(game)], ['founding', '새 나라', renderFoundings(game)], ['revolt', '민심', renderRevolt(game)], ['later', '새 기술', renderLater(game)], ['spread', '기술의 길', renderSpread(game)], ['city', '공장 거리', renderCity(game)], ['newage', '새 시대', renderNewage(game)], ['trade', '장사 길', renderTrade(game)], ['works', '큰 공사', renderWorks(game)], ['nature', '하늘과 땅', renderNature(game)], ['explore', '미지의 땅', renderExplore(game)], ['ruins', '유적', renderRuins(game)], ['frontier', '변경 너머', renderFrontier(game)], ['wilds', '마물', renderWilds(game)], ['mine', '광산', renderMines(game)], ['herd', '목축', renderHerd(game)], ['seal', '봉인', renderSeal(game)], ['demons', '마족', renderDemons(game)], ['orders', '기사단', renderOrders(game)], ['mana', '마나', renderMana(game)], ['dragon', '용', renderDragon(game)], ['haunt', '망자', renderHaunt(game)], ['omen', '예언', renderOmen(game)], ['deep', '구렁', renderDeep(game)], ['sea', '바다', renderSea(game)], ['harbor', '포구', renderHarbor(game)], ['world', '레오니아', renderWorldCard()]], { after: 1 }); // 지도가 먼저 (폰에서 바로 보이게), 바로 가기는 지도 아래
   else if (ui.view === 'chron') main = renderChron();
   else if (ui.view === 'save') main = renderSave();
+  const hero = ui.view === 'month';
+  const viewName = VIEWS.find(([id]) => id === ui.view)?.[1] ?? '';
   root().innerHTML = `
-    <header class="scene">
+    <header class="scene ${hero ? 'hero' : 'slim'}">
+      <div class="scene-pic">
       ${art && lastArt && lastArt !== art && !reducedMotion() ? `<img class="prev" src="${lastArt}" alt="" aria-hidden="true">` : ''}
       ${art ? `<img class="${lastArt && lastArt !== art ? 'xfade' : ''}" src="${art}" alt="${esc(placeName(game))} 풍경: ${mi.season}, ${esc(conditionText(game.date.year, game.date.month))}">` : ''}
+      ${hero ? `<div class="hero-place"><span>${esc(placeName(game))}</span></div>` : ''}
       <div class="scene-cap">
+        ${hero ? '' : `<h1 class="view-title">${esc(viewName)}</h1>`}
         <div class="date"><span class="yr">용사력 ${game.date.year}년</span><strong>${mi.name}</strong><span class="cond">${mi.season} · ${esc(conditionText(game.date.year, game.date.month))}</span></div>
         <div class="purse"><span>내 돈 <b>은화 ${p.money}</b></span><span>집안 돈 <b>은화 ${p.familyMoney}</b></span></div>
       </div>
+      </div>
+      ${hero && !game.over ? heroStrip() : ''}
     </header>
     <nav class="nav" aria-label="화면">
       ${VIEWS.map(([id, name, ic]) => `<button data-view="${id}" class="${id === 'me' ? 'only-narrow' : ''}" aria-current="${ui.view === id ? 'page' : 'false'}">${icon(ic, 20)}<span>${name}</span></button>`).join('')}
@@ -735,6 +755,8 @@ function bindGame() {
   const rerender = () => renderGame();
   const go = $('#go');
   if (go) go.onclick = () => advance(1);
+  const hm = $('#hero-me');
+  if (hm) hm.onclick = () => { ui.view = 'me'; renderGame(); window.scrollTo({ top: 0 }); };
   const skip = $('#skip');
   if (skip) skip.onclick = () => advance(36, true);
   const s3 = $('#skip3');
