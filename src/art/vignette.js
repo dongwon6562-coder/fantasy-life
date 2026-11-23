@@ -320,12 +320,12 @@ export function plate35(key, words = '') {
   if (/^build(er)?_/.test(k)) return /무너|붕괴|책임|깔려|금이 가/.test(words) ? 'build:fallen' : /지붕|들보|서까래|성당|상량/.test(words) ? 'build:roof' : /돌|석공|정으로|표식|채석/.test(words) ? 'build:stone' : 'build:scaffold';
   return null;
 }
-// 36단계 갈래(점령지 occupied*·occ_, 길 위의 일 carrier*, 사교계 society*·soc_): 같은 방식. BY_SCENE에 적힌 것이 먼저다.
+// 36단계 갈래(점령지 occupied*·occ_, 길 위의 일 carrier*, 사교계 society*·soc_·so_): 같은 방식. BY_SCENE에 적힌 것이 먼저다.
 export function plate36(key, words = '') {
   const k = String(key ?? '');
   if (/^(occupied|occup|occ)_/.test(k)) return /해방|풀려|물러갔|되찾|부역자|심판/.test(words) ? 'occupied:free' : /징발|빼앗|끌고 갔|곡식|세금|공출|몰수/.test(words) ? 'occupied:levy' : /저항|숨어|밤|통금|벽보|밀고|보복|몰래/.test(words) ? 'occupied:night' : 'occupied:banner';
   if (/^carrier_/.test(k)) return /도적|산적|매복|길을 막|털/.test(words) ? 'carrier:bandit' : /눈|진창|빠졌|폭설|얼어|무너진 다리|빙판/.test(words) ? 'carrier:snow' : /역참|마구간|말을 갈|여물|묵/.test(words) ? 'carrier:yard' : 'carrier:cart';
-  if (/^(society|soc)_/.test(k)) return /망신|추문|쑥덕|웃음거리|수군|쫓겨|체면/.test(words) ? 'society:shame' : /무도|춤|왈츠|악사/.test(words) ? 'society:ball' : /살롱|시를|낭독|응접실|재주|담론|연주/.test(words) ? 'society:salon' : 'society:feast';
+  if (/^(society|soc|so)_/.test(k)) return /망신|추문|쑥덕|웃음거리|수군|쫓겨|체면/.test(words) ? 'society:shame' : /무도|춤|왈츠|악사/.test(words) ? 'society:ball' : /살롱|시를|낭독|응접실|재주|담론|연주/.test(words) ? 'society:salon' : 'society:feast';
   return null;
 }
 const atSea = (g) => safe(() => !!(g.life?.travel && g.sea?.voyage) || !!g.life?.atSea, false);
