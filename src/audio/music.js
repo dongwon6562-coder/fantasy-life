@@ -274,7 +274,7 @@ export function scheduleBar(track, group, pos, time, rnd = Math.random, perf = {
     const frac = ev.beat - Math.floor(ev.beat + 1e-6);
     const accent = ev.flat ? 1 : ev.beat < 0.01 ? 1.06 : frac > 0.01 ? 0.92 : B === 4 && Math.abs(ev.beat - 2) < 0.01 ? 1.02 : 0.97;
     const v = ev.vel * accent * h.dv * (1 + perf.breath) * (0.97 + rnd() * 0.06) * (col?.vel ?? 1);
-    if (ev.perc) { group.perc(ev.perc, t, v); return; }
+    if (ev.perc) { try { group.perc(ev.perc, t, v); } catch { /* 타악 하나가 틀어져도 곡은 이어 간다 */ } return; }
     group.note(ev.inst, t, ev.midi, ev.dur * spb * (1 + r * 0.6) * (ev.legato ?? 1) * (0.97 + rnd() * 0.05), v, ev.o);
   };
   for (const ev of s.bars[pos.bar]) play(ev);
@@ -425,7 +425,7 @@ export class MusicPlayer {
         return;
       }
       c.perf.color = c.loop || c.track.kind !== 'mood' ? null : this.color;
-      scheduleBar(c.track, c.group, c.pos, c.next, this.rnd, c.perf);
+      try { scheduleBar(c.track, c.group, c.pos, c.next, this.rnd, c.perf); } catch { /* 한 마디가 틀어져도 다음 마디로 */ }
       c.next += barLen(c.track, c.pos, c.perf.color?.tempo ?? 1);
       c.pos = nextPos(c.track, c.pos);
     }

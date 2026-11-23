@@ -144,6 +144,9 @@ export const PERC = {
 const XF = 0.32; // 긴 음을 이어 붙일 때 겹치는 시간
 // 겹치는 동안 크기가 꺼지지 않게 둥근 곡선으로 넘긴다
 const XF_IN = Float32Array.from({ length: 33 }, (_, i) => Math.sin((i / 32) * Math.PI / 2));
+const curve = (param, arr, t, d, from, to) => {
+  try { param.setValueCurveAtTime(arr, t, d); } catch { try { param.setValueAtTime(from, t); param.linearRampToValueAtTime(to, t + d); } catch { /* 소리는 그대로 */ } }
+};
 const XF_OUT = Float32Array.from({ length: 33 }, (_, i) => Math.cos((i / 32) * Math.PI / 2));
 
 // 풀어 둔 샘플. AudioContext를 새로 만들어도(뒤에 갔다 돌아왔을 때) 다시 받지 않는다.
@@ -446,10 +449,11 @@ export class Group {
         // 독주 악기는 물결의 위상을 맞춰 곧게 넘기고, 여럿이 내는 소리(합주·합창)는 둥근 곡선으로 넘긴다
         if (k === 0) sg.gain.setValueAtTime(1, at);
         else if (cfg.solo) { sg.gain.setValueAtTime(0, at); sg.gain.linearRampToValueAtTime(1, at + XF); }
-        else { sg.gain.setValueAtTime(0, at); sg.gain.setValueCurveAtTime(XF_IN, at, XF); }
+        // 아이폰(WebKit)은 곡선 앞에 같은 때의 값 지정이 있으면 겹친다며 오류를 낸다. 곡선만 쓰고, 그래도 거절하면 곧은 선으로 (36단계)
+        else curve(sg.gain, XF_IN, at, XF, 0, 1);
         if (!last) {
           if (cfg.solo) { sg.gain.setValueAtTime(1, at + avail - XF); sg.gain.linearRampToValueAtTime(0, at + avail); }
-          else sg.gain.setValueCurveAtTime(XF_OUT, at + avail - XF, XF);
+          else curve(sg.gain, XF_OUT, at + avail - XF, XF, 1, 0);
         }
       }
       src.start(at, off);
@@ -499,7 +503,8 @@ export class Group {
   /** 음 하나. t: 시작 시각(초), dur: 길이(초), vel: 세기 0~1 */
   note(inst, t, midi, dur, vel = 0.7, o = {}) {
     if (this.dead) return;
-    if (this.kind === 'music') { this.sample(inst, t, midi, dur, vel, o ?? {}); return; }
+    // 음 하나에서 난 오류가 곡 전체를 멈추지 않게 (36단계: 아이폰에서 효과음만 나고 음악이 안 남)
+    if (this.kind === 'music') { try { this.sample(inst, t, midi, dur, vel, o ?? {}); } catch (e) { LOADS.noteErr = (LOADS.noteErr ?? 0) + 1; LOADS.err = `음 ${inst}: ${String(e?.message ?? e).slice(0, 50)}`; } return; }
     o = o ?? {};
     // 효과음의 가락도 녹음된 악기로 (받아져 있을 때). 아직이면 옛 합성음으로 낸다.
     const sm = SFX_INST[inst];
