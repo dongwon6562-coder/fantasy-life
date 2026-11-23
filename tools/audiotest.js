@@ -11,7 +11,7 @@ import { chordLine, melodyNotes } from '../src/audio/music.js';
 import { audio } from '../src/audio/index.js';
 import { newGame, endMonth, availableActions, slotsFor, rngOf } from '../src/game.js';
 import { resolveEvent } from '../src/events.js';
-import { iconName } from '../src/art/icons.js';
+import { iconName, iconBase } from '../src/art/icons.js';
 import { ACTIONS } from '../src/actions.js';
 
 let bad = 0;
@@ -123,7 +123,8 @@ for (let run = 0; run < 12; run++) {
     }
   }
 }
-const missing = ACTIONS.map((a) => iconName(a)).filter((n) => !SFX[n]);
+// 38단계(도우미3): 새 아이콘 이름은 iconBase로 옛 갈래 소리를 씀 (audio/index.js와 같게)
+const missing = ACTIONS.map((a) => iconBase(iconName(a))).filter((n) => !SFX[n]);
 if (missing.length) fail(`효과음 없는 행동 종류: ${[...new Set(missing)].join(', ')}`);
 if (audio.tracks.length !== TRACKS.length || !audio.sounds.length) fail('audio 목록이 비었다');
 
