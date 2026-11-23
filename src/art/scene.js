@@ -5,9 +5,10 @@ import { W, H, HZ, hash, fbm1, ridged1, rng, mixh, rgba, dark, light, clamp, sbu
 import { describe } from './scenePlaces.js';
 import { paintFinish } from './scenePaint.js';
 import { noteMotion } from './sceneMotion.js';
+import { rimLight, sunRays, wetGround, fogBanks, nearFrame } from './sceneDrama.js';
 import { skyOf, paintSky, gradeLand, paintWeather } from './sceneSky.js';
 import { weatherFor, tweak as seasonTweak, land as seasonLand, air as seasonAir } from './sceneSeason.js';
-import { takeWater, paletteOf, mountains, hillBand, treeline, forestMass, fields, water, tree, conifer, palm, rock, reedClump, foreground } from './sceneLand.js';
+import { takeWater, paletteOf, mountains, hillBand, treeline, forestMass, fields, water, tree, conifer, palm, rock, reedClump, foreground, dunes } from './sceneLand.js';
 import { HOOKS } from '../hooks.js';
 import { invented } from '../era/state.js';
 import { TECH, eraOf, eraKey, eraBack, eraFront, ironBridge, ironcart, rails, train, station, crane, shipyard, steamship, airship, headframe } from './sceneEra.js';
@@ -101,7 +102,12 @@ function draw(year, month, famine, plague, place, calamity, era) {
   if (cal) seasonLand(L, cal, e);
   gradeLand(L, S, plague);
   ctx.drawImage(land, 0, 0);
+  rimLight(ctx, land, S);
   lights(ctx, e);
+  sunRays(ctx, S, wr, k);
+  wetGround(ctx, S, e.lit, k);
+  fogBanks(ctx, S, wr);
+  nearFrame(ctx, S, P, D.biome, rng(D.seed + 3));
   paintWeather(ctx, S, wr, { leaves: !!P.autumn && !P.blight, embers: D.culture === 'demon', month, snowy: !!P.snow, barren: !!P.blight });
   if (cal) seasonAir(ctx, cal, e);
   paintFinish(ctx, W, H, S, { hz: HZ / H });
@@ -298,12 +304,13 @@ const LAYOUTS = {
     const { D, P, S, R, q, month } = e, b = D.biome;
     const farm = STYLE[D.culture] && !P.blight && b !== 'swamp' && D.size !== 'ruin' && D.size !== 'site';
     farRanges(L, e, D.id === 'ern' || D.id === 'gruental' ? 1 : P.blight ? 1.15 : b === 'cold' ? 1.1 : 0.55 + (q % 5) * 0.09);
-    farHills(L, e, { wood: P.blight ? 2 : b === 'dry' ? 0.66 : 0.52 });
+    if (P.dry) dunes(L, HZ + 14, P, S, q, { amp: 18, n: 3, gap: 10, haze: 0.4 }); else farHills(L, e, { wood: P.blight ? 2 : b === 'dry' ? 0.66 : 0.52 });
     const cx = 760 + (q % 7) * 8;
     const ground = (x) => 284 - fbm1(x / 260 + q, 21, 3) * 44 - sbump(x, cx, 290) * 22 - (D.feature === 'windmill' || D.feature === 'manor' ? sbump(x, 232, 150) * 24 : 0) - (D.mount ? sbump(x, cx + 90, 120) * 20 : 0);
     hillBand(L, ground, P.hill, S, { seed: 21, depth: 130 });
     const span = SPAN[D.size] ?? 300, inTown = (x, y) => Math.abs(x - cx) < span * 0.6 && y < ground(x) + 112;
-    if (farm) fields(L, ground, P, S, R, { skip: inTown, vines: D.vines });
+    if (farm && !P.dry) fields(L, ground, P, S, R, { skip: inTown, vines: D.vines });
+    else if (farm) { fields(L, ground, P, S, R, { skip: (x, y) => inTown(x, y) || Math.abs(x - cx) > span * 1.1, depth: 70 }); for (let i = 0; i < 26; i++) { const x = R() * W, y = ground(x) + 14 + R() * 100; if (inTown(x, y)) continue; if (R() < 0.4) rock(L, x, y, 6 + R() * 10, 4 + R() * 6, P, S, R); else if (R() < 0.3 && Math.abs(x - cx) < span) palm(L, x, y, 26 + R() * 14, P, S, R); else plant(L, e, x, y, 4 + R() * 4); } }
     else { // 밭이 없는 땅: 덤불과 바위, 드문 나무
       for (let i = 0; i < 46; i++) { const x = R() * W, y = ground(x) + 10 + R() * 110; if (inTown(x, y)) continue; if (R() < 0.3) rock(L, x, y, 6 + R() * 12, 4 + R() * 8, P, S, R); else if (b === 'swamp') reedClump(L, x, y, 10 + R() * 8, P, R); else plant(L, e, x, y, 5 + R() * 7); }
     }
@@ -331,6 +338,11 @@ const LAYOUTS = {
     fillCurve(L, (x) => HZ - 3 - sbump(x, 120, 170) * 10 - fbm1(x / 40, 7) * 3, mixh(P.far, S.haze, 0.6), HZ + 2, 0, 330);
     water(L, () => HZ, () => 410, P, S, R, { y0: HZ, y1: 410 });
     for (const [x, y, s, fl] of [[250 - (q % 5) * 20, HZ + 22, 0.5, false], [118, HZ + 60, 0.85, true]]) ship(L, x, y, s, S, fl);
+    // 큰 항구 (38단계): 닻 내린 배가 줄지어 있고, 작은 거룻배가 오간다
+    if (D.size === 'city' || D.size === 'capital') {
+      for (const [x, y, s, fl] of [[330, HZ + 30, 0.62, true], [205, HZ + 40, 0.7, false], [290, HZ + 74, 1.05, false], [60, HZ + 104, 1.3, true]]) ship(L, x, y, s, S, fl);
+      for (let i = 0; i < 6; i++) { const x = 120 + R() * 300, y = HZ + 50 + R() * 90, s = 0.5 + (y - HZ) / 200; poly(L, [[x - 9 * s, y - 2 * s], [x + 9 * s, y - 2 * s], [x + 6 * s, y + 1.5 * s], [x - 6 * s, y + 1.5 * s]], '#3a2a1c'); }
+    }
     const cx = 800;
     const ground = (x) => lerp(418, 284, sm(x)) - fbm1(x / 260 + q, 21, 3) * 30 * sm(x) - sbump(x, cx, 280) * 16;
     const h1 = (x) => lerp(HZ + 40, HZ + 6, sm(x + 80)) - fbm1(x / 220 + q, 11, 3) * 30 * sm(x + 80);
