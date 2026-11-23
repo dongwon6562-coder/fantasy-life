@@ -258,8 +258,9 @@ function expedition(g, rid, opt = {}) {
   scene(g, 'explore_give', {}, /연대기 석판/);
   if (e.fame <= f0 || r.fame <= rf0) fail('give gave no fame', e.fame, r.fame);
   if (r.project.prog <= 0.1) fail('research did not advance', r.project.prog);
-  scene(g, 'explore_give', {}, /사전/);
-  scene(g, 'explore_give', {}, /지도/);
+  // 그사이 사건(현상금 사냥꾼에게 끌려가기 등)으로 고장이 바뀔 수 있어 바칠 때마다 서고 앞에 다시 선다
+  placeAt(g, 'leocast'); scene(g, 'explore_give', {}, /사전/);
+  placeAt(g, 'leocast'); scene(g, 'explore_give', {}, /지도/);
   if (e.given.length !== 3) fail('given count', e.given.length);
   // 별자리판은 마탑에
   placeAt(g, 'serenia');

@@ -461,8 +461,8 @@ defineScene('fr_legacy', {
 function playerTick(g, rng) {
   const s = S(g);
   const now = mi(g);
-  // 다른 장면이 기다리고 있으면 끼어들지 않는다
-  if (!free(g) || now - s.sceneAt < 6 || L(g).queue.length || g.pendingEvent) return;
+  // 다른 장면이 둘 넘게 기다리면 끼어들지 않는다 (떠 있는 사건까지 기다리면 어른 삶에선 거의 늘 막혀 벗 장면이 굶는다, 37단계)
+  if (!free(g) || now - s.sceneAt < 6 || L(g).queue.length >= 2) return;
   const q = (kind, data) => { queueScene(g, kind, data); s.sceneAt = now; return true; };
   const age = playerAge(g);
   // 선대의 벗, 대를 이은 벗
