@@ -3,7 +3,7 @@ import { W, H, HZ, hash, mixh, rgba, dull, puff, mist, vgrad } from './sceneKit.
 
 const SKIES = {
   day: { top: '#56799c', mid: '#9fb9c6', low: '#e0dcc6', sun: [830, 62], sunC: '#fff7e0', glow: '#fff0cc', lit: '#fbf7ec', sh: '#9aa8b6', dir: 1 },
-  dawn: { top: '#3a4a74', mid: '#a08a9c', low: '#f2c898', sun: [965, HZ - 26], sunC: '#ffe0aa', glow: '#ffcf96', lit: '#f8d2b6', sh: '#756f8e', dir: 1 },
+  dawn: { top: '#33406c', mid: '#b8887e', low: '#f6c48c', sun: [965, HZ - 26], sunC: '#ffe0aa', glow: '#ffcf96', lit: '#f8d2b6', sh: '#756f8e', dir: 1 },
   dusk: { top: '#232646', mid: '#86506a', low: '#ea9858', sun: [228, HZ - 22], sunC: '#ffcb8c', glow: '#fba864', lit: '#f4a472', sh: '#544566', dir: -1 },
   night: { top: '#060a18', mid: '#111a34', low: '#27344e', sun: null, lit: '#4c5876', sh: '#161c30', dir: -1 },
 };
@@ -20,6 +20,7 @@ export function skyOf(tod, weather, biome, k) {
     S.lit = mixh(S.lit, tod === 'night' ? '#39414f' : '#c4c6c4', 0.6); S.sh = mixh(S.sh, tod === 'night' ? '#11151d' : '#6a7078', 0.6);
   }
   if (biome === 'blight' || biome === 'ash') { for (const key of ['top', 'mid', 'low']) S[key] = mixh(S[key], tod === 'night' ? '#2a1418' : '#8a5a48', biome === 'ash' ? 0.2 : 0.32); S.sh = mixh(S.sh, '#4a2c30', 0.4); }
+  if (biome === 'dry' && tod !== 'night') { S.low = mixh(S.low, '#f2cc94', 0.3); S.mid = mixh(S.mid, '#d8b890', 0.2); S.lit = mixh(S.lit, '#fff0c8', 0.3); }
   if (biome === 'cold') for (const key of ['top', 'mid', 'low']) S[key] = mixh(S[key], tod === 'night' ? '#0c1626' : '#c4d0d8', 0.16);
   if (storm) { for (const key of ['top', 'mid', 'low']) S[key] = mixh(S[key], tod === 'night' ? '#0c0e14' : '#3c424c', key === 'low' ? 0.3 : 0.55); S.sh = mixh(S.sh, '#22262e', 0.5); S.lit = mixh(S.lit, '#8a9098', 0.4); S.bolt = 180 + hash(k, 31) * 840; }
   if (blizzard) for (const key of ['top', 'mid', 'low']) S[key] = mixh(S[key], tod === 'night' ? '#2a303c' : '#c8ccd0', 0.5);
@@ -114,7 +115,7 @@ export function gradeLand(L, S, plague) {
     L.fillStyle = g; L.fillRect(0, 0, W, H);
     L.fillStyle = vgrad(L, HZ - 40, H, [[0, 'rgba(20,16,40,0)'], [1, 'rgba(20,16,40,.3)']]); L.fillRect(0, 0, W, H);
   } else if (S.overcast) {
-    L.fillStyle = S.storm ? 'rgba(38,44,56,.5)' : S.blizzard ? 'rgba(206,212,218,.34)' : S.heavy ? 'rgba(96,104,112,.3)' : 'rgba(120,124,128,.2)'; L.fillRect(0, 0, W, H);
+    L.fillStyle = S.storm ? 'rgba(38,44,56,.5)' : S.blizzard ? 'rgba(206,212,218,.34)' : S.heavy ? 'rgba(96,104,112,.18)' : 'rgba(120,124,128,.14)'; L.fillRect(0, 0, W, H);
   } else {
     // 맑은 낮: 해 쪽은 따뜻하게, 반대쪽은 조금 서늘하게
     const g = L.createLinearGradient(S.sun[0], 0, S.sun[0] > W / 2 ? 0 : W, 0);
@@ -144,13 +145,9 @@ function seasonal(ctx, S, R, o) {
 /** 다 그린 그림 위에 날씨를 얹는다 */
 export function paintWeather(ctx, S, R, o = {}) {
   const night = S.tod === 'night';
-  if (S.weather === 'fog') {
-    const c = S.tod === 'dawn' ? '#ecd4c0' : S.tod === 'dusk' ? '#c8a8a0' : '#dcdedb';
-    for (let i = 0; i < 4; i++) mist(ctx, HZ - 16 + i * 26, 40, c, 0.26 - i * 0.05);
-    for (let i = 0; i < 26; i++) puff(ctx, R() * W, HZ - 10 + R() * 190, 120 + R() * 200, 10 + R() * 16, c, 0.13);
-  }
+  // 안개는 sceneDrama.js fogBanks가 겹겹이 깐다 (38단계)
   if (S.storm) {
-    mist(ctx, HZ + 6, 90, mixh(S.low, '#5a626c', 0.6), 0.55);
+    mist(ctx, HZ + 6, 80, mixh(S.low, '#5a626c', 0.6), 0.36);
     for (const [n, len, a, lw] of [[700, 12, 0.18, 0.8], [520, 22, 0.28, 1.1], [200, 38, 0.34, 1.5]]) {
       ctx.strokeStyle = night ? `rgba(150,162,190,${a})` : `rgba(206,214,224,${a})`; ctx.lineWidth = lw; ctx.beginPath();
       for (let i = 0; i < n; i++) { const x = R() * (W + 300), y = R() * H, l = len * (0.7 + R() * 0.6); ctx.moveTo(x, y); ctx.lineTo(x - l * 0.62, y + l); }
@@ -181,7 +178,7 @@ export function paintWeather(ctx, S, R, o = {}) {
     if (kind === 'snow' || kind === 'dust') for (let i = 0; i < 12; i++) puff(ctx, R() * W, HZ + 60 + R() * 180, 200 + R() * 160, 8 + R() * 10, kind === 'snow' ? '#f0f2f2' : '#cbb894', 0.16);
   }
   if (S.weather === 'rain') {
-    mist(ctx, HZ + 6, 70, mixh(S.low, '#8a9098', 0.5), 0.4);
+    mist(ctx, HZ + 6, 60, mixh(S.low, '#8a9098', 0.5), 0.24); // 38단계: 덜 뿌옇게
     for (const [n, len, a, lw] of [[520, 9, 0.16, 0.8], [360, 15, 0.26, 1], [120, 26, 0.3, 1.3]]) {
       ctx.strokeStyle = night ? `rgba(150,162,184,${a})` : `rgba(214,220,226,${a})`; ctx.lineWidth = lw; ctx.beginPath();
       for (let i = 0; i < n; i++) { const x = R() * (W + 120), y = R() * H, l = len * (0.7 + R() * 0.6); ctx.moveTo(x, y); ctx.lineTo(x - l * 0.28, y + l); }

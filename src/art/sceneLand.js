@@ -23,7 +23,10 @@ export function paletteOf(month, biome, famine) {
   const tone = (c, t) => { for (const k of ['grass', 'grass2', 'hill']) P[k] = mixh(P[k], c, t); P.field = P.field.map((f) => mixh(f, c, t)); };
   if (biome === 'cold' && !P.snow) { tone('#8c8a66', 0.55); P.leaf = P.leaf && mixh(P.leaf, '#7a7c50', 0.5); P.snowLine += 34; }
   if (biome === 'mountain' && !P.snow) { tone('#7e8068', 0.4); P.snowLine += 40; }
-  if (biome === 'dry') { tone('#b49c68', 0.5); P.leaf = P.leaf && mixh(P.leaf, '#8a8a4c', 0.4); }
+  if (biome === 'dry' && !P.snow) { // 메마른 땅 (38단계): 모래빛 들, 바랜 밭, 먼 모래 언덕
+    tone('#c8a46c', 0.7); P.field = P.field.map((c, i) => mixh(c, ['#c8a060', '#a88250', '#d0b070', '#9a7a48'][i % 4], 0.6)); P.leaf = P.leaf && mixh(P.leaf, '#7a7a40', 0.55);
+    P.far = mixh(P.far, '#c0a07a', 0.55); P.hill = mixh(P.hill, '#c09a62', 0.3); P.sand = '#d8b880'; P.dry = true; P.snowLine -= 60; P.blossom = 0;
+  } else if (biome === 'dry') tone('#b49c68', 0.4);
   if (biome === 'swamp') { tone('#5c6444', 0.5); P.water = P.frozen ? P.water : '#56664e'; P.leaf = P.leaf && mixh(P.leaf, '#4c5a34', 0.4); }
   if (biome === 'forest') { tone('#4e6a3a', P.snow ? 0 : 0.3); P.far = mixh(P.far, '#5a7868', 0.3); }
   if (biome === 'island') { tone('#7a9a50', 0.3); P.water = '#4c8a94'; P.far = '#7a98a4'; }
@@ -319,3 +322,22 @@ export function foreground(L, fn, P, S, R, o = {}) {
   }
 }
 export { dull };
+
+/** 모래 언덕: 빛 받는 비탈과 그늘 비탈이 갈리는 매끈한 능선 (38단계, 메마른 땅) */
+export function dunes(L, base, P, S, seed = 1, o = {}) {
+  const amp = o.amp ?? 26, n = o.n ?? 3, sandC = mixh(P.sand ?? '#d8b880', S.haze, o.haze ?? 0.25);
+  const lit = light(sandC, 0.18), shade = mixh(dark(sandC, 0.3), S.sh, 0.35), dir = S.dir ?? 1;
+  for (let j = 0; j < n; j++) {
+    const yb = base + j * (o.gap ?? 14), a = amp * (0.6 + j * 0.25), s0 = seed + j * 7;
+    const fn = (x) => yb - Math.abs(Math.sin(x / (170 + j * 40) + s0)) * a - fbm1(x / 300 + s0, s0, 2) * a * 0.4;
+    fillCurve(L, fn, j === n - 1 ? sandC : mixh(sandC, S.haze, 0.25 - j * 0.08));
+    // 능선 따라 그늘 쪽을 어둡게: 꼭대기 가까이, 빛 반대편
+    clipBelow(L, fn);
+    for (let x = 0; x < W; x += 6) {
+      const d = fn(x + dir * 6) - fn(x); // 빛 쪽으로 내려가면 그늘
+      if (d > 0.4) { L.fillStyle = rgba(shade, Math.min(0.55, d * 0.12)); L.fillRect(x, fn(x), 6, 26 + j * 8); }
+      else if (d < -0.4) { L.fillStyle = rgba(lit, Math.min(0.35, -d * 0.08)); L.fillRect(x, fn(x), 6, 16); }
+    }
+    L.restore();
+  }
+}
