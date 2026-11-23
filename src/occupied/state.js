@@ -52,4 +52,6 @@ function fill(g) {
   S.me = Object.assign(freshMe(), S.me ?? {});
 }
 HOOKS.newGame.push((g) => { g.occ = fresh(); syncOcc(g); });
+// 새 판은 다른 갈래(태어날 집안의 국적 등)가 고장을 읽기 전에 땅 주인부터 되돌린다
+HOOKS.newGame.unshift(() => syncOcc(null));
 HOOKS.migrate.push((g) => { fill(g); syncOcc(g); });
