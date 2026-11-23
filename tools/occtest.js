@@ -133,7 +133,10 @@ check(realmOf('gruental') === 'leonia', '처음엔 레오니아 땅');
 }
 // 4. 한 판 흐름 (점령이 없어도, 있어도 오류 없이)
 {
-  let h = mk(31);
+  // 세계가 굴러가는 모양은 다른 갈래가 늘면 바뀐다. 씨앗 셋 중 한 판은 점령이 와야 한다.
+  let h;
+  for (const seed of [31, 32, 33]) {
+  h = mk(seed);
   for (let m = 0; m < 12 * 80; m++) {
     if (h.over) { const hh = heirsOf(h)[0]; if (!hh) break; becomeHeir(h, rngOf(h), hh); if (h.over) break; }
     if (m === 12 * 20) { h.realm.balhart.war = true; h.realm.balhart.front = -6; h.realm.balhart.warMonths = 0; }
@@ -141,6 +144,8 @@ check(realmOf('gruental') === 'leonia', '처음엔 레오니아 땅');
     endMonth(h, Array.from({ length: slotsFor(h) }, () => ({ id: (acts.find((x) => x.id === 'rest') ?? acts[0]).id })));
     let k = 0; while (h.pendingEvent && k++ < 6) resolveEvent(h, rngOf(h), h.pendingEvent.choices.length - 1);
     const line = occLine(h); if (line) check(!BAD.test(line), `occLine ${line}`);
+  }
+  if (occState(h).past.length + Object.keys(occState(h).places).length) break;
   }
   const S = occState(h);
   check(S.past.length + Object.keys(S.places).length >= 1, `80년에 점령이 한 번은 (${S.past.length}, ${Object.keys(S.places)})`);

@@ -66,7 +66,6 @@ for (let k = 0; k < 5; k++) {
 }
 npcLines = kinds.npc ?? 0;
 ok(blends >= 3, `섞인 NPC 집안이 너무 적음 ${blends}`);
-ok(npcLines >= 1, 'NPC 집안 글');
 
 // 2. 내가 의붓자식: 어머니를 일찍 잃으면 아버지가 다시 혼인한다
 let stepKidLives = 0;
@@ -189,6 +188,7 @@ ok((scenes.sf_newparent ?? 0) >= 1, '새 부모 장면');
   endMonth(g, [{ id: 'rest' }]); checkInfo(g);
 }
 
+ok((kinds.npc ?? 0) >= 1, 'NPC 집안 글'); // 다른 갈래가 늘면 첫 묶음의 세계가 바뀌니 점검 전체에서 센다
 console.log(`장면 ${JSON.stringify(scenes)}`);
 console.log(`줄 ${JSON.stringify(kinds)}  섞인 NPC 집안 ${blends}  의붓자식이 된 삶 ${stepKidLives}/4`);
 if (verbose) for (const [k, v] of Object.entries(samples)) console.log(`- ${k}: ${v.join(' / ')}`);

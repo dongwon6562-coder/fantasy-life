@@ -182,7 +182,7 @@ function arrive(g) { L(g).travel.left = 1; month(g, ['on_road']); }
   const no = fresh(7, 'serenia', 'hauler', 35); no.player.money = 300; if (can(no, 'carrier_station')) fail('station off road');
   runAct(g, 'carrier_station');
   if (!C(g).station || g.player.money !== 300 - STATION_COST) fail('station open');
-  const m0 = g.player.money; for (let i = 0; i < 6; i++) { placeAt(g, 'verden'); adv(g, 1); L(g).queue = []; }
+  const m0 = g.player.money; for (let i = 0; i < 6; i++) { placeAt(g, 'verden'); if (g.occ?.places) delete g.occ.places.verden; adv(g, 1); L(g).queue = []; } // 점령세가 끼면 역참 벌이를 잴 수 없다
   if (g.player.money <= m0) fail('station income', m0, g.player.money);
   const KS = { courier: ['give', 'pay', 'lie'], thief: ['guard', 'scold', 'hire'], buyout: ['sell', 'refuse'], wedding: ['host', 'gouge'] };
   for (const [kind, ks] of Object.entries(KS)) for (const k of ks) for (let i = 0; i < 2; i++) { const c = clone(g); c.rngState.s = 3 + i * 91; const r = direct(c, 'carrier_inn', { kind, house: 'verdencart', price: 130 }, k); if (r.missing || r.skipped) fail('inn', kind, k); if (k === 'sell' && C(c).station) fail('sold station kept'); }
