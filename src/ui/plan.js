@@ -131,6 +131,7 @@ const GROUPS = [
   ['demon', '해협 너머 마족', /^demon_/],
   ['newage', '새 시대', /^(na_|city_)/],
   ['builder', '목수와 석공', /^builder_/],
+  ['carrier', '길 위의 일', /^carrier_/],
   ['spread', '기술 퍼뜨리기', /^spread_/],
   ['herd', '목축과 유목', /^herd_/],
   ['frontier', '개척', /^frontier_/],
