@@ -6,7 +6,8 @@ import { newGame, endMonth, availableActions, slotsFor, playerAge, rngOf, me } f
 import { resolveEvent } from '../src/events.js';
 import { run as runHooks } from '../src/hooks.js';
 import { L, SCENE_STRICT, showScene } from '../src/adventure/core.js';
-import { byId, makePerson, kill } from '../src/npc.js';
+import { byId, makePerson, kill, ageYears } from '../src/npc.js';
+import { elderState } from '../src/elder/index.js';
 import { friendsLines, friendsLine, friendsInfo, friendsState } from '../src/friends/index.js';
 
 SCENE_STRICT.on = true;
@@ -61,14 +62,15 @@ function life(seed, years, opts = {}) {
 // 1. 그냥 사는 삶: 열여섯 넘어 벗이 생기고, 장면이 뜨고, NPC끼리도 벗이 생긴다
 let made = 0; let npcPairs = 0; let npcEnds = 0;
 for (let k = 0; k < 6; k++) {
-  const g = life(3500 + k, 45, { stay: k < 3 });
+  const seen = new Set(); // 대가 바뀌면 벗 목록이 새로 시작하니, 삶 내내 사귄 벗을 센다
+  const g = life(3500 + k, 45, { stay: k < 3, each: (gg) => { for (const f of friendsState(gg).list) seen.add(`${friendsState(gg).gen}:${f.pid}`); } });
   const s = friendsState(g);
-  made += s.list.length; npcPairs += s.npc.length; npcEnds += s.npc.filter((x) => x.end).length;
+  made += seen.size; npcPairs += s.npc.length; npcEnds += s.npc.filter((x) => x.end).length;
   ok(s.list.every((f) => f.depth >= 0 && f.depth <= 100), 'depth 범위');
   ok(s.list.every((f) => { const p = byId(g, f.pid); return p && !p.isPlayer && p.id !== me(g).spouseId; }), '벗 목록에 나나 배우자');
   checkInfo(g);
 }
-ok(made >= 5, `벗이 너무 적음 ${made}`); // 무작위 행동 삶이라 다른 갈래가 늘면 흔들린다: 장면 자체는 2·3에서 본다
+ok(made >= 6, `벗이 너무 적음 ${made}`); // 무작위 행동 삶이라 다른 갈래가 늘면 흔들린다: 장면 자체는 2·3에서 본다
 ok(npcPairs >= 8 && npcEnds >= 1, `NPC 벗 ${npcPairs} 끝 ${npcEnds}`);
 ok(scenes.fr_meet > 0, '벗 사귀기 장면');
 
@@ -138,7 +140,13 @@ ok(scenes.fr_meet > 0, '벗 사귀기 장면');
     if (m === 30 && !lazy.spouseId) { const w = makePerson(rng, { ageMonths: 24 * 12, sex: 'f' }); g.people.push(w); lazy.spouseId = w.id; w.spouseId = lazy.id; }
     if (m === 200) kill(g, envy.alive ? lazy : envy, '사고');
     endMonth(g, [{ id: 'rest' }]); resolveAll(g); checkMonth(g);
-    if (me(g).ageMonths < 60 * 12 && m > 240) { me(g).ageMonths = 61 * 12; for (const f of s.list) { const p = byId(g, f.pid); if (p?.alive) p.ageMonths = Math.max(p.ageMonths, 58 * 12); } }
+    if (me(g).ageMonths < 60 * 12 && m > 240) { me(g).ageMonths = 61 * 12; for (const f of s.list) { const p = byId(g, f.pid); if (p?.alive) { p.ageMonths = Math.max(p.ageMonths, 58 * 12); if (f.state === 'close') f.depth = Math.max(f.depth, 45); } } }
+  }
+  // 늙은 벗 장면은 가까운 벗 가운데 하나를 골라 달에 8%라, 젊은 벗이 많이 생긴 판이면 늦게 온다: 늙은 벗을 붙잡아 두고(나도 죽지 않게) 조금 더 산다
+  for (let m = 0; m < 120 && !g.over && (scenes.fr_old ?? 0) === (before.fr_old ?? 0); m++) {
+    for (const f of s.list) { const p = byId(g, f.pid); if (p?.alive && ageYears(p) >= 55 && f.state === 'close') { f.depth = Math.max(f.depth, 45); p.place = L(g).place; p.away = false; } }
+    L(g).pendingDeath = null; const el = elderState(g); el.dying = null; el.frail = Math.min(el.frail ?? 0, 40);
+    endMonth(g, [{ id: 'rest' }]); resolveAll(g); checkMonth(g);
   }
   const got = Object.fromEntries(Object.keys(scenes).map((k) => [k, scenes[k] - (before[k] ?? 0)]));
   for (const k of ['fr_jealous', 'fr_reunion', 'fr_wedding', 'fr_old']) ok(got[k] > 0, `저절로 안 뜸 ${k} ${JSON.stringify(got)}`);
