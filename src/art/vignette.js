@@ -79,7 +79,7 @@ export function vignetteImage(spec) {
     noteMotion(url, { kind: 'vig', w: vw, h: vh, weather, tod: S.tod, embers: spec.plate === 'fire' || spec.plate === 'dragon' || spec.variant === 'still' || spec.variant === 'riot' });
   } catch { url = ''; }
   if (!url) return '';
-  while (cache.size >= 8) { const [k0, old] = cache.entries().next().value; cache.delete(k0); dropUrl(old); }
+  while (cache.size >= 24) { const [k0, old] = cache.entries().next().value; cache.delete(k0); dropUrl(old); }
   cache.set(key, url);
   return url;
 }
