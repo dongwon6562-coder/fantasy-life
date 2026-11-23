@@ -211,7 +211,8 @@ ok(falls === 3, `무너짐 ${falls}/3`);
 
 /* 7) 플레이어 없이 서는 나라 */
 let rises = 0; let fallsW = 0;
-for (let s = 0; s < 4; s++) {
+// 36단계(도우미3): 점령지 갈래가 세계 흐름을 바꿔 4판에선 0이 나왔다(main도 1뿐인 드문 일이라 판을 6으로 늘림)
+for (let s = 0; s < 6; s++) {
   const g = newGame({ name: '토비', sex: 'm', familyId: 'farmer', mode: 'free', seed: 4700 + s });
   for (let m = 0; m < 70 * 12 && !g.over; m++) {
     endMonth(g, [{ id: 'rest' }]); resolveAll(g, (k) => (k === 'heir' ? 0 : -1)); checkMonth(g);
@@ -219,7 +220,7 @@ for (let s = 0; s < 4; s++) {
   const f = foundingState(g);
   rises += f.world.length; fallsW += f.world.filter((w) => w.fall).length;
 }
-ok(rises >= 1 && rises <= 16, `플레이어 없이 선 나라 ${rises} (4판 70년)`);
+ok(rises >= 1 && rises <= 24, `플레이어 없이 선 나라 ${rises} (6판 70년)`);
 
 /* 8) 옛 저장 */
 {
