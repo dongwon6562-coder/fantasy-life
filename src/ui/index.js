@@ -235,7 +235,7 @@ function renderSetup() {
             </div>
           </div>
         </section>
-        <div class="actions-row">
+        <div class="actions-row begin-bar">
           <button class="primary" id="begin" ${s.family && s.name.trim() && birthReady(s) ? '' : 'disabled'}>태어나기</button>
           <span class="note" id="begin-note">${beginNote(s)}</span>
         </div>
@@ -638,7 +638,7 @@ function heroStrip() {
 
 // 38단계 장식 그림(src/art/ornament.js)의 기본 틀을 한 번만 붙인다
 if (typeof document !== 'undefined' && !document.getElementById('orn-css')) document.head.insertAdjacentHTML('beforeend', `<style id="orn-css">${ORNAMENT_CSS}
-${['.layout.view-people .card', '.layout.view-chron .card:not(.chron-card)', '.sheet:not(.side)'].map((selector) => frameCss({ selector, kind: 'knot', size: 26, color: '#a8843f', inset: 4 })).join('\n')}
+${['.layout.view-people .card', '.layout.view-chron .card:not(.chron-card)', '.sheet:not(.side)', '.setup > section', '.layout.view-save .card', '.layout.view-map .card:not(.mapcard)'].map((selector) => frameCss({ selector, kind: 'knot', size: 26, color: '#a8843f', inset: 4 })).join('\n')}
 ${frameCss({ selector: '.layout.view-chron .chron-card', kind: 'leaf', size: 30, color: '#7a5524', inset: 6 })}</style>`);
 
 const VIEWS = [
