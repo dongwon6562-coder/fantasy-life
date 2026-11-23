@@ -110,7 +110,7 @@ function deliver(g, rng, pl) {
       text = `${K.truth(f.d, g)} ${rng.pick([`앞서 ${from} 들은 말과는 달랐다.`, '처음 돌던 말은 한참 부풀려진 것이었다.', `${from} 들은 말은 반쯤만 맞았다.`, '먼저 돈 말을 옮긴 사람들이 머쓱해했다.'])}`;
     }
     const line = `${lb}: ${text}`;
-    out.push({ text: line, via: viaShort(via), k: f.k, fid: f.id, wrong, fix, ago: now - f.at });
+    out.push({ text: line, via: viaShort(via), k: f.k, fid: f.id, pl: f.pl ?? null, wrong, fix, ago: now - f.at }); // pl: 지도에 '소문 난 곳'으로 (38단계)
   }
   // 오래된 사실은 잊힌다 (큰일은 노래로 남는다)
   R.facts = R.facts.filter((f) => !(f.h2 && now - f.at > 6) && now - f.at <= 48);

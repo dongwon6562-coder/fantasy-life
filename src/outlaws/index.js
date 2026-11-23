@@ -2,7 +2,7 @@
 // 플레이어 없이도 무법한 고장(흉년·전쟁·분노·점령) 근처 숲에 무리가 서고, 커지고, 토벌되거나 흩어지거나 사면받는다.
 // 꺾인 봉기(revolt)의 잔당과 전쟁 뒤 탈영병이 무리가 된다. 도시 조직(crime·underworld)과는 따로.
 // 화면용: outlawsLine(g) 이번 달 이 고장의 산적 한 줄(없으면 null), outlawsInfo(g) 한 장, outlawAt(g, 고장), outlawsOnRoad(g, a, b) 이 길을 노리는 무리
-import { MAP_INFO } from '../art/map.js';
+import { MAP_INFO, MAP_MARKS } from '../art/map.js';
 import { J } from '../narrative/text.js';
 import { OS, LAIRS, bandAt, myBand, bandOnRoad, liveBands, bounty, menWord, heatWord, endWord, placeName, lawless, mi } from './state.js';
 import './world.js';
@@ -56,3 +56,6 @@ MAP_INFO.push((g, place) => {
   if (!b) return '';
   return `<p class="note"><b>${b.noble ? '의적' : '산적'}</b> · ${LAIRS[b.lair].name}에 ${b.name} · ${heatWord(b.heat)}</p>`;
 });
+
+// 38단계 지도 표: 산채가 있는 고장에 험한 곳 표
+MAP_MARKS.push((g) => liveBands(g).map((b) => ({ place: b.lair, kind: 'danger', text: `${LAIRS[b.lair].name}에 ${b.name}${b.toll ? ', 길목에서 통행세를 받는다' : ''}${b.heat >= 40 ? `, 두목 목에 은화 ${bounty(b)}닢` : ''}.` })));

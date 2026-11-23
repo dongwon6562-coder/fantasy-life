@@ -5,6 +5,8 @@
 //  - MAP_ACTIONS에 (game, place) => [{ label, run }] 함수를 넣으면 설명 칸에 버튼이 생긴다 (예: 여행).
 //  - 지금 있는 곳은 places.js의 L(g).place (지도 장소 id와 같음). 화면(ui/index.js)이 넘겨준다.
 import { drawTrail, drawBeyond } from './mapTrail.js';
+import { drawMarks, legendHtml, MAP_MARKS } from './mapMarks.js';
+import { townMapSvg } from './mapTown.js';
 import {
   continents, contGroup, innerSeas, TERRAIN, nations, central, regions, P, roads, oldRoads,
   seaRoutes, ghostRoutes, rivers, seaLabels, edgeLabels, mtLabels,
@@ -13,6 +15,8 @@ import { INK, PAL, inkSetup, mountain, hill, tree, fir, deadTree, reeds, tuft, d
 import { canvasUrl } from './sceneKit.js';
 
 export const MAP_PLACES_EXTRA = [];
+// 38단계: 지도 위 표 (소문 난 곳·험한 곳). (game) => [{ place, kind: 'rumor'|'danger'|'note', text }]
+export { MAP_MARKS };
 export const MAP_ACTIONS = [];
 // MAP_INFO에 (game, place) => html 함수를 넣으면 설명 칸 아래에 덧붙는다 (예: 나라의 법과 나와의 관계).
 export const MAP_INFO = [];
@@ -214,6 +218,14 @@ function renderTerrain(prep, INKK = 2) {
   for (let a = 0; a < 16; a++) { const an = a * Math.PI / 8; ctx.moveTo(64, 100); ctx.lineTo(64 + Math.sin(an) * 2400, 100 - Math.cos(an) * 2400); }
   ctx.stroke(); ctx.restore();
 
+  // 38단계: 동판에 판 바다 결. 가로로 가는 선을 긋되, 바닷가 가까이는 촘촘하고 진하게, 먼바다로 갈수록 성기고 흐리게.
+  // 선은 판화칼이 끊기듯 군데군데 끊긴다. 띠마다 한 번에 긋는다(줄 수천 개를 한 path에).
+  seaHatch(ctx, fieldA, CW, CH);
+  // 바닷가 안쪽 땅에 점찍기 (모래톱·갯가)
+  shoreStipple(ctx, fieldA, CW, CH);
+  // 땅의 기복: 해 반대쪽(남동) 비탈에 짧은 빗금 (산 기호 사이 땅이 판화처럼 결을 가진다)
+  reliefHatch(ctx, fieldA, elev, CW, CH);
+
   // 물결선과 바닷가 윤곽
   ctx.save();
   [[-0.02, 0.5, 0.42], [-0.046, 0.36, 0.34], [-0.078, 0.24, 0.3], [-0.118, 0.14, 0.28]].forEach(([lv, al, lw]) => { ctx.globalAlpha = al; ctx.lineWidth = lw; ctx.strokeStyle = "#3c4a4a"; contour(ctx, fieldA, CW, CH, lv); });
@@ -247,6 +259,12 @@ function renderTerrain(prep, INKK = 2) {
   for (let y = 8.5, q = 0; y < WH - 9; y += 25, q++) if (q % 2 === 0) { const h = Math.min(25, WH - 8.5 - y); ctx.fillRect(4.6, y, 3.6, h); ctx.fillRect(WW - 8.2, y, 3.6, h); }
   ctx.restore();
 
+  // 38단계: 테두리 안쪽 눈금 숫자와 모서리 장식, 접힌 자국
+  frameMarks(ctx);
+  ctx.setTransform(1, 0, 0, 1, 0, 0);
+  folds(ctx, cv.width, cv.height);
+  ctx.setTransform(INKK, 0, 0, INKK, 0, 0);
+
   // 종이 결과 얼룩
   ctx.setTransform(1, 0, 0, 1, 0, 0);
   ctx.globalAlpha = 0.05;
@@ -256,6 +274,109 @@ function renderTerrain(prep, INKK = 2) {
   for (let k = 0; k < 26; k++) { const x = rnd() * cv.width, y = rnd() * cv.height, r = 8 + rnd() * 26; const g = ctx.createRadialGradient(x, y, 0, x, y, r); g.addColorStop(0, "rgba(110,72,34,0.9)"); g.addColorStop(1, "rgba(110,72,34,0)"); ctx.globalAlpha = 0.05 + rnd() * 0.07; ctx.fillStyle = g; ctx.fillRect(x - r, y - r, r * 2, r * 2); }
   ctx.globalAlpha = 1;
   return canvasUrl(cv, "image/jpeg", 0.86);
+}
+
+/* ---------- 38단계: 판화 겹 ---------- */
+function seaHatch(ctx, fieldA, CW, CH) {
+  const bands = [[0.07, 0.46, 1], [0.16, 0.3, 1], [0.3, 0.2, 2], [9, 0.13, 3]];
+  const paths = bands.map(() => []);
+  const STEP = 2.5;
+  for (let y = 12, row = 0; y < CH - 12; y += STEP, row++) {
+    const ry = Math.round(y), base = ry * CW;
+    let cur = -1, x0 = 0;
+    const close = (x) => { if (cur >= 0 && x - x0 > 1.6) paths[cur].push(x0, y, x); cur = -1; };
+    for (let x = 12; x < CW - 12; x++) {
+      const f = fieldA[base + x];
+      let b = -1;
+      if (f < -0.012) {
+        const dep = -f;
+        b = dep < bands[0][0] ? 0 : dep < bands[1][0] ? 1 : dep < bands[2][0] ? 2 : 3;
+        if (row % bands[b][2]) b = -1;
+        // 판화칼이 끊기는 자리
+        else if (vnoise(x / 7.5, y / 2.2, 521 + b) < (b === 0 ? 0.16 : 0.26)) b = -1;
+      }
+      if (b !== cur) { close(x); if (b >= 0) { cur = b; x0 = x; } }
+    }
+    close(CW - 12);
+  }
+  ctx.save(); ctx.strokeStyle = "#2c3c3e"; ctx.lineCap = "butt";
+  bands.forEach(([, al], k) => {
+    const L = paths[k]; if (!L.length) return;
+    ctx.globalAlpha = al; ctx.lineWidth = k === 0 ? 0.34 : 0.3; ctx.beginPath();
+    for (let i = 0; i < L.length; i += 3) { ctx.moveTo(L[i], L[i + 1]); ctx.lineTo(L[i + 2], L[i + 1]); }
+    ctx.stroke();
+  });
+  ctx.restore();
+}
+function shoreStipple(ctx, fieldA, CW, CH) {
+  ctx.save(); ctx.fillStyle = "#4a3a28"; ctx.globalAlpha = 0.55;
+  for (let y = 10; y < CH - 10; y += 1.4) for (let x = 10; x < CW - 10; x += 1.4) {
+    const f = fieldA[Math.round(y) * CW + Math.round(x)];
+    if (f <= 0.004 || f > 0.05) continue;
+    const p = (1 - f / 0.05) * 0.42;
+    if (hash(Math.round(x * 5), Math.round(y * 5), 541) < p * 1.3) ctx.fillRect(x + (hash(Math.round(x * 3), Math.round(y * 7), 543) - 0.5), y, 0.5, 0.5);
+  }
+  ctx.restore();
+}
+function reliefHatch(ctx, fieldA, elev, CW, CH) {
+  ctx.save(); ctx.strokeStyle = "#3a2a1a"; ctx.lineCap = "round";
+  const lines = [[], [], []];
+  for (let y = 12; y < CH - 12; y += 2.2) for (let x = 12; x < CW - 12; x += 2.2) {
+    const px = Math.round(x + (hash(Math.round(x * 3), Math.round(y * 3), 551) - 0.5) * 1.4), py = Math.round(y + (hash(Math.round(x * 3), Math.round(y * 3), 552) - 0.5) * 1.4);
+    const i = py * CW + px;
+    if (fieldA[i] < 0.03) continue;
+    const gx = (elev[i + 2] - elev[i - 2]) / 4, gy = (elev[i + 2 * CW] - elev[i - 2 * CW]) / 4;
+    const g = Math.hypot(gx, gy);
+    if (g < 0.006) continue;
+    // 빛은 북서에서: 아래로 내려가는 쪽이 남동이면 그늘
+    const shade = (gx * -0.7 + gy * -0.7) / g;
+    if (shade < 0.15) continue;
+    const k = Math.min(2, Math.floor((g - 0.006) / 0.008 + shade));
+    if (hash(px, py, 553) > 0.35 + k * 0.2) continue;
+    const len = 1.1 + Math.min(1.8, g * 90);
+    // 비탈을 따라 내려가는 방향으로 긋는다
+    const ux = -gx / g, uy = -gy / g;
+    lines[k].push(px, py, px + ux * len, py + uy * len);
+  }
+  [[0.22, 0.26], [0.34, 0.3], [0.48, 0.34]].forEach(([al, lw], k) => {
+    const L = lines[k]; if (!L.length) return;
+    ctx.globalAlpha = al; ctx.lineWidth = lw; ctx.beginPath();
+    for (let i = 0; i < L.length; i += 4) { ctx.moveTo(L[i], L[i + 1]); ctx.lineTo(L[i + 2], L[i + 3]); }
+    ctx.stroke();
+  });
+  ctx.restore();
+}
+// 테두리 눈금에 경도·위도 숫자, 네 모서리에 마름모 장식
+function frameMarks(ctx) {
+  ctx.save(); ctx.fillStyle = "#3a2618"; ctx.strokeStyle = "#3a2618";
+  ctx.font = "italic 6.4px 'Gowun Batang', serif"; ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.globalAlpha = 0.85;
+  for (let x = 100, k = 1; x < WW - 40; x += 100, k++) { ctx.fillText(String(k * 10), x, 14.5); ctx.fillText(String(k * 10), x, WH - 14.5); }
+  for (let y = 100, k = 1; y < WH - 40; y += 100, k++) { ctx.fillText(String(k * 10), 15, y); ctx.fillText(String(k * 10), WW - 15, y); }
+  ctx.globalAlpha = 1;
+  const corner = (cx, cy) => {
+    ctx.save(); ctx.translate(cx, cy);
+    ctx.fillStyle = "#efe3c4"; ctx.lineWidth = 0.8;
+    ctx.beginPath(); ctx.rect(-9, -9, 18, 18); ctx.fill(); ctx.stroke();
+    ctx.lineWidth = 0.45; ctx.beginPath(); ctx.rect(-6.5, -6.5, 13, 13); ctx.stroke();
+    ctx.fillStyle = "#3a2618"; ctx.beginPath(); ctx.moveTo(0, -5); ctx.lineTo(5, 0); ctx.lineTo(0, 5); ctx.lineTo(-5, 0); ctx.closePath(); ctx.fill();
+    ctx.fillStyle = "#efe3c4"; ctx.beginPath(); ctx.arc(0, 0, 1.3, 0, Math.PI * 2); ctx.fill();
+    ctx.restore();
+  };
+  corner(10.5, 10.5); corner(WW - 10.5, 10.5); corner(10.5, WH - 10.5); corner(WW - 10.5, WH - 10.5);
+  ctx.restore();
+}
+// 오래 접어 두었던 지도: 세로 둘, 가로 하나 접힌 자국 (밝은 등성이와 어두운 골)
+function folds(ctx, W, H) {
+  ctx.save();
+  const line = (x0, y0, x1, y1, vertical) => {
+    const gw = vertical ? W * 0.012 : H * 0.012;
+    const g = vertical ? ctx.createLinearGradient(x0 - gw, 0, x0 + gw, 0) : ctx.createLinearGradient(0, y0 - gw, 0, y0 + gw);
+    g.addColorStop(0, "rgba(90,60,30,0)"); g.addColorStop(0.45, "rgba(90,60,30,0.10)"); g.addColorStop(0.5, "rgba(255,248,230,0.22)"); g.addColorStop(0.56, "rgba(90,60,30,0.08)"); g.addColorStop(1, "rgba(90,60,30,0)");
+    ctx.fillStyle = g;
+    if (vertical) ctx.fillRect(x0 - gw, 0, gw * 2, H); else ctx.fillRect(0, y0 - gw, W, gw * 2);
+  };
+  line(W / 3, 0, W / 3, H, true); line(W * 2 / 3, 0, W * 2 / 3, H, true); line(0, H / 2, W, H / 2, false);
+  ctx.restore();
 }
 
 function drawGlyphs(ctx, CW, CH, fieldA, elev, mxA, myA, M, excl) {
@@ -462,12 +583,15 @@ export function mountMap(container, opt = {}) {
       <span class="zoom">
         <button class="ghost sm" data-z="in" aria-label="확대">+</button>
         <button class="ghost sm" data-z="out" aria-label="축소">−</button>
-        <button class="ghost sm" data-z="here">지금 있는 곳</button>
+        <button class="ghost sm" data-z="here" aria-label="지금 있는 곳으로">여기</button>
         <button class="ghost sm" data-z="all">전체</button>
+        <button class="ghost sm" data-z="town" aria-label="지금 있는 고장의 지도">고장</button>
+        <button class="ghost sm" data-z="legend" aria-label="지도 기호 풀이">범례</button>
       </span>
     </div>
     <div class="mapbox"><svg viewBox="0 0 ${WW} ${WH}" role="img" aria-label="용사력 500년 대륙 지도"></svg><div class="map-loading">양피지에 지도를 옮겨 그리는 중…</div></div>
     <aside class="map-info" aria-live="polite"></aside>`;
+  injectStyle();
   const svg = container.querySelector("svg");
   const info = container.querySelector(".map-info");
   const go = () => {
@@ -482,6 +606,31 @@ export function mountMap(container, opt = {}) {
   // 첫 그림은 몇 초 걸리니 '그리는 중' 글자가 먼저 보이게 한 박자 쉰다
   if (terrainUrl) go(); else setTimeout(go, 40);
   return () => ac.abort();
+}
+
+// 38단계: 지도 안의 새 칸(범례·고장 지도 겹창) 모양. style.css는 화면 갈래 것이라 여기서 한 번만 얹는다.
+let styled = false;
+function injectStyle() {
+  if (styled || typeof document === "undefined") return; styled = true;
+  const st = document.createElement("style"); st.dataset.map38 = "";
+  st.textContent = `
+.map-tools .zoom { flex-wrap: nowrap; overflow-x: auto; max-width: 100%; gap: 5px; scrollbar-width: none; -webkit-overflow-scrolling: touch; }
+.map-tools .zoom::-webkit-scrollbar { display: none; }
+.map-tools .zoom button { white-space: nowrap; flex: none; }
+@media (max-width: 420px) { .map-tools .zoom button.sm { padding: 6px 10px; min-width: 38px; } }
+@media (max-width: 360px) { .map-tools .zoom { gap: 4px; } .map-tools .zoom button.sm { padding: 6px 7px; min-width: 32px; } }
+.map-legend { display: grid; gap: 3px; }
+.map-legend .lg-row { display: flex; align-items: center; gap: 8px; font-size: 13px; line-height: 1.3; }
+.map-legend .lg-row svg { flex: none; }
+.map-info .map-rumor, .map-info .map-danger { font-size: 13px; line-height: 1.55; margin: 2px 0 0; }
+.mapbox .town-over { position: absolute; inset: 0; z-index: 3; display: flex; flex-direction: column; background: #2a2018; }
+.mapbox .town-bar { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; justify-content: space-between; padding: 6px 8px; background: #efe3c4; color: #2b1d12; border-bottom: 1px solid #8a6a40; font-size: 14px; }
+.mapbox .town-scroll { flex: 1; overflow: auto; -webkit-overflow-scrolling: touch; touch-action: pan-x pan-y; }
+.mapbox .town-scroll svg { display: block; width: 100%; height: auto; min-height: 100%; }
+.mapbox .town-scroll.big svg { width: 220%; }
+@media (max-width: 520px) { .mapbox .town-scroll svg { width: 150%; } .mapbox .town-scroll.big svg { width: 300%; } }
+`;
+  document.head.appendChild(st);
 }
 
 const SERIF = "Gowun Batang, serif";
@@ -614,8 +763,10 @@ function build(svg, info, here, opt, signal) {
       <h3>${d.name}</h3><p class="note">${d.realm ?? ""}</p><p class="desc">${d.desc ?? ""}</p>
       ${d.todo ? `<p class="todo"><span>할 수 있는 일</span>${d.todo}</p>` : ""}
       ${place ? trail.info(place) : ''}
+      ${place ? marks.info(place) : ''}
       ${extra}
-      ${acts.length ? `<div class="actions-row">${acts.map((a, i) => `<button class="ghost" data-map-act="${i}">${a.label}</button>`).join("")}</div>` : ""}`;
+      ${acts.length || (place && place.id && !place.region) ? `<div class="actions-row">${acts.map((a, i) => `<button class="ghost" data-map-act="${i}">${a.label}</button>`).join("")}${place && place.id && !place.region ? `<button class="ghost" data-town-of="${place.id}">고장 지도</button>` : ""}</div>` : ""}`;
+    info.querySelector("[data-town-of]")?.addEventListener("click", () => openTown(place));
     info.querySelectorAll("[data-map-act]").forEach((b) => b.addEventListener("click", () => { acts[+b.dataset.mapAct].run(); opt.onChange?.(); }));
   };
   const bind = (g, fn) => {
@@ -663,6 +814,9 @@ function build(svg, info, here, opt, signal) {
     if (p.id === here) hereP = p;
     bind(g, () => show(data, g, p));
   });
+  // 38단계: 소문 난 곳·험한 곳 표 (장소 기호 위)
+  const markG = el("g", { class: "marks" }, svg);
+  const marks = opt.game ? drawMarks(el, markG, opt.game, byId, pin) : { count: 0, info: () => "" };
   // 지금 있는 곳 표시: 붉은 고리와 깃발
   if (hereP) {
     const hg = el("g", { class: "here-mark", "pointer-events": "none" }, svg);
@@ -733,6 +887,27 @@ function build(svg, info, here, opt, signal) {
   box.querySelector('[data-z="out"]').addEventListener("click", () => zoomAt(1 / 1.5, vb.x + vb.w / 2, vb.y + vb.h / 2), o);
   box.querySelector('[data-z="all"]').addEventListener("click", () => { vb.x = 0; vb.y = 0; vb.w = WW; apply(); }, o);
   box.querySelector('[data-z="here"]').addEventListener("click", () => { if (hereP) { focusOn(hereP); show(hereP._data, hereP._g, hereP); } }, o);
+  // 38단계: 범례와 고장 지도
+  box.querySelector('[data-z="legend"]').addEventListener("click", () => { if (current) current.classList.remove("on"); current = null; info.innerHTML = legendHtml(); }, o);
+  const townBtn = box.querySelector('[data-z="town"]');
+  if (!hereP) townBtn.hidden = true;
+  townBtn.addEventListener("click", () => { if (hereP) openTown(hereP); }, o);
+  function openTown(p) {
+    const mb = svg.closest(".mapbox");
+    mb.querySelector(".town-over")?.remove();
+    const nbIds = new Set();
+    for (const r of roads.concat(oldRoads)) for (let i = 0; i < r.length; i++) if (r[i] === p.id) { if (r[i - 1]) nbIds.add(r[i - 1]); if (r[i + 1]) nbIds.add(r[i + 1]); }
+    const neighbors = [...nbIds].map((id) => byId[id]).filter(Boolean);
+    let html = "";
+    try { html = townMapSvg(p, opt.game, { neighbors, kind: [KIND[p.t], p.realm].filter(Boolean).join(" · ") }); } catch (e) { console.error(e); return; }
+    const ov = document.createElement("div");
+    ov.className = "town-over";
+    ov.innerHTML = `<div class="town-bar"><b>${p.n} 고장 지도</b><span><button class="ghost sm" data-town="zoom">크게</button> <button class="ghost sm" data-town="close" aria-label="닫기">대륙 지도로</button></span></div><div class="town-scroll">${html}</div>`;
+    mb.appendChild(ov);
+    const sc = ov.querySelector(".town-scroll"), zb = ov.querySelector('[data-town="zoom"]');
+    zb.addEventListener("click", () => { const big = sc.classList.toggle("big"); zb.textContent = big ? "작게" : "크게"; if (big) { sc.scrollLeft = (sc.scrollWidth - sc.clientWidth) / 2; sc.scrollTop = (sc.scrollHeight - sc.clientHeight) / 2; } });
+    ov.querySelector('[data-town="close"]').addEventListener("click", () => ov.remove());
+  }
   // 처음엔 지금 있는 곳 둘레를 보여 준다
   if (hereP) focusOn(hereP, Math.max(380, Math.min(640, svg.getBoundingClientRect().width * 1.15 || 640))); else apply();
 }
