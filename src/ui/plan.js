@@ -132,6 +132,8 @@ const GROUPS = [
   ['newage', '새 시대', /^(na_|city_)/],
   ['builder', '목수와 석공', /^builder_/],
   ['carrier', '길 위의 일', /^carrier_/],
+  ['hunter', '사냥', /^hunter_/],
+  ['outlaw', '현상금 사냥', /^out_hunt$/],
   ['spread', '기술 퍼뜨리기', /^spread_/],
   ['herd', '목축과 유목', /^herd_/],
   ['frontier', '개척', /^frontier_/],
@@ -171,7 +173,7 @@ const GROUPS = [
   ['spy', '첩보와 밀정', /^spy_/],
   ['slavery', '노예와 자유', /^bondage_/],
   ['heist', '큰 한탕', /^heist_/],
-  ['dark', '어두운 일', /^(crime_|gang_|dawn_rite|repute_slander|forbidden_rite|feud_plot|vessel_rite|imprint_rite|bloodyears_rite)/],
+  ['dark', '어두운 일', /^(crime_|gang_|out_|dawn_rite|repute_slander|forbidden_rite|feud_plot|vessel_rite|imprint_rite|bloodyears_rite)/],
   ['rest', '쉼', /^(rest|drift_years)$/],
 ];
 // 고장마다 따로 있는 일(이름이 고장 이름으로 시작)과 어린아이 일은 하는 일에 맞는 묶음으로 보낸다.
