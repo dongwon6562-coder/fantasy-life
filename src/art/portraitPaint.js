@@ -27,7 +27,7 @@ export function paintDefs(uid, detail = true, H = 100) {
   <filter id="${uid}xh" x="0" y="0" width="100" height="${H}" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
     <feTurbulence type="fractalNoise" baseFrequency="0.9 0.045" numOctaves="3" seed="3" result="n"/>
     <feColorMatrix in="n" type="matrix" values="2.2 0 0 0 -0.55  2.2 0 0 0 -0.55  2.2 0 0 0 -0.55  0 0 0 0 1" result="streak"/>
-    <feComposite in="SourceGraphic" in2="streak" operator="arithmetic" k1="0.6" k2="0.62" k3="0" k4="0" result="s1"/>
+    <feComposite in="SourceGraphic" in2="streak" operator="arithmetic" k1="0.34" k2="0.8" k3="0" k4="0" result="s1"/>
     <feColorMatrix in="SourceGraphic" type="luminanceToAlpha" result="lum"/>
     <feGaussianBlur in="lum" stdDeviation="0.45" result="h"/>
     <feSpecularLighting in="h" surfaceScale="2.2" specularConstant="0.6" specularExponent="22" lighting-color="${WARM}" result="spec"><feDistantLight azimuth="235" elevation="48"/></feSpecularLighting>

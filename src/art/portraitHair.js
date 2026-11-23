@@ -34,8 +34,9 @@ export function drawHair(style, h) {
   const hlBase = top + hh * (0.33 + h.peak * 0.05);
 
   // 정수리 덮개
-  const cap = ({ v = 2, drop = 0, hl = hlBase, peak = 0, recede = 0, sideIn = 0.955, flare = 0, lock = 0 }) => {
+  const cap = ({ v: v0 = 2, drop = 0, hl = hlBase, peak = 0, recede = 0, sideIn = 0.955, flare = 0, lock = 0 }) => {
     const sideY = cy + drop;
+    const v = v0 * (h.vol ?? 1); // 38단계: 머리에 부피를 (머리통에 딱 붙은 투구처럼 보이지 않게)
     const outer = [[cx, top - v * 1.2], [cx + hw * 0.52, top - v * 1.02 + hh * 0.03], [cx + hw * 0.93 + v * 0.62, top + hh * 0.3], [cx + hw + v * 0.72, cy - hh * 0.12], [cx + hw * 0.99 + v * 0.55 + flare, sideY]];
     if (drop > hh * 0.3) outer.splice(4, 0, [cx + hw * 0.99 + v * 0.66 + flare * 0.5, cy + drop * 0.5]);
     const jit = () => (h.r() - 0.5) * hh * 0.035;
@@ -48,6 +49,8 @@ export function drawHair(style, h) {
       inner.push([cx + hw * 0.9, lerp(sideY, chin, 0.6)], [cx + hw * 0.8 + wv * 0.4, chin + lock * 0.5], [cx + hw * 0.82, chin + lock - 0.6]);
     } else inner.push([cx + hw * sideIn, sideY]);
     const o = arch(cx, outer), i = arch(cx, inner).reverse();
+    // 가르마 반대쪽이 더 부푼다
+    if (h.vol > 1) for (const q of o) if ((q[0] - cx) * part < 0 && q[1] < cy) q[0] += -part * v * 0.22 * Math.min(1, Math.abs(q[0] - cx) / hw);
     const d = `${spline(o)} L${f(i[0][0])} ${f(i[0][1])} ${spline(i, false, false)}Z`;
     return { d, sideY: lock ? chin : sideY, v, hl, o };
   };
@@ -69,8 +72,25 @@ export function drawHair(style, h) {
   };
   const capDraw = (c, extra = '') => {
     out.defs += `<clipPath id="${uid}k"><path d="${c.d}"/></clipPath>`;
-    return `<path d="${c.d}" fill="${fillG}" ${line}/>${extra}${detail ? flyaway(c) : ''}`;
+    return `${detail ? clumps(c) : ''}<path d="${c.d}" fill="${fillG}" ${line}/>${detail ? capShade(c) : ''}${extra}${detail ? flyaway(c) : ''}`;
   };
+  // 38단계 둘째: 윤곽에 머리 다발이 삐죽삐죽 (매끈한 투구 윤곽 대신), 정수리 빛 띠와 이마 쪽 깊은 그늘
+  // 머리 윤곽 바깥으로 번지는 부드러운 털 기운 (칼로 오린 듯한 가장자리 대신)
+  const clumps = (c) => `<path d="${c.d}" fill="${hair}" opacity="0.55" filter="url(#${uid}xb)" transform="translate(${f(cx)} ${f(cy)}) scale(1.035 1.025) translate(${f(-cx)} ${f(-cy)})"/>`;
+  // 굵은 머리 다발: 정수리에서 가장자리로 휘며 내려가는 밝고 어두운 띠 (머리가 한 덩어리가 아니라 다발로 읽히게)
+  const lockBands = (c) => {
+    let lt = '', dk = '';
+    const n = 7, sx = cx + part * hw * 0.18, sy0 = top - c.v * 0.3;
+    for (let k = 0; k < n; k++) {
+      const u = -1 + (2 * (k + 0.5)) / n + (h.r() - 0.5) * 0.1, a = Math.abs(u);
+      const tx = cx + u * (hw + c.v * 0.8), ty = lerp(c.hl + 2, c.sideY + 1, a ** 1.4);
+      const qx = (sx + tx) / 2 + u * hw * 0.3 + (h.wave ?? 0) * 2 * (k % 2 ? 1 : -1), qy = Math.min(sy0, ty) + hh * 0.05;
+      const seg = `M${f(sx)} ${f(sy0)} Q${f(qx)} ${f(qy)} ${f(tx)} ${f(ty)} `;
+      if (k % 2) dk += seg; else lt += seg;
+    }
+    return `<path d="${lt}" fill="none" stroke="${light}" stroke-width="${f(hw * 0.2)}" stroke-linecap="round" opacity="0.42" filter="url(#${uid}xs)"/><path d="${dk}" fill="none" stroke="${dark}" stroke-width="${f(hw * 0.14)}" stroke-linecap="round" opacity="0.6" filter="url(#${uid}xs)"/>`;
+  };
+  const capShade = (c) => `<g clip-path="url(#${uid}k)">${lockBands(c)}<path d="M${f(cx - hw * 0.95)} ${f(top + hh * 0.12)} Q${f(cx - hw * 0.2)} ${f(top - c.v * 1.4)} ${f(cx + hw * 0.55)} ${f(top + hh * 0.02)}" fill="none" stroke="${light}" stroke-width="${f(hh * 0.12)}" stroke-linecap="round" opacity="0.32" filter="url(#${uid}xb)"/><path d="M${f(cx - hw * 1.1)} ${f(c.hl + hh * 0.05)} Q${cx} ${f(c.hl - hh * 0.1)} ${f(cx + hw * 1.1)} ${f(c.hl + hh * 0.05)}" fill="none" stroke="${dark}" stroke-width="${f(hh * 0.1)}" opacity="0.5" filter="url(#${uid}xb)"/><path d="M${f(cx + hw * 0.7)} ${f(top + hh * 0.1)} Q${f(cx + hw + c.v)} ${f(cy - hh * 0.3)} ${f(cx + hw * 0.95)} ${f(c.sideY)}" fill="none" stroke="${dark}" stroke-width="${f(hw * 0.3)}" opacity="0.45" filter="url(#${uid}xb)"/></g>`;
   // 38단계 큰 초상: 윤곽 밖으로 삐져나온 잔머리와 이마 선의 잔털 (헬멧처럼 보이지 않게)
   const flyaway = (c) => {
     if (!c.o) return '';
@@ -98,6 +118,13 @@ export function drawHair(style, h) {
       const s = -part; // 넘기는 방향
       const d = `M${f(cx + part * hw * 0.5)} ${f(hl - hh * 0.1)} C${f(cx + part * hw * 0.1)} ${f(hl + hh * 0.1)} ${f(cx + s * hw * 0.5)} ${f(hl + hh * 0.2)} ${f(cx + s * hw * 0.97)} ${f(browY - hh * 0.02)} L${f(cx + s * (hw + c.v * 0.4))} ${f(hl + hh * 0.1)} C${f(cx + s * hw * 0.7)} ${f(hl - hh * 0.16)} ${f(cx + part * hw * 0.1)} ${f(hl - hh * 0.3)} ${f(cx + part * hw * 0.5)} ${f(hl - hh * 0.1)}Z`;
       return `<path d="${d}" fill="${fillG}" ${line}/>${detail ? `<path d="M${f(cx + part * hw * 0.3)} ${f(hl - hh * 0.12)} Q${f(cx + s * hw * 0.3)} ${f(hl + hh * 0.06)} ${f(cx + s * hw * 0.9)} ${f(browY - hh * 0.1)} M${f(cx + part * hw * 0.1)} ${f(hl - hh * 0.18)} Q${f(cx + s * hw * 0.5)} ${f(hl - hh * 0.04)} ${f(cx + s * hw * 0.96)} ${f(hl + hh * 0.16)}" fill="none" stroke="${dark}" stroke-width="0.4" opacity="0.6"/>` : ''}`;
+    }
+    if (kind === 'strand') {
+      // 38단계 둘째: 이마로 흘러내린 굵은 가닥 하나 (가르마 쪽에서 반대쪽 눈썹 위로)
+      const x0 = cx + part * hw * 0.32, y0 = hl - hh * 0.12, x1 = cx - part * hw * (0.18 + h.wave * 0.2), y1 = browY - hh * (0.02 - h.wave * 0.05);
+      const w = hw * 0.15;
+      const d = `M${f(x0 - w)} ${f(y0)} C${f(x0 - w * 0.6)} ${f(lerp(y0, y1, 0.5))} ${f(x1 + part * w * 1.6)} ${f(lerp(y0, y1, 0.7))} ${f(x1)} ${f(y1)} C${f(x1 + part * w * 2.4)} ${f(lerp(y0, y1, 0.55))} ${f(x0 + w * 0.8)} ${f(lerp(y0, y1, 0.3))} ${f(x0 + w)} ${f(y0)}Z`;
+      return `<path d="${d}" fill="${fillG}" ${line}/>${detail ? `<path d="M${f(x0)} ${f(y0 + 0.5)} C${f(x0 - w * 0.2)} ${f(lerp(y0, y1, 0.45))} ${f(x1 + part * w * 1.8)} ${f(lerp(y0, y1, 0.65))} ${f(x1 + part * 0.6)} ${f(y1 - 0.8)}" fill="none" stroke="${light}" stroke-width="0.45" opacity="0.5"/><path d="M${f(x1 + part * w * 0.3)} ${f(y1 + 0.6)} q${f(part * w)} 0.6 ${f(part * w * 2.6)} -0.6" fill="none" stroke="#2a120a" stroke-width="1" opacity="0.18" filter="url(#${uid}xs)"/>` : ''}`;
     }
     if (kind === 'bangs') {
       const y = browY - hh * 0.06;
@@ -183,17 +210,17 @@ export function drawHair(style, h) {
     }
     case 'short': {
       const c = cap({ v: 2.4, drop: -hh * 0.04, peak: 0.5 });
-      out.front = capDraw(c, strands(c, { n: 14 })) + (h.peak > 0.6 ? fringe('tuft', c) : '') + castShadow(c);
+      out.front = capDraw(c, strands(c, { n: 14 })) + (h.peak > 0.6 ? fringe('tuft', c) : h.peak < 0.3 ? fringe('strand', c) : '') + castShadow(c);
       break;
     }
     case 'side': {
       const c = cap({ v: 2.5, drop: -hh * 0.02 });
-      out.front = capDraw(c, strands(c, { ox: part * hw * 0.45 })) + fringe('sweep', c) + castShadow(c);
+      out.front = capDraw(c, strands(c, { ox: part * hw * 0.45 })) + fringe('sweep', c) + (h.peak > 0.5 ? fringe('strand', c) : '') + castShadow(c);
       break;
     }
     case 'back': {
       const c = cap({ v: 2.8, drop: 0, hl: hlBase - hh * 0.05, peak: hh * 0.05 + h.peak * 1.2, recede: 0.35 });
-      out.front = capDraw(c, strands(c, { n: 13, ox: 0, back: true }));
+      out.front = capDraw(c, strands(c, { n: 13, ox: 0, back: true })) + (h.peak > 0.55 ? fringe('strand', c) : '');
       break;
     }
     case 'shag': {
@@ -260,7 +287,7 @@ export function drawHair(style, h) {
     case 'bun': {
       const c = cap({ v: 2, drop: -hh * 0.02, hl: hlBase - hh * 0.02 });
       out.back = `<ellipse cx="${cx}" cy="${f(top - 2.2)}" rx="${f(hw * 0.5)}" ry="${f(hw * 0.4)}" fill="${fillG}" ${line}/>${detail ? `<path d="M${f(cx - hw * 0.38)} ${f(top - 2)} q${f(hw * 0.4)} -5 ${f(hw * 0.76)} 0 M${f(cx - hw * 0.25)} ${f(top - 0.5)} q${f(hw * 0.26)} -3.4 ${f(hw * 0.5)} 0" fill="none" stroke="${dark}" stroke-width="0.4" opacity="0.7"/>` : ''}`;
-      out.front = capDraw(c, strands(c, { ox: 0, back: true })) + (h.peak > 0.55 ? fringe('sweep', c) : '');
+      out.front = capDraw(c, strands(c, { ox: 0, back: true })) + (h.peak > 0.55 ? fringe('sweep', c) : h.peak < 0.3 ? fringe('strand', c) : '');
       break;
     }
     case 'updo': {
@@ -271,7 +298,7 @@ export function drawHair(style, h) {
     }
     case 'tailf': {
       const c = cap({ v: 2.3, drop: hh * 0.02 });
-      out.front = capDraw(c, strands(c, { ox: 0, back: true })) + (h.peak > 0.45 ? fringe('sweep', c) : fringe('curtain', c));
+      out.front = capDraw(c, strands(c, { ox: 0, back: true })) + (h.peak > 0.45 ? fringe('sweep', c) : fringe('curtain', c)) + (h.peak > 0.8 ? fringe('strand', c) : '');
       {
         const x0 = cx + part * hw * 0.62, y0 = cy + hh * 0.86;
         const R1 = [[x0 + part * 2.2, y0], [x0 + part * 5.4, y0 + 7], [x0 + part * 4.6, y0 + 16], [x0 + part * 1.4, y0 + 26]];
