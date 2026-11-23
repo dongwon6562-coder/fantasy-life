@@ -7,14 +7,14 @@ import { f, mixHex } from './portraitKit.js';
 
 const WARM = '#fff0d4', COOL = '#141020', RIM = '#c6d6ee';
 
-export function paintDefs(uid, detail = true) {
+export function paintDefs(uid, detail = true, H = 100) {
   const grads = `<linearGradient id="${uid}xk" x1="0.12" y1="0.08" x2="0.88" y2="0.92"><stop offset="0" stop-color="${WARM}" stop-opacity="0.2"/><stop offset="0.38" stop-color="${WARM}" stop-opacity="0"/><stop offset="0.58" stop-color="${COOL}" stop-opacity="0"/><stop offset="1" stop-color="${COOL}" stop-opacity="0.42"/></linearGradient>
   <linearGradient id="${uid}xd" x1="0" y1="0" x2="0" y2="1"><stop offset="0.68" stop-color="#0b0806" stop-opacity="0"/><stop offset="1" stop-color="#0b0806" stop-opacity="0.5"/></linearGradient>
   <radialGradient id="${uid}xv" cx="42%" cy="38%" r="64%"><stop offset="0.6" stop-color="#0b0806" stop-opacity="0"/><stop offset="1" stop-color="#0b0806" stop-opacity="0.55"/></radialGradient>`;
   const filters = `
-  <filter id="${uid}xg" x="0" y="0" width="100" height="100" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+  <filter id="${uid}xg" x="0" y="0" width="100" height="${H}" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
     <feGaussianBlur in="SourceAlpha" stdDeviation="2.2" result="dome"/>
-    <feDiffuseLighting in="dome" surfaceScale="4" diffuseConstant="1.1" lighting-color="#ffffff" result="d1"><feDistantLight azimuth="232" elevation="42"/></feDiffuseLighting>
+    <feDiffuseLighting in="dome" surfaceScale="4" diffuseConstant="1.1" lighting-color="#ffffff" result="d1"><feDistantLight azimuth="235" elevation="42"/></feDiffuseLighting>
     <feComposite in="SourceGraphic" in2="d1" operator="arithmetic" k1="0.62" k2="0.48" k3="0" k4="0" result="sh"/>
     <feSpecularLighting in="dome" surfaceScale="4" specularConstant="1" specularExponent="9" lighting-color="${RIM}" result="rim"><feDistantLight azimuth="15" elevation="6"/></feSpecularLighting>
     <feComposite in="rim" in2="SourceAlpha" operator="in" result="rimIn"/>
@@ -24,7 +24,7 @@ export function paintDefs(uid, detail = true) {
     <feComposite in="lit" in2="g" operator="arithmetic" k1="0.07" k2="0.965" k3="0" k4="0" result="o"/>
     <feComposite in="o" in2="SourceAlpha" operator="in"/>
   </filter>
-  <filter id="${uid}xh" x="0" y="0" width="100" height="100" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+  <filter id="${uid}xh" x="0" y="0" width="100" height="${H}" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
     <feTurbulence type="fractalNoise" baseFrequency="0.9 0.045" numOctaves="3" seed="3" result="n"/>
     <feColorMatrix in="n" type="matrix" values="2.2 0 0 0 -0.55  2.2 0 0 0 -0.55  2.2 0 0 0 -0.55  0 0 0 0 1" result="streak"/>
     <feComposite in="SourceGraphic" in2="streak" operator="arithmetic" k1="0.6" k2="0.62" k3="0" k4="0" result="s1"/>
@@ -40,7 +40,7 @@ export function paintDefs(uid, detail = true) {
     <feComposite in="s2" in2="sheenIn" operator="arithmetic" k1="0" k2="1" k3="0.26" k4="0" result="o"/>
     <feComposite in="o" in2="SourceAlpha" operator="in"/>
   </filter>
-  <filter id="${uid}xc" x="0" y="0" width="100" height="100" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+  <filter id="${uid}xc" x="0" y="0" width="100" height="${H}" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
     <feColorMatrix in="SourceGraphic" type="luminanceToAlpha" result="lum"/>
     <feGaussianBlur in="lum" stdDeviation="0.8" result="h"/>
     <feDiffuseLighting in="h" surfaceScale="3.6" diffuseConstant="1.3" lighting-color="${WARM}" result="lit"><feDistantLight azimuth="235" elevation="55"/></feDiffuseLighting>
@@ -56,12 +56,13 @@ export function paintDefs(uid, detail = true) {
   </filter>
   <filter id="${uid}xb" x="-10" y="-10" width="120" height="120" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB"><feGaussianBlur stdDeviation="1.8"/></filter>
   <filter id="${uid}xw" x="-20" y="-20" width="140" height="140" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB"><feGaussianBlur stdDeviation="9"/></filter>
-  <filter id="${uid}xm" x="0" y="0" width="100" height="100" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+  <filter id="${uid}xm" x="0" y="0" width="100" height="${H}" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
     <feTurbulence type="fractalNoise" baseFrequency="0.035 0.06" numOctaves="3" seed="21" result="n"/>
     <feColorMatrix in="n" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  1.6 0 0 0 -0.62" result="a"/>
     <feComposite in="SourceGraphic" in2="a" operator="in"/>
   </filter>
   <filter id="${uid}xs" x="-10" y="-10" width="120" height="120" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB"><feGaussianBlur stdDeviation="0.7"/></filter>
+  <filter id="${uid}xt" x="-10" y="-10" width="120" height="120" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB"><feGaussianBlur stdDeviation="0.26"/></filter>
 `;
   return detail ? filters + grads : grads.replace('stop-opacity="0.5"/></linearGradient>', 'stop-opacity="0.3"/></linearGradient>').replace('stop-opacity="0.55"/></radialGradient>', 'stop-opacity="0.32"/></radialGradient>');
 }
@@ -106,4 +107,4 @@ export function faceShadow(uid, m, skin, dark, strength = 1, detail = true) {
 }
 
 // 그림 위에 얹는 빛 덩어리와 가장자리·아래쪽 그늘
-export const paintOver = (uid) => `<rect x="0" y="0" width="100" height="100" fill="url(#${uid}xk)"/><rect x="0" y="0" width="100" height="100" fill="url(#${uid}xd)"/><rect x="0" y="0" width="100" height="100" fill="url(#${uid}xv)"/>`;
+export const paintOver = (uid, H = 100) => `<rect x="0" y="0" width="100" height="${H}" fill="url(#${uid}xk)"/><rect x="0" y="0" width="100" height="${H}" fill="url(#${uid}xd)"/><rect x="0" y="0" width="100" height="${H}" fill="url(#${uid}xv)"/>`;

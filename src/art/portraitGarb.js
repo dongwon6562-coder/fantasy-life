@@ -138,9 +138,10 @@ export function wearCloth(o, garb) {
 }
 
 /* ---------- 그리기 ---------- */
-// c: { cx, chin, hw, male, kid, stage, uid, detail, nw, baseY, sw, sy }
+// c: { cx, chin, hw, male, kid, stage, uid, detail, nw, baseY, sw, sy, bottom(옷 아래 끝, 기본 104), bust(반신) }
 export function drawGarb(o, c) {
   const { cx, nw, baseY, sw, sy, detail } = c;
+  const B = c.bottom ?? 104; // 옷의 아래 끝 (반신 초상은 가슴 아래까지)
   // 큰 초상은 먹선을 가늘고 옅게: 윤곽보다 빛과 그늘로 모양을 읽게 한다 (29단계)
   const ink = (w = 0.55, op = 1) => { const o2 = detail ? op * 0.55 : op, w2 = detail ? w * 0.75 : w; return `stroke="${INK}" stroke-width="${f(w2)}" stroke-linejoin="round" stroke-linecap="round"${o2 < 1 ? ` stroke-opacity="${f(o2)}"` : ''}`; };
   const out = { behind: '', torso: '', collar: '', head: '', headBack: '' };
@@ -151,14 +152,14 @@ export function drawGarb(o, c) {
     [cx + s * (nw + (sw - nw) * 0.45), sy - 2.2 - grow],
     [cx + s * (sw - 3 + grow), sy + 1.2 - grow],
     [cx + s * (sw + 1.2 + grow), sy + 9],
-    [cx + s * (sw + 2.5 + grow), 104],
+    [cx + s * (sw + 2.5 + grow), B],
   ];
   const torsoPath = (grow = 0) => {
     const R = sh(1, grow), L = sh(-1, grow).reverse();
     return `${spline(L)} L${f(R[0][0])} ${f(R[0][1])} ${spline(R, false, false)}Z`;
   };
   const fill = (d, col, extra = '') => `<path d="${d}" fill="${col}" ${ink()} ${extra}/>`;
-  const shadeR = `<path d="M${f(cx + sw * 0.18)} ${f(sy - 3)} Q${f(cx + sw * 0.8)} ${f(sy)} ${f(cx + sw + 3)} 104 L${f(cx + sw * 0.3)} 104Z" fill="#0b0705" opacity="0.2"/>`;
+  const shadeR = `<path d="M${f(cx + sw * 0.18)} ${f(sy - 3)} Q${f(cx + sw * 0.8)} ${f(sy)} ${f(cx + sw + 3)} ${B} L${f(cx + sw * 0.3)} ${B}Z" fill="#0b0705" opacity="0.2"/>`;
   const lightL = `<path d="M${f(cx - sw + 2)} ${f(sy + 3)} Q${f(cx - sw * 0.6)} ${f(sy - 1.5)} ${f(cx - nw - 2)} ${f(baseY)}" fill="none" stroke="${tint(o.main, 0.35)}" stroke-width="1.1" stroke-linecap="round" opacity="0.35"/>`;
   const folds = (col = dark, n = 3) => {
     if (!detail) return '';
@@ -200,7 +201,7 @@ export function drawGarb(o, c) {
     }
     case 'tunic': case 'dress': case 'wrap': {
       t += base() + shadeR + lightL + folds();
-      if (o.jerkin) t += `<path d="M${f(cx - sw + 5)} 104 L${f(cx - sw * 0.6)} ${f(sy - 1)} L${f(cx - nw - 1.5)} ${f(baseY)} L${f(cx - 3.4)} 104Z M${f(cx + sw - 5)} 104 L${f(cx + sw * 0.6)} ${f(sy - 1)} L${f(cx + nw + 1.5)} ${f(baseY)} L${f(cx + 3.4)} 104Z" fill="${o.jerkin}" ${ink(0.5)}/>`;
+      if (o.jerkin) t += `<path d="M${f(cx - sw + 5)} ${B} L${f(cx - sw * 0.6)} ${f(sy - 1)} L${f(cx - nw - 1.5)} ${f(baseY)} L${f(cx - 3.4)} ${B}Z M${f(cx + sw - 5)} ${B} L${f(cx + sw * 0.6)} ${f(sy - 1)} L${f(cx + nw + 1.5)} ${f(baseY)} L${f(cx + 3.4)} ${B}Z" fill="${o.jerkin}" ${ink(0.5)}/>`;
       if (o.kind === 'wrap') {
         t += `<path d="M${f(cx - nw - 1.2)} ${f(baseY - 1.6)} L${f(cx + 3)} ${f(baseY + 13)} L${f(cx + nw + 1.2)} ${f(baseY - 1.6)}Z" fill="${o.under}" ${ink(0.45)}/>`;
         t += `<path d="M${f(cx - nw - 3.4)} ${f(baseY - 1)} L${f(cx + 4.2)} ${f(baseY + 16)} L${f(cx + 7.2)} ${f(baseY + 14)} L${f(cx - nw - 0.6)} ${f(baseY - 2.4)}Z" fill="${shade(o.main, 0.18)}" ${ink(0.45)}/><path d="M${f(cx + nw + 3.4)} ${f(baseY - 1)} L${f(cx + 3.2)} ${f(baseY + 13)} L${f(cx + 5.4)} ${f(baseY + 11.4)} L${f(cx + nw + 0.8)} ${f(baseY - 2.4)}Z" fill="${light}" ${ink(0.45)}/>`;
@@ -210,13 +211,13 @@ export function drawGarb(o, c) {
         if (o.lace && detail) t += lacing(baseY + (o.neck === 'square' ? 8.5 : 9.5), o.kind === 'dress' ? 4 : 3);
         if (o.kind === 'dress' && detail) t += `<path d="M${f(cx - nw - 5)} ${f(baseY + 9)} Q${cx} ${f(baseY + 13)} ${f(cx + nw + 5)} ${f(baseY + 9)}" fill="none" stroke="${dark}" stroke-width="0.5" opacity="0.7"/>`;
       }
-      if (o.apron) t += `<path d="M${f(cx - 10)} ${f(baseY + 10)} L${f(cx - 12)} 104 L${f(cx + 12)} 104 L${f(cx + 10)} ${f(baseY + 10)}Z" fill="${o.apron}" ${ink(0.5)}/>`;
+      if (o.apron) t += `<path d="M${f(cx - 10)} ${f(baseY + 10)} L${f(cx - 12)} ${B} L${f(cx + 12)} ${B} L${f(cx + 10)} ${f(baseY + 10)}Z" fill="${o.apron}" ${ink(0.5)}/>`;
       if (o.torn) t += `<path d="M${f(cx - nw - 1.4)} ${f(baseY - 1.4)} l-1.6 2.6 l1.8 0.6 l-1.4 2.4 M${f(cx + sw * 0.5)} ${f(sy + 14)} l1.6 3 l-2 1.4 l1.4 3" fill="none" stroke="${shade(o.main, 0.55)}" stroke-width="0.55" stroke-linecap="round"/>` + (detail ? `<path d="M${f(cx + sw * 0.2)} ${f(sy + 7)} l4 0.4 0.2 3.8 -4.4 -0.2Z" fill="${mixHex(o.main, '#3a3a30', 0.4)}" stroke="${shade(o.main, 0.5)}" stroke-width="0.35" stroke-dasharray="0.8 0.6"/>` : '');
       if (o.patch && detail) t += `<path d="M${f(cx - sw * 0.6)} ${f(sy + 9)} l5 -0.7 0.6 4.8 -5.2 0.5Z" fill="${mixHex(o.main, '#8a7c62', 0.35)}" stroke="${shade(o.main, 0.55)}" stroke-width="0.4" stroke-dasharray="0.8 0.6"/>`;
       if (o.dust && detail) t += `<path d="M${f(cx - sw * 0.5)} ${f(sy + 6)} q6 3 12 0 M${f(cx + 4)} ${f(sy + 12)} q5 2 10 -1" fill="none" stroke="#efe8d6" stroke-width="1.6" opacity="0.25" stroke-linecap="round"/>`;
       if (o.shawl) t += `<path d="M${f(cx - sw + 1)} ${f(sy + 7)} Q${f(cx - nw - 4)} ${f(baseY - 1)} ${f(cx - nw - 1)} ${f(baseY - 2)} L${f(cx - 2)} ${f(baseY + 17)} L${f(cx - sw + 6)} ${f(sy + 22)}Z M${f(cx + sw - 1)} ${f(sy + 7)} Q${f(cx + nw + 4)} ${f(baseY - 1)} ${f(cx + nw + 1)} ${f(baseY - 2)} L${f(cx + 2)} ${f(baseY + 17)} L${f(cx + sw - 6)} ${f(sy + 22)}Z" fill="${o.shawl}" ${ink(0.5)}/>${detail ? `<path d="M${f(cx - sw + 5)} ${f(sy + 12)} L${f(cx - 4)} ${f(baseY + 12)} M${f(cx + sw - 5)} ${f(sy + 12)} L${f(cx + 4)} ${f(baseY + 12)}" stroke="${shade(o.shawl, 0.3)}" stroke-width="0.45" stroke-dasharray="1.6 1" fill="none"/>` : ''}`;
-      if (o.strap) t += `<path d="M${f(cx - sw + 3)} ${f(sy + 4)} L${f(cx + sw * 0.5)} 104 L${f(cx + sw * 0.5 + 5)} 104 L${f(cx - sw + 7)} ${f(sy + 2)}Z" fill="${o.strap}" ${ink(0.45)}/>`;
-      if (o.pouch && detail) t += `<path d="M${f(cx - sw * 0.72)} ${f(sy + 2)} L${f(cx + 9)} 104" stroke="#4a3a28" stroke-width="1.1" fill="none"/>`;
+      if (o.strap) t += `<path d="M${f(cx - sw + 3)} ${f(sy + 4)} L${f(cx + sw * 0.5)} ${B} L${f(cx + sw * 0.5 + 5)} ${B} L${f(cx - sw + 7)} ${f(sy + 2)}Z" fill="${o.strap}" ${ink(0.45)}/>`;
+      if (o.pouch && detail) t += `<path d="M${f(cx - sw * 0.72)} ${f(sy + 2)} L${f(cx + 9)} ${B}" stroke="#4a3a28" stroke-width="1.1" fill="none"/>`;
       break;
     }
     case 'mail': case 'plate': {
@@ -224,15 +225,15 @@ export function drawGarb(o, c) {
       t += base(o.kind === 'plate' ? shade(o.main, 0.25) : o.main) + shadeR;
       if (detail) {
         let rings = '';
-        for (let y = sy - 1; y < 102; y += 1.9) for (let x = cx - sw; x < cx + sw; x += 2.5) rings += `M${f(x + ((Math.round(y / 1.9)) % 2) * 1.25)} ${f(y)} a1.05 0.9 0 0 0 2.1 0 `;
+        for (let y = sy - 1; y < B - 2; y += 1.9) for (let x = cx - sw; x < cx + sw; x += 2.5) rings += `M${f(x + ((Math.round(y / 1.9)) % 2) * 1.25)} ${f(y)} a1.05 0.9 0 0 0 2.1 0 `;
         t += `<path d="${rings}" fill="none" stroke="#33363b" stroke-width="0.34" opacity="0.75" clip-path="url(#${c.uid}t)"/>`;
         out.defs = `<clipPath id="${c.uid}t"><path d="${torsoPath()}"/></clipPath>`;
       }
       if (o.gambeson) t += `<path d="M${f(cx - nw - 3)} ${f(baseY - 1)} Q${cx} ${f(baseY + 9)} ${f(cx + nw + 3)} ${f(baseY - 1)} L${f(cx + nw + 6)} ${f(baseY + 2)} Q${cx} ${f(baseY + 14)} ${f(cx - nw - 6)} ${f(baseY + 2)}Z" fill="#8a7a5c" ${ink(0.45)}/>`;
       // 겉옷(문장이 있는 천)
-      t += `<path d="M${f(cx - sw * 0.5)} 104 L${f(cx - sw * 0.46)} ${f(sy + 2)} Q${f(cx - nw - 2)} ${f(baseY + 2)} ${f(cx - nw + 0.5)} ${f(baseY + 5)} Q${cx} ${f(baseY + 12)} ${f(cx + nw - 0.5)} ${f(baseY + 5)} Q${f(cx + nw + 2)} ${f(baseY + 2)} ${f(cx + sw * 0.46)} ${f(sy + 2)} L${f(cx + sw * 0.5)} 104Z" fill="${o.cloth}" ${ink(0.5)}/>`;
-      t += `<path d="M${f(cx + 3)} ${f(baseY + 10)} L${f(cx + sw * 0.46)} ${f(sy + 2)} L${f(cx + sw * 0.5)} 104 L${f(cx + 5)} 104Z" fill="#0b0705" opacity="0.2"/>`;
-      if (detail) t += `<path d="M${f(cx - sw * 0.46)} ${f(sy + 3)} L${f(cx - sw * 0.5)} 104 M${f(cx + sw * 0.46)} ${f(sy + 3)} L${f(cx + sw * 0.5)} 104" stroke="${o.trim}" stroke-width="0.8" opacity="0.85"/>`;
+      t += `<path d="M${f(cx - sw * 0.5)} ${B} L${f(cx - sw * 0.46)} ${f(sy + 2)} Q${f(cx - nw - 2)} ${f(baseY + 2)} ${f(cx - nw + 0.5)} ${f(baseY + 5)} Q${cx} ${f(baseY + 12)} ${f(cx + nw - 0.5)} ${f(baseY + 5)} Q${f(cx + nw + 2)} ${f(baseY + 2)} ${f(cx + sw * 0.46)} ${f(sy + 2)} L${f(cx + sw * 0.5)} ${B}Z" fill="${o.cloth}" ${ink(0.5)}/>`;
+      t += `<path d="M${f(cx + 3)} ${f(baseY + 10)} L${f(cx + sw * 0.46)} ${f(sy + 2)} L${f(cx + sw * 0.5)} ${B} L${f(cx + 5)} ${B}Z" fill="#0b0705" opacity="0.2"/>`;
+      if (detail) t += `<path d="M${f(cx - sw * 0.46)} ${f(sy + 3)} L${f(cx - sw * 0.5)} ${B} M${f(cx + sw * 0.46)} ${f(sy + 3)} L${f(cx + sw * 0.5)} ${B}" stroke="${o.trim}" stroke-width="0.8" opacity="0.85"/>`;
       t += emblem(o.emblem, Math.min(96, baseY + 19), o.trim);
       if (o.kind === 'plate') {
         for (const s of [-1, 1]) {
@@ -249,9 +250,9 @@ export function drawGarb(o, c) {
     case 'leather': {
       t += base(o.under ?? shade(o.main, 0.2)) + folds(shade(o.under ?? o.main, 0.4));
       // 가죽 조끼
-      t += `<path d="M${f(cx - sw + 1.5)} 104 L${f(cx - sw + 3)} ${f(sy + 6)} Q${f(cx - sw * 0.6)} ${f(sy - 3)} ${f(cx - nw - 1.5)} ${f(baseY - 1)} L${f(cx - 2.2)} ${f(baseY + 12)} L${f(cx - 2.8)} 104Z M${f(cx + sw - 1.5)} 104 L${f(cx + sw - 3)} ${f(sy + 6)} Q${f(cx + sw * 0.6)} ${f(sy - 3)} ${f(cx + nw + 1.5)} ${f(baseY - 1)} L${f(cx + 2.2)} ${f(baseY + 12)} L${f(cx + 2.8)} 104Z" fill="${o.main}" ${ink(0.5)}/>` + shadeR;
-      if (detail) t += `<path d="M${f(cx - 3.4)} ${f(baseY + 12)} L${f(cx - 4)} 104 M${f(cx + 3.4)} ${f(baseY + 12)} L${f(cx + 4)} 104" stroke="${shade(o.main, 0.5)}" stroke-width="0.4" stroke-dasharray="1 0.8"/><path d="M${f(cx - 2.2)} ${f(baseY + 15)} h4.4 M${f(cx - 2.4)} ${f(baseY + 20)} h4.8" stroke="${o.strap}" stroke-width="0.7"/>`;
-      t += `<path d="M${f(cx - sw + 2)} ${f(sy + 5)} L${f(cx + sw * 0.55)} 104 L${f(cx + sw * 0.55 + 5.5)} 104 L${f(cx - sw + 6.5)} ${f(sy + 2.5)}Z" fill="${o.strap}" ${ink(0.45)}/><rect x="${f(cx - 4)}" y="${f(sy + 14.5)}" width="4.4" height="3.6" rx="0.6" transform="rotate(38 ${cx} ${f(sy + 16)})" fill="none" stroke="#a8935e" stroke-width="0.8"/>`;
+      t += `<path d="M${f(cx - sw + 1.5)} ${B} L${f(cx - sw + 3)} ${f(sy + 6)} Q${f(cx - sw * 0.6)} ${f(sy - 3)} ${f(cx - nw - 1.5)} ${f(baseY - 1)} L${f(cx - 2.2)} ${f(baseY + 12)} L${f(cx - 2.8)} ${B}Z M${f(cx + sw - 1.5)} ${B} L${f(cx + sw - 3)} ${f(sy + 6)} Q${f(cx + sw * 0.6)} ${f(sy - 3)} ${f(cx + nw + 1.5)} ${f(baseY - 1)} L${f(cx + 2.2)} ${f(baseY + 12)} L${f(cx + 2.8)} ${B}Z" fill="${o.main}" ${ink(0.5)}/>` + shadeR;
+      if (detail) t += `<path d="M${f(cx - 3.4)} ${f(baseY + 12)} L${f(cx - 4)} ${B} M${f(cx + 3.4)} ${f(baseY + 12)} L${f(cx + 4)} ${B}" stroke="${shade(o.main, 0.5)}" stroke-width="0.4" stroke-dasharray="1 0.8"/><path d="M${f(cx - 2.2)} ${f(baseY + 15)} h4.4 M${f(cx - 2.4)} ${f(baseY + 20)} h4.8" stroke="${o.strap}" stroke-width="0.7"/>`;
+      t += `<path d="M${f(cx - sw + 2)} ${f(sy + 5)} L${f(cx + sw * 0.55)} ${B} L${f(cx + sw * 0.55 + 5.5)} ${B} L${f(cx - sw + 6.5)} ${f(sy + 2.5)}Z" fill="${o.strap}" ${ink(0.45)}/><rect x="${f(cx - 4)}" y="${f(sy + 14.5)}" width="4.4" height="3.6" rx="0.6" transform="rotate(38 ${cx} ${f(sy + 16)})" fill="none" stroke="#a8935e" stroke-width="0.8"/>`;
       if (o.quiver) out.behind += `<path d="M${f(cx + sw - 13)} ${f(sy - 1)} l4 -15 l5.5 1.4 l-3 15.6Z" fill="#4a3a26" ${ink(0.5)}/>` + [0, 1, 2].map((i) => `<path d="M${f(cx + sw - 8.2 + i * 1.7)} ${f(sy - 15.4 + i * 0.4)} l${f(0.8 + i * 0.2)} -5.4 l1.5 2.2 M${f(cx + sw - 8.2 + i * 1.7)} ${f(sy - 15.4 + i * 0.4)} l${f(0.8 + i * 0.2)} -5.4 l-1.3 1.8" fill="none" stroke="${i === 1 ? '#b9ad94' : '#8a8f6a'}" stroke-width="0.7"/>`).join('');
       if (o.pauldron) t += `<path d="M${f(cx - nw - 3)} ${f(baseY + 0.5)} Q${f(cx - sw + 6)} ${f(sy - 6)} ${f(cx - sw - 3)} ${f(sy + 2)} Q${f(cx - sw - 4.5)} ${f(sy + 9)} ${f(cx - sw - 1)} ${f(sy + 13)} Q${f(cx - sw + 8)} ${f(sy + 8)} ${f(cx - nw - 4)} ${f(baseY + 7)}Z" fill="${shade(o.main, 0.3)}" ${ink(0.55)}/><path d="M${f(cx - nw - 5)} ${f(baseY + 3)} Q${f(cx - sw + 5)} ${f(sy - 2)} ${f(cx - sw - 2)} ${f(sy + 6)}" fill="none" stroke="${tint(o.main, 0.3)}" stroke-width="0.6" opacity="0.6"/>`;
       break;
@@ -259,11 +260,11 @@ export function drawGarb(o, c) {
     case 'doublet': case 'noble': case 'coat': {
       t += base() + shadeR + lightL;
       // 누빔 줄
-      if (detail && o.kind !== 'coat') { let q = ''; for (const s of [-1, 1]) for (let i = 1; i <= 3; i++) q += `M${f(cx + s * (nw + i * (sw - nw) * 0.27))} ${f(sy - 1 + i * 1.5)} L${f(cx + s * (nw + i * (sw - nw) * 0.3 + 2))} 104 `; t += `<path d="${q}" stroke="${dark}" stroke-width="0.45" opacity="0.6" fill="none"/>`; }
-      t += `<path d="M${cx} ${f(baseY + 5)} L${cx} 104" stroke="${INK}" stroke-width="0.5" opacity="0.7"/>`;
-      for (let y = baseY + 9; y < 101; y += 4.4) t += `<circle cx="${cx}" cy="${f(y)}" r="${o.ornate || o.kind === 'noble' ? 1 : 0.8}" fill="${o.trim}" stroke="${shade(o.trim, 0.5)}" stroke-width="0.3"/>`;
+      if (detail && o.kind !== 'coat') { let q = ''; for (const s of [-1, 1]) for (let i = 1; i <= 3; i++) q += `M${f(cx + s * (nw + i * (sw - nw) * 0.27))} ${f(sy - 1 + i * 1.5)} L${f(cx + s * (nw + i * (sw - nw) * 0.3 + 2))} ${B} `; t += `<path d="${q}" stroke="${dark}" stroke-width="0.45" opacity="0.6" fill="none"/>`; }
+      t += `<path d="M${cx} ${f(baseY + 5)} L${cx} ${B}" stroke="${INK}" stroke-width="0.5" opacity="0.7"/>`;
+      for (let y = baseY + 9; y < B - 3; y += 4.4) t += `<circle cx="${cx}" cy="${f(y)}" r="${o.ornate || o.kind === 'noble' ? 1 : 0.8}" fill="${o.trim}" stroke="${shade(o.trim, 0.5)}" stroke-width="0.3"/>`;
       if (o.kind === 'coat') t += `<path d="M${f(cx - nw - 2)} ${f(baseY - 1)} L${f(cx - 1)} ${f(baseY + 16)} L${f(cx - 9)} ${f(baseY + 22)} L${f(cx - sw * 0.52)} ${f(sy + 1)}Z M${f(cx + nw + 2)} ${f(baseY - 1)} L${f(cx + 1)} ${f(baseY + 16)} L${f(cx + 9)} ${f(baseY + 22)} L${f(cx + sw * 0.52)} ${f(sy + 1)}Z" fill="${shade(o.main, 0.25)}" ${ink(0.5)}/><path d="M${f(cx - nw - 1)} ${f(baseY - 1.5)} L${cx} ${f(baseY + 12)} L${f(cx + nw + 1)} ${f(baseY - 1.5)}Z" fill="${o.under}" ${ink(0.4)}/>`;
-      if (o.strap) t += `<path d="M${f(cx - sw + 3)} ${f(sy + 4)} L${f(cx + sw * 0.5)} 104 L${f(cx + sw * 0.5 + 4.6)} 104 L${f(cx - sw + 7)} ${f(sy + 2)}Z" fill="${o.strap}" ${ink(0.45)}/>`;
+      if (o.strap) t += `<path d="M${f(cx - sw + 3)} ${f(sy + 4)} L${f(cx + sw * 0.5)} ${B} L${f(cx + sw * 0.5 + 4.6)} ${B} L${f(cx - sw + 7)} ${f(sy + 2)}Z" fill="${o.strap}" ${ink(0.45)}/>`;
       if (o.fur) out.collar += furBand(o.fur, o.kind === 'noble' ? 8 : 6);
       if (o.chain) out.collar += chainOf(o.chain, o.fur ? 17 : 13, o.jewel ?? (o.ornate ? o.chain : null));
       if (o.pin && detail) t += `<path d="M${f(cx - sw * 0.5)} ${f(sy + 8)} l3.6 -5.4" stroke="#d9d0c0" stroke-width="0.8" stroke-linecap="round"/><path d="M${f(cx - sw * 0.5 + 3.6)} ${f(sy + 2.6)} l1.4 -2.6 l-2.2 1.6Z" fill="#d9d0c0"/>`;
@@ -273,17 +274,17 @@ export function drawGarb(o, c) {
       t += base() + shadeR + lightL + folds(dark, 4);
       if (o.kind === 'cloak') {
         t += `<path d="M${f(cx - nw - 1)} ${f(baseY - 1.5)} L${cx} ${f(baseY + 13)} L${f(cx + nw + 1)} ${f(baseY - 1.5)}Z" fill="${o.under}" ${ink(0.4)}/>`;
-        t += `<path d="M${f(cx - nw - 2.5)} ${f(baseY - 1)} Q${f(cx - 5)} ${f(baseY + 8)} ${f(cx - 4.5)} 104 M${f(cx + nw + 2.5)} ${f(baseY - 1)} Q${f(cx + 5)} ${f(baseY + 8)} ${f(cx + 4.5)} 104" fill="none" ${ink(0.55)}/>`;
+        t += `<path d="M${f(cx - nw - 2.5)} ${f(baseY - 1)} Q${f(cx - 5)} ${f(baseY + 8)} ${f(cx - 4.5)} ${B} M${f(cx + nw + 2.5)} ${f(baseY - 1)} Q${f(cx + 5)} ${f(baseY + 8)} ${f(cx + 4.5)} ${B}" fill="none" ${ink(0.55)}/>`;
         if (o.charm && detail) t += `<path d="M${f(cx - 3)} ${f(baseY + 4)} Q${cx} ${f(baseY + 20)} ${f(cx + 3)} ${f(baseY + 4)}" fill="none" stroke="#6a5a44" stroke-width="0.5"/><path d="M${cx} ${f(baseY + 12.6)} l1.5 2.6 l-1.5 2.4 l-1.5 -2.4Z" fill="${o.trim}" ${ink(0.3)}/>`;
       }
       if (o.kind === 'magerobe') {
-        t += `<path d="M${f(cx - 4.6)} ${f(baseY + 3)} L${f(cx - 5.6)} 104 L${f(cx + 5.6)} 104 L${f(cx + 4.6)} ${f(baseY + 3)}Z" fill="${shade(o.main, 0.3)}" ${ink(0.45)}/><path d="M${f(cx - 4.6)} ${f(baseY + 3)} L${f(cx - 5.6)} 104 M${f(cx + 4.6)} ${f(baseY + 3)} L${f(cx + 5.6)} 104" stroke="${o.trim}" stroke-width="0.8"/>`;
-        if (o.embroid && detail) { let e = ''; for (let y = baseY + 12; y < 102; y += 5) e += `M${f(cx - 2.2)} ${f(y)} l2.2 -2 l2.2 2 l-2.2 2Z `; t += `<path d="${e}" fill="none" stroke="${o.trim}" stroke-width="0.45" opacity="0.85"/>`; for (const s of [-1, 1]) t += `<path d="M${f(cx + s * (sw - 6))} ${f(sy + 6)} q${-s * 4} 3 ${-s * 2} 8 q${s * 3} 4 ${-s * 1} 9" fill="none" stroke="${o.trim}" stroke-width="0.45" opacity="0.6"/>`; }
+        t += `<path d="M${f(cx - 4.6)} ${f(baseY + 3)} L${f(cx - 5.6)} ${B} L${f(cx + 5.6)} ${B} L${f(cx + 4.6)} ${f(baseY + 3)}Z" fill="${shade(o.main, 0.3)}" ${ink(0.45)}/><path d="M${f(cx - 4.6)} ${f(baseY + 3)} L${f(cx - 5.6)} ${B} M${f(cx + 4.6)} ${f(baseY + 3)} L${f(cx + 5.6)} ${B}" stroke="${o.trim}" stroke-width="0.8"/>`;
+        if (o.embroid && detail) { let e = ''; for (let y = baseY + 12; y < B - 2; y += 5) e += `M${f(cx - 2.2)} ${f(y)} l2.2 -2 l2.2 2 l-2.2 2Z `; t += `<path d="${e}" fill="none" stroke="${o.trim}" stroke-width="0.45" opacity="0.85"/>`; for (const s of [-1, 1]) t += `<path d="M${f(cx + s * (sw - 6))} ${f(sy + 6)} q${-s * 4} 3 ${-s * 2} 8 q${s * 3} 4 ${-s * 1} 9" fill="none" stroke="${o.trim}" stroke-width="0.45" opacity="0.6"/>`; }
       }
-      if (o.kind === 'gown') t += `<path d="M${f(cx - nw - 2)} ${f(baseY - 1)} L${f(cx - 2)} ${f(baseY + 12)} L${f(cx - 6)} 104 L${f(cx + 6)} 104 L${f(cx + 2)} ${f(baseY + 12)} L${f(cx + nw + 2)} ${f(baseY - 1)}" fill="${shade(o.main, 0.3)}" ${ink(0.45)}/>`;
-      if (o.cope) t += `<path d="M${f(cx - sw - 2)} 104 L${f(cx - sw)} ${f(sy + 6)} Q${f(cx - sw * 0.6)} ${f(sy - 3)} ${f(cx - nw - 2)} ${f(baseY - 1)} L${f(cx - 7)} 104Z M${f(cx + sw + 2)} 104 L${f(cx + sw)} ${f(sy + 6)} Q${f(cx + sw * 0.6)} ${f(sy - 3)} ${f(cx + nw + 2)} ${f(baseY - 1)} L${f(cx + 7)} 104Z" fill="${o.cope}" ${ink(0.5)}/><path d="M${f(cx - nw - 2)} ${f(baseY - 1)} L${f(cx - 7)} 104 M${f(cx + nw + 2)} ${f(baseY - 1)} L${f(cx + 7)} 104" stroke="${o.trim}" stroke-width="1.6"/>` + shadeR;
+      if (o.kind === 'gown') t += `<path d="M${f(cx - nw - 2)} ${f(baseY - 1)} L${f(cx - 2)} ${f(baseY + 12)} L${f(cx - 6)} ${B} L${f(cx + 6)} ${B} L${f(cx + 2)} ${f(baseY + 12)} L${f(cx + nw + 2)} ${f(baseY - 1)}" fill="${shade(o.main, 0.3)}" ${ink(0.45)}/>`;
+      if (o.cope) t += `<path d="M${f(cx - sw - 2)} ${B} L${f(cx - sw)} ${f(sy + 6)} Q${f(cx - sw * 0.6)} ${f(sy - 3)} ${f(cx - nw - 2)} ${f(baseY - 1)} L${f(cx - 7)} ${B}Z M${f(cx + sw + 2)} ${B} L${f(cx + sw)} ${f(sy + 6)} Q${f(cx + sw * 0.6)} ${f(sy - 3)} ${f(cx + nw + 2)} ${f(baseY - 1)} L${f(cx + 7)} ${B}Z" fill="${o.cope}" ${ink(0.5)}/><path d="M${f(cx - nw - 2)} ${f(baseY - 1)} L${f(cx - 7)} ${B} M${f(cx + nw + 2)} ${f(baseY - 1)} L${f(cx + 7)} ${B}" stroke="${o.trim}" stroke-width="1.6"/>` + shadeR;
       if (o.stole) {
-        for (const s of [-1, 1]) t += `<path d="M${f(cx + s * (nw + 3))} ${f(baseY - 0.5)} L${f(cx + s * 4.2)} 104 L${f(cx + s * 9.4)} 104 L${f(cx + s * (nw + 7.4))} ${f(baseY + 1.5)}Z" fill="${o.stole}" ${ink(0.45)}/>${detail ? `<path d="M${f(cx + s * 6.8)} 90 v5 M${f(cx + s * 6.8 - 2)} 92 h4" stroke="${o.trim}" stroke-width="0.7"/>` : ''}`;
+        for (const s of [-1, 1]) t += `<path d="M${f(cx + s * (nw + 3))} ${f(baseY - 0.5)} L${f(cx + s * 4.2)} ${B} L${f(cx + s * 9.4)} ${B} L${f(cx + s * (nw + 7.4))} ${f(baseY + 1.5)}Z" fill="${o.stole}" ${ink(0.45)}/>${detail ? `<path d="M${f(cx + s * 6.8)} 90 v5 M${f(cx + s * 6.8 - 2)} 92 h4" stroke="${o.trim}" stroke-width="0.7"/>` : ''}`;
       }
       if (o.emblem === 'sunpendant') out.collar += `<path d="M${f(cx - nw - 2)} ${f(baseY)} Q${cx} ${f(baseY + 22)} ${f(cx + nw + 2)} ${f(baseY)}" fill="none" stroke="${shade(o.trim, 0.3)}" stroke-width="0.55"/>` + emblem('sun', baseY + 12.5, o.trim);
       if (o.fur) out.collar += furBand(o.fur, 6);
@@ -294,8 +295,8 @@ export function drawGarb(o, c) {
       t += base() + shadeR + lightL;
       t += under('v', o.under, 0.9);
       if (o.rolled && detail) t += `<path d="M${f(cx - sw + 1)} ${f(sy + 12)} q3 2.4 7 1 M${f(cx + sw - 1)} ${f(sy + 12)} q-3 2.4 -7 1" fill="none" stroke="${dark}" stroke-width="0.6"/>`;
-      if (o.vest) t += `<path d="M${f(cx - sw * 0.62)} 104 L${f(cx - sw * 0.56)} ${f(sy)} L${f(cx - nw - 1.5)} ${f(baseY - 1)} L${f(cx - 5)} ${f(baseY + 14)} L${f(cx - 6)} 104Z M${f(cx + sw * 0.62)} 104 L${f(cx + sw * 0.56)} ${f(sy)} L${f(cx + nw + 1.5)} ${f(baseY - 1)} L${f(cx + 5)} ${f(baseY + 14)} L${f(cx + 6)} 104Z" fill="${shade(o.main, 0.3)}" ${ink(0.45)}/>`;
-      t += `<path d="M${f(cx - 10.5)} ${f(baseY + 9)} L${f(cx - 12.5)} 104 L${f(cx + 12.5)} 104 L${f(cx + 10.5)} ${f(baseY + 9)} Q${cx} ${f(baseY + 11.5)} ${f(cx - 10.5)} ${f(baseY + 9)}Z" fill="${o.apron}" ${ink(0.5)}/><path d="M${f(cx + 3)} ${f(baseY + 11)} L${f(cx + 10.5)} ${f(baseY + 9)} L${f(cx + 12.5)} 104 L${f(cx + 5)} 104Z" fill="#0b0705" opacity="0.14"/>`;
+      if (o.vest) t += `<path d="M${f(cx - sw * 0.62)} ${B} L${f(cx - sw * 0.56)} ${f(sy)} L${f(cx - nw - 1.5)} ${f(baseY - 1)} L${f(cx - 5)} ${f(baseY + 14)} L${f(cx - 6)} ${B}Z M${f(cx + sw * 0.62)} ${B} L${f(cx + sw * 0.56)} ${f(sy)} L${f(cx + nw + 1.5)} ${f(baseY - 1)} L${f(cx + 5)} ${f(baseY + 14)} L${f(cx + 6)} ${B}Z" fill="${shade(o.main, 0.3)}" ${ink(0.45)}/>`;
+      t += `<path d="M${f(cx - 10.5)} ${f(baseY + 9)} L${f(cx - 12.5)} ${B} L${f(cx + 12.5)} ${B} L${f(cx + 10.5)} ${f(baseY + 9)} Q${cx} ${f(baseY + 11.5)} ${f(cx - 10.5)} ${f(baseY + 9)}Z" fill="${o.apron}" ${ink(0.5)}/><path d="M${f(cx + 3)} ${f(baseY + 11)} L${f(cx + 10.5)} ${f(baseY + 9)} L${f(cx + 12.5)} ${B} L${f(cx + 5)} ${B}Z" fill="#0b0705" opacity="0.14"/>`;
       if (o.apronStrap !== false) t += `<path d="M${f(cx - 10.5)} ${f(baseY + 9.4)} L${f(cx - nw - 2.4)} ${f(baseY - 0.4)} M${f(cx + 10.5)} ${f(baseY + 9.4)} L${f(cx + nw + 2.4)} ${f(baseY - 0.4)}" stroke="${shade(o.apron, 0.15)}" stroke-width="1.7"/><circle cx="${f(cx - 10.2)}" cy="${f(baseY + 9.8)}" r="0.7" fill="#a8935e"/><circle cx="${f(cx + 10.2)}" cy="${f(baseY + 9.8)}" r="0.7" fill="#a8935e"/>`;
       if (o.soot && detail) t += `<path d="M${f(cx - 6)} ${f(baseY + 17)} q3 2 6 -1 M${f(cx + 1)} ${f(baseY + 24)} q4 1 6 -2" fill="none" stroke="#1a1512" stroke-width="2" opacity="0.22" stroke-linecap="round"/>`;
       break;
@@ -324,14 +325,28 @@ export function drawGarb(o, c) {
   if (o.furCollar) col += furBand(o.furCollar, 4.5);
   // 망토: 어깨 뒤와 앞 여밈
   if (o.cloak) {
-    out.behind += `<path d="M${f(cx - sw - 5)} 104 L${f(cx - sw - 1)} ${f(sy + 3)} Q${f(cx - sw * 0.5)} ${f(sy - 7)} ${f(cx - nw)} ${f(baseY - 6)} L${f(cx + nw)} ${f(baseY - 6)} Q${f(cx + sw * 0.5)} ${f(sy - 7)} ${f(cx + sw + 1)} ${f(sy + 3)} L${f(cx + sw + 5)} 104Z" fill="${o.cloak}" ${ink(0.55)}/>`;
+    out.behind += `<path d="M${f(cx - sw - 5)} ${B} L${f(cx - sw - 1)} ${f(sy + 3)} Q${f(cx - sw * 0.5)} ${f(sy - 7)} ${f(cx - nw)} ${f(baseY - 6)} L${f(cx + nw)} ${f(baseY - 6)} Q${f(cx + sw * 0.5)} ${f(sy - 7)} ${f(cx + sw + 1)} ${f(sy + 3)} L${f(cx + sw + 5)} ${B}Z" fill="${o.cloak}" ${ink(0.55)}/>`;
     col += `<path d="M${f(cx - sw - 2)} ${f(sy + 12)} Q${f(cx - sw * 0.75)} ${f(sy - 4)} ${f(cx - nw - 2.4)} ${f(baseY - 2)} L${f(cx - nw + 1)} ${f(baseY + 4.5)} Q${f(cx - sw * 0.5)} ${f(sy + 5)} ${f(cx - sw + 3)} ${f(sy + 19)}Z" fill="${o.cloak}" ${ink(0.5)}/><circle cx="${f(cx - nw - 0.4)}" cy="${f(baseY + 2.6)}" r="1.5" fill="${o.trim ?? '#a8935e'}" ${ink(0.4)}/>`;
   }
   // 내린 두건
   if (o.hoodDown) col = `<path d="M${f(cx - nw - 8)} ${f(y0 + 4)} Q${f(cx - nw - 7.5)} ${f(y0 - 6.5)} ${f(cx - nw + 0.5)} ${f(y0 - 5)} Q${cx} ${f(y0 + 5.5)} ${f(cx + nw - 0.5)} ${f(y0 - 5)} Q${f(cx + nw + 7.5)} ${f(y0 - 6.5)} ${f(cx + nw + 8)} ${f(y0 + 4)} Q${cx} ${f(y0 + 14)} ${f(cx - nw - 8)} ${f(y0 + 4)}Z" fill="${shade(o.headCol ?? o.main, 0.1)}" ${ink(0.5)}/><path d="M${f(cx - nw - 4.6)} ${f(y0 - 1.6)} Q${cx} ${f(y0 + 9)} ${f(cx + nw + 4.6)} ${f(y0 - 1.6)}" fill="none" stroke="#0b0705" stroke-width="1.4" opacity="0.25"/>` + col;
   out.collar = col;
+  // 38단계: 빛 반대쪽 어깨에 차가운 테두리 빛 (얼굴의 테두리 빛과 같은 방향), 큰 초상만
+  if (detail && o.kind !== 'swaddle') out.torso += `<path d="M${f(cx + nw + (sw - nw) * 0.5)} ${f(sy - 1.6)} Q${f(cx + sw - 1)} ${f(sy - 0.6)} ${f(cx + sw + 1.6)} ${f(sy + 8)}" fill="none" stroke="#cfdcf0" stroke-width="0.9" stroke-linecap="round" opacity="0.22"/>`;
+  // 반신 초상: 팔과 몸통이 갈리는 자리, 가슴 아래로 갈수록 깊어지는 그늘
+  if (c.bust && o.kind !== 'swaddle') {
+    let arm = '';
+    for (const s of [-1, 1]) {
+      const x0 = cx + s * (sw - 3.4), x1 = cx + s * (sw - 6.6);
+      arm += `<path d="M${f(x0)} ${f(sy + 7)} Q${f(x0 - s * 1.6)} ${f(lerpN(sy, B, 0.55))} ${f(x1)} ${B}" fill="none" ${ink(0.5, 0.75)}/>`;
+      if (detail) arm += `<path d="M${f(x0 - s * 0.6)} ${f(sy + 9)} Q${f(x0 - s * 2.2)} ${f(lerpN(sy, B, 0.55))} ${f(x1 - s * 1.2)} ${B} L${f(x1 - s * 3.6)} ${B} Q${f(x0 - s * 4)} ${f(lerpN(sy, B, 0.5))} ${f(x0 - s * 1.4)} ${f(sy + 10)}Z" fill="#0b0705" opacity="${s > 0 ? 0.28 : 0.16}"/>`;
+    }
+    out.torso += arm;
+    if (detail) out.torso += `<path d="M${f(cx - sw * 0.5)} ${f(sy + 16)} q${f(sw * 0.1)} 10 ${f(-sw * 0.04)} ${f(B - sy - 18)} M${f(cx + sw * 0.32)} ${f(sy + 18)} q${f(-sw * 0.08)} 10 ${f(sw * 0.05)} ${f(B - sy - 20)}" fill="none" stroke="${dark}" stroke-width="0.5" opacity="0.45"/>`;
+  }
   return out;
 }
+const lerpN = (a, b, t) => a + (b - a) * t;
 
 /** 머리에 쓰는 것. h: 머리 치수 { cx, cy, hw, hh, top, eyeY, browY }. 돌려주는 것: { back, front, hidesHair } */
 export function drawHeadwear(o, h, detail) {

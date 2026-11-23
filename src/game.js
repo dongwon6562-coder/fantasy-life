@@ -171,7 +171,7 @@ export function endMonth(game, choices) {
     }
     done.add(act.id);
     const text = act.run(game, rng, c);
-    if (text) results.push({ name: act.name, text });
+    if (text) results.push({ name: act.name, text, id: act.id }); // id: 화면 맨 위 그림을 고를 때 (art/sceneInterior.js sceneFor)
   }
 
   runHooks('afterActions', game, rng, results);
