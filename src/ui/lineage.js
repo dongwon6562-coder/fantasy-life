@@ -4,6 +4,7 @@
 import { lineageInfo } from '../lineage/index.js';
 import { J } from '../narrative/text.js';
 import { esc } from './util.js';
+import { shield, crestFor } from '../art/ornament.js';
 
 const safe = (fn, d = null) => { try { return fn() ?? d; } catch (e) { console.error(e); return d; } };
 const bar = (v, cls = '') => `<span class="wd-bar ${cls}"><i style="width:${Math.max(0, Math.min(100, v))}%"></i></span>`;
@@ -23,7 +24,7 @@ export function renderLineageBlock(game) {
   if (!any) return '';
   const lines = [];
   if (s.motto) lines.push(`가훈 <b>"${esc(s.motto.text)}"</b> · ${esc(s.motto.by)}, ${s.motto.y}년${s.motto.kept || s.motto.broken ? ` · 지킨 일 ${s.motto.kept}, 어긴 일 ${s.motto.broken}` : ''}`);
-  if (s.crest) lines.push(`문장 ${esc(s.crest.text)} · ${esc(J(s.crest.by, '이/가'))} 걸었다`);
+  if (s.crest) lines.push(`<span class="ln-crest">${(() => { try { return shield({ ...crestFor(s.crest.text), size: 34 }); } catch { return ''; } })()}<span>문장 ${esc(s.crest.text)} · ${esc(J(s.crest.by, '이/가'))} 걸었다</span></span>`);
   if (s.craft) lines.push(`가업 ${esc(s.craft.skillName)}${s.craft.gens > 1 ? ` · ${s.craft.gens}대째` : ''}`);
   if (s.fake) lines.push(s.fake.exposed ? `<b class="warn">꾸민 족보가 들통났다</b> (${esc(s.fake.who)}의 후손이라 했다)` : `족보에 ${esc(s.fake.who)}의 후손이라 적었다 · <b class="warn">꾸민 것</b>`);
   const R = s.rites;

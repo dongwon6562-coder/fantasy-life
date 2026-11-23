@@ -1864,3 +1864,18 @@ html.motion .hero-me { animation: strip-in .45s cubic-bezier(.2, .7, .2, 1) back
 .setup h2 { font-size: var(--fs-xl); }
 .primary { border-radius: var(--r-md); }
 .ghost { border-radius: var(--r-md); }
+
+/* ---------- 38단계 장식 그림 (src/art/ornament.js) ---------- */
+.hm-face { position: relative; display: grid; place-items: center; width: 66px; height: 66px; flex: none; }
+.hm-face .portrait { width: 56px; height: 56px; }
+.hm-face .orn-medal { position: absolute; inset: 0; color: var(--brass); pointer-events: none; }
+.title-cap .orn-crest { margin: 4px 0 0; color: var(--brass); opacity: .8; }
+.event .orn-div { color: #8a6d38; margin: 0; }
+.ln-crest { display: inline-flex; align-items: center; gap: 10px; }
+.ln-crest .orn-shield { flex: none; }
+/* 넓은 화면은 옆에 '나' 칸이 늘 있으니 상태 띠를 빼고, 풍경 높이도 조금 낮춘다 */
+@media (min-width: 861px) {
+  .hero-me { display: none; }
+  .scene.hero .scene-cap { padding-bottom: 14px; }
+  .scene.hero .scene-pic img { height: clamp(230px, 26vw, 340px); }
+}

@@ -13,6 +13,7 @@ import { mountMap } from '../art/map.js';
 import { L, traveling } from '../adventure/core.js';
 import { placeName, HOME_NAMES } from '../places.js';
 import { jobTitle } from '../jobs.js';
+import { medallion, crest, divider, ORNAMENT_CSS } from '../art/ornament.js';
 import { memberships } from '../factions.js';
 import { lineage } from '../heir.js';
 import { worldSummary } from '../world.js';
@@ -178,6 +179,7 @@ function renderSetup() {
       <div class="title-cap">
         <span class="eyebrow">용사력 500년 · ${esc(REGION)}</span>
         <h1>${esc(VILLAGE)}에서 태어나다</h1>
+        ${crest('seal', 180)}
       </div>
     </div>
     <div class="wrap">
@@ -588,6 +590,7 @@ function renderEvent() {
       <h2 id="ev-title">${esc(e.title)}</h2>
       <p class="ev-text">${t.html}</p>
       ${heirReview()}
+      ${divider('diamond')}
       <div class="opts" style="--base:${rvBase.toFixed(2)}s">${e.choices.map((c, i) => `<button class="opt" data-choice="${i}" style="--i:${i}"><span class="n">${i + 1}</span><span>${esc(c)}</span></button>`).join('')}</div>
     </div>
   </div></div>`;
@@ -621,11 +624,14 @@ function heroStrip() {
   const hurt = p.injuries?.length ?? 0;
   const meter = (k, v, warn) => `<span class="hm${warn ? ' warn' : ''}"><span>${k}</span><i><b style="width:${Math.max(0, Math.min(100, v))}%"></b></i></span>`;
   return `<button class="hero-me" id="hero-me" aria-label="나 보기">
-    ${portrait(game, meP, { size: 56, scars: p.scars ?? [], ring: '#c9a25a', title: p.name })}
+    <span class="hm-face">${portrait(game, meP, { size: 56, scars: p.scars ?? [], ring: '#c9a25a', title: p.name })}${medallion({ size: 66 })}</span>
     <span class="hm-txt"><b>${esc(p.name)}</b><span>${playerAge(game)}살${job ? ` · ${esc(job)}` : ''}</span></span>
     <span class="hm-meters">${meter('피로', p.fatigue, p.fatigue > 70)}${meter('마음', 100 - p.stress, p.stress > 70)}${hurt ? `<span class="hm-hurt">다침 ${hurt}</span>` : ''}</span>
   </button>`;
 }
+
+// 38단계 장식 그림(src/art/ornament.js)의 기본 틀을 한 번만 붙인다
+if (typeof document !== 'undefined' && !document.getElementById('orn-css')) document.head.insertAdjacentHTML('beforeend', `<style id="orn-css">${ORNAMENT_CSS}</style>`);
 
 const VIEWS = [
   ['month', '이번 달', 'scroll'],
