@@ -127,6 +127,8 @@ let squire;
   for (let i = 0; i < 4; i++) month(g, ['order_duty']);
   if ((facOf(g, 'march')?.merit ?? 0) < 8) fail('duty merit', facOf(g, 'march')?.merit);
   if (!inOrder(g)) fail('left order during duty');
+  // 기사단 일 넉 달 사이 무작위 장면으로 옥에 갇히는 판이 있다 (다른 갈래 흐름에 따라). 서임을 보려고 풀어 준다
+  if (g.crime) g.crime.jailed = null;
   me(g).ageMonths = 19 * 12; g.player.skills.sword = 40; facOf(g, 'march').merit = 70;
   orderMonth(g, makeRng({ s: 9 }));
   const r = direct(g, 'order_dub', {}, 'under');

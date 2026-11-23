@@ -192,7 +192,8 @@ function banished(seed, { site = 'saltrock', why = 'court', years = 5, pardon = 
   play(k, 2, ['rest'], { exile_pardon: idxOf(/돌아간다/) }, 1);
   ok(!V(k).banish, 'amnesty');
   let n = 0;
-  for (let t = 0; t < 4; t++) { const w = banished(53 + t, { years: 30, pardon: 50 }); w.player.skills.letters = 60; play(w, 48, ['exile_petition', 'exile_settle'], { exile_pardon: 0 }, 1); if (!V(w).banish) n++; }
+  // 사면받은 뒤의 삶(다시 죄를 짓고 유배되는 일 등)은 다른 갈래의 흐름에 따라 흔들리니, 48달 안에 한 번이라도 풀려났는지를 본다
+  for (let t = 0; t < 4; t++) { const w = banished(53 + t, { years: 30, pardon: 50 }); w.player.skills.letters = 60; for (let mm = 0; mm < 48 && V(w).banish; mm++) play(w, 1, ['exile_petition', 'exile_settle'], { exile_pardon: 0 }, 1); if (!V(w).banish) n++; }
   ok(n >= 2, `petition pardon ${n}/4`);
 }
 

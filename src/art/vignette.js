@@ -314,7 +314,7 @@ export function plate34(key, words = '') {
 // 35단계 갈래(평생의 벗 friend*, 기술이 퍼지는 길 spread*·techspread*, 목수와 석공 build*): 같은 방식. BY_SCENE에 적힌 것이 먼저다.
 export function plate35(key, words = '') {
   const k = String(key ?? '');
-  if (/^friend_/.test(k)) return /장례|무덤|부고|묻|세상을 떠|숨을 거|임종/.test(words) ? 'friend:funeral' : /다시 만|오랜만|돌아왔|몇 해 만|알아보/.test(words) ? 'friend:reunion' : /멀어|질투|배신|등을 돌|틀어|발길을 끊|갈라/.test(words) ? 'friend:apart' : 'friend:cup';
+  if (/^(friend_|fr_)/.test(k)) /* 평생의 벗 장면은 fr_로 시작한다 (35단계 src/friends/) */ return /장례|무덤|부고|묻|세상을 떠|숨을 거|임종/.test(words) ? 'friend:funeral' : /다시 만|오랜만|돌아왔|몇 해 만|알아보/.test(words) ? 'friend:reunion' : /멀어|질투|배신|등을 돌|틀어|발길을 끊|갈라/.test(words) ? 'friend:apart' : 'friend:cup';
   if (/^(spread|techspread)_/.test(k)) return /비법|훔|베끼|책|금서|감추|궤/.test(words) ? 'spread:book' : /떠도는|떠돌이|기술자|다른 고장|수레|고개/.test(words) ? 'spread:wander' : /특허|왕실|인장|허가|관청|팔아넘|교단/.test(words) ? 'spread:patent' : 'spread:hands';
   if (/^build(er)?_/.test(k)) return /무너|붕괴|책임|깔려|금이 가/.test(words) ? 'build:fallen' : /지붕|들보|서까래|성당|상량/.test(words) ? 'build:roof' : /돌|석공|정으로|표식|채석/.test(words) ? 'build:stone' : 'build:scaffold';
   return null;

@@ -4,6 +4,7 @@
 import { ERAS, ERA_AT } from '../world.js';
 import { INVENTIONS } from '../history/powers.js';
 import { techInfo, TECH, FIELDS } from '../techtree/index.js';
+import { renderSpreadChron } from './spread.js';
 import { GOODS, priceOf, eraJobIds, ERA_JOB_NEED } from '../era/index.js';
 import { WORK } from '../jobs.js';
 import { PLACES } from '../places.js';
@@ -62,6 +63,7 @@ export function renderEra(game) {
     ${T.working.length ? `<ul class="ag-clues tt-work">${T.working.map((w) => `<li><b>${esc(w.where)}</b> · ${esc(w.field)} · ${w.name ? esc(w.name) : '무언가 새것'} · ${esc(w.stage)}${w.from ? ` · ${esc(w.from)} 것을 흉내 낸다` : ''}${w.slow ? ' · <span class="warn">더디다</span>' : ''}</li>`).join('')}</ul>` : '<p class="note">지금 눈에 띄게 연구가 진척되는 곳은 없다.</p>'}
     ${T.rumors.length ? `<p class="note tt-rumor">${T.rumors.map(esc).join('. ')}.</p>` : ''}
     ${T.abroad.length ? `<p class="note">먼 나라에서 먼저 나온 것: ${T.abroad.map((a) => `${esc(a.name)}(${esc(a.by)}${a.y ? `, ${a.y}년` : ''})`).join(', ')}</p>` : ''}
+    ${safe(() => renderSpreadChron(game), '')}
     ${recent ? `<h3 class="sub">최근 나온 것</h3><ol class="er-list">${recent}</ol>` : ''}
     ${byField.length ? `<div class="tt-fields">${byField.map((x) => `<details class="tt-field">
       <summary><span>${esc(x.name)}</span><span class="tt-dots">${x.xs.map((v) => `<i class="${v.big ? 'big' : ''}"></i>`).join('')}</span><em>${x.xs.length}가지</em></summary>

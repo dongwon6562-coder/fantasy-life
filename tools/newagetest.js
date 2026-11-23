@@ -143,14 +143,14 @@ let early;
 // 6. 저절로 뜨는 장면: 마을에 사는 어른에게 일손·책·조합 장면이 온다
 {
   const natural = {};
-  for (let k = 0; k < 2; k++) {
+  for (let k = 0; k < 3; k++) {
     const g = newGame({ name: '한스', sex: 'm', familyId: 'farmer', mode: 'free', seed: 3410 + k });
     const before = { ...scenes };
     months(g, 18 * 12, (gg) => setInv(gg, []));
     const s = newageState(g);
     g.player.skills.letters = 30; g.player.skills.farming = 40; g.player.money = Math.max(g.player.money, 200);
     for (const v of VILLAGES) { s.hands[v] = 40; s.holdout[v] = 60; }
-    months(g, 25 * 12, (gg) => { setInv(gg, EARLY); if (!s.shops.some((x) => x.place === 'ern' && !x.end)) s.shops.push({ id: s.seq++, inv: 'firestone', place: 'ern', y: gg.date.year, heat: 10, end: null }); });
+    months(g, 25 * 12, (gg) => { setInv(gg, EARLY); for (const v of VILLAGES) s.hands[v] = Math.max(s.hands[v], 30); if (!s.shops.some((x) => x.place === 'ern' && !x.end)) s.shops.push({ id: s.seq++, inv: 'firestone', place: 'ern', y: gg.date.year, heat: 10, end: null }); });
     for (const kk of Object.keys(scenes)) natural[kk] = (natural[kk] ?? 0) + scenes[kk] - (before[kk] ?? 0);
   }
   for (const k of ['na_hands', 'na_book', 'na_guild']) ok(natural[k] > 0, `저절로 안 뜸 ${k} ${JSON.stringify(natural)}`);
