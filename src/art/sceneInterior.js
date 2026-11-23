@@ -176,6 +176,59 @@ function darkness(ctx, lights, amb, tint) {
   c.width = c.height = 0;
 }
 
+
+/* ---------- 살림 (38단계 두 번째 손질) ---------- */
+/** 벽 선반과 그 위의 그릇·단지·병 */
+function shelf(ctx, x, y, w, lk, R, kind = 'pots') {
+  ctx.fillStyle = dark(lk.wood, 0.45); ctx.fillRect(x, y, w, 6);
+  ctx.fillStyle = dark(lk.wood, 0.6); ctx.fillRect(x + 6, y + 6, 4, 10); ctx.fillRect(x + w - 10, y + 6, 4, 10);
+  for (let px = x + 6; px < x + w - 12;) {
+    const t = R(), c = ['#8a5a3a', '#a8865a', '#5a6a6a', '#c8b898', '#6a4a3a', '#3a4a5a'][Math.floor(R() * 6)];
+    if (kind === 'books') { const bw = 5 + R() * 5, bh = 18 + R() * 12; ctx.fillStyle = ['#5a2a22', '#2a3a4a', '#4a4a2a', '#6a4a2a'][Math.floor(R() * 4)]; ctx.fillRect(px, y - bh, bw, bh); px += bw + 1; continue; }
+    if (t < 0.35) { ctx.fillStyle = c; ctx.beginPath(); ctx.ellipse(px + 8, y - 9, 8, 9, 0, 0, 6.3); ctx.fill(); ctx.fillRect(px + 5, y - 20, 6, 4); px += 19; }
+    else if (t < 0.6) { ctx.fillStyle = c; ctx.beginPath(); ctx.ellipse(px + 10, y - 2, 11, 3, 0, 0, 6.3); ctx.fill(); ctx.fillRect(px + 1, y - 6, 18, 4); px += 23; }
+    else if (t < 0.8) { ctx.fillStyle = c; ctx.beginPath(); ctx.ellipse(px + 9, y - 14, 9, 13, 0, 0, 6.3); ctx.fill(); px += 20; }
+    else { ctx.fillStyle = c; ctx.fillRect(px, y - 22, 7, 22); ctx.fillRect(px + 2, y - 28, 3, 6); px += 11; }
+  }
+  ctx.fillStyle = rgba(light(lk.wood, 0.4), 0.3); ctx.fillRect(x, y, w, 1.5);
+}
+/** 서 있는 사람 실루엣 (온몸) */
+function stander(ctx, x, y, s, col, o = {}) {
+  ctx.fillStyle = col;
+  ctx.beginPath(); ctx.ellipse(x, y - 64 * s, 7 * s, 8 * s, 0, 0, 6.3); ctx.fill();
+  ctx.beginPath(); ctx.moveTo(x - 11 * s, y - 54 * s); ctx.quadraticCurveTo(x - 14 * s, y - 30 * s, x - (o.robe ? 16 : 9) * s, y); ctx.lineTo(x + (o.robe ? 16 : 9) * s, y); ctx.quadraticCurveTo(x + 14 * s, y - 30 * s, x + 11 * s, y - 54 * s); ctx.closePath(); ctx.fill();
+  if (!o.robe) { ctx.fillStyle = dark(col, 0.3); ctx.fillRect(x - 1 * s, y - 24 * s, 2 * s, 24 * s); }
+  if (o.spear) { ctx.strokeStyle = col; ctx.lineWidth = 2 * s; ctx.beginPath(); ctx.moveTo(x + 14 * s, y); ctx.lineTo(x + 14 * s, y - 96 * s); ctx.stroke(); ctx.fillStyle = '#8a8a8a'; ctx.beginPath(); ctx.moveTo(x + 11 * s, y - 96 * s); ctx.lineTo(x + 14 * s, y - 108 * s); ctx.lineTo(x + 17 * s, y - 96 * s); ctx.fill(); }
+  if (o.rim) { ctx.strokeStyle = rgba(o.rim, 0.5); ctx.lineWidth = 1.3 * s; ctx.beginPath(); ctx.moveTo(x + o.side * 11 * s, y - 54 * s); ctx.quadraticCurveTo(x + o.side * 14 * s, y - 30 * s, x + o.side * 9 * s, y - 4 * s); ctx.stroke(); }
+}
+/** 바닥 돗자리·깔개 (원근 사다리꼴, 줄무늬) */
+function rug(ctx, cx, y0, y1, w0, w1, col, R) {
+  poly(ctx, [[cx - w0 / 2, y0], [cx + w0 / 2, y0], [cx + w1 / 2, y1], [cx - w1 / 2, y1]], col);
+  for (let i = 1; i < 6; i++) { const t = i / 6; ctx.strokeStyle = rgba(i % 2 ? light(col, 0.3) : dark(col, 0.35), 0.6); ctx.lineWidth = 2 + t * 3; ctx.beginPath(); ctx.moveTo(cx - w0 / 2 + 4, y0 + (y1 - y0) * t); ctx.lineTo(cx + w0 / 2 - 4 + (w1 - w0) / 2 * t, y0 + (y1 - y0) * t); ctx.stroke(); }
+  ctx.strokeStyle = rgba(dark(col, 0.5), 0.8); ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(cx - w0 / 2, y0); ctx.lineTo(cx + w0 / 2, y0); ctx.lineTo(cx + w1 / 2, y1); ctx.lineTo(cx - w1 / 2, y1); ctx.closePath(); ctx.stroke();
+  void R;
+}
+/** 회벽 얼룩과 금 */
+function plaster(ctx, x0, y0, x1, y1, R) {
+  for (let i = 0; i < 26; i++) puff(ctx, x0 + R() * (x1 - x0), y0 + R() * (y1 - y0), 30 + R() * 60, 14 + R() * 30, R() < 0.5 ? '#000000' : '#fff4dc', 0.05);
+  ctx.strokeStyle = 'rgba(30,20,14,.35)'; ctx.lineWidth = 0.8;
+  for (let i = 0; i < 6; i++) { let px = x0 + R() * (x1 - x0), py = y0 + R() * (y1 - y0); ctx.beginPath(); ctx.moveTo(px, py); for (let j = 0; j < 5; j++) { px += (R() - 0.5) * 14; py += 4 + R() * 8; ctx.lineTo(px, py); } ctx.stroke(); }
+}
+/** 장작더미 */
+function logs(ctx, x, y, s, wood) { for (let r = 0; r < 3; r++) for (let i = 0; i < 4 - r; i++) { const cx = x + (i + r * 0.5) * 15 * s, cy = y - 7 * s - r * 13 * s; ctx.fillStyle = dark(wood, 0.25); ctx.beginPath(); ctx.arc(cx, cy, 7 * s, 0, 6.3); ctx.fill(); ctx.fillStyle = mixh(wood, '#c8a070', 0.4); ctx.beginPath(); ctx.arc(cx, cy, 4.4 * s, 0, 6.3); ctx.fill(); } }
+/** 걸린 연장·국자·햄 */
+function hang(ctx, x, y, kind, s = 1) {
+  ctx.strokeStyle = '#1a1210'; ctx.lineWidth = 1.2; ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x, y + 10 * s); ctx.stroke();
+  ctx.fillStyle = kind === 'ham' ? '#7a3a2a' : kind === 'garlic' ? '#d8ccb0' : '#2e2a28';
+  if (kind === 'ham') { ctx.beginPath(); ctx.ellipse(x, y + 26 * s, 9 * s, 16 * s, 0, 0, 6.3); ctx.fill(); }
+  else if (kind === 'garlic') { for (let i = 0; i < 4; i++) { ctx.beginPath(); ctx.arc(x + (i % 2 ? 4 : -4) * s, y + 14 * s + i * 7 * s, 5 * s, 0, 6.3); ctx.fill(); } }
+  else if (kind === 'ladle') { ctx.fillRect(x - 1 * s, y + 10 * s, 2 * s, 24 * s); ctx.beginPath(); ctx.arc(x, y + 36 * s, 6 * s, 0, Math.PI); ctx.fill(); }
+  else if (kind === 'pan') { ctx.fillRect(x - 1.5 * s, y + 10 * s, 3 * s, 14 * s); ctx.beginPath(); ctx.arc(x, y + 34 * s, 11 * s, 0, 6.3); ctx.fill(); }
+  else { ctx.fillRect(x - 1.5 * s, y + 10 * s, 3 * s, 26 * s); ctx.fillRect(x - 7 * s, y + 34 * s, 14 * s, 7 * s); }
+}
+function bread(ctx, x, y, s) { ctx.fillStyle = '#b07a3a'; ctx.beginPath(); ctx.ellipse(x, y - 6 * s, 16 * s, 8 * s, 0, Math.PI, 0); ctx.fill(); ctx.strokeStyle = '#7a4a1a'; ctx.lineWidth = 1; for (let i = -1; i <= 1; i++) { ctx.beginPath(); ctx.moveTo(x + i * 6 * s - 3 * s, y - 10 * s); ctx.lineTo(x + i * 6 * s + 3 * s, y - 6 * s); ctx.stroke(); } }
+function plate(ctx, x, y, s) { ctx.fillStyle = '#c8b8a0'; ctx.beginPath(); ctx.ellipse(x, y - 1, 12 * s, 3 * s, 0, 0, 6.3); ctx.fill(); }
+
 /* ---------- 방마다 ---------- */
 const ROOMS = {
   // 집 안 난롯가: 돌 화덕, 걸린 솥, 들보에 매단 마른 풀, 탁자와 빵, 작은 창
@@ -211,6 +264,16 @@ const ROOMS = {
     ctx.fillStyle = dark(lk.wood, 0.5); ctx.fillRect(560, 400, 70, 12); ctx.fillRect(566, 412, 8, 40); ctx.fillRect(616, 412, 8, 40);
     // 털가죽 깔개
     ctx.fillStyle = 'rgba(120,96,70,.6)'; ctx.beginPath(); ctx.ellipse(470, 400, 140, 26, 0, 0, 6.3); ctx.fill();
+    // 살림: 그릇 선반, 걸린 국자와 냄비, 장작, 마늘 다발, 바구니, 빗자루, 불가에 앉은 사람
+    plaster(ctx, B[0], B[1] + 70, B[2], B[3], R);
+    shelf(ctx, 640, B[1] + 150, 120, lk, R); shelf(ctx, 640, B[1] + 200, 120, lk, R);
+    for (const [hx, kd] of [[fx - 110, 'ladle'], [fx - 94, 'pan'], [fx + 100, 'ladle']]) hang(ctx, hx, B[1] + 102, kd, 1.1);
+    hang(ctx, 600, 70, 'garlic', 1.2); hang(ctx, 930, 70, 'ham', 1.3);
+    logs(ctx, fx + 110, fy + 6, 1.2, lk.wood);
+    ctx.fillStyle = '#6a4a2a'; ctx.beginPath(); ctx.ellipse(310, 360, 30, 12, 0, 0, Math.PI); ctx.fill(); ctx.fillRect(282, 336, 56, 24); ctx.strokeStyle = '#3a2a1a'; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(310, 336, 22, Math.PI, 0); ctx.stroke();
+    ctx.strokeStyle = '#4a3020'; ctx.lineWidth = 3; ctx.beginPath(); ctx.moveTo(960, 140); ctx.lineTo(990, 360); ctx.stroke(); ctx.fillStyle = '#8a7a4a'; ctx.beginPath(); ctx.moveTo(980, 330); ctx.lineTo(1006, 330); ctx.lineTo(1010, 380); ctx.lineTo(978, 382); ctx.closePath(); ctx.fill();
+    plate(ctx, 740, 367, 1.5); plate(ctx, 860, 368, 1.4); mug(ctx, 760, 366, 1.5, lk.metal); bread(ctx, 840, 368, 1.2);
+    figure(ctx, fx + 150, 420, 1.9, '#140d08', { rim: '#ff9a50', side: -1 });
     wins.push([fx, fy - 20, 60, '#ff9a40'], [fx + 30, fy - 16, 40, '#ffb050']);
     e.lights = [[fx, fy - 30, 520, 1], [860, 355, 200, 0.6], [833, B[1] + 110, S.tod === 'night' ? 120 : 360, S.tod === 'night' ? 0.25 : 0.8]];
     e.glows = [[fx, fy - 30, 300, '#ff9a48', 0.55], [fx, fy - 20, 120, '#ffd080', 0.5], [860, 356, 70, '#ffc870', 0.4]];
@@ -246,6 +309,15 @@ const ROOMS = {
     for (const [x, y] of [[520, 372], [585, 372], [770, 393], [800, 393]]) mug(ctx, x, y, 1.6, lk.metal);
     candle(ctx, 640, 375, 1.4, wins);
     figure(ctx, 330, 480, 2.6, '#0e0a08'); figure(ctx, 880, 482, 2.4, '#0e0a08', { hood: true });
+    // 살림: 걸린 햄과 마늘, 벽의 옷걸이와 망토, 바닥의 짚, 서서 마시는 사람, 일하는 여급
+    for (const [hx, kd] of [[600, 'ham'], [640, 'garlic'], [660, 'ham'], [800, 'garlic']]) hang(ctx, hx, 40, kd, 1.3);
+    for (const px of [320, 350, 380]) { ctx.fillStyle = dark(lk.wood, 0.6); ctx.fillRect(px, B[1] + 50, 6, 6); }
+    ctx.fillStyle = dark(lk.cloth, 0.3); ctx.beginPath(); ctx.moveTo(346, B[1] + 56); ctx.lineTo(362, B[1] + 56); ctx.lineTo(368, B[1] + 140); ctx.lineTo(340, B[1] + 140); ctx.closePath(); ctx.fill();
+    ctx.fillStyle = 'rgba(200,170,100,.22)'; for (let i = 0; i < 90; i++) { const yy = 360 + R() * 110; ctx.fillRect(R() * W, yy, 6 + R() * 10, 1.4); }
+    for (const [mx, my] of [[900, 336], [930, 340], [1100, 350]]) mug(ctx, mx, my, 1.5, lk.metal);
+    stander(ctx, 870, 352, 1.1, '#1a120c', { rim: '#ffb060', side: -1 }); stander(ctx, 455, 360, 1.15, '#1a120c', { rim: '#ff9a50', side: -1, robe: true });
+    ctx.fillStyle = '#c8b8a0'; ctx.beginPath(); ctx.ellipse(469, 300, 12, 3, 0, 0, 6.3); ctx.fill(); mug(ctx, 465, 299, 1.2, lk.metal);
+    plate(ctx, 610, 374, 1.4); bread(ctx, 620, 374, 1);
     wins.push([fx, fy - 20, 40, '#ff9a40']);
     e.lights = [[fx, fy - 30, 300, 0.9], [1000, 260, 220, 0.5], [520, 140, 260, 0.7], [720, 120, 280, 0.75], [880, 170, 260, 0.7], [640, 360, 220, 0.7]];
     e.glows = [[fx, fy - 30, 160, '#ff9a48', 0.45], [720, 120, 160, '#ffc060', 0.35], [520, 140, 130, '#ffc060', 0.3], [880, 170, 130, '#ffc060', 0.3], [640, 358, 90, '#ffc870', 0.4]];
@@ -284,6 +356,13 @@ const ROOMS = {
       if (i === 1) { const bx = cx - side * 36 * s, by = y; ctx.fillStyle = '#1a1412'; ctx.fillRect(bx - 3 * s, by - 34 * s, 6 * s, 34 * s); ctx.beginPath(); ctx.ellipse(bx, by - 34 * s, 14 * s, 5 * s, 0, 0, 6.3); ctx.fill(); flame(ctx, bx, by - 36 * s, s * 0.9, R); wins.push([bx, by - 44 * s, 30 * s, '#ff9a40']); e.lightsExtra.push([bx, by - 44 * s, 240 * s, 0.9], [bx, by - 44 * s, 120 * s, '#ff9a48', 0.45]); }
     }
     for (const x of [490, 580, 670]) shaft(ctx, x, B[1] + 18, 40, 110, S, (S.dir ?? 1) * -40, 190, 1.2, R);
+    // 살림: 옆벽 태피스트리, 샹들리에, 긴 식탁과 잔, 창 든 경비
+    for (const side of [-1, 1]) { const x0 = side < 0 ? 150 : 990, w = 60; ctx.fillStyle = dark(lk.cloth, 0.2); ctx.beginPath(); ctx.moveTo(x0, 90 - (side > 0 ? 0 : 0)); ctx.lineTo(x0 + w, 110); ctx.lineTo(x0 + w, 270); ctx.lineTo(x0, 290); ctx.closePath(); ctx.fill(); ctx.strokeStyle = rgba(lk.metal, 0.6); ctx.lineWidth = 2; ctx.stroke(); ctx.fillStyle = rgba(lk.metal, 0.5); ctx.beginPath(); ctx.arc(x0 + w / 2, 190, 12, 0, 6.3); ctx.fill(); }
+    const chx = 600, chy = 70; ctx.strokeStyle = '#1a1412'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(chx, 0); ctx.lineTo(chx, chy); ctx.stroke(); ctx.beginPath(); ctx.ellipse(chx, chy, 60, 10, 0, 0, 6.3); ctx.stroke(); for (let i = 0; i < 8; i++) candle(ctx, chx + Math.cos((i / 8) * 6.283) * 60, chy + Math.sin((i / 8) * 6.283) * 10, 0.9, wins);
+    ctx.fillStyle = dark(lk.wood, 0.25); ctx.beginPath(); ctx.moveTo(320, 470); ctx.lineTo(380, 330); ctx.lineTo(420, 330); ctx.lineTo(400, 470); ctx.closePath(); ctx.fill();
+    for (let i = 0; i < 6; i++) { const t = i / 6, gx = 395 - t * 40 + 6, gy = 340 + t * 120; ctx.fillStyle = lk.metal; ctx.fillRect(gx, gy - 10 - t * 6, 3 + t * 3, 10 + t * 6); }
+    stander(ctx, 520, 330, 1.3, '#120d0a', { spear: true }); stander(ctx, 690, 330, 1.3, '#120d0a', { spear: true });
+    e.lightsExtra.push([chx, chy, 220, 0.6], [chx, chy, 90, '#ffc870', 0.3]);
     // 앞에 선 신하들
     figure(ctx, 470, 440, 1.8, '#140f0c', { rim: '#ffb060', side: 1 }); figure(ctx, 740, 446, 1.9, '#140f0c', { rim: '#ffb060', side: -1, hood: true });
     e.lights = [[600, B[1] + 80, 320, 0.7], [600, 300, 260, 0.6], ...e.lightsExtra.filter((l) => l.length === 4)];
@@ -320,8 +399,13 @@ const ROOMS = {
     }
     // 신자석과 무릎 꿇은 사람들
     for (let r = 0; r < 4; r++) { const t = 0.25 + r * 0.17, s = scaleAt(B, t), y = floorY(B, t); for (const side of [-1, 1]) { const x0 = 600 + side * 30 * s, x1 = 600 + side * 120 * s; const px = Math.min(x0, x1), pw = Math.abs(x1 - x0); ctx.fillStyle = dark(lk.wood, 0.45); ctx.fillRect(px, y - 26 * s, pw, 14 * s); ctx.fillStyle = dark(lk.wood, 0.3); ctx.fillRect(px, y - 12 * s, pw, 4 * s); ctx.fillStyle = rgba(light(lk.wood, 0.35), 0.35); ctx.fillRect(px, y - 26 * s, pw, 1.5 * s); ctx.fillStyle = dark(lk.wood, 0.55); ctx.fillRect(px + 2 * s, y - 8 * s, 4 * s, 8 * s); ctx.fillRect(px + pw - 6 * s, y - 8 * s, 4 * s, 8 * s); if (R() < 0.45) figure(ctx, (x0 + x1) / 2 + (R() - 0.5) * 30 * s, y - 10 * s, s * 0.8, '#140f0c', { hood: R() < 0.5, rim: '#ffd8a0', side: -side }); } }
+    // 살림: 촛대 줄, 매단 등, 제단 앞 사제, 꽃과 제물, 바닥 돌 사이 이끼빛
+    for (const side of [-1, 1]) for (let i = 0; i < 3; i++) { const t = 0.2 + i * 0.25, sc = scaleAt(B, t), y = floorY(B, t), cx = 600 + side * (150 * sc * 0.85 - 24 * sc); ctx.fillStyle = '#1a1412'; ctx.fillRect(cx - 1.5 * sc, y - 46 * sc, 3 * sc, 46 * sc); ctx.fillRect(cx - 8 * sc, y - 2 * sc, 16 * sc, 2 * sc); candle(ctx, cx, y - 46 * sc, 0.9 * sc, wins); e.lightsExtra.push([cx, y - 50 * sc, 90 * sc, 0.6]); }
+    for (const lx of [540, 660]) { ctx.strokeStyle = '#1a1412'; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(lx, 0); ctx.lineTo(lx, 190); ctx.stroke(); ctx.fillStyle = '#c87a3a'; ctx.beginPath(); ctx.arc(lx, 196, 5, 0, 6.3); ctx.fill(); wins.push([lx, 196, 12, '#ffb060']); }
+    stander(ctx, 600, B[3] - 2, 0.85, '#1c1410', { robe: true, rim: '#ffd8a0', side: 1 });
+    for (const fx2 of [552, 648]) { ctx.fillStyle = '#5a3a2a'; ctx.fillRect(fx2 - 6, B[3] - 14, 12, 14); for (let i = 0; i < 5; i++) { ctx.fillStyle = ['#c84a4a', '#e8d8a0', '#c8a8d8'][i % 3]; ctx.beginPath(); ctx.arc(fx2 + (R() - 0.5) * 14, B[3] - 18 - R() * 8, 3, 0, 6.3); ctx.fill(); } }
     shaft(ctx, rx - rr, ry - rr, rr * 2, rr * 2, S, 0, 230, 1.4, R);
-    e.lights = [[600, B[3] - 60, 260, 0.9], [rx, ry, 300, S.tod === 'night' ? 0.4 : 0.85]];
+    e.lights = [[600, B[3] - 60, 260, 0.9], [rx, ry, 300, S.tod === 'night' ? 0.4 : 0.85], ...e.lightsExtra];
     e.glows = [[600, B[3] - 62, 130, '#ffc870', 0.45], [rx, ry, 150, S.tod === 'night' ? '#8a8ad8' : '#f0d8a0', S.tod === 'night' ? 0.1 : 0.25]];
     e.near = dark(stone, 0.82);
   },
@@ -357,6 +441,15 @@ const ROOMS = {
     ctx.fillStyle = '#c8a070'; for (let i = 0; i < 18; i++) { ctx.beginPath(); ctx.ellipse(820 + R() * 300, 440 + R() * 30, 6 + R() * 6, 2, R() * 3, 0, 6.3); ctx.fill(); }
     windowOut(ctx, 820, B[1] + 40, 90, 110, S, P, R, { frame: dark(lk.wood, 0.4) });
     shaft(ctx, 820, B[1] + 40, 90, 110, S, -240, 240, 0.9, R);
+    // 살림: 단지 선반, 물통, 집게와 망치, 걸린 쇠사슬, 다 만든 말굽, 풀무, 도제
+    shelf(ctx, 300, B[1] + 160, 110, lk, R); shelf(ctx, 640, B[1] + 176, 150, lk, R);
+    barrel(ctx, 470, 430, 1.1, lk.wood, lk.metal); ctx.fillStyle = 'rgba(90,120,140,.6)'; ctx.beginPath(); ctx.ellipse(470, 382, 16, 4, 0, 0, 6.3); ctx.fill();
+    ctx.strokeStyle = '#1a1614'; ctx.lineWidth = 3; ctx.beginPath(); ctx.moveTo(ax - 40, ay - 50); ctx.lineTo(ax - 10, ay - 62); ctx.moveTo(ax - 36, ay - 46); ctx.lineTo(ax - 8, ay - 58); ctx.stroke();
+    ctx.fillStyle = '#1a1614'; ctx.fillRect(ax + 50, ay - 60, 30, 10); ctx.fillRect(ax + 62, ay - 52, 5, 20);
+    for (let i = 0; i < 8; i++) { ctx.strokeStyle = '#2a2624'; ctx.lineWidth = 2; ctx.beginPath(); ctx.ellipse(600, B[1] + 40 + i * 9, 4, 5, 0, 0, 6.3); ctx.stroke(); }
+    for (let i = 0; i < 5; i++) { ctx.strokeStyle = '#3a3634'; ctx.lineWidth = 3; ctx.beginPath(); ctx.arc(640 + i * 24, B[1] + 230, 8, Math.PI * 0.15, Math.PI * 0.85, true); ctx.stroke(); }
+    ctx.fillStyle = dark(lk.wood, 0.3); ctx.beginPath(); ctx.moveTo(fx - 150, fy - 40); ctx.lineTo(fx - 96, fy - 60); ctx.lineTo(fx - 96, fy - 30); ctx.closePath(); ctx.fill();
+    stander(ctx, fx - 120, fy + 30, 1.2, '#140d08', { rim: '#ff8a3a', side: 1 });
     wins.push([fx, fy - 60, 50, '#ff8a3a'], [ax + 12, ay - 52, 24, '#ff9a40']);
     e.lights = [[fx, fy - 60, 380, 1], [ax, ay - 50, 220, 0.8], [865, B[1] + 95, S.tod === 'night' ? 100 : 340, S.tod === 'night' ? 0.2 : 0.8]];
     e.glows = [[fx, fy - 60, 220, '#ff8a3a', 0.5], [ax + 12, ay - 52, 90, '#ffa050', 0.35]];

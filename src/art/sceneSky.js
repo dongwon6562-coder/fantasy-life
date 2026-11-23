@@ -142,17 +142,29 @@ function seasonal(ctx, S, R, o) {
   }
 }
 
+/** 빗줄기 (38단계): 먼 곳(지평선 둘레)은 촘촘하고, 앞으로 올수록 성글고 옅어져 앞쪽 땅과 집이 또렷하다 */
+function rainLayer(ctx, R, sets, rgb, slant) {
+  const c = document.createElement('canvas'); c.width = W; c.height = H;
+  const x = c.getContext('2d');
+  for (const [n, len, a, lw] of sets) {
+    x.strokeStyle = `rgba(${rgb},${a})`; x.lineWidth = lw; x.beginPath();
+    for (let i = 0; i < n; i++) { const px = R() * (W + 300), py = R() * H, l = len * (0.7 + R() * 0.6); x.moveTo(px, py); x.lineTo(px - l * slant, py + l); }
+    x.stroke();
+  }
+  x.globalCompositeOperation = 'destination-in';
+  const g = x.createLinearGradient(0, 0, 0, H);
+  g.addColorStop(0, 'rgba(0,0,0,.75)'); g.addColorStop((HZ + 30) / H, 'rgba(0,0,0,1)'); g.addColorStop((HZ + 110) / H, 'rgba(0,0,0,.45)'); g.addColorStop(1, 'rgba(0,0,0,.22)');
+  x.fillStyle = g; x.fillRect(0, 0, W, H);
+  ctx.drawImage(c, 0, 0);
+  c.width = c.height = 0;
+}
 /** 다 그린 그림 위에 날씨를 얹는다 */
 export function paintWeather(ctx, S, R, o = {}) {
   const night = S.tod === 'night';
   // 안개는 sceneDrama.js fogBanks가 겹겹이 깐다 (38단계)
   if (S.storm) {
-    mist(ctx, HZ + 6, 80, mixh(S.low, '#5a626c', 0.6), 0.36);
-    for (const [n, len, a, lw] of [[700, 12, 0.18, 0.8], [520, 22, 0.28, 1.1], [200, 38, 0.34, 1.5]]) {
-      ctx.strokeStyle = night ? `rgba(150,162,190,${a})` : `rgba(206,214,224,${a})`; ctx.lineWidth = lw; ctx.beginPath();
-      for (let i = 0; i < n; i++) { const x = R() * (W + 300), y = R() * H, l = len * (0.7 + R() * 0.6); ctx.moveTo(x, y); ctx.lineTo(x - l * 0.62, y + l); }
-      ctx.stroke();
-    }
+    mist(ctx, HZ + 2, 60, mixh(S.low, '#5a626c', 0.6), 0.3);
+    rainLayer(ctx, R, [[760, 12, 0.22, 0.8], [420, 22, 0.26, 1.1], [120, 38, 0.28, 1.5]], night ? '150,162,190' : '206,214,224', 0.62);
     ctx.globalCompositeOperation = 'lighter'; puff(ctx, S.bolt, HZ, 520, 200, '#aab8e0', 0.14); ctx.globalCompositeOperation = 'source-over';
   }
   if (S.blizzard) {
@@ -178,12 +190,8 @@ export function paintWeather(ctx, S, R, o = {}) {
     if (kind === 'snow' || kind === 'dust') for (let i = 0; i < 12; i++) puff(ctx, R() * W, HZ + 60 + R() * 180, 200 + R() * 160, 8 + R() * 10, kind === 'snow' ? '#f0f2f2' : '#cbb894', 0.16);
   }
   if (S.weather === 'rain') {
-    mist(ctx, HZ + 6, 60, mixh(S.low, '#8a9098', 0.5), 0.24); // 38단계: 덜 뿌옇게
-    for (const [n, len, a, lw] of [[520, 9, 0.16, 0.8], [360, 15, 0.26, 1], [120, 26, 0.3, 1.3]]) {
-      ctx.strokeStyle = night ? `rgba(150,162,184,${a})` : `rgba(214,220,226,${a})`; ctx.lineWidth = lw; ctx.beginPath();
-      for (let i = 0; i < n; i++) { const x = R() * (W + 120), y = R() * H, l = len * (0.7 + R() * 0.6); ctx.moveTo(x, y); ctx.lineTo(x - l * 0.28, y + l); }
-      ctx.stroke();
-    }
+    mist(ctx, HZ + 2, 46, mixh(S.low, '#8a9098', 0.5), 0.2); // 38단계: 안개는 먼 곳에만
+    rainLayer(ctx, R, [[620, 9, 0.2, 0.8], [300, 15, 0.22, 1], [70, 26, 0.24, 1.3]], night ? '150,162,184' : '214,220,226', 0.28);
   }
   if (S.weather === 'snow') {
     mist(ctx, HZ + 4, 80, night ? '#3a4458' : '#dfe3e6', 0.36);
@@ -202,7 +210,7 @@ export function paintWeather(ctx, S, R, o = {}) {
   if (o.embers) for (let i = 0; i < 70; i++) { const x = R() * W, y = R() * H; puff(ctx, x, y, 2.4, 2.4, R() < 0.5 ? '#ff9a50' : '#d0584a', 0.35 + R() * 0.4); }
   if (o.month && !o.barren) seasonal(ctx, S, R, o);
   // 해 쪽에서 번지는 빛
-  if (S.sun && !S.overcast) { ctx.globalCompositeOperation = 'lighter'; puff(ctx, S.sun[0], S.sun[1], S.tod === 'day' ? 420 : 560, S.tod === 'day' ? 300 : 260, S.glow, S.tod === 'day' ? 0.1 : 0.2); ctx.globalCompositeOperation = 'source-over'; }
+  if (S.sun && !S.overcast) { ctx.globalCompositeOperation = 'lighter'; puff(ctx, S.sun[0], S.sun[1], S.tod === 'day' ? 420 : 560, S.tod === 'day' ? 300 : 260, S.glow, S.tod === 'day' ? 0.08 : 0.1); ctx.globalCompositeOperation = 'source-over'; }
   // 가장자리 어둡게
   const vg = ctx.createRadialGradient(W / 2, H * 0.55, H * 0.32, W / 2, H * 0.55, W * 0.66);
   vg.addColorStop(0, 'rgba(0,0,0,0)'); vg.addColorStop(1, 'rgba(14,10,8,.5)');

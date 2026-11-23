@@ -43,20 +43,20 @@ export function sunRays(ctx, S, R, k = 0) {
   const lowSun = low(S);
   if (!lowSun && !(S.weather === 'cloudy' && hash(k, 71) < 0.5)) return;
   const [sx, sy] = S.sun, strength = lowSun ? (S.overcast ? 0.75 : 1) : 0.45;
-  const c = mk(W / 2, H / 2), x = c.getContext('2d'); x.scale(0.5, 0.5); // 반 크기 (부드러운 빛이라 티가 나지 않는다)
+  const c = mk(W / 2, H / 2), x = c.getContext('2d'); x.scale(0.5, 0.5); x.beginPath(); x.rect(0, 0, W, HZ + 10); x.clip(); // 반 크기 (부드러운 빛이라 티가 나지 않는다)
   const n = 9 + Math.floor(R() * 5);
   for (let i = 0; i < n; i++) {
     const a = (lowSun ? -Math.PI * 0.5 : Math.PI * 0.5) + (R() - 0.5) * (lowSun ? 2.9 : 1.2), spread = 0.015 + R() * 0.045, len = (lowSun ? 420 : 520) + R() * 500;
     const g = x.createRadialGradient(sx, sy, 10, sx, sy, len);
     const col = S.tod === 'dusk' ? '255,176,110' : S.tod === 'dawn' ? '255,214,170' : '255,246,220';
-    g.addColorStop(0, `rgba(${col},${0.2 * strength})`); g.addColorStop(0.45, `rgba(${col},${0.07 * strength})`); g.addColorStop(1, `rgba(${col},0)`);
+    g.addColorStop(0, `rgba(${col},${0.13 * strength})`); g.addColorStop(0.45, `rgba(${col},${0.045 * strength})`); g.addColorStop(1, `rgba(${col},0)`);
     x.fillStyle = g; x.beginPath(); x.moveTo(sx, sy);
     x.lineTo(sx + Math.cos(a - spread) * len, sy + Math.sin(a - spread) * len);
     x.lineTo(sx + Math.cos(a + spread) * len, sy + Math.sin(a + spread) * len); x.closePath(); x.fill();
   }
   ctx.globalCompositeOperation = 'screen'; ctx.drawImage(c, 0, 0, W, H);
   // 지평선에 깔리는 눈부심
-  if (lowSun) { ctx.globalCompositeOperation = 'lighter'; puff(ctx, sx, HZ - 4, 520, 34, S.glow, 0.22 * strength); }
+  if (lowSun) { ctx.globalCompositeOperation = 'lighter'; puff(ctx, sx, HZ - 4, 520, 30, S.glow, 0.16 * strength); }
   ctx.globalCompositeOperation = 'source-over';
   c.width = c.height = 0;
 }
@@ -86,6 +86,14 @@ export function wetGround(ctx, S, lit, k) {
     ctx.beginPath(); ctx.ellipse(px, py, rx, ry, 0, Math.PI * 1.05, Math.PI * 1.95); ctx.stroke();
   }
   snap.width = snap.height = 0;
+  // 앞쪽은 또렷하게: 대비와 빛깔을 살린다 (먼 곳은 빗줄기·안개에 맡긴다)
+  ctx.globalCompositeOperation = 'soft-light';
+  const f = ctx.createLinearGradient(0, HZ + 30, 0, H);
+  f.addColorStop(0, 'rgba(120,96,64,0)'); f.addColorStop(0.35, `rgba(120,96,64,${night ? 0.3 : 0.55})`); f.addColorStop(1, `rgba(96,76,52,${night ? 0.35 : 0.65})`);
+  ctx.fillStyle = f; ctx.fillRect(0, HZ + 30, W, H - HZ - 30);
+  ctx.globalCompositeOperation = 'saturation';
+  ctx.fillStyle = 'rgba(160,120,60,.22)'; ctx.fillRect(0, HZ + 60, W, H - HZ - 60);
+  ctx.globalCompositeOperation = 'source-over';
   // 창 불빛이 젖은 땅에 길게 늘어진다
   if (lit?.length) {
     ctx.globalCompositeOperation = 'lighter';
