@@ -173,6 +173,24 @@ const slot = (job) => new Promise((ok, no) => {
   const run = () => { busy++; job().then(ok, no).finally(() => { busy--; waiting.shift()?.(); }); };
   if (busy < 4) run(); else waiting.push(run);
 });
+// 소리 파일 하나를 읽어 온다.
+// 아이폰 앱(Capacitor)은 소리 파일(mp3·m4a)을 HTTP 상태 줄 없이 내준다. 그러면 fetch의 r.ok가 거짓(status 0)이라
+// '못 받음'으로 치고 버렸다: 녹음 악기도 녹음 효과음도 하나도 못 받아, 합성 효과음만 나고 음악은 안 났다 (37단계에 찾음).
+// 상태 0은 받아들이고 내용이 있는지로 가린다. fetch가 안 되면 옛 방식(XMLHttpRequest)으로 한 번 더 읽는다.
+export function fetchBytes(url) {
+  const name = String(url).split('/').pop();
+  const viaXhr = () => new Promise((ok, no) => {
+    const x = new XMLHttpRequest(); x.open('GET', url); x.responseType = 'arraybuffer';
+    x.onload = () => (x.response?.byteLength && (x.status === 0 || (x.status >= 200 && x.status < 300)) ? ok(x.response) : no(new Error(`${name} ${x.status}`)));
+    x.onerror = () => no(new Error(`${name} 못 읽음`)); x.send();
+  });
+  const again = (e) => (typeof XMLHttpRequest === 'function' ? viaXhr() : Promise.reject(e));
+  if (typeof fetch !== 'function') return again(new Error('fetch 없음'));
+  return fetch(url)
+    .then((r) => { if (!r.ok && r.status !== 0) throw new Error(`${name} ${r.status}`); return r.arrayBuffer(); })
+    .then((ab) => { if (!ab?.byteLength) throw new Error(`${name} 비어 있음`); return ab; })
+    .catch(again);
+}
 const decode = (ctx, ab) => new Promise((ok, no) => { const p = ctx.decodeAudioData(ab, ok, no); if (p?.catch) p.catch(no); });
 
 // 곳마다 울림을 섞는 양. 음악은 늘 홀에서 울리고(이야기 바깥의 소리), 굴에서만 조금 더 젖는다.
@@ -307,11 +325,9 @@ export class Engine {
     const have = DECODED.get(file);
     if (have) { if (have.buf) have.at = Date.now(); return have.buf ? Promise.resolve(true) : have; }
     const base = this.sampleBase;
-    if (!base || typeof fetch !== 'function') { LOADS.err = base ? 'fetch 없음' : '음악 파일 자리 없음'; return Promise.resolve(false); }
+    if (!base || (typeof fetch !== 'function' && typeof XMLHttpRequest !== 'function')) { LOADS.err = base ? 'fetch 없음' : '음악 파일 자리 없음'; return Promise.resolve(false); }
     // 아이폰 웹뷰가 한꺼번에 수십 개를 풀다 실패하지 않게 넷씩만 받는다 (35단계)
-    const p = slot(() => fetch(base + file)
-      .then((r) => { if (!r.ok) throw new Error(`${file} ${r.status}`); return r.arrayBuffer(); })
-      .then((ab) => decode(this.ctx, ab)))
+    const p = slot(() => fetchBytes(base + file).then((ab) => decode(this.ctx, ab)))
       .then((buf) => { DECODED.set(file, { buf, secs: buf.duration, at: Date.now() }); LOADS.ok++; return true; })
       .catch((e) => { DECODED.delete(file); LOADS.fail++; LOADS.err = String(e?.message ?? e ?? '').slice(0, 60); return false; }); // 못 받았으면 다음에 다시 해 본다
     DECODED.set(file, p);
