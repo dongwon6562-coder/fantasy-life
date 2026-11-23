@@ -119,7 +119,7 @@ function renderDetail(game, p) {
     <article class="detail" aria-label="${esc(fullName(p))}의 기록">
       <button class="close" data-person-close aria-label="닫기">×</button>
       <div class="detail-head">
-        ${portrait(game, p, { size: 112 })}
+        ${portrait(game, p, { size: 112, bust: true })}
         <div>
           <h3>${esc(fullName(p))}</h3>
           <p class="note">${esc(personMeta(game, p))}</p>
