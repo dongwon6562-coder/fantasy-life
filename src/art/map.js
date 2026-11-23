@@ -585,7 +585,7 @@ export function mountMap(container, opt = {}) {
         <button class="ghost sm" data-z="out" aria-label="축소">−</button>
         <button class="ghost sm" data-z="here" aria-label="지금 있는 곳으로">여기</button>
         <button class="ghost sm" data-z="all">전체</button>
-        <button class="ghost sm" data-z="town" aria-label="지금 있는 고장의 지도">고장 지도</button>
+        <button class="ghost sm" data-z="town" aria-label="지금 있는 고장의 지도">고장</button>
         <button class="ghost sm" data-z="legend" aria-label="지도 기호 풀이">범례</button>
       </span>
     </div>
@@ -614,6 +614,11 @@ function injectStyle() {
   if (styled || typeof document === "undefined") return; styled = true;
   const st = document.createElement("style"); st.dataset.map38 = "";
   st.textContent = `
+.map-tools .zoom { flex-wrap: nowrap; overflow-x: auto; max-width: 100%; gap: 5px; scrollbar-width: none; -webkit-overflow-scrolling: touch; }
+.map-tools .zoom::-webkit-scrollbar { display: none; }
+.map-tools .zoom button { white-space: nowrap; flex: none; }
+@media (max-width: 420px) { .map-tools .zoom button.sm { padding: 6px 10px; min-width: 38px; } }
+@media (max-width: 360px) { .map-tools .zoom { gap: 4px; } .map-tools .zoom button.sm { padding: 6px 7px; min-width: 32px; } }
 .map-legend { display: grid; gap: 3px; }
 .map-legend .lg-row { display: flex; align-items: center; gap: 8px; font-size: 13px; line-height: 1.3; }
 .map-legend .lg-row svg { flex: none; }
