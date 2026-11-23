@@ -46,10 +46,25 @@ export function frameCss({ selector = '.orn-frame', kind = 'line', size = 22, co
   const flip = uri(svg(32, 32, `<g transform="translate(32 32) rotate(180)">${CORNERS[kind] ?? CORNERS.line}</g>`), color);
   const tr = uri(svg(32, 32, `<g transform="translate(32 0) scale(-1 1)">${CORNERS[kind] ?? CORNERS.line}</g>`), color);
   const bl = uri(svg(32, 32, `<g transform="translate(0 32) scale(1 -1)">${CORNERS[kind] ?? CORNERS.line}</g>`), color);
-  return `${selector}{position:relative}
-${selector}::before,${selector}::after{content:"";position:absolute;inset:${inset}px;pointer-events:none;background-repeat:no-repeat;background-size:${size}px ${size}px}
-${selector}::before{background-image:${u},${tr};background-position:left top,right top}
-${selector}::after{background-image:${bl},${flip};background-position:left bottom,right bottom}`;
+  // 선택자를 쉼표로 여럿 주거나 배열로 줘도 된다. 하나씩 나눠 ::before·::after를 붙인다 (괄호 안 쉼표는 그대로 둔다)
+  const list = splitSelectors(selector); if (!list.length) return '';
+  const each = (suffix) => list.map((x) => x + suffix).join(',');
+  return `${each('')}{position:relative}
+${each('::before')},${each('::after')}{content:"";position:absolute;inset:${inset}px;pointer-events:none;background-repeat:no-repeat;background-size:${size}px ${size}px}
+${each('::before')}{background-image:${u},${tr};background-position:left top,right top}
+${each('::after')}{background-image:${bl},${flip};background-position:left bottom,right bottom}`;
+}
+function splitSelectors(sel) {
+  const out = [];
+  for (const one of Array.isArray(sel) ? sel : [sel]) {
+    let depth = 0, cur = '';
+    for (const ch of String(one ?? '')) {
+      if (ch === '(' || ch === '[') depth++; else if (ch === ')' || ch === ']') depth = Math.max(0, depth - 1);
+      if (ch === ',' && depth === 0) { out.push(cur); cur = ''; } else cur += ch;
+    }
+    out.push(cur);
+  }
+  return out.map((x) => x.trim()).filter(Boolean);
 }
 
 /* ---------- 머리 장식 ---------- */
