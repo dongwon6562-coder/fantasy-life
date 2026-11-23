@@ -1879,3 +1879,101 @@ html.motion .hero-me { animation: strip-in .45s cubic-bezier(.2, .7, .2, 1) back
   .scene.hero .scene-cap { padding-bottom: 14px; }
   .scene.hero .scene-pic img { height: clamp(230px, 26vw, 340px); }
 }
+
+/* ==========================================================================
+   38단계 (2) 더 과감하게: 할 일은 큰 아이콘 카드 격자, 묶음 제목이 먼저 눈에 들어오게
+   ========================================================================== */
+.plan-bar { display: grid; gap: 8px; margin: 2px 0 4px; }
+.plan-bar .act-find { position: relative; margin: 0; }
+.plan-bar .act-find .pb-ic { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--brass-dim); display: grid; pointer-events: none; }
+.plan-bar .act-find input { padding-left: 40px; border-radius: var(--r-pill); background: rgba(0, 0, 0, .3); border-color: #4a3d2e; min-height: 44px; }
+.plan-bar .act-find .note { position: absolute; right: 14px; top: 50%; transform: translateY(-50%); font-size: var(--fs-xs); }
+.pb-tools { display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; }
+.pb-tools::-webkit-scrollbar { display: none; }
+.pb-tools button { flex: none; min-height: 34px !important; padding: 2px 12px; font-size: var(--fs-xs); border-radius: var(--r-pill); color: var(--muted); border-color: #3f3428; }
+.pb-tools button[aria-pressed="true"] { color: var(--brass); border-color: var(--brass-dim); }
+
+/* 묶음 제목: 아이콘 메달 + 바탕체 + 오른쪽으로 사라지는 금줄 */
+.acts { display: grid; gap: 18px; }
+.act-group h4 { display: flex; align-items: center; gap: 10px; font-family: var(--f-display); font-size: var(--fs-lg); letter-spacing: .02em; color: #efe1c2; font-weight: 700; }
+.act-group h4 .ag-ic { width: 30px; height: 30px; display: grid; place-items: center; flex: none; border-radius: 50%; color: var(--brass);
+  border: 1px solid rgba(201, 162, 90, .45); background: radial-gradient(circle at 50% 35%, rgba(201, 162, 90, .2), rgba(0, 0, 0, .2) 75%); }
+details.act-group > summary, .act-group.dark summary { border: 0 !important; padding: 0 0 6px !important; background: var(--rule) left bottom / 100% 1px no-repeat; align-items: center !important; min-height: 44px; }
+details.act-group > summary .note { margin-left: 0; font-size: var(--fs-xs); }
+details.act-group > summary::after { font-size: var(--fs-xs); padding: 2px 10px; border: 1px solid #3f3428; border-radius: var(--r-pill); }
+details.act-group[open] > .act-grid { margin-top: 10px; }
+.act-group.act-usual { border: 1px solid rgba(201, 162, 90, .3); border-radius: var(--r-lg); padding: 12px; background: var(--grain), linear-gradient(180deg, rgba(201, 162, 90, .08), rgba(0, 0, 0, .1)); }
+.act-group.act-usual h4 { font-size: var(--fs-md); }
+.act-group.cr-acts h4 { color: #e3917f; }
+.act-group.cr-acts h4 .ag-ic { color: #e3917f; border-color: rgba(192, 98, 79, .5); }
+.act-group.dark summary h4 { color: #c9a092; }
+
+/* 할 일 카드: 위에 큰 아이콘, 아래 이름과 두 줄 설명. 폰에서 두 칸, 넓으면 서너 칸 */
+.act-grid { grid-template-columns: repeat(auto-fill, minmax(min(150px, 100%), 1fr)); gap: 10px; }
+@media (max-width: 520px) { .act-grid { grid-template-columns: 1fr 1fr; gap: 8px; } }
+.act { grid-template-columns: 1fr !important; grid-template-rows: auto auto 1fr; justify-items: start; row-gap: 6px; padding: 14px 12px 12px !important; min-height: 132px;
+  border-color: #3f3428; background: var(--grain), linear-gradient(180deg, #2c2419, #1d1812); box-shadow: inset 0 1px 0 rgba(255, 228, 176, .05), 0 2px 6px rgba(0, 0, 0, .3); }
+.act .ic { grid-row: 1 !important; width: 50px !important; height: 50px !important; }
+.act .nm { grid-row: 2 !important; grid-column: 1; font-size: var(--fs-md) !important; line-height: 1.3; }
+.act .ds { grid-row: 3; grid-column: 1; -webkit-line-clamp: 2; display: -webkit-box; -webkit-box-orient: vertical; overflow: hidden; }
+.acts.compact .act { min-height: 0; padding: 10px !important; grid-template-columns: auto 1fr !important; grid-template-rows: auto; align-items: center; column-gap: 10px; }
+.acts.compact .act .ic { width: 36px !important; height: 36px !important; grid-row: 1 !important; }
+.acts.compact .act .ic svg { width: 22px; height: 22px; }
+.acts.compact .act .nm { grid-row: 1 !important; grid-column: 2; }
+.act[aria-pressed="true"] { border-color: var(--brass); background: var(--grain), linear-gradient(180deg, #3a2f20, #261f16); }
+.act .cnt { top: 10px; right: 10px; }
+@media (max-width: 360px) { .act { min-height: 120px; padding: 12px 10px 10px !important; } .act .ic { width: 44px !important; height: 44px !important; } }
+
+/* 반신 초상: 아치 꼴 액자 (나·인물 수첩·사건 창) */
+.portrait.bust { border-radius: 46% 46% 10px 10px / 34% 34% 10px 10px; box-shadow: 0 0 0 1px #6f5122, 0 0 0 3px #1b1510, 0 0 0 4px rgba(201, 162, 90, .5), 0 8px 18px rgba(0, 0, 0, .45); background: #1b1510; }
+.sheet .who .portrait.bust, .detail-head .portrait.bust { flex: none; }
+.ev-art.has-who::before { content: ''; position: absolute; inset: 0; z-index: 1; background: linear-gradient(90deg, rgba(20, 14, 8, .45), rgba(20, 14, 8, 0) 45%); }
+.ev-who { position: absolute; z-index: 2; left: 16px; bottom: 12px; display: grid; justify-items: center; gap: 4px; }
+.ev-who .portrait.bust { width: 88px; height: auto; }
+.ev-who b { font-family: var(--f-display); font-size: var(--fs-sm); color: #f4e8cc; padding: 1px 10px; border-radius: var(--r-pill); background: rgba(20, 14, 8, .72); border: 1px solid rgba(201, 162, 90, .45); white-space: nowrap; max-width: 120px; overflow: hidden; text-overflow: ellipsis; }
+@media (max-width: 360px) { .ev-who .portrait.bust { width: 72px; } }
+
+/* ---------- 나·사람들·연대기: 같은 새 틀 ----------
+   카드는 가죽에 매듭 귀 장식(ornament.js frameCss, index.js가 붙임), 제목은 금줄 띠,
+   '마을과 나' 연대기는 양피지 책장 */
+.layout.view-people .card, .layout.view-chron .card:not(.chron-card), .sheet:not(.side) {
+  background: var(--grain), var(--leather); border-color: #4a3c2c;
+  box-shadow: inset 0 1px 0 rgba(255, 228, 176, .06), inset 0 0 0 1px rgba(201, 162, 90, .1), inset 0 0 0 5px rgba(0, 0, 0, .12), var(--elev-1); }
+.layout.view-people .card > h2, .layout.view-chron .card > h2 { padding: 2px 0 10px; display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 10px; }
+.layout.view-people .card > h2::before, .layout.view-chron .card:not(.chron-card) > h2::before { content: ''; width: 7px; height: 7px; background: var(--brass); transform: rotate(45deg) translateY(-3px); flex: none; box-shadow: 0 0 6px rgba(201, 162, 90, .5); }
+.layout.view-people .card > h2 small { margin-left: auto; }
+
+/* '나' 칸: 반신 초상 판, 덩이 제목은 오른쪽으로 사라지는 금줄 */
+.sheet:not(.side) .who { padding: 4px 4px 14px; background: var(--rule) left bottom / 100% 1px no-repeat; align-items: center; }
+.sheet:not(.side) .who .portrait.bust { width: 96px; height: auto; }
+.sheet:not(.side) .who h2 { font-size: var(--fs-2xl); line-height: 1.25; }
+.sheet .block h3 { gap: 9px; font-size: var(--fs-lg); color: #efe1c2; }
+.sheet .block h3::after { content: ''; flex: 1; height: 1px; margin-left: 4px; background: linear-gradient(90deg, rgba(201, 162, 90, .45), rgba(201, 162, 90, 0)); }
+.sheet .block h3::before { width: 7px; height: 7px; opacity: 1; box-shadow: 0 0 6px rgba(201, 162, 90, .5); }
+
+/* 사람들: 사람 한 명 칸을 안쪽으로 눌린 가죽 판으로 */
+.layout.view-people .card .kid, .layout.view-people .card .person, .layout.view-people .card .detail {
+  border-radius: var(--r-md); }
+.detail { background: var(--grain), linear-gradient(180deg, #2a2219, #1c1712); border-color: #5a4630 !important; }
+.detail-head { align-items: center; }
+.detail-head .portrait.bust { width: 104px; height: auto; }
+
+/* 연대기 '마을과 나': 양피지 책장 */
+.layout.view-chron .chron-card {
+  --pg-ink: #2b1e13; --pg-mute: #6b553b; --pg-red: #8a2e1e; --pg-line: rgba(111, 81, 34, .35);
+  background: var(--fibers), var(--grain-ink), radial-gradient(ellipse 140% 100% at 50% 30%, #efe2c1 0%, #e6d6ad 65%, #d6c08e 100%);
+  color: var(--pg-ink); border: 1px solid #6f5122; box-shadow: 0 0 0 1px rgba(0, 0, 0, .5), inset 0 0 36px rgba(120, 82, 34, .25), var(--elev-2); }
+.layout.view-chron .chron-card > h2 { color: var(--pg-ink); background: linear-gradient(90deg, rgba(111, 81, 34, .6), rgba(111, 81, 34, 0) 75%) left bottom / 100% 1px no-repeat; }
+.layout.view-chron .chron-card > h2 small, .layout.view-chron .chron-card .note { color: var(--pg-mute); }
+.layout.view-chron .chron-card .ch-year { border-top-color: var(--pg-line); }
+.layout.view-chron .chron-card .ch-year > summary { font-family: var(--f-display); color: var(--pg-ink); }
+.layout.view-chron .chron-card .ch-year > summary small, .layout.view-chron .chron-card .ch-year > summary::after { color: var(--pg-mute); }
+.layout.view-chron .chron-card .chron li { color: #33241a; line-height: 1.65; }
+.layout.view-chron .chron-card .chron li time { color: var(--pg-mute); }
+.layout.view-chron .chron-card .chron li.mine { color: var(--pg-red); }
+.layout.view-chron .chron-card .seg { box-shadow: none; border-color: rgba(111, 81, 34, .5); }
+.layout.view-chron .chron-card .seg button { background: rgba(255, 249, 232, .45); color: var(--pg-ink); }
+.layout.view-chron .chron-card .seg button + button { border-left-color: rgba(111, 81, 34, .4); }
+.layout.view-chron .chron-card .seg button[aria-pressed="true"] { background: linear-gradient(180deg, #7a3a22, #5e2a17); color: #f5e6c6; box-shadow: none; }
+.layout.view-chron .chron-card .ghost { color: var(--pg-ink); border-color: rgba(111, 81, 34, .5); background: rgba(255, 249, 232, .4); }
+.layout.view-chron .chron-card b, .layout.view-chron .chron-card strong { color: var(--pg-ink); }

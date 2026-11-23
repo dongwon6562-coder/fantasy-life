@@ -13,7 +13,8 @@ import { mountMap } from '../art/map.js';
 import { L, traveling } from '../adventure/core.js';
 import { placeName, HOME_NAMES } from '../places.js';
 import { jobTitle } from '../jobs.js';
-import { medallion, crest, divider, ORNAMENT_CSS } from '../art/ornament.js';
+import { byId } from '../npc.js';
+import { medallion, crest, divider, frameCss, ORNAMENT_CSS } from '../art/ornament.js';
 import { interiorImage, sceneFor } from '../art/sceneInterior.js';
 const ROOM_NAME = { hearth: '집 안', tavern: '주점 안', hall: '큰 방', temple: '신전 안', workshop: '일터' };
 import { memberships } from '../factions.js';
@@ -321,7 +322,7 @@ function renderSheet() {
   return `
   <aside class="sheet">
     <div class="who">
-      ${portrait(game, meP, { size: 84, scars: p.scars ?? [], ring: '#c9a25a', title: p.name })}
+      ${portrait(game, meP, { size: 84, bust: true, scars: p.scars ?? [], title: p.name })}
       <div>
         <h2>${esc(p.name)} ${esc(p.lastName)}</h2>
         <p>${age}살 ${months}개월${meP.agelessAt != null ? ` · 몸은 ${meP.agelessAt}살에 멈춤` : ''} · ${p.sex === 'm' ? '남' : '여'}</p>
@@ -566,7 +567,10 @@ function renderEvent() {
   const sceneArgs = { year: game.date.year, month: game.date.month, famine: !!game.world?.famine, plague: !!game.world?.plague, place: L(game).place, calamity: calamityNow() };
   game.sceneArgs = sceneArgs; // 저장에 같이 남아, 다음에 켤 때 처음 화면이 떠 있는 동안 이 풍경을 미리 그린다 (32단계 헤드)
   const art = sceneImage(sceneArgs);
-  const head = `${art ? `<div class="ev-art" aria-hidden="true"><i style="background-image:url(${art})"></i></div>` : ''}`;
+  // 38단계: 사건에 나오는 사람이 있으면(ctx의 id, 글에 이름이 나올 때만) 삽화 위에 반신 초상
+  const who = (() => { try { const c = e?.ctx ?? {}; for (const k of ['id', 'pid', 'who', 'target']) { const q = typeof c[k] === 'number' ? byId(game, c[k]) : null; if (q && q !== me(game) && q.name && `${e.title} ${e.text}`.includes(q.name)) return q; } } catch (err) { console.error(err); } return null; })();
+  const whoHtml = who ? `<span class="ev-who">${portrait(game, who, { size: 88, bust: true, title: who.name })}<b>${esc(who.name)}</b></span>` : '';
+  const head = art ? `<div class="ev-art${who ? ' has-who' : ''}" aria-hidden="true"><i style="background-image:url(${art})"></i>${whoHtml}</div>` : '';
   // 한 줄씩 드러나기: 이 창을 처음 그릴 때만 (다시 그리면 바로 다 보인다)
   const key = ui.outcome ? `o:${ui.outcome.title}:${String(ui.outcome.text).length}` : `e:${e.id}:${e.title}:${game.date.year * 12 + game.date.month}`;
   const rv = revealOn() && ui.evSeen !== key ? ' rv' : '';
@@ -633,7 +637,9 @@ function heroStrip() {
 }
 
 // 38단계 장식 그림(src/art/ornament.js)의 기본 틀을 한 번만 붙인다
-if (typeof document !== 'undefined' && !document.getElementById('orn-css')) document.head.insertAdjacentHTML('beforeend', `<style id="orn-css">${ORNAMENT_CSS}</style>`);
+if (typeof document !== 'undefined' && !document.getElementById('orn-css')) document.head.insertAdjacentHTML('beforeend', `<style id="orn-css">${ORNAMENT_CSS}
+${['.layout.view-people .card', '.layout.view-chron .card:not(.chron-card)', '.sheet:not(.side)'].map((selector) => frameCss({ selector, kind: 'knot', size: 26, color: '#a8843f', inset: 4 })).join('\n')}
+${frameCss({ selector: '.layout.view-chron .chron-card', kind: 'leaf', size: 30, color: '#7a5524', inset: 6 })}</style>`);
 
 const VIEWS = [
   ['month', '이번 달', 'scroll'],

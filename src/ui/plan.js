@@ -2,7 +2,7 @@
 import { J } from '../narrative/text.js';
 import { availableActions, slotsFor, knownPeople, fullName } from '../game.js';
 import { ACTIONS } from '../actions.js';
-import { actionIcon } from '../art/icons.js';
+import { actionIcon, icon } from '../art/icons.js';
 import { portrait } from '../art/portrait.js';
 import { esc } from './util.js';
 import { crisisActDesc } from './crisis.js';
@@ -198,7 +198,7 @@ function groupActs(acts) {
   return [...out, etc].filter(([, , l]) => l.length);
 }
 const actCard = (a, ui, counts) => `<button class="act" data-act="${a.id}" aria-pressed="${ui.plan[ui.active].id === a.id}">
-          <span class="ic">${actionIcon(a, 26)}</span>
+          <span class="ic">${actionIcon(a, 30)}</span>
           <span class="nm">${esc(a.name)}</span>
           <span class="ds">${esc(a.desc ?? '')}</span>
           ${counts[a.id] ? `<span class="cnt" aria-label="${counts[a.id]}칸에 들어 있음">${counts[a.id]}</span>` : ''}
@@ -255,7 +255,7 @@ export function renderPlan(game, ui) {
   return `
   <section class="card plan">
     <h2>이번 달 계획 <small class="hint-wide">칸을 고르고, 아래에서 할 일을 누른다</small><small class="hint-narrow">할 일을 누르면 아래 칸에 차례로 들어간다</small></h2>
-    <div class="ways-row">${waysButton()}<span class="note">지금 해 볼 수 있는 일과 갈 수 있는 길</span></div>
+    ${many ? '' : `<div class="ways-row">${waysButton()}<span class="note">지금 해 볼 수 있는 일과 갈 수 있는 길</span></div>`}
     <div class="slotbar" role="tablist" aria-label="이번 달의 칸" style="--n:${n}">
       ${ui.plan.map((c, i) => {
         const act = ACTIONS.find((a) => a.id === c.id);
@@ -281,17 +281,20 @@ export function renderPlan(game, ui) {
         </div>
       </div>` : ''}
     <div class="acts${compact ? ' compact' : ''}">
-      ${many ? `<div class="act-tools"><span class="note">할 일 ${acts.length}가지</span>${groups.length > 3 ? `<button class="ghost sm" id="act-fold" data-fold="${allFolded ? 0 : 1}">${allFolded ? '묶음 다 펼치기' : '묶음 다 접기'}</button>` : ''}<button class="ghost sm" id="act-compact" aria-pressed="${compact}">${compact ? '설명까지 보기' : '이름만 짧게 보기'}</button></div>
-      <div class="act-find"><input type="search" id="act-q" value="${esc(ui.actQ ?? '')}" placeholder="할 일 찾기 (이름이나 설명)" aria-label="할 일 찾기" autocomplete="off"><span class="note" id="act-q-n" hidden></span></div>` : ''}
-      ${usual.length >= 2 ? `<div class="act-group act-usual" id="ag-usual"><h4>자주 하는 일</h4><div class="act-grid">${usual.map((a) => actCard(a, ui, counts)).join('')}</div></div>` : ''}
+      ${many ? `<div class="plan-bar">
+        <label class="act-find"><span class="pb-ic" aria-hidden="true">${icon('eye', 18)}</span><input type="search" id="act-q" value="${esc(ui.actQ ?? '')}" placeholder="할 일 ${acts.length}가지에서 찾기" aria-label="할 일 찾기" autocomplete="off"><span class="note" id="act-q-n" hidden></span></label>
+        <div class="pb-tools">${waysButton('갈 수 있는 길')}${groups.length > 3 ? `<button class="ghost sm" id="act-fold" data-fold="${allFolded ? 0 : 1}">${allFolded ? '다 펼치기' : '다 접기'}</button>` : ''}<button class="ghost sm" id="act-compact" aria-pressed="${compact}">${compact ? '설명 보기' : '이름만'}</button></div>
+      </div>` : ''}
+      ${usual.length >= 2 ? `<div class="act-group act-usual" id="ag-usual"><h4><span class="ag-ic">${icon('hourglass', 18)}</span>자주 하는 일</h4><div class="act-grid">${usual.map((a) => actCard(a, ui, counts)).join('')}</div></div>` : ''}
       ${groups.length > 3 && acts.length > 12 ? `<nav class="act-jump" aria-label="할 일 묶음으로 가기">${groups.map(([gid, name, list]) => `<button class="ghost sm" data-act-jump="${gid}">${esc(name)} <small>${list.length}</small></button>`).join('')}</nav>` : ''}
       ${groups.map(([gid, name, list]) => {
         const cards = list.map((a) => actCard(gid === 'crisis' ? crisisActDesc(game, a) : a, ui, counts)).join('');
-        if (gid === 'crisis') return `<div class="act-group cr-acts" id="ag-${gid}"><h4>${name}</h4><div class="act-grid">${cards}</div></div>`;
+        const gic = `<span class="ag-ic">${actionIcon(list[0], 18)}</span>`;
+        if (gid === 'crisis') return `<div class="act-group cr-acts" id="ag-${gid}"><h4>${gic}${name}</h4><div class="act-grid">${cards}</div></div>`;
         // 어두운 일은 처음부터 접어 둔다. 다른 묶음은 펼쳐 두되, 접은 묶음은 기억한다(이 기기). 고른 일이 든 묶음은 늘 펼친다.
         const chosen = list.some((a) => counts[a.id]);
         const open = chosen || (gid === 'dark' ? ui.darkOpen : !folded.includes(gid));
-        return `<details class="act-group${gid === 'dark' ? ' dark' : ''}" id="ag-${gid}" data-ag="${gid}"${open ? ' open' : ''}><summary><h4>${name}</h4><span class="note">${list.length}가지</span></summary><div class="act-grid">${cards}</div></details>`;
+        return `<details class="act-group${gid === 'dark' ? ' dark' : ''}" id="ag-${gid}" data-ag="${gid}"${open ? ' open' : ''}><summary><h4>${gic}${name}</h4><span class="note">${list.length}가지</span></summary><div class="act-grid">${cards}</div></details>`;
       }).join('')}
     </div>
     ${renderTpl(game, ui)}
