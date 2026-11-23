@@ -459,6 +459,11 @@ const ROOMS = {
 };
 
 const cache = new Map();
+/** 이미 그려 둔 실내 그림만 (없으면 ''). 화면은 이걸 먼저 보고, 없으면 바깥 풍경을 띄운 뒤 실내를 나중에 그린다 (39단계 헤드: 달 넘기기 무게) */
+export function interiorCached({ kind = 'hearth', year = 500, month = 1, place = 'ern' } = {}) {
+  if (!ROOMS[kind]) kind = 'hearth';
+  return cache.get(`${kind}-${year}-${month}-${place}`) ?? '';
+}
 /** 실내 그림 (그림 주소). kind: hearth tavern hall temple workshop */
 export function interiorImage({ kind = 'hearth', year = 500, month = 1, place = 'ern' } = {}) {
   if (!ROOMS[kind]) kind = 'hearth';
