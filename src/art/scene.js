@@ -101,10 +101,10 @@ function draw(year, month, famine, plague, place, calamity, era) {
   if (era?.airship !== undefined && (era.skyline !== undefined || hash(k, 9) < 0.4)) airship(L, 170 + hash(k, 3) * 420, 54 + hash(k, 4) * 60, era.skyline !== undefined ? 0.42 : 0.3, e, hash(k, 6) < 0.5);
   if (cal) seasonLand(L, cal, e);
   gradeLand(L, S, plague);
+  sunRays(ctx, S, wr, k); // 빛줄기는 하늘에만: 땅·성·나무 뒤로 간다
   ctx.drawImage(land, 0, 0);
   rimLight(ctx, land, S);
   lights(ctx, e);
-  sunRays(ctx, S, wr, k);
   wetGround(ctx, S, e.lit, k);
   fogBanks(ctx, S, wr);
   nearFrame(ctx, S, P, D.biome, rng(D.seed + 3));
@@ -175,7 +175,7 @@ function smokeUp(L, e) {
 /** 불 켜진 창과 횃불. 밤일수록 많이 켜진다 */
 function lights(ctx, e) {
   const { S, k, plague } = e, tod = S.tod;
-  const on = tod === 'night' ? 0.78 : tod === 'dusk' ? 0.55 : tod === 'dawn' ? 0.3 : S.heavy ? 0.12 : 0;
+  const wet = S.weather === 'rain' || S.storm, on = Math.max(tod === 'night' ? 0.78 : tod === 'dusk' ? 0.55 : tod === 'dawn' ? 0.3 : S.heavy ? 0.12 : 0, wet ? 0.55 : 0); // 비 오는 날은 낮에도 창불을 켠다
   const dense = e.wins.length > 90;
   ctx.globalCompositeOperation = 'lighter';
   const dayOff = tod === 'day' && !S.heavy, glass = e.era?.glass !== undefined;

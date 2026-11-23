@@ -12,7 +12,7 @@
 import { HOOKS } from '../hooks.js';
 import { ACTIONS } from '../actions.js';
 import { circleOf } from '../game.js';
-import { iconName } from '../art/icons.js';
+import { iconName, iconBase } from '../art/icons.js';
 import { Engine, LOADS } from './engine.js';
 import { MusicPlayer } from './music.js';
 import { TRACKS } from './tracks.js';
@@ -270,7 +270,7 @@ function onClick(ev) {
   }
   if (el.matches('[data-act]')) {
     const act = ACTIONS.find((a) => a.id === el.dataset.act);
-    const name = act ? iconName(act) : null;
+    const name = act ? iconBase(iconName(act)) : null; // 38단계: 새 아이콘 이름은 옛 갈래 소리로
     const over = ACT_SFX.find(([re]) => re.test(el.dataset.act))?.[1];
     sfx(over ?? (SFX[name] ? name : 'select'));
     return;
