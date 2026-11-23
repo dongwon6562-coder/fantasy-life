@@ -49,11 +49,12 @@ export function drawHair(style, h) {
     } else inner.push([cx + hw * sideIn, sideY]);
     const o = arch(cx, outer), i = arch(cx, inner).reverse();
     const d = `${spline(o)} L${f(i[0][0])} ${f(i[0][1])} ${spline(i, false, false)}Z`;
-    return { d, sideY: lock ? chin : sideY, v, hl };
+    return { d, sideY: lock ? chin : sideY, v, hl, o };
   };
   const strands = (c, { n = 11, ox = part * hw * 0.22, oy = top - c.v * 0.5, back = false } = {}) => {
     if (!detail) return '';
-    let d1 = '', d2 = '';
+    let d1 = '', d2 = '', d3 = '';
+    const g = h.gray ?? 0; // 38단계: 세기 시작한 머리에는 흰 가닥이 섞인다 (관자놀이 쪽부터)
     for (let k = 0; k < n; k++) {
       const u = -1 + (2 * (k + 0.5)) / n + (h.r() - 0.5) * 0.08;
       const a = Math.abs(u);
@@ -62,12 +63,30 @@ export function drawHair(style, h) {
       const qx = (sx + tx) / 2 + u * hw * 0.24, qy = Math.min(sy, ty) - (1 - a) * 1.2 + a * hh * 0.02 - (back ? 2 : 0);
       const seg = `M${f(sx)} ${f(sy)} Q${f(qx)} ${f(qy)} ${f(tx)} ${f(ty)} `;
       if (k % 3 === 1) d2 += seg; else d1 += seg;
+      if (g > 0.05 && g < 0.92 && ((k * 7) % 11) / 11 < g * (0.9 + a * 0.9)) d3 += `M${f(sx + 0.5)} ${f(sy + 0.3)} Q${f(qx + 0.4)} ${f(qy + 0.4)} ${f(tx + 0.4)} ${f(ty - 0.3)} `;
     }
-    return `<g clip-path="url(#${uid}k)" fill="none" stroke-linecap="round"><path d="${d1}" stroke="${dark}" stroke-width="0.45" opacity="0.55"/><path d="${d2}" stroke="${light}" stroke-width="0.5" opacity="0.4"/><path d="M${f(cx - hw * 0.82)} ${f(top + hh * 0.3)} Q${f(cx - hw * 0.5)} ${f(top - c.v * 0.3)} ${f(cx - hw * 0.02)} ${f(top - c.v * 0.62)}" stroke="${light}" stroke-width="2.2" opacity="0.28"/></g>`;
+    return `<g clip-path="url(#${uid}k)" fill="none" stroke-linecap="round"><path d="${d1}" stroke="${dark}" stroke-width="0.45" opacity="0.55"/><path d="${d2}" stroke="${light}" stroke-width="0.5" opacity="0.4"/>${d3 ? `<path d="${d3}" stroke="#e6e2da" stroke-width="0.32" opacity="0.6"/>` : ''}<path d="M${f(cx - hw * 0.82)} ${f(top + hh * 0.3)} Q${f(cx - hw * 0.5)} ${f(top - c.v * 0.3)} ${f(cx - hw * 0.02)} ${f(top - c.v * 0.62)}" stroke="${light}" stroke-width="2.2" opacity="0.28"/></g>`;
   };
   const capDraw = (c, extra = '') => {
     out.defs += `<clipPath id="${uid}k"><path d="${c.d}"/></clipPath>`;
-    return `<path d="${c.d}" fill="${fillG}" ${line}/>${extra}`;
+    return `<path d="${c.d}" fill="${fillG}" ${line}/>${extra}${detail ? flyaway(c) : ''}`;
+  };
+  // 38단계 큰 초상: 윤곽 밖으로 삐져나온 잔머리와 이마 선의 잔털 (헬멧처럼 보이지 않게)
+  const flyaway = (c) => {
+    if (!c.o) return '';
+    let d = '', w = '';
+    for (const [x, y] of c.o) {
+      if (y > cy + hh * 0.1 || h.r() < 0.35) continue;
+      const nx = x - cx, ny = y - (cy - hh * 0.2), L = Math.hypot(nx, ny) || 1, ux = nx / L, uy = ny / L;
+      const len = 1.6 + h.r() * 2.2, tw = (h.r() - 0.5) * 2.4;
+      d += `M${f(x - ux * 0.8)} ${f(y - uy * 0.8)} Q${f(x + ux * len * 0.6 - uy * tw)} ${f(y + uy * len * 0.6 + ux * tw)} ${f(x + ux * len - uy * tw * 1.6)} ${f(y + uy * len + ux * tw * 1.6)} `;
+    }
+    for (let k = 0; k < 7; k++) {
+      const u = -0.62 + k * 0.2 + (h.r() - 0.5) * 0.1, x = cx + u * hw;
+      const y = c.hl + Math.abs(u) * hh * 0.18 - 0.4;
+      w += `M${f(x)} ${f(y)} q${f((h.r() - 0.5) * 0.8)} 0.9 ${f((h.r() - 0.5) * 1.2)} ${f(1.3 + h.r())} `;
+    }
+    return `<path d="${d}" fill="none" stroke="${light}" stroke-width="0.28" stroke-linecap="round" opacity="0.5"/><path d="${w}" fill="none" stroke="${hair}" stroke-width="0.26" stroke-linecap="round" opacity="0.4"/>`;
   };
   // 이마 그늘 (머리카락이 이마에 드리우는)
   const castShadow = (c) => `<path d="M${f(cx - hw * 0.9)} ${f(c.hl + hh * 0.22)} Q${cx} ${f(c.hl - 1)} ${f(cx + hw * 0.9)} ${f(c.hl + hh * 0.22)} L${f(cx + hw * 0.9)} ${f(c.hl + hh * 0.34)} Q${cx} ${f(c.hl + 2.2)} ${f(cx - hw * 0.9)} ${f(c.hl + hh * 0.34)}Z" fill="#2a120a" opacity="0.14" clip-path="url(#${uid}h)"/>`;
@@ -216,7 +235,7 @@ export function drawHair(style, h) {
     }
     case 'long': {
       const c = cap({ v: 2.8, drop: hh * 0.3, flare: 1.2, lock: 15 });
-      out.back = backMass(104, 5, 3);
+      out.back = backMass(h.bottom ?? 104, 5, 3);
       out.front = capDraw(c, strands(c, { ox: part * hw * 0.2 })) + (h.peak > 0.62 ? fringe('bangs', c) : fringe('curtain', c));
       break;
     }

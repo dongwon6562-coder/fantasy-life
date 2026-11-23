@@ -79,6 +79,11 @@ export function ground(v, fn, o = {}) {
   const base = o.color ?? (P.snow ? '#d9dee0' : P.grass), c0 = t(mixh(base, S.haze, o.haze ?? 0.12)), c1 = t(dark(P.snow ? '#aab4bc' : (o.color2 ?? P.grass2), 0.3));
   const y0 = Math.min(fn(0), fn(VW / 2), fn(VW));
   curve(ctx, fn, vgrad(ctx, y0 - 8, VH, [[0, c0], [0.55, t(mixh(base, P.snow ? '#aab4bc' : P.grass2, 0.6))], [1, c1]]));
+  // 땅의 얼룩 (38단계): 넓고 옅은 밝고 어두운 자리로 한 빛깔 바닥을 깬다
+  for (let i = 0; i < 9; i++) {
+    const x = hash(i, 71) * VW, d = hash(i, 72), y = fn(x) + 10 + d * (VH - fn(x) - 10), rx = 40 + hash(i, 73) * 70 * (0.5 + d);
+    puff(ctx, x, y, rx * 1.5, 5 + d * 14, i % 3 === 0 ? t(light(base, 0.3)) : '#0c0a08', i % 3 === 0 ? 0.14 : 0.16);
+  }
   if (o.plain) return;
   // 풀 자국 (눈밭이면 마른 풀대)
   const n = o.tufts ?? 150;
@@ -197,6 +202,12 @@ export function person(v, x, y, h, o = {}) {
   const lean = pose === 'bow' ? 0.06 : o.old ? 0.09 : 0;
   ctx.save(); ctx.translate(x, y); ctx.scale(s * d, s); ctx.lineCap = 'round'; ctx.lineJoin = 'round';
   const line = (pts, w, c) => { ctx.strokeStyle = c; ctx.lineWidth = w; ctx.beginPath(); ctx.moveTo(pts[0], pts[1]); for (let i = 2; i < pts.length; i += 2) ctx.lineTo(pts[i], pts[i + 1]); ctx.stroke(); };
+  // 발밑 그림자: 빛 반대쪽으로 조금 눕는다 (38단계). 멀리 선 작은 사람은 옅게
+  if (!o.noShadow) {
+    const sd = -(o.rimDir ?? S.dir ?? 1) * d, wide = pose === 'kneel' || pose === 'huddle' ? 26 : pose === 'sit' ? 20 : skirt ? 19 : 13;
+    ctx.fillStyle = `rgba(8,6,10,${Math.min(0.3, 0.1 + h * 0.002)})`; ctx.beginPath(); ctx.ellipse(sd * 7, 1, wide + 5, 4.2, 0, 0, TAU); ctx.fill();
+    ctx.fillStyle = 'rgba(8,6,10,.2)'; ctx.beginPath(); ctx.ellipse(sd * 2, 0.5, wide * 0.7, 2.4, 0, 0, TAU); ctx.fill();
+  }
   if (pose === 'huddle') { // 바닥에 웅크려 앉음
     ctx.fillStyle = cloth; ctx.beginPath(); ctx.moveTo(-14, 0); ctx.quadraticCurveTo(-16, -30, -2, -44); ctx.quadraticCurveTo(8, -46, 12, -38); ctx.lineTo(20, -30); ctx.lineTo(30, 0); ctx.closePath(); ctx.fill();
     line([20, -30, 30, -2], 8, legs); line([4, -38, 14, -24, 22, -28], 6, sleeve);
@@ -234,6 +245,16 @@ export function person(v, x, y, h, o = {}) {
   else if (o.arm === 'fwd') { rest(-1); line([sw - 2, -77, 17, -64, 27, -58], aw, sleeve); hand(29, -57); }
   else if (o.arm === 'chest') { line([sw - 2, -77, 12, -62, 2, -66], aw, sleeve); line([-sw + 2, -77, -12, -62, -1, -64], aw, sleeve); }
   else { rest(-1); rest(1); }
+  // 몸의 그늘과 옷 주름 (38단계): 빛 반대쪽 옆구리가 어둡고, 긴 옷에는 주름이 진다
+  {
+    const ds = -(o.rimDir ?? S.dir ?? 1) * d, sh = 'rgba(10,8,14,.2)';
+    ctx.strokeStyle = sh; ctx.lineWidth = 4.6; ctx.beginPath(); ctx.moveTo(ds * (sw - 3), -77); ctx.lineTo(ds * (wst - 2), -60);
+    if (pose === 'stand' || pose === 'bow') ctx.lineTo(ds * (skirt ? 12 : 5.5), -3);
+    ctx.stroke();
+    if (skirt && (pose === 'stand' || pose === 'bow')) { ctx.strokeStyle = 'rgba(10,8,14,.16)'; ctx.lineWidth = 1.1; for (const k of [-0.36, 0.1, 0.5]) { ctx.beginPath(); ctx.moveTo(k * wst, -56); ctx.quadraticCurveTo(k * 13, -30, k * 17, -2); ctx.stroke(); } }
+    // 턱 밑 그늘
+    ctx.fillStyle = 'rgba(10,8,14,.16)'; ctx.beginPath(); ctx.ellipse(0, -80.5, sw * 0.62, 2.6, 0, 0, TAU); ctx.fill();
+  }
   // 빛 받는 쪽 테두리
   const rim = o.rim ?? (S.tod === 'night' ? null : rgba(S.lit, 0.4));
   if (rim) { const ls = (o.rimDir ?? S.dir) * d; ctx.strokeStyle = rim; ctx.lineWidth = 1.2; ctx.beginPath(); ctx.moveTo(ls * sw, -79); ctx.lineTo(ls * (wst + (o.arm ? 0 : 5)), -59); if (pose === 'stand' || pose === 'bow') ctx.lineTo(ls * (skirt ? 16 : 8.5), -2); ctx.stroke(); }

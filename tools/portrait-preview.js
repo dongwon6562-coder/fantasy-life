@@ -37,7 +37,7 @@ const JOBS = [['farmer', '농부'], ['laborer', '품팔이'], ['miller', '방앗
 const jobs = row(JOBS.map(([job, name], k) => cell(portrait(null, P(20 + k * 3, { job, ageMonths: 12 * (job === 'child' ? 9 : job === 'elder' || job === 'old_knight' || job === 'bishop' ? 62 : 24 + (k * 11) % 30) }), { size: S }), name)), 'six');
 
 // 4. 표정
-const MOODS = [['', '보통'], ['warm', '웃음'], ['cold', '찡그림'], ['tired', '지침'], ['stressed', '근심'], ['sick', '아픔']];
+const MOODS = [['', '보통'], ['warm', '웃음'], ['cold', '찡그림'], ['tired', '지침'], ['stressed', '근심'], ['sick', '아픔'], ['grief', '슬픔'], ['fierce', '노기'], ['proud', '거만']];
 const moods = [[5, 'hunter'], [6, 'merchant'], [12, 'herbalist']].map(([i, job]) => row(MOODS.map(([m, n]) => cell(portrait(null, P(i, { job }), { size: S, mood: m }), n)), 'six')).join('');
 
 // 5. 종족
@@ -55,6 +55,10 @@ const fa = P(81, { job: 'smith', ageMonths: 12 * 46, sex: 'm' }), mo = P(82, { j
 const kids = [0, 1, 2, 3].map((k) => P(90 + k, { fatherId: 81, motherId: 82, sex: k % 2 ? 'm' : 'f', ageMonths: 12 * [21, 17, 12, 6][k], job: ['apprentice', 'apprentice', 'child', 'child'][k], lastName: fa.lastName }));
 const game = { people: [fa, mo, ...kids] };
 const family = row([cell(portrait(game, fa, { size: S }), `아버지 · ${looksOf(game, fa)}`), cell(portrait(game, mo, { size: S }), `어머니 · ${looksOf(game, mo)}`), ...kids.map((c) => cell(portrait(game, c, { size: S }), `${c.sex === 'm' ? '아들' : '딸'} ${Math.floor(c.ageMonths / 12)}살 · ${looksOf(game, c)}`))], 'six');
+
+// 7-2. 반신 초상 (38단계, 사건 창·사람 카드용)
+const BG = { history: { inventions: ['lens', 'clock'] } };
+const busts = row([[17, 'lord', 47, 5000], [12, 'weaver', 34, 3000], [9, 'mercenary', 38, 150], [14, 'scholar', 61, 900], [8, 'priest', 29, 150], [21, 'knight', 33, 900]].map(([i, job, a, w]) => cell(portrait(BG, P(i, { job, ageMonths: a * 12, wealth: w, history: [] }), { size: S, bust: true }), '')), 'six');
 
 // 8. 작은 크기
 const small = `<div class="small">${Array.from({ length: 24 }, (_, k) => portrait(null, P(100 + k, { job: JOBS[k % JOBS.length][0], ageMonths: 12 * (16 + (k * 7) % 55) }), { size: 48 })).join('')}</div>`;
@@ -141,6 +145,7 @@ figcaption { font-size: 12.5px; color: var(--muted); text-align: center; text-wr
   <section><h2>한 사람의 평생</h2><p class="lead">한 줄이 한 사람이다. 한 살부터 여든넷까지.</p>${lives}</section>
   <section><h2>직업과 옷차림</h2>${jobs}</section>
   <section><h2>표정</h2><p class="lead">내 얼굴은 피로와 근심, 다친 몸을 따르고, 다른 사람의 얼굴은 나를 대하는 마음을 따른다.</p>${moods}</section>
+  <section><h2>반신 초상</h2><p class="lead">사건 창과 사람 카드에 쓰는 가슴까지 오는 초상. 렌즈와 시계가 나온 시대라 안경과 회중시계 줄이 보인다.</p>${busts}</section>
   <section><h2>종족</h2>${races}</section>
   <section><h2>흉터</h2>${scars}</section>
   <section><h2>가족</h2><p class="lead">아이들은 부모의 머리색, 눈색, 피부, 얼굴 생김을 섞어 물려받는다.</p>${family}</section>
