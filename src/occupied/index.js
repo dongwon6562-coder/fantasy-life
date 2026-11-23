@@ -2,7 +2,7 @@
 // 점령군과 새 영주, 점령 세금, 징발, 점령 관청의 자리(부역), 숨어서 맞서는 사람들, 밀고와 보복, 점령군 병사와의 정, 해방 뒤 부역자 심판.
 // 플레이어 없이도 점령되고 풀린다(전선·강화·봉기). revolt의 분노, realms의 땅 주인(넘어간 땅은 발하르트)과 잇는다.
 // 화면용: occLine(g) 이번 달 이 고장의 점령 한 줄(없으면 null), occInfo(g) 한 장, occAt(g, 고장)
-import { MAP_INFO } from '../art/map.js';
+import { MAP_INFO, MAP_MARKS } from '../art/map.js';
 import { J } from '../narrative/text.js';
 import { OC, occAt, TEMPERS, harshWord, resistWord, placeName, mi } from './state.js';
 import './world.js';
@@ -47,3 +47,6 @@ MAP_INFO.push((g, place) => {
   if (!o) return '';
   return `<p class="note"><b>${o.ceded ? '발하르트 땅' : '점령지'}</b> · ${J(o.lord, '이/가')} 다스린다 · ${harshWord(o.harsh)}</p>`;
 });
+
+// 38단계 지도 표: 점령된 고장에 험한 곳 표
+MAP_MARKS.push((g) => Object.entries(g?.occ?.places ?? {}).map(([pl, o]) => ({ place: pl, kind: 'danger', text: `${o.ceded ? '발하르트 제국 땅이 되었다' : '발하르트군이 점령하고 있다'}. ${harshWord(o.harsh)}.` })));
