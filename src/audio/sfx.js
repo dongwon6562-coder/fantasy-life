@@ -94,20 +94,21 @@ export const SPRITE = {
 };
 export const SOUND_FILES = [...new Set(Object.values(SPRITE).flat().map((x) => x[0]))];
 
+import { fetchBytes } from './engine.js';
+
 /* ---------- 불러오기: 문맥(AudioContext)마다 파일 하나에 한 번 ---------- */
 const store = new WeakMap(); // ctx → Map(파일 → AudioBuffer | 'loading' | false)
 export const assetBase = () => (typeof window !== 'undefined' && typeof window.__flAssets === 'string' ? window.__flAssets : null);
 /** 파일의 소리를 돌려준다. 아직이면 불러오기를 걸어 두고 null. 파일이 없거나 실패하면 계속 null */
 export function loadSound(ctx, file) {
   const base = assetBase();
-  if (!base || !ctx || typeof ctx.decodeAudioData !== 'function' || typeof fetch !== 'function') return null;
+  if (!base || !ctx || typeof ctx.decodeAudioData !== 'function' || (typeof fetch !== 'function' && typeof XMLHttpRequest !== 'function')) return null;
   let m = store.get(ctx);
   if (!m) { m = new Map(); store.set(ctx, m); }
   const have = m.get(file);
   if (have !== undefined) return have && have !== 'loading' ? have : null;
   m.set(file, 'loading');
-  fetch(`${base}audio/${file}.m4a`)
-    .then((r) => (r.ok ? r.arrayBuffer() : Promise.reject(new Error(r.status))))
+  fetchBytes(`${base}audio/${file}.m4a`) // 아이폰 앱은 소리 파일을 상태 0으로 내준다 (engine.js fetchBytes)
     .then((a) => new Promise((res, rej) => { const p = ctx.decodeAudioData(a, res, rej); if (p?.then) p.then(res, rej); }))
     .then((b) => m.set(file, b))
     .catch(() => m.set(file, false));
