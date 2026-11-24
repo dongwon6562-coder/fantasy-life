@@ -45,6 +45,8 @@ function month(g, want = [], pick = null) {
     let idx = rngOf(g).int(0, pe.choices.length - 1);
     // 기본으로는 탈영하지 않는다 (탈영은 따로 시험한다)
     if (s?.kind === 'army_muster') idx = 0;
+    // 진급 점검이 무작위 '지금 자리가 낫다'에 흔들리지 않게 진급은 받는다
+    if (s?.kind === 'army_promote') idx = 0;
     // 일자리 게시판에서 병사 일을 '그만둔다'를 무작위로 고르면 탈영이 된다: 이 점검은 군 생활을 보므로 고르지 않는다
     if (s?.kind === 'seek_job' && /그만둔다/.test(pe.choices[idx])) idx = pe.choices.length - 1;
     if (s?.kind === 'army_clash' && /달아난다/.test(pe.choices[idx])) idx = 0;

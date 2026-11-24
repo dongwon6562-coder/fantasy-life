@@ -208,8 +208,11 @@ const adv = (g, n = 1) => { for (let i = 0; i < n; i++) { g.date.month = (g.date
   adv(sent, 3); adv(ctl, 3);
   if (sent.player.familyMoney < ctl.player.familyMoney + 4) fail('kid wages', sent.player.familyMoney - ctl.player.familyMoney);
   const v = clone(globalThis.MILL); placeAt(v, 'ern'); let moved = 0;
-  const villagers = () => v.people.filter((x) => x.alive && (x.place ?? 'ern') === 'ern').length;
-  const v0 = villagers(); adv(v, 12 * 6); moved = v0 - villagers();
+  // 처음 마을에 있던 사람 가운데 떠난 사람을 센다 (새로 태어난 아이로 머릿수가 메워져도 떠난 건 떠난 것)
+  const start = v.people.filter((x) => x.alive && (x.place ?? 'ern') === 'ern').map((x) => x.id);
+  const v0 = start.length; adv(v, 12 * 6);
+  const villagers = () => start.filter((id) => { const x = v.people.find((y) => y.id === id); return x && (!x.alive || (x.place ?? 'ern') === 'ern'); }).length;
+  moved = v0 - villagers();
   if (moved < 1) fail('nobody left the village', v0, villagers());
   if (verbose) console.log('village', v0, '→', villagers(), 'left', CS(v).left);
   for (const pl of ['harfen', 'leocast', 'eisen', 'ern', 'portel']) for (let m = 1; m <= 12; m++) { const c = clone(globalThis.MILL); placeAt(c, pl); c.date.month = m; checkInfo(c, `${pl} ${m}`); }

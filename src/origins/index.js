@@ -10,7 +10,7 @@ import { J } from '../narrative/text.js';
 import { HOOKS } from '../hooks.js';
 import { FAMILIES, JOBS, STATS, MALE_NAMES, FEMALE_NAMES } from '../data.js';
 import { me, playerAge, gainStat, gainSkill } from '../game.js';
-import { byId, makePerson } from '../npc.js';
+import { byId, makePerson, ageYears } from '../npc.js';
 import { PLACES } from '../places.js';
 import { L, defineScene, queueScene, sceneQueued, note, chron, stress, check } from '../adventure/core.js';
 import { rel } from '../relations.js';
@@ -116,6 +116,13 @@ HOOKS.newGame.push((g) => {
     g.people.push(p); s.ties[t.role] = p.id;
   }
   // 집안마다 다른 처음
+  if (o.id === 'merchant_bastard' && fa && mo) {
+    // 아버지에게는 혼인한 부인과 적자가 따로 있다. 나는 어머니 성을 쓴다.
+    const wife = makePerson(rng, { sex: 'f', ageMonths: (ageYears(fa) - 2) * 12, job: 'idle' });
+    wife.place = o.place; fa.lastName = rng.pick(['반 호르스트', '데 발크', '크뤼거']); wife.lastName = fa.lastName; g.people.push(wife);
+    fa.spouseId = wife.id; wife.spouseId = fa.id; mo.spouseId = null; fa.wealth = 700; fa.affection = 8;
+    const br = tie(g, 'brother'); if (br) { br.lastName = fa.lastName; br.motherId = wife.id; wife.childIds.push(br.id); }
+  }
   if (o.id === 'count_bastard' && fa && mo) {
     fa.spouseId = null; mo.spouseId = null; fa.ageMonths += 8 * 12; fa.affection = 10; fa.wealth = 900; fa.title = '백작';
   }
@@ -158,6 +165,7 @@ defineScene('origin_child', {
 const GIFT_WORD = { magic: '마력', sword: '칼 쓰는 손', letters: '머리', trade: '장사 눈', craft: '손재주', faith: '믿음' };
 const FIT_TEXT = {
   count_bastard: (c) => `성 기사단 교관이 골목에서 막대기를 휘두르는 나를 보고 걸음을 멈췄다. 그날 밤 ${c.fa}의 서기가 어머니를 찾아왔다. "백작께서 아이 이야기를 들으셨소."`,
+  merchant_bastard: (c) => `${c.t.clerk} 영감이 내가 맞춘 셈을 아버지 상단 회의에 들고 갔다고 한다. 다음 날 ${c.fa}의 봉랍이 찍힌 쪽지가 왔다. "셈이 빠르다더구나. 열다섯이 되면 상단 뒷방에 자리가 있다." 이름 대신 \'아이\'라고 적혀 있었다.`,
   tower_blood: (c) => `${J(c.t.master, '이/가')} 우리 집에 들렀다가 내가 만진 촛불을 보고 한참 말이 없었다. 돌아가며 아버지에게 낮게 말했다. "네 집안에서 백 년 만에 나올 그릇이다." 아버지는 그날 밤 혼자 술을 마셨다.`,
   sexton: (c) => `${c.t.priest} 사제가 대성당 맨 앞줄에서 기도하는 나를 오래 보았다. 다음 날 아버지를 불러 수련원 이야기를 꺼냈다. 아버지가 종을 치는 박자가 그날따라 빨랐다.`,
   capital_artisan: (c) => `길드장 ${J(c.t.guildmaster, '이/가')} 내가 깎은 은 단추를 손바닥에 올려놓고 굴려 보았다. "이걸 몇 살에 했다고?" 아버지는 대답하지 않고 웃기만 했다.`,
@@ -167,6 +175,7 @@ const FIT_TEXT = {
 };
 const CLASH_TEXT = (o, gift) => ({
   count_bastard: (c) => `${GIFT_WORD[gift]}로 이름이 나기 시작하자 어머니는 기뻐하면서도 걱정했다. 백작가 사람들은 칼 잘 쓰는 서자보다 조용한 서자를 좋아한다고.`,
+  merchant_bastard: (c) => `셈보다 ${GIFT_WORD[gift]}로 이름이 났다. 어머니는 기뻐했지만 상단 사람들은 서출이 다른 데서 이름을 내는 걸 더 반기는 눈치였다. 장부에서 멀수록 좋다는 듯이.`,
   tower_blood: (c) => `마력보다 ${GIFT_WORD[gift]}가 먼저 눈에 띄었다. 아버지는 칭찬하는 사람들 앞에서 웃었지만, 집에 오면 촛불 시험을 다시 시켰다.`,
   sexton: (c) => `${GIFT_WORD[gift]}로 사람들이 나를 알아보기 시작했다. 아버지는 그것이 기도로 얻은 것이냐고 물었다. 아니라고 하자 한참 말이 없었다.`,
   capital_artisan: (c) => `공방보다 ${GIFT_WORD[gift]} 쪽으로 사람들이 나를 불렀다. 아버지는 진열창을 닦다 말고 "은은 기다려 주지 않는다"고만 했다.`,
@@ -220,6 +229,14 @@ const BURDEN = {
       { label: '결투로 결백을 가리겠다고 한다', key: 'duel', run: (g, rng, c) => check(rng, (g.player.skills.sword ?? 0) + g.player.stats.agi / 2, 40) ? (applyFx(g, { renown: 4, aff: { brother: -20, father: 6 } }), `성 마당에서 ${c.t.brother}의 칼이 땅에 떨어졌다. ${J(c.fa, '은/는')} 창가에서 다 보고 있었다. 은잔 이야기는 그날로 사라졌다.`) : (applyFx(g, { stress: 15, aff: { brother: -10 } }), '팔에 칼을 맞고 무릎을 꿇었다. 결백은 증명되지 않았다. 다만 그 뒤로 나를 도둑이라 부르는 사람은 드물었다. 피를 흘린 도둑은 없으니까.') },
       { label: '아버지에게 직접 호소한다', key: 'plea', run: (g, rng, c) => (father(g)?.affection ?? 0) >= 15 ? (applyFx(g, { aff: { father: 8 } }), `${J(c.fa, '은/는')} 은잔을 내 짐에서 꺼내 보더니 ${c.t.brother}에게 건넸다. "네 것이니 네가 돌려놓아라." 그게 전부였다. 그걸로 충분했다.`) : (applyFx(g, { stress: 12, fam: -20 }), '성문은 열리지 않았다. 대신 벌금 고지서가 왔다. 어머니가 모아 둔 은화가 거기 다 들어갔다.') },
       { label: '어머니를 데리고 베르덴을 떠난다', key: 'leave', run: (g) => { applyFx(g, { stress: 8, flag: 'cb_left' }); return '밤에 짐을 쌌다. 어머니는 성벽 쪽을 한 번도 돌아보지 않았다. 나는 몇 번 돌아보았다.'; } },
+    ],
+  },
+  merchant_bastard: {
+    title: '사라진 비단', text: (c) => `아버지 상단 창고에서 비단 두 필이 사라졌다. ${J(c.t.brother, '이/가')} 어머니 가게에서 그 비단 자투리를 보았다고 했다. 상단 경비들이 가게 문을 두드린다. 자투리는 지난달 어머니가 정당하게 사 온 것이다. 영수증은 어디 있는지 모른다.`,
+    choices: [
+      { label: '상단 장부를 뒤져 비단 출납을 밝힌다', key: 'ledger', run: (g, rng, c) => check(rng, (g.player.skills.trade ?? 0) + g.player.stats.int / 2, 38) ? (applyFx(g, { renown: 3, aff: { brother: -15, father: 8, clerk: 6 } }), `${c.t.clerk} 영감과 밤새 장부를 넘겼다. 비단 두 필은 창고에서 나간 적이 없었다. 다른 칸에 잘못 적혀 있었을 뿐이다. ${J(c.fa, '은/는')} 그 장부를 회의 탁자 한가운데 펼쳐 놓게 했다.`) : (applyFx(g, { stress: 12, fam: -20 }), '장부는 너무 두꺼웠고 시간은 모자랐다. 어머니가 비단 값을 물어냈다. 은화 스무 닢이었다. 어머니는 괜찮다고 했다. 괜찮은 얼굴이 아니었다.') },
+      { label: '아버지에게 직접 편지를 쓴다', key: 'plea', run: (g, rng, c) => (father(g)?.affection ?? 0) >= 15 ? (applyFx(g, { aff: { father: 8 } }), `답장은 오지 않았다. 대신 다음 날 경비들이 돌아갔다. ${J(c.t.brother, '은/는')} 그 주 내내 부두에 나타나지 않았다.`) : (applyFx(g, { stress: 10, fam: -15 }), '편지는 부인 손에 먼저 들어간 것 같았다. 경비들은 자투리를 다 가져갔다.') },
+      { label: '어머니와 포르텔을 떠난다', key: 'leave', run: (g) => { applyFx(g, { stress: 8, flag: 'mb_left' }); return '재봉틀을 수레에 실었다. 부두 쪽 길로 가지 않고 언덕길로 돌아 나갔다. 아버지 상단 깃발이 안 보이는 데까지 가서야 어머니가 처음 말을 했다. "배고프지?"'; } },
     ],
   },
   tower_blood: {
