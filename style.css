@@ -2248,3 +2248,14 @@ html.swiping .main { will-change: transform; }
 .ld-list li.seen { border-color: rgba(201, 162, 90, .4); }
 .ld-list li.seen em { color: var(--brass, #c9a25a); }
 .ld-list li.shut { opacity: .6; }
+
+/* ---------- 44단계 왕가와 궁정 ---------- */
+.cr-box { margin-top: 8px; padding-top: 8px; border-top: 1px dashed rgba(90, 70, 40, .3); }
+.cr-box p { margin: 0 0 4px; }
+.cr-how { font-size: 12px; line-height: 1.5; }
+.cr-sides { display: grid; grid-template-columns: auto minmax(40px, 1fr) auto; align-items: center; gap: 6px; font-size: 12px; margin: 4px 0 6px; }
+.cr-sides span { word-break: keep-all; line-height: 1.3; }
+.cr-map h2 small, .cr-block h3 small { font-weight: 400; color: var(--muted); font-size: var(--fs-xs, 12px); margin-left: 4px; }
+.cr-one { margin: 0 0 6px; }
+.cr-one p { margin: 0; }
+.cr-one p small { color: var(--muted); font-size: 11px; margin-left: 4px; }

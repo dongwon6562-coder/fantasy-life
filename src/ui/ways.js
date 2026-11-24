@@ -52,7 +52,7 @@ const PATHS = [
   { id: 'sea', name: '바다', what: '배를 타고 먼 항구로 가고, 짐을 나르고, 해적을 쫓거나 해적이 된다.', acts: ['sail', 'shipyard', 'cargo', 'sea_bounty', 'pirate_den', 'pirate_raid', 'serpent_lair'], lock: '어른이 되어 항구 고장에 가야 한다.' },
   { id: 'peoples', name: '다른 종족의 땅', what: '엘프의 숲, 드워프의 산, 수인의 초원에서 살며 그 땅의 말과 풍습을 익히고 의식에 함께한다.', acts: ['peoples_custom', 'peoples_rite', 'ld_work', 'ld_pass'], lock: '여덟 살부터, 은잎 마을·쇠망치 골·털가죽 시장 같은 종족의 땅에 가면 풍습을 익힐 수 있다.' },
   { id: 'faith', name: '믿음', what: '신전에서 기도하고 축일을 지킨다. 믿음이 깊어지면 순례를 떠난다.', acts: ['pray', 'worship', 'keep_feast', 'pilgrimage', 'faith_seek', 'holy_heal'], lock: '다섯 살부터 기도할 수 있다.' },
-  { id: 'court', name: '궁정', what: '궁정에 드나들며 편을 고르고, 혼담을 넣고, 음모를 꾸민다.', acts: ['court_attend', 'court_side', 'court_match', 'court_plot'], lock: '궁정이 있는 도읍에서, 작위나 관직이나 이름값으로 문이 열린다.' },
+  { id: 'court', name: '궁정', what: '궁정에 드나들며 편을 고르고, 혼담을 넣고, 음모를 꾸민다. 다른 나라 수도에서는 그 나라의 틀(황가·교황청·마도사 협회·상인 평의회·장로회·씨족 회의·부족 연합)에 맞춰 벼슬한다.', acts: ['court_attend', 'court_side', 'court_match', 'court_plot', 'crowns_court'], lock: '궁정이 있는 도읍에서, 작위나 관직이나 이름값으로 문이 열린다.' },
   { id: 'domain', name: '작위와 영지', what: '작위를 얻어 영지를 다스리고, 나라를 세울 수도 있다.', acts: ['buy_title', 'domain_rule', 'domain_build', 'pioneer', 'realm_office'], lock: '이름값을 30까지 쌓으면 왕도에서 작위를 살 수 있다. 공을 세워 받기도 한다.' },
   { id: 'shop', name: '장사와 가게', what: '솜씨로 가게를 내고 꾸린다.', acts: ['open_shop', 'shop_manage'], lock: '팔 만한 솜씨와 밑천이 있어야 가게를 낼 수 있다.' },
   { id: 'estate', name: '집과 재산', what: '집을 옮기고, 땅과 가게를 세놓고, 돈을 빌리거나 맡긴다.', acts: ['housing', 'estate_manage', 'estate_borrow', 'estate_invest'], lock: '어른이 되면 집을 옮길 수 있다.' },

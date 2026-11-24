@@ -153,7 +153,7 @@ const GROUPS = [
   ['troupe', '유랑극단', /^troupe_/],
   ['faith', '믿음과 기도', /^(pray|worship|keep_feast|pilgrimage|faith_seek|holy_heal)$|^omen_/],
   ['revolt', '봉기와 반란', /^revolt_/],
-  ['court', '궁정', /^court_/],
+  ['court', '궁정', /^(court_|crowns_)/],
   ['envoy', '사절과 외교', /^envoy_/],
   ['claim', '숨은 왕가의 피', /^claim_/],
   ['relic', '성유물', /^relic_/],
