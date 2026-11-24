@@ -6,8 +6,8 @@ import { esc } from './util.js';
 
 const safe = (fn, d = null) => { try { return fn() ?? d; } catch (e) { console.error(e); return d; } };
 // 집안마다 어린 시절 그림 (vignettePlates12 origin·demon)
-const ART = { count_bastard: ['origin', 'manor'], tower_blood: ['origin', 'tower'], sexton: ['origin', 'church'], capital_artisan: ['origin', 'workshop'], slum_orphan: ['origin', 'slum'], port_folk: ['origin', 'port'], march_guard: ['demon', 'fort'] };
-const ALT = { manor: '귀족 저택의 뒤뜰', tower: '마탑 아래 골목', church: '성당 종탑', workshop: '장인 공방', slum: '빈민가 골목', port: '항구 도시 부두', fort: '얼음 해협을 지키는 요새' };
+const ART = { count_bastard: ['origin', 'manor'], tower_blood: ['origin', 'tower'], sexton: ['origin', 'church'], capital_artisan: ['origin', 'workshop'], slum_orphan: ['origin', 'slum'], port_folk: ['origin', 'port'], march_guard: ['demon', 'fort'], merchant_bastard: ['baseborn', 'door'] };
+const ALT = { manor: '귀족 저택의 뒤뜰', tower: '마탑 아래 골목', church: '성당 종탑', workshop: '장인 공방', slum: '빈민가 골목', port: '항구 도시 부두', fort: '얼음 해협을 지키는 요새', door: '거상의 저택 문간에 선 아이' };
 
 export function renderOriginBlock(game) {
   const s = safe(() => originInfo(game));

@@ -25,6 +25,9 @@ import { spreadLine } from '../techspread/index.js';
 import { occLine } from '../occupied/index.js';
 import { carrierLine } from '../carrier/index.js';
 import { creditLine } from '../credit/index.js';
+import { undertakerLine } from '../undertaker/index.js';
+import { bbLines } from '../baseborn/index.js';
+import { migrateLine } from '../migrate/index.js';
 import { cloisterLine } from '../cloister/index.js';
 import { societyLines } from '../society/index.js';
 import { outlawsLine } from '../outlaws/index.js';
@@ -41,11 +44,11 @@ const txt = (x) => (typeof x === 'string' ? x : x.text);
 // 다른 갈래가 붙는 자리: lead(풍경, 앞의 두 줄), did(지난달 머리 한 줄), met(마주친 사람들), heard(들려온 소문)
 // 함수는 game을 받아 글 한 줄, 줄들, {text, cls} 가운데 하나를 돌려준다.
 export const TODAY_SOURCES = {
-  lead: [sceneLine, cloisterLine, occLine, outlawsLine, demonsLine, cityLine, laterLine, harborLine, mountLine, clothLine, builderLine, carrierLine, creditLine, hunterLine, streetLine, (g) => natureInfo(g)?.sky], // 몸으로 느끼는 지금 (src/senses), 수도원과 은둔 (src/cloister), 점령지 (src/occupied), 산적 (src/outlaws), 해협 너머 마족 (src/demons), 포구 (src/harbor), 하늘 짐승 (src/mount), 옷감과 옷차림 (src/cloth), 짓는 일 (src/builder), 길 위의 일 (src/carrier), 빚과 돈놀이 (src/credit), 사냥 (src/hunter), 공장 거리와 빈 마을 (src/cityday), 새 기술과 세력 (src/later_era), 거리 풍경 (src/rumor), 없으면 하늘과 땅. 앞의 셋까지
+  lead: [sceneLine, cloisterLine, occLine, migrateLine, outlawsLine, demonsLine, cityLine, laterLine, harborLine, mountLine, clothLine, builderLine, carrierLine, creditLine, undertakerLine, hunterLine, streetLine, (g) => natureInfo(g)?.sky], // 몸으로 느끼는 지금 (src/senses), 수도원과 은둔 (src/cloister), 점령지 (src/occupied), 산적 (src/outlaws), 해협 너머 마족 (src/demons), 포구 (src/harbor), 하늘 짐승 (src/mount), 옷감과 옷차림 (src/cloth), 짓는 일 (src/builder), 길 위의 일 (src/carrier), 빚과 돈놀이 (src/credit), 사냥 (src/hunter), 공장 거리와 빈 마을 (src/cityday), 새 기술과 세력 (src/later_era), 거리 풍경 (src/rumor), 없으면 하늘과 땅. 앞의 셋까지
   did: [sensesLine], // 지난달을 몸으로 느낀 한두 문장 (src/senses): '지난달 한 일' 머리에
   met: [
     (g) => encounterLines(g).map((x) => ({ text: x.text, cls: x.kind ? `ek-${String(x.kind).replace(/[^\w-]/g, '')}` : '' })), // 먼저 다가온 사람들 (src/encounter)
-    originLines, friendsLines, stepLines, adoptLines, societyLines, siblingLines, orderLine, // 태어난 집안 사람들 (src/origins), 평생의 벗 (src/friends), 의붓가족 (src/stepfamily), 거둔 아이 (src/adopt), 사교계 (src/society), 형제자매 (src/siblings), 기사단 형제들 (src/order)
+    originLines, friendsLines, stepLines, adoptLines, bbLines, societyLines, siblingLines, orderLine, // 태어난 집안 사람들 (src/origins), 평생의 벗 (src/friends), 의붓가족 (src/stepfamily), 거둔 아이 (src/adopt), 사교계 (src/society), 형제자매 (src/siblings), 기사단 형제들 (src/order)
   ],
   heard: [
     (g) => rumorLines(g).map((h) => ({ text: h.text, cls: h.fix ? 'rumor fix' : 'rumor' })), // 소문 (src/rumor)
