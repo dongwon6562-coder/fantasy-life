@@ -133,6 +133,7 @@ const GROUPS = [
   ['builder', '목수와 석공', /^builder_/],
   ['carrier', '길 위의 일', /^carrier_/],
   ['credit', '돈놀이와 전당포', /^credit_/],
+  ['undertaker', '장의사와 묘지기', /^ut_/],
   ['cloister', '수도원', /^cloister_/],
   ['hunter', '사냥', /^hunter_/],
   ['outlaw', '현상금 사냥', /^out_hunt$/],

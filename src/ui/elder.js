@@ -20,8 +20,8 @@ export function renderElderBlock(game) {
       <div class="top"><strong>회고록 《${esc(M.title)}》</strong><span class="note">${M.ch}/${M.need}장</span></div>
       ${bar((M.ch / Math.max(1, M.need)) * 100, 'kin')}
     </div>` : '';
-  const graveLi = (x) => `<li class="${x.desecrated ? 'bad' : ''}"><div class="top"><strong>${esc(x.name)}</strong><span class="note">${esc(x.rel)}${x.born ? ` · ${x.born}~${x.died}년` : x.died ? ` · ${x.died}년` : ''}</span></div>
-      <span class="note">${esc(x.placeName)} ${esc(x.kind)} · ${esc(x.word)}${x.desecrated ? ' · 누군가 무덤을 더럽혔다' : ''}</span>
+  const graveLi = (x) => `<li class="${x.desecrated ? 'bad' : ''}"><div class="top"><strong>${esc(x.name)}</strong>${x.desecrated ? '<span class="tag-bad">도굴당함</span>' : ''}<span class="note">${esc(x.rel)}${x.born ? ` · ${x.born}~${x.died}년` : x.died ? ` · ${x.died}년` : ''}</span></div>
+      <span class="note">${esc(x.placeName)} ${esc(x.kind)} · ${esc(x.word)}</span>
       ${x.epitaph ? `<span class="note el-epitaph">"${esc(x.epitaph)}"</span>` : ''}</li>`;
   return `<div class="block elder-block">
     <h3>늙음과 마지막 해들</h3>

@@ -2086,3 +2086,5 @@ html.swiping .main { will-change: transform; }
 .swipe-hint .ico { color: var(--brass, #c9a25a); }
 .swipe-hint.ready { border-color: var(--brass, #c9a25a); color: #f6ebd0; box-shadow: 0 6px 18px rgba(0, 0, 0, .5), 0 0 0 2px rgba(201, 162, 90, .25); }
 .swipe-hint.ready .ico { color: #1d140b; background: linear-gradient(180deg, #dcb873, #b9904a); border-radius: var(--r-pill, 99px); padding: 2px 8px; }
+/* 40단계 장의사: 더럽혀진 무덤 표 */
+.tag-bad { display: inline-block; margin-left: 6px; padding: 1px 8px; border-radius: var(--r-pill, 99px); font-size: var(--fs-xs, 12px); color: #f2d6c8; background: rgba(140, 50, 36, .45); border: 1px solid rgba(190, 90, 70, .6); vertical-align: middle; }

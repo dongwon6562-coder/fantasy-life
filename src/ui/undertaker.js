@@ -2,15 +2,18 @@
 // renderUndertakerNow: 이번 달 접는 카드 (이 고장 묘지: 기다리는 시신·빈자리·소문·도굴, 내 장의사 집, 역병 구덩이). 일하거나 집·자리가 있을 때만.
 // renderUndertakerBlock: '나' 화면 덩이 (솜씨, 한 일, 장의사 집, 집안 무덤 자리, 지나간 일)
 import { undertakerInfo } from '../undertaker/index.js';
+import { vignetteImage } from '../art/vignette.js';
 import { esc } from './util.js';
 
 const safe = (fn, d = null) => { try { return fn() ?? d; } catch (e) { console.error(e); return d; } };
 const bar = (v, cls = '') => `<span class="wd-bar ${cls}"><i style="width:${Math.max(0, Math.min(100, v))}%"></i></span>`;
 const chip = ([k, v, cls]) => `<span class="sm-chip${cls ? ` ${cls}` : ''}"><span>${esc(k)}</span><b>${esc(v)}</b></span>`;
+const ALT = { shop: '관 짜는 작업장', cortege: '장례 행렬', night: '밤의 묘지', plague: '역병 수레' };
+const art = (g, variant) => safe(() => vignetteImage({ plate: 'undertaker', variant, year: g.date.year, month: g.date.month }), '');
 const logList = (log, label) => (log.length ? `<details class="pl-more"><summary>${label} ${log.length}가지</summary><ul class="pl-news">${log.slice().reverse().map((n) => `<li><time>${n.y}년${n.m ? ` ${n.m}월` : ''}</time><span>${esc(n.text)}</span></li>`).join('')}</ul></details>` : '');
 
 function yardRows(y) {
-  return `<div class="wd-row kn-row"><span>빈자리 · ${esc(y.fullWord)}</span>${bar(100 - y.full, y.full >= 70 ? 'low' : 'kin')}</div>
+  return `<div class="wd-row kn-row"><span>묘지 · ${esc(y.fullWord)}</span>${bar(100 - y.full, y.full >= 70 ? 'low' : 'kin')}</div>
     ${y.rumor > 0 ? `<div class="wd-row kn-row"><span>묘지 소문${y.rumorWord ? ` · ${esc(y.rumorWord)}` : ''}</span>${bar(y.rumor, y.rumor >= 30 ? 'low' : 'mana')}</div>` : ''}`;
 }
 
@@ -51,8 +54,11 @@ export function renderUndertakerBlock(game) {
   if (d.dug) chips.push(['판 무덤', `${d.dug}`]);
   if (d.caught) chips.push(['잡은 도굴꾼', `${d.caught}`, 'up']);
   if (d.earned) chips.push(['번 돈', `은화 ${d.earned}닢`, 'up']);
+  const v = s.yard?.pit ? 'plague' : d.caught || (s.job === '묘지기') ? 'night' : s.shop || d.coffins > d.funerals ? 'shop' : 'cortege';
+  const src = art(game, v);
   return `<div class="block ut-block">
     <h3>장의사와 묘지기</h3>
+    ${src ? `<img class="blk-art" src="${src}" alt="${ALT[v]}">` : ''}
     ${s.job || d.bodies || d.coffins ? `<div class="wd-row kn-row"><span>${esc(s.job ?? '죽은 이를 맡는 솜씨')} · ${esc(s.skillWord)}</span>${bar(s.skill, 'kin')}</div>` : ''}
     ${chips.length ? `<div class="sm-chips">${chips.map(chip).join('')}</div>` : ''}
     ${s.shop ? `<p class="note">내 장의사 집: ${esc(s.shop.place)} · ${s.shop.years ? `${s.shop.years}년째` : '연 지 얼마 안 됨'} · 마당의 관 ${s.shop.coffins}개</p>` : ''}
