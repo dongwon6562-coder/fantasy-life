@@ -26,7 +26,7 @@ export function renderLandsMap(game) {
     </div>` : ''}
     ${[...byRealm].map(([realm, list]) => `<details class="ld-realm">
       <summary><span>${esc(realm)}</span><b>${list.filter((l) => l.seen).length}/${list.length}</b></summary>
-      <ul class="ld-list">${list.map((l) => `<li class="${l.seen ? 'seen' : ''}${l.open ? '' : ' shut'}"><b>${esc(l.name)}</b><span>${esc(l.kind)} · ${esc(l.size)}${l.born ? ` · 이곳 태생 ${l.born}명` : ''}</span>${l.open ? (l.seen ? '<em>가 봤다</em>' : '') : `<em>${l.gate ? `${esc(J(l.gate, '이/가'))} 있어야` : '아직 못 간다'}</em>`}</li>`).join('')}</ul>
+      <ul class="ld-list">${list.map((l) => `<li class="${l.seen ? 'seen' : ''}${l.open ? '' : ' shut'}"><b>${esc(l.name)}</b><span>${esc(l.kind)}${l.size !== '보통' && !String(l.kind).includes(l.size) ? ` · ${esc(l.size)}` : ''}${l.born ? ` · 이곳 태생 ${l.born}명` : ''}</span>${l.open ? (l.seen ? '<em>가 봤다</em>' : '') : `<em>${l.gate ? `${esc(J(l.gate, '이/가'))} 있어야` : '아직 못 간다'}</em>`}</li>`).join('')}</ul>
     </details>`).join('')}
     ${s.passes.length ? `<p class="note">지닌 통행증: ${s.passes.map(esc).join(', ')}</p>` : ''}
   </section>`;
