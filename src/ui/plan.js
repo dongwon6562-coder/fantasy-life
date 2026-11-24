@@ -136,6 +136,7 @@ const GROUPS = [
   ['undertaker', '장의사와 묘지기', /^ut_/],
   ['migrate', '피난민', /^mg_/],
   ['survey', '측량과 지도', /^sv_/],
+  ['stars', '별 보기', /^st_/],
   ['cloister', '수도원', /^cloister_/],
   ['hunter', '사냥', /^hunter_/],
   ['outlaw', '현상금 사냥', /^out_hunt$/],

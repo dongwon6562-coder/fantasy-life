@@ -10,7 +10,7 @@ const safe = (fn, d = null) => { try { return fn() ?? d; } catch (e) { console.e
 const bar = (v, cls = '') => `<span class="wd-bar ${cls}"><i style="width:${Math.max(0, Math.min(100, v))}%"></i></span>`;
 const chip = ([k, v, cls]) => `<span class="sm-chip${cls ? ` ${cls}` : ''}"><span>${esc(k)}</span><b>${esc(v)}</b></span>`;
 const art = (g, variant) => safe(() => vignetteImage({ plate: 'survey', variant, year: g.date.year, month: g.date.month }), '');
-const ALT = { field: '측량대와 막대', atelier: '지도 공방', stone: '경계석', war: '펼친 지도 앞의 장군' };
+const ALT = { field: '측량대와 막대', shop: '지도 공방', stone: '경계석', war: '펼친 지도 앞의 장군' };
 const logList = (log, label) => (log.length ? `<details class="pl-more"><summary>${label} ${log.length}가지</summary><ul class="pl-news">${log.slice().reverse().map((n) => `<li><time>${n.y}년${n.m ? ` ${n.m}월` : ''}</time><span>${esc(n.text)}</span></li>`).join('')}</ul></details>` : '');
 const mapLi = (m) => `<li><b>${esc(m.title)}</b> · ${esc(m.kind)} · ${esc(m.word)}${m.secret ? ' · <b class="warn">남의 눈에 띄면 안 된다</b>' : ''}</li>`;
 
@@ -48,7 +48,7 @@ export function renderSurveyBlock(game) {
   if (d.earned) chips.push(['번 돈', `은화 ${d.earned}닢`, 'up']);
   if (d.lost) chips.push(['잃은 지도', `${d.lost}`, 'down']);
   if (d.witness) chips.push(['경계 증언', `${d.witness}번`]);
-  const v = s.maps.some((m) => m.secret) ? 'war' : s.atelier || mine.length ? 'atelier' : d.witness ? 'stone' : 'field';
+  const v = s.maps.some((m) => m.secret) ? 'war' : s.atelier || mine.length ? 'shop' : d.witness ? 'stone' : 'field';
   const src = art(game, v);
   return `<div class="block sv-block">
     <h3>측량과 지도</h3>
