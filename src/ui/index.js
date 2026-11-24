@@ -234,7 +234,7 @@ function renderSetup() {
           ${renderRacePick(races, race)}
         </section>
         <section>
-          <h2>태어날 집안</h2>
+          <h2>태어날 집안${races.length > 1 ? ` <small>${esc(races.find((r) => r.id === race)?.name ?? '')} 집안 ${fams.length}곳</small>` : ''}</h2>
           ${renderFamilyPick(fams, s)}
         </section>
         ${renderBirthPick(s, race)}
