@@ -170,13 +170,15 @@ function renderSetup() {
   const auto = summary('auto');
   // 첫 화면 그림은 그리는 데 폰에서 0.15초쯤 걸린다. 글과 단추를 먼저 띄우고 그림은 바로 뒤에 채운다 (32단계 헤드).
   const art = titleArtReady ? sceneImage(TITLE_ART) : '';
-  if (!titleArtReady) setTimeout(() => {
+  // 첫 그림은 화면이 한 번 그려진 뒤(다음 프레임)에 그린다: 폰에서 글과 단추가 먼저 보이게 (40단계 헤드)
+  const afterPaint = (fn) => { try { requestAnimationFrame(() => setTimeout(fn, 0)); } catch { setTimeout(fn, 30); } };
+  if (!titleArtReady) afterPaint(() => {
     titleArtReady = true;
     const url = sceneImage(TITLE_ART), ph = document.querySelector('.title-hero .hero-ph');
     if (url && ph) ph.outerHTML = `<img src="${url}" alt="${esc(VILLAGE)}의 이른 봄 풍경">`;
     // '이어 하기'를 누르면 바로 보일 풍경도 미리 그려 둔다
     if (auto?.scene && !auto.over) prewarmScene(auto.scene);
-  }, 30);
+  });
   let races = [];
   try { races = playableRaces(); } catch (e) { console.error(e); }
   const race = s.race ?? 'human';
