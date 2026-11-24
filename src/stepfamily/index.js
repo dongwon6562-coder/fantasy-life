@@ -79,7 +79,7 @@ export function stepKids(g) {
 function myOwn(g) {
   const sp = spouseOf(g); if (!sp) return [];
   const theirs = new Set(sp.childIds ?? []);
-  return (me(g).childIds ?? []).filter((id) => !theirs.has(id)).map((id) => byId(g, id)).filter(alive).filter((p) => !S(g).ties[p.id]?.adopted);
+  return (me(g).childIds ?? []).filter((id) => !theirs.has(id)).map((id) => byId(g, id)).filter(alive).filter((p) => !S(g).ties[p.id]?.adopted && !p.baseborn); // 혼외 자식은 baseborn 몫
 }
 /** 둘 사이에서 낳은 아이 */
 function together(g) { const sp = spouseOf(g); if (!sp) return []; const theirs = new Set(sp.childIds ?? []); return (me(g).childIds ?? []).filter((id) => theirs.has(id)).map((id) => byId(g, id)).filter(alive); }
