@@ -1,5 +1,6 @@
 // 검과 결투에 얽힌 사건. 많은 사건이 결투 모드로 이어진다.
 import { gainStat, gainSkill } from '../game.js';
+import { J } from '../narrative/text.js';
 import { EVENTS, flag, setFlag, age, stat, skill, money, spend, stress, like, injure, nm, byId, living, peers, josa, findJob } from '../events/core.js';
 import { kill } from '../npc.js';
 import { placePerson } from '../places.js';
@@ -18,7 +19,7 @@ EVENTS.push(
     chance: () => 0.05, weight: 55,
     prepare: (g) => ({ id: flag(g, 'rival') }),
     title: '앙숙의 도전',
-    text: (g, c) => { const p = byId(g, c.id); return `${p.name}이(가) 사람들 앞에서 목검을 던졌다. 목검이 발치에 떨어져 굴렀다. "언제까지 말로만 할 거냐. 오늘 결판을 내자." 구경꾼들이 둥글게 모여든다.`; },
+    text: (g, c) => { const p = byId(g, c.id); return `${J(p.name, '이/가')} 사람들 앞에서 목검을 던졌다. 목검이 발치에 떨어져 굴렀다. "언제까지 말로만 할 거냐. 오늘 결판을 내자." 구경꾼들이 둥글게 모여든다.`; },
     choices: [
       { label: '목검을 줍는다', run: (g, rng, c) => { const p = byId(g, c.id); startDuel(g, rng, { kind: 'rival', title: '앙숙과의 결투', foe: { name: p.name, skill: Math.round(10 + skill(g, 'sword') * 0.6 + p.skill * 0.3), style: styleOf(p), id: p.id }, ctx: { id: p.id } }); return `목검을 주웠다. ${p.name}의 눈이 번뜩였다.`; } },
       { label: '무시하고 지나간다', run: (g, rng, c) => { stress(g, 10); const p = byId(g, c.id); p.affection -= 5; return '등 뒤에서 웃음소리가 났다. "역시 겁쟁이." 오래 귀에 남았다.'; } },
@@ -30,9 +31,9 @@ EVENTS.push(
     chance: () => 0.04, weight: 50,
     prepare: (g, rng) => ({ school: rng.pick(Object.keys(SCHOOLS).filter((s) => s !== schoolOf(g))) }),
     title: '다른 유파의 도발',
-    text: (g, c) => `${SCHOOLS[c.school].name} 문하생 셋이 길을 막았다. "${SCHOOLS[schoolOf(g)].name}? ${{ yusu: '도망치는 걸 검술이라 부르는 그 유파?', ganggeom: '힘만 센 돼지들 칼춤?', hwanyeong: '뒤에서 찌르는 쥐새끼 검?' }[schoolOf(g)]}" 하나가 앞으로 나선다. "한 판 붙자. 지는 쪽이 유파 이름을 내려놓는 거다."`,
+    text: (g, c) => `${SCHOOLS[c.school].name} 문하생 셋이 길을 막았다. "${SCHOOLS[schoolOf(g)].name}? ${SCHOOLS[schoolOf(g)].taunt}" 하나가 앞으로 나선다. "한 판 붙자. 지는 쪽이 유파 이름을 내려놓는 거다."`,
     choices: [
-      { label: '받는다', run: (g, rng, c) => { startDuel(g, rng, { kind: 'feud', title: '유파 대결', foe: { name: `${SCHOOLS[c.school].name} 문하생`, skill: Math.round(15 + skill(g, 'sword') * 0.75), style: { yusu: 'steady', ganggeom: 'bold', hwanyeong: 'tricky' }[c.school] }, ctx: { school: c.school } }); return '칼을 뽑았다. 구경꾼들이 길을 비켰다.'; } },
+      { label: '받는다', run: (g, rng, c) => { startDuel(g, rng, { kind: 'feud', title: '유파 대결', foe: { name: `${SCHOOLS[c.school].name} 문하생`, skill: Math.round(15 + skill(g, 'sword') * 0.75), style: SCHOOLS[c.school].style }, ctx: { school: c.school } }); return '칼을 뽑았다. 구경꾼들이 길을 비켰다.'; } },
       { label: '"검은 말로 하는 게 아니다."', run: (g) => { gainStat(g, 'wil', 0.4); return '그대로 지나쳤다. 등 뒤에서 야유가 쏟아졌지만, 돌아보지 않았다.'; } },
     ],
   },
@@ -100,10 +101,10 @@ EVENTS.push(
 registerDuelEnd('rival', (g, rng, won, d) => {
   const p = byId(g, d.ctx.id);
   if (!p) return '';
-  if (won) { p.affection += 4; renown(g, 1); remember(g, p, '모두가 보는 앞에서 내게 졌다', -1, { tag: 'rival_duel' }); return `${p.name}은(는) 흙을 털고 일어나 아무 말 없이 떠났다. 그런데 다음 날, 먼저 인사를 건네 왔다.`; }
+  if (won) { p.affection += 4; renown(g, 1); remember(g, p, '모두가 보는 앞에서 내게 졌다', -1, { tag: 'rival_duel' }); return `${J(p.name, '은/는')} 흙을 털고 일어나 아무 말 없이 떠났다. 그런데 다음 날, 먼저 인사를 건네 왔다.`; }
   remember(g, p, '모두가 보는 앞에서 나를 이겼다', 1, { tag: 'rival_duel' });
   stress(g, 10);
-  return `${p.name}이(가) 내려다보며 웃었다. "다음에 또 해 줄게." 분했다. 그래서 내일도 검을 휘두를 것이다.`;
+  return `${J(p.name, '이/가')} 내려다보며 웃었다. "다음에 또 해 줄게." 분했다. 그래서 내일도 검을 휘두를 것이다.`;
 });
 registerDuelEnd('feud', (g, rng, won, d) => {
   if (won) { renown(g, 2); return `구경꾼들 사이에서 "${SCHOOLS[schoolOf(g)].name}!" 하는 소리가 났다. 문하생들은 동료를 부축해 사라졌다.`; }
