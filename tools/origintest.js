@@ -77,7 +77,7 @@ for (const [i, o] of ORIGINS.entries()) {
   for (let k = 0; k < 2; k++) {
     const g = life(o, 6100 + i * 10 + k, 25, k === 1 ? { gift: o.fit } : null);
     const s = originsState(g);
-    if (!g.over && playerAge(g) >= 24) { ok(!!s.want, `바라는 것 장면 없음 ${o.id}`); ok(!!s.burden && s.burden !== 'due', `짐 장면 없음 ${o.id} ${s.burden}`); }
+    if (!g.over && playerAge(g) >= 24 && !(g.prison?.past?.length) && !g.bondage?.enslaved) /* 41단계: 감옥·노예로 보낸 삶은 장면 창이 막힌다 */ { ok(!!s.want, `바라는 것 장면 없음 ${o.id}`); ok(!!s.burden && s.burden !== 'due', `짐 장면 없음 ${o.id} ${s.burden}`); }
     if (s.want) wants++; if (s.burden) burdens++;
     if (k === 1 && !g.over) ok(s.gift === 'fit', `재능 장면(맞음) ${o.id} ${s.gift}`);
   }

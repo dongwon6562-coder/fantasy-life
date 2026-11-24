@@ -244,7 +244,7 @@ defineScene('pr_break', {
       c.jailed = null; reportCrime(g, 'jailbreak', place); c.heat[place] = 100;
       if (stay) stay.how = 'escaped';
       // 그 고장에 남으면 곧 붙잡힌다: 이웃 고장으로 숨어든다
-      const away = Object.keys(PLACES[place]?.links ?? {}).filter((k) => PLACES[k]);
+      const away = Object.keys(PLACES[place]?.links ?? {}).filter((k) => PLACES[k] && (!PLACES[k].hidden || PLACES[k].open?.(g))); // 아직 아무도 안 사는 숨은 고장으로는 숨지 못한다
       if (away.length && L(g).place === place) { L(g).place = rng.pick(away); L(g).travel = null; }
       if (xm) { freeNpc(g, xm, 'escaped'); S(g).broke += 1; }
       aff(m, 15);
@@ -434,6 +434,7 @@ function npcTick(g, rng) {
     if (x.end) continue;
     const p = byId(g, x.id);
     if (!p || !p.alive) { x.end = now; x.how = 'dead'; if (p && x.mine) p.away = false; continue; }
+    if (x.mine && !p.away) { x.end = now; x.how = 'served'; continue; } // 다른 갈래가 데려간 사람(은퇴해 고향에 돌아옴 등): 옥살이 기록만 닫는다 (41단계 헤드)
     if (S(g).stay?.mates?.includes(x.id) && isJailed(g)) { x.until = Math.max(x.until, now + 1); continue; } // 내 감방 동료는 내가 있는 동안 남는다
     if (now >= x.until) { freeNpc(g, x, 'served'); say('no', T.NPC_OUT, { who: p.name, place: placeName(x.place) }, x.place); continue; }
     if (rng.chance(0.006)) {

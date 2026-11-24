@@ -83,6 +83,8 @@ function scene(g, kind, data, re, opt = {}) {
     const g = adult(61000 + buys.findIndex((x) => x[1] === kind));
     placeAt(g, place);
     g.player.money = 500;
+    // 41단계: 하늘 소식이 주사위를 밀어 남해 장터에서 사려던 달에 노예로 붙잡혀 가는 판이 나왔다. 사는 걸 재는 동안은 붙잡히는 장면을 쉰다
+    if (g.bondage) g.bondage.sceneAt = 1e9;
     scene(g, 'beast_buy', {}, re);
     const a = alive(g).find((x) => x.kind === kind);
     if (!a) { fail('buy failed', kind, place); continue; }
@@ -216,7 +218,8 @@ function scene(g, kind, data, re, opt = {}) {
       if (ev === 'hawk_flee') addAnimal(g, 'hawk', { ageYears: 3, trained: 100, bond: 50 });
       if (ev === 'beast_loose') addAnimal(g, 'direwolf', { ageYears: 3, trained: 30, bond: 20 });
       if (ev === 'familiar_vision' || ev === 'familiar_witch') { const f = addAnimal(g, 'familiar', { trained: 100, bond: 60, form: '까마귀' }); f.formId = 'raven'; }
-      if (ev === 'old_friend') addAnimal(g, 'horse', { ageYears: 21, trained: 100, bond: 70 });
+      // 41단계: 주사위가 밀려 스물한 살 말이 장면 전에 숨을 거두는 판이 나왔다. 늙음 문턱(16살)은 넘되 덜 늙은 열일곱 살로
+      if (ev === 'old_friend') addAnimal(g, 'horse', { ageYears: 17, trained: 100, bond: 70 });
       if (ev === 'stray' || ev === 'cub' || ev === 'egg_offer') { B(g).animals = []; }
       const S = BEAST_EVENTS[ev];
       if (!S.when(g)) { fail('event condition false in setup', ev); break; }
