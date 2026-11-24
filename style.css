@@ -2088,3 +2088,45 @@ html.swiping .main { will-change: transform; }
 .swipe-hint.ready .ico { color: #1d140b; background: linear-gradient(180deg, #dcb873, #b9904a); border-radius: var(--r-pill, 99px); padding: 2px 8px; }
 /* 40단계 장의사: 더럽혀진 무덤 표 */
 .tag-bad { display: inline-block; margin-left: 6px; padding: 1px 8px; border-radius: var(--r-pill, 99px); font-size: var(--fs-xs, 12px); color: #f2d6c8; background: rgba(140, 50, 36, .45); border: 1px solid rgba(190, 90, 70, .6); vertical-align: middle; }
+
+/* ---------- 41단계 족보 나무: 초상을 가지로 잇는다 ---------- */
+.ftree-scroll { overflow-x: auto; overscroll-behavior-x: contain; margin: 0 -4px; padding: 6px 4px 10px; scrollbar-width: thin; -webkit-overflow-scrolling: touch; }
+.ftree, .ftree ul { list-style: none; margin: 0; padding: 0; display: flex; justify-content: center; }
+.ftree { min-width: max-content; margin: 0 auto; }
+.ftree li { position: relative; display: flex; flex-direction: column; align-items: center; padding: 18px 5px 0; }
+.ftree > li { padding-top: 0; }
+/* 가지: 위 가로줄(형제 사이)과 내려오는 짧은 줄 */
+.ftree ul > li::before, .ftree ul > li::after { content: ''; position: absolute; top: 0; height: 18px; border-top: 1.5px solid var(--ft-line, rgba(201, 162, 90, .55)); }
+.ftree ul > li::before { right: 50%; width: 50%; }
+.ftree ul > li::after { left: 50%; width: 50%; border-left: 1.5px solid var(--ft-line, rgba(201, 162, 90, .55)); }
+.ftree ul > li:first-child::before, .ftree ul > li:last-child::after { border-top: 0; }
+.ftree ul > li:only-child::before { display: none; }
+.ftree ul > li:only-child::after { border-top: 0; }
+.ftree ul > li:first-child::after { border-top-left-radius: 8px; }
+.ftree ul > li:last-child::before { border-right: 1.5px solid var(--ft-line, rgba(201, 162, 90, .55)); border-top-right-radius: 8px; }
+/* 집에서 아래로 내려가는 줄기 */
+.ftree ul { position: relative; padding-top: 16px; }
+.ftree ul::before { content: ''; position: absolute; top: 0; left: 50%; height: 16px; border-left: 1.5px solid var(--ft-line, rgba(201, 162, 90, .55)); }
+/* 내외 */
+.ft-pair { display: flex; align-items: center; gap: 0; padding: 6px 6px 4px; border-radius: var(--r-md, 10px); background: linear-gradient(180deg, rgba(42, 34, 25, .9), rgba(28, 23, 17, .9)); border: 1px solid rgba(201, 162, 90, .28); box-shadow: 0 2px 8px rgba(0, 0, 0, .35); }
+.ft-knot { width: 14px; height: 1.5px; background: var(--brass, #c9a25a); position: relative; margin: 0 1px; align-self: center; margin-bottom: 26px; }
+.ft-knot::after { content: ''; position: absolute; left: 50%; top: 50%; width: 6px; height: 6px; margin: -3px 0 0 -3px; transform: rotate(45deg); background: var(--brass, #c9a25a); }
+.ftree li > .ftn { padding: 5px 4px 4px; border-radius: var(--r-md, 10px); background: rgba(30, 24, 18, .85); border: 1px solid rgba(201, 162, 90, .18); }
+/* 한 사람 */
+.ftn { display: flex; flex-direction: column; align-items: center; gap: 2px; width: 72px; text-align: center; cursor: pointer; }
+.ftn.sm { width: 66px; }
+.ftn-pic { display: block; line-height: 0; border-radius: 40px 40px 8px 8px; overflow: hidden; border: 1.5px solid rgba(201, 162, 90, .55); background: #1a140e; }
+.ftn-pic svg { display: block; width: 54px; height: auto; }
+.ftn.sm .ftn-pic svg { width: 42px; }
+.ftn-name { font-size: var(--fs-sm, 13px); color: var(--ink, #efe3c6); line-height: 1.2; word-break: keep-all; overflow-wrap: anywhere; }
+.ftn-name i { font-style: normal; color: var(--muted, #a99a80); }
+.ftn-sub { font-size: var(--fs-xs, 11px); color: var(--muted, #a99a80); line-height: 1.2; }
+.ftn.me .ftn-pic { border-color: var(--brass, #c9a25a); box-shadow: 0 0 0 2px rgba(201, 162, 90, .3), 0 0 14px rgba(201, 162, 90, .35); }
+.ftn.me .ftn-name { color: #f6e7c2; font-weight: 700; }
+.ftn.dead .ftn-pic { filter: grayscale(.85) brightness(.75); border-color: rgba(150, 140, 120, .4); }
+.ftn.dead .ftn-name { color: var(--muted, #a99a80); }
+.ftn.more { width: auto; padding: 10px 8px; border: 1px dashed rgba(201, 162, 90, .35); border-radius: var(--r-md, 10px); cursor: default; }
+.ftree-side { margin-top: 6px; }
+.ft-og { color: var(--brass, #c9a25a); text-decoration: underline; text-decoration-color: rgba(201, 162, 90, .4); text-underline-offset: 3px; cursor: pointer; }
+/* 탭이 옆에서 밀려 들어오는 동안 화면이 가로로 늘지 않게 */
+.wrap.game { overflow-x: clip; }
