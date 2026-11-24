@@ -754,7 +754,8 @@ function horns(race, h, roll, layer) {
   const { cx, hw, hh, top } = h;
   const small = race === 'half_demon';
   let out = '';
-  const col = small ? '#5c4e55' : '#3a3136', hi = small ? '#c8b8bd' : '#8a7f84';
+  // 43단계: 마족 뿔은 검은 머리에 묻히지 않게 조금 밝히고 결을 또렷이, 곧게 선 뿔 한 갈래를 더했다
+  const col = small ? '#5c4e55' : '#4c4148', hi = small ? '#c8b8bd' : '#b0a4a8';
   for (const s of [-1, 1]) {
     const bx = cx + s * hw * 0.6, by = top + hh * 0.24;
     let d, ridge;
@@ -766,12 +767,15 @@ function horns(race, h, roll, layer) {
     } else if (roll < 0.5) { // 뒤로 휘어 오르는 뿔
       d = `M${f(bx - s * 3)} ${f(by + 0.6)} C${f(bx - s * 1)} ${f(by - 9)} ${f(bx + s * 7)} ${f(by - 15)} ${f(bx + s * 13.4)} ${f(by - 16.5)} C${f(bx + s * 9)} ${f(by - 11.4)} ${f(bx + s * 5)} ${f(by - 6)} ${f(bx + s * 3.4)} ${f(by + 1.4)}Z`;
       ridge = `M${f(bx - s * 0.6)} ${f(by - 4)} l${f(s * 3.4)} 1.6 M${f(bx + s * 2.2)} ${f(by - 8.4)} l${f(s * 2.8)} 2 M${f(bx + s * 5.6)} ${f(by - 12)} l${f(s * 2.2)} 2.2`;
+    } else if (roll >= 0.8) { // 곧게 솟아 끝만 벌어진 뿔
+      d = `M${f(bx - s * 2.8)} ${f(by + 0.6)} C${f(bx - s * 2)} ${f(by - 8)} ${f(bx + s * 0.4)} ${f(by - 15)} ${f(bx + s * 5)} ${f(by - 21.5)} C${f(bx + s * 4.8)} ${f(by - 13)} ${f(bx + s * 4.2)} ${f(by - 6)} ${f(bx + s * 3.2)} ${f(by + 1.4)}Z`;
+      ridge = `M${f(bx - s * 1.2)} ${f(by - 4)} l${f(s * 4)} 0.6 M${f(bx - s * 0.2)} ${f(by - 9)} l${f(s * 3.8)} 0.2 M${f(bx + s * 1.6)} ${f(by - 14)} l${f(s * 2.8)} -0.2`;
     } else { // 양처럼 말린 뿔
       d = `M${f(bx - s * 3)} ${f(by + 0.6)} C${f(bx - s * 2)} ${f(by - 8)} ${f(bx + s * 9)} ${f(by - 10)} ${f(bx + s * 12)} ${f(by - 1)} C${f(bx + s * 13.4)} ${f(by + 5)} ${f(bx + s * 9)} ${f(by + 8.4)} ${f(bx + s * 6.4)} ${f(by + 5.4)} C${f(bx + s * 9)} ${f(by + 4.6)} ${f(bx + s * 9)} ${f(by - 0.4)} ${f(bx + s * 6)} ${f(by - 2.4)} C${f(bx + s * 4.6)} ${f(by - 3)} ${f(bx + s * 3.6)} ${f(by - 1.4)} ${f(bx + s * 3.4)} ${f(by + 1.4)}Z`;
       ridge = `M${f(bx - s * 0.4)} ${f(by - 4)} l${f(s * 3)} 2 M${f(bx + s * 4)} ${f(by - 6.6)} l${f(s * 1.2)} 3.6 M${f(bx + s * 8.6)} ${f(by - 4.6)} l${f(-s * 1.4)} 3.4`;
     }
     if (layer === 'back') out += `<path d="${d}" fill="${small ? '#3a3036' : '#1c1619'}" stroke="#120d10" stroke-width="0.6"/>`;
-    else out += `<path d="${d}" fill="${col}" stroke="#120d10" stroke-width="0.55" stroke-linejoin="round"/>${ridge ? `<path d="${ridge}" stroke="${hi}" stroke-width="0.45" opacity="0.6" fill="none"/>` : ''}<path d="M${f(bx - s * 1.6)} ${f(by - 1)} Q${f(bx)} ${f(by - 5)} ${f(bx + s * 2.6)} ${f(by - 6.4)}" fill="none" stroke="${hi}" stroke-width="0.6" opacity="0.5"/>`;
+    else out += `<path d="${d}" fill="${col}" stroke="#120d10" stroke-width="0.55" stroke-linejoin="round"/>${ridge ? `<path d="${ridge}" stroke="${hi}" stroke-width="${small ? 0.45 : 0.6}" opacity="${small ? 0.6 : 0.75}" fill="none"/>` : ''}<path d="M${f(bx - s * 1.6)} ${f(by - 1)} Q${f(bx)} ${f(by - 5)} ${f(bx + s * 2.6)} ${f(by - 6.4)}" fill="none" stroke="${hi}" stroke-width="0.6" opacity="0.5"/>`;
   }
   return out;
 }

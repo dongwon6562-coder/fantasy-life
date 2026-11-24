@@ -23,9 +23,9 @@ const folk = (i, o = {}) => ({ cloth: CL[i % 6], hair: HR[i % 6], female: i % 3 
 const robed = (i, o = {}) => ({ cloth: ['#2f3a5a', '#3a3050', '#34404a'][i % 3], hair: HR[i % 6], robe: true, ...o });
 
 // ───────── 종족 도우미: 사람 그림 위에 귀·꼬리·뿔·수염을 얹는다 ─────────
-const headOf = (x, y, h, o) => { const s = h / 100, drop = o.pose === 'kneel' ? 24 : o.pose === 'sit' ? 20 : 0; return o.child ? { s, hy: y - (95.6 - drop) * s, r: 9.6 * s, drop } : { s, hy: y - (93.2 - drop) * s, r: 7.2 * s, drop }; };
+export const headOf = (x, y, h, o) => { const s = h / 100, drop = o.pose === 'kneel' ? 24 : o.pose === 'sit' ? 20 : 0; return o.child ? { s, hy: y - (95.6 - drop) * s, r: 9.6 * s, drop } : { s, hy: y - (93.2 - drop) * s, r: 7.2 * s, drop }; };
 /** 엘프: 조금 가늘고, 머리칼 밖으로 나온 긴 귀. o.ear로 귀 길이(반엘프는 0.6쯤) */
-function elf(v, x, y, h, o = {}) {
+export function elf(v, x, y, h, o = {}) {
   const { ctx } = v, skin = o.skin ?? '#dcc6a8', tone = (c) => (o.raw ? c : v.t(c));
   ctx.save(); ctx.translate(x, y); ctx.scale(o.thin ?? 0.9, 1); ctx.translate(-x, -y); person(v, x, y, h, { long: true, skin, ...o }); ctx.restore();
   const { hy, r } = headOf(x, y, h, o), f = o.f ?? 0, len = (o.ear ?? 1) * r * 1.05;
@@ -33,7 +33,7 @@ function elf(v, x, y, h, o = {}) {
 }
 const FUR = { wolf: '#6e6c70', tiger: '#b4722e', hawk: '#5a4630' };
 /** 수인: 머리 위 귀와 꼬리(늑대·호랑이), 매 부족은 깃 장식과 깃 망토 */
-function beastman(v, x, y, h, kind, o = {}) {
+export function beastman(v, x, y, h, kind, o = {}) {
   const { ctx } = v, tone = (c) => (o.raw ? c : v.t(c)), fur = o.hair ?? FUR[kind], f = o.f ?? 0, hd = headOf(x, y, h, o), { s, hy, r, drop } = hd, d = -(f || 1), c = tone(fur), dk = tone(dark(fur, 0.45));
   if (kind !== 'hawk' && o.pose !== 'sit') {
     const ty = y - (47 - drop) * s, w = (kind === 'wolf' ? 5.4 : 2.8) * s;
@@ -57,7 +57,7 @@ function hornkin(v, x, y, h, o = {}) {
   if (!o.hideHorn) for (const k of [-1, 1]) { const bx = x + k * r * 0.5 + f * r * 0.2; stroke(ctx, [bx, hy - r * 0.78, bx + k * r * 0.26, hy - r * 1.3, bx + k * r * 0.1, hy - r * 1.66], r * 0.3, c); }
 }
 /** 드워프: 낮고 떡 벌어진 몸, 땋은 수염. h는 사람 키 기준으로 넣는다 */
-function dwarf(v, x, y, h, o = {}) {
+export function dwarf(v, x, y, h, o = {}) {
   const { ctx } = v, tone = (c) => (o.raw ? c : v.t(c)), hh = h * (o.child ? 0.8 : 0.74);
   ctx.save(); ctx.translate(x, y); ctx.scale(1.34, 1); ctx.translate(-x, -y);
   person(v, x, y, hh, { skin: '#c49a78', ...o });
@@ -89,7 +89,7 @@ function clanStone(v, x, y, h, kind) {
   const bc = t(kind === 'wolf' ? '#4a5a6a' : kind === 'tiger' ? '#8a3a22' : '#b8a060'); ctx.fillStyle = bc; ctx.beginPath(); ctx.moveTo(x + 16, y - h * 1.25); ctx.quadraticCurveTo(x + 30, y - h * 1.2, x + 44, y - h * 1.28); ctx.lineTo(x + 40, y - h * 1.2); ctx.lineTo(x + 46, y - h * 1.14); ctx.quadraticCurveTo(x + 30, y - h * 1.08, x + 16, y - h * 1.12); ctx.fill();
 }
 /** 책 꽂힌 선반 */
-function shelf(ctx, x, y, w, rows, seed) {
+export function shelf(ctx, x, y, w, rows, seed) {
   rect(ctx, x - 3, y - 3, w + 6, rows * 26 + 6, '#241c16');
   for (let r = 0; r < rows; r++) { rect(ctx, x, y + r * 26, w, 23, '#15110e'); let bx = x + 2; for (let i = 0; bx < x + w - 6; i++) { const bw = 3 + hash(i, seed + r) * 4, bh = 14 + hash(i, seed + r + 9) * 7; rect(ctx, bx, y + r * 26 + 23 - bh, bw, bh, ['#5a2e28', '#2e3e52', '#4a4a30', '#3e2e4a', '#6a5a3a'][Math.floor(hash(i, seed + r + 5) * 5)]); bx += bw + 0.8; } }
 }
