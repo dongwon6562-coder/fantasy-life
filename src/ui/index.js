@@ -7,7 +7,7 @@ import { resolveEvent } from '../events.js';
 import { FAMILIES, STATS, SKILLS, skillGrade, VILLAGE, REGION } from '../data.js';
 import { autosave, autosaveSoon, summary } from '../save.js';
 import { portrait } from '../art/portrait.js';
-import { sceneImage, conditionText, prewarmScene } from '../art/scene.js';
+import { sceneImage, conditionText, prewarmScene, techsOf } from '../art/scene.js';
 import { icon } from '../art/icons.js';
 import { mountMap } from '../art/map.js';
 import { L, traveling } from '../adventure/core.js';
@@ -581,7 +581,7 @@ function renderMap() {
 function renderEvent() {
   const e = game.pendingEvent;
   if (!e && !ui.outcome) return '';
-  const sceneArgs = { year: game.date.year, month: game.date.month, famine: !!game.world?.famine, plague: !!game.world?.plague, place: L(game).place, calamity: calamityNow() };
+  const sceneArgs = { year: game.date.year, month: game.date.month, famine: !!game.world?.famine, plague: !!game.world?.plague, place: L(game).place, calamity: calamityNow(), techs: techsOf(game) };
   game.sceneArgs = sceneArgs; // 저장에 같이 남아, 다음에 켤 때 처음 화면이 떠 있는 동안 이 풍경을 미리 그린다 (32단계 헤드)
   const art = sceneImage(sceneArgs);
   // 38단계: 사건에 나오는 사람이 있으면(ctx의 id, 글에 이름이 나올 때만) 삽화 위에 반신 초상
@@ -687,7 +687,9 @@ let roomTimer = null;
 function paintRoomLater(args, monthKey, roomName) {
   if (typeof setTimeout === 'undefined') return;
   if (roomTimer) clearTimeout(roomTimer);
-  roomTimer = setTimeout(() => {
+  const later = (fn) => { try { requestAnimationFrame(() => { roomTimer = setTimeout(fn, 160); }); } catch { roomTimer = setTimeout(fn, 160); } };
+  roomTimer = null;
+  later(() => {
     roomTimer = null;
     if (!game || game.date.year * 12 + game.date.month !== monthKey) return;
     let url = '';
@@ -697,7 +699,7 @@ function paintRoomLater(args, monthKey, roomName) {
     if (!reducedMotion()) { img.classList.remove('xfade'); void img.offsetWidth; img.classList.add('xfade'); }
     img.src = url; img.alt = img.alt.replace(/ 풍경:/, ` ${roomName}:`);
     lastArt = url;
-  }, 160);
+  });
 }
 
 function renderGame() {
@@ -706,7 +708,7 @@ function renderGame() {
   ovFresh = !document.querySelector('.overlay:not(.out)'); // 사건 창이 새로 열리면 어둠이 깔리며 (창 안 글만 바뀌면 그대로)
   const mi = monthInfo(game);
   const p = game.player;
-  const sceneArgs = { year: game.date.year, month: game.date.month, famine: !!game.world?.famine, plague: !!game.world?.plague, place: L(game).place, calamity: calamityNow() };
+  const sceneArgs = { year: game.date.year, month: game.date.month, famine: !!game.world?.famine, plague: !!game.world?.plague, place: L(game).place, calamity: calamityNow(), techs: techsOf(game) };
   game.sceneArgs = sceneArgs; // 저장에 같이 남아, 다음에 켤 때 처음 화면이 떠 있는 동안 이 풍경을 미리 그린다 (32단계 헤드)
   // 38단계: 이번 달 한 일이 실내 쪽이면 머리 그림을 실내로 (길 위·재앙 든 달은 바깥 풍경, 도우미4 sceneInterior.js)
   const room = (() => { try { return sceneFor(game, sceneArgs.calamity); } catch (e) { console.error(e); return null; } })();
@@ -749,7 +751,7 @@ function renderGame() {
     ${game.over ? '' : renderEvent()}`;
   lastArt = art; lastView = ui.view; lastMonth = monthKey;
   if (roomArgs && !roomArt) paintRoomLater(roomArgs, monthKey, ROOM_NAME[room.kind] ?? '안');
-  if (!game.over) { const ny = game.date.month === 12 ? game.date.year + 1 : game.date.year, nm = game.date.month === 12 ? 1 : game.date.month + 1; prewarmScene({ year: ny, month: nm, famine: game.world?.famine, plague: game.world?.plague, place: L(game).place, calamity: calamityNow() }); }
+  if (!game.over) { const ny = game.date.month === 12 ? game.date.year + 1 : game.date.year, nm = game.date.month === 12 ? 1 : game.date.month + 1; prewarmScene({ year: ny, month: nm, famine: game.world?.famine, plague: game.world?.plague, place: L(game).place, calamity: calamityNow(), techs: techsOf(game) }); }
   bindGame();
   if (ui.view === 'map') {
     const host = $('#map-host');
