@@ -162,7 +162,7 @@ const GROUPS = [
   ['mount', '하늘 짐승', /^mount_/],
   ['company', '용병단', /^company_/],
   ['aftermath', '전쟁 뒤', /^aftermath_/],
-  ['people', '사람과 마을', /^(visit|play|wander|rel_|faction_door|bard|era_|kin_|love_|mentor_|village_|mystery_|letters_|feud_reconcile|peoples_|repute_(boast|feast|clear))/],
+  ['people', '사람과 마을', /^(visit|play|wander|rel_|faction_door|bard|era_|kin_|love_|mentor_|sw_(found|hall)$|village_|mystery_|letters_|feud_reconcile|peoples_|repute_(boast|feast|clear))/],
   ['health', '병과 몸', /^health_/],
   ['oath', '맹세', /^oath_/],
   ['elder', '마지막 해들', /^elder_/],
