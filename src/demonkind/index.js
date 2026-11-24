@@ -435,6 +435,7 @@ defineScene('dk_banned', {
       g.player.injuries.push({ name: '돌에 맞은 상처', months: 2 }); L(g).notoriety = (L(g).notoriety ?? 0) + 2; f.suspicion = clamp((f.suspicion ?? 0) + 10, 0, 100); stress(g, 12);
       return '버텼다. 이마가 찢어졌다. 피가 뿔을 타고 흘렀다. 그 모습이 더 무서웠는지 사람들이 물러났다. 다음 날 내 얼굴이 그려진 방이 붙었다.';
     }
+    if (key === 'pay' && g.player.money < 20) return '주머니를 뒤졌지만 스무 닢이 없었다. 경비대장이 코웃음을 쳤다. "그럼 오늘 밤 안에 이 고장을 떠나라."';
     if (key === 'pay') { g.player.money -= 20; stress(g, 4); return '은화를 받은 경비대장이 눈을 돌렸다. "못 본 걸로 하지. 이번 한 번." 이 나라에서 마족의 값은 은화 스무 닢이다. 기억해 둔다.'; }
     k.revealed = false; k.horn = 60; stress(g, 10); note(g, '사람 땅에서 뿔을 깎고 감추기로 했다.');
     return '그날 밤 줄을 샀다. 대장간 주인이 무엇에 쓰냐고 물었다. 손톱을 다듬는다고 했다. 여관 방에서 뿔을 깎았다. 깎인 조각을 손에 쥐고 오래 앉아 있었다.';
