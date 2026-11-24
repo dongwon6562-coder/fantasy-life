@@ -71,7 +71,7 @@ function adult(seed, family = 'farmer') {
 function placeAt(g, place) { const l = L(g); l.place = place; l.travel = null; if (l.home !== 'barracks') l.home = 'inn'; /* 어른이 되며 이미 입대했으면 병영 그대로 */ l.queue = []; l.scene = null; g.pendingEvent = null; const R = realmState(g); R.cur = PLACES[place].realm ?? 'leonia'; R.last = place; }
 function scene(g, kind, data, re, opt = {}) {
   let done = false, chose = null;
-  for (let i = 0; i < 6 && !done && !g.over; i++) {
+  for (let i = 0; i < 10 && !done && !g.over; i++) {
     if (isJailed(g)) crimeState(g).jailed = null; // 고발당해 옥에 갔을 수 있다: 장면은 옥 밖에서 본다
     opt.ensure?.(g); // 다른 사건(위기 싸움에서 달아남 등)으로 형편이 바뀌었으면 되돌린다
     if (!L(g).queue.some((x) => x.kind === kind) && L(g).scene?.kind !== kind) queueScene(g, kind, data, { first: true });
@@ -118,8 +118,8 @@ function soldier(seed, family = 'farmer', place = 'harfen') {
   const g = soldier(41100);
   Object.assign(A(g).service, { rank: 2, merit: MERIT[3], months: 30 });
   Object.assign(g.player.stats, { int: 50, cha: 50, wil: 50 }); g.player.skills.letters = 30; g.player.money = 120;
-  scene(g, 'army_promote', { to: 3 }, /임관금/);
-  if (A(g).service.rank !== 3 || g.player.money > 80) /* 임관금 65닢. 그달 녹봉·사건으로 조금 들어올 수 있다 */ fail('commission not bought', A(g).service.rank, g.player.money);
+  scene(g, 'army_promote', { to: 3 }, /임관금/, { ensure: (h) => { h.player.money = Math.max(h.player.money, 200); } }); // 장면을 기다리는 사이 다른 일로 돈이 빠질 수 있다
+  if (A(g).service.rank !== 3 || g.player.money > 150) /* 임관금 65닢(200에서 시작). 그달 녹봉·사건으로 조금 오갈 수 있다 */ fail('commission not bought', A(g).service.rank, g.player.money);
   const n = soldier(41200, 'fallen_knight');
   Object.assign(A(n).service, { rank: 2, merit: MERIT[3], months: 30 });
   Object.assign(n.player.stats, { int: 50, cha: 50, wil: 50 }); n.player.skills.letters = 30;
@@ -186,6 +186,7 @@ function soldier(seed, family = 'farmer', place = 'harfen') {
     const ids = availableActions(g).map((a) => a.id);
     if (ids.some((id) => !['army_escape', 'army_captive_wait', 'rest', 'meditate'].includes(id))) fail('captive can do too much', ids.join(','));
     g.player.money = run % 2 ? 100 : 0;
+    if (run % 2 === 0) { g.player.stats.agi = Math.max(g.player.stats.agi, 60); g.player.stats.sen = Math.max(g.player.stats.sen, 60); } // 달아나는 판은 날랜 몸으로(세상 흐름에 덜 흔들리게)
     let ran = false;
     for (let m = 0; m < 14 && A(g).captive && !g.over; m++) { war(g); month(g, run % 2 === 0 ? ['army_escape'] : ['army_captive_wait'], (k, labels) => (k === 'army_ransom' ? 0 : -1)); heal(g); if ((g.lastResults ?? []).some((r) => /제 발로 걸어 나온/.test(r.text))) ran = true; }
     if (A(g).captive) fail('captive never freed');

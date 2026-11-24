@@ -178,7 +178,7 @@ defineScene('ut_robbers', {
   text: (g, s) => ROB[s.who].text,
   choices: (g, s) => ROB[s.who].choices.map(([key, label]) => ({ label, key })),
   resolve(g, rng, s, key) {
-    const st = U(g), y = yardHere(g);
+    const st = U(g), y = yardHere(g) ?? { rich: 0, robbed: 0, rumor: 0 }; // 장면이 뜨기 전에 묘지 일을 놓았으면 빈 묘지로
     switch (key) {
       case 'shout': y.rich = Math.max(0, y.rich - 2); deed(g, 'brave', 1, null); return '종탑 줄을 당겼다. 개들이 짖고 창마다 불이 켜졌다. 도굴꾼들은 삽을 버리고 담을 넘었다. 무덤은 반쯤 파인 채였다.';
       case 'fight':
