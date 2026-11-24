@@ -85,6 +85,8 @@ function scene(g, kind, data, re, opt = {}) {
     g.player.money = 500;
     // 41단계: 하늘 소식이 주사위를 밀어 남해 장터에서 사려던 달에 노예로 붙잡혀 가는 판이 나왔다. 사는 걸 재는 동안은 붙잡히는 장면을 쉰다
     if (g.bondage) g.bondage.sceneAt = 1e9;
+    // 43단계: 마신 갈래가 주사위를 밀어 와이번이 대관 서기 판에서 독 고기를 먹는 판이 나왔다. 길들이기를 재는 동안은 허가를 받아 둔 걸로 한다
+    if (g.mount?.me) g.mount.me.permit = 9999;
     scene(g, 'beast_buy', {}, re);
     const a = alive(g).find((x) => x.kind === kind);
     if (!a) { fail('buy failed', kind, place); continue; }

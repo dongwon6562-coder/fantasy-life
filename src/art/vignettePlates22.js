@@ -477,13 +477,77 @@ function swSpell(v) {
 }
 
 
+/** 성휘류: 성기사단 예배당의 수련. 칼끝을 바닥에 세우고 맹세를 외는 줄, 높은 창의 빛이 칼날을 타고 내린다 */
+function swVow(v) {
+  const { ctx } = v; room(v, { wall: '#6a6458', floor: '#3e382e', fy: 186, stone: true });
+  for (const x of [150, 320, 490]) { windowAt(v, x - 22, 24, 44, 96, { arch: true }); shaft(v, x, 120, 44, 116, -40, '#f0e8c8', 0.12); }
+  for (const x of [66, 236, 406, 576]) { rect(ctx, x - 12, 0, 24, 190, '#57524a'); rect(ctx, x - 16, 178, 32, 10, '#4a463e'); rect(ctx, x + 4, 0, 8, 180, 'rgba(0,0,0,.2)'); }
+  ring(ctx, 320, 150, 14, 14, 2.4, '#c8a850'); for (let i = 0; i < 8; i++) { const a = i * TAU / 8; stroke(ctx, [320 + Math.cos(a) * 19, 150 + Math.sin(a) * 19, 320 + Math.cos(a) * 26, 150 + Math.sin(a) * 26], 1.6, '#c8a850'); }
+  for (const x of [236, 406]) banner(v, x, 150, 110, '#d8d0b8', { raw: true, mark: '#c8a850', d: 1 });
+  // 뒷줄: 같은 자세의 기사들
+  for (let i = 0; i < 6; i++) { const x = 90 + i * 92; person(v, x, 222, 84, { raw: true, f: 1, pose: 'kneel', cloth: '#c8c4b8', hair: HR[i % 6], cloak: true, arm: 'fwd', noShadow: true }); const [hx, hy] = handOf(x, 222, 84, 1, 'fwd', 24); blade(v, hx, hy - 6, 1, -1.5, 30, { w: 1.2 }); }
+  // 교관
+  person(v, 470, 238, 114, { raw: true, f: -1, old: true, cloth: '#d8d4c8', hair: '#b8b4ac', cloak: true, arm: 'chest', rim: WARM, rimDir: -1 }); sheath(v, 470, 238, 114, -1, '#8a7450');
+  // 나: 칼끝을 세우고 숨을 고른다
+  person(v, 300, 240, 114, mine(v, { raw: true, f: 1, pose: 'kneel', arm: 'fwd', rim: 'rgba(255,240,200,.7)', rimDir: 1 }));
+  { const [hx, hy] = handOf(300, 240, 114, 1, 'fwd', 24); const [tx, ty] = blade(v, hx, hy - 10, 1, -1.5, 58, { w: 2.2, color: '#f0ecd8' }); lit(ctx, () => { stroke(ctx, [hx, hy - 16, tx, ty], 7, 'rgba(255,236,180,.2)'); stroke(ctx, [hx + 2, 60, hx + 1, hy - 20], 1, 'rgba(255,240,200,.4)'); }); glow(v, hx, hy - 30, 40, '#ffe8a8', 0.2); glow(v, tx, ty, 12, '#fff2cc', 0.22); }
+  finish(v, { inside: true });
+}
+/** 물결칼: 너울에 기운 갑판. 뱃전을 차고 돈 곡도의 짧은 호, 발을 헛디딘 상대, 흔들리는 등과 물보라 */
+function swDeck(v) {
+  const { ctx, t } = v; sky(v);
+  // 기운 수평선과 너울
+  ctx.save(); ctx.translate(320, 130); ctx.rotate(0.07); rect(ctx, -400, 0, 800, 200, t('#3e566a')); for (let i = 0; i < 30; i++) stroke(ctx, [-380 + hash(i, 2) * 760, 6 + hash(i, 3) * 60, -360 + hash(i, 2) * 760, 6 + hash(i, 3) * 60], 0.7, 'rgba(220,232,240,.4)'); ctx.restore();
+  ctx.save(); ctx.translate(320, 200); ctx.rotate(-0.08); ctx.translate(-320, -200);
+  // 갑판과 뱃전, 돛대와 줄
+  rect(ctx, -40, 196, 720, 80, t('#5a4632')); for (let i = 0; i < 9; i++) stroke(ctx, [-40, 204 + i * 7, 680, 204 + i * 7], 0.6, rgba(t('#2e2218'), 0.6));
+  rect(ctx, -40, 164, 720, 8, t('#3a2c20')); for (let i = 0; i < 19; i++) rect(ctx, -30 + i * 38, 172, 4, 26, t('#3a2c20'));
+  rect(ctx, 150, -40, 12, 240, t('#3a2c20')); poly(ctx, [162, -30, 330, 10, 320, 110, 162, 96], rgba(t('#c8bea4'), 0.92)); stroke(ctx, [162, 96, 320, 110], 2, t('#3a2c20'));
+  for (const x of [60, 100, 250, 300]) stroke(ctx, [156, -20, x, 166], 0.8, t('#1c1410')); for (let i = 0; i < 5; i++) stroke(ctx, [70 + i * 4, 150 - i * 30, 142 - i * 3, 150 - i * 30], 0.6, t('#1c1410'));
+  for (const [x, y] of [[520, 196], [556, 196], [538, 174]]) { oval(ctx, x, y - 12, 14, 13, t('#6a5238')); ring(ctx, x, y - 12, 14, 4, 1, t('#2e2218')); }
+  stroke(ctx, [600, 110, 600, 140], 0.8, t('#1c1410')); oval(ctx, 604, 146, 5, 6, '#f0c878'); glow(v, 604, 146, 40, '#ffcf80', 0.2);
+  // 상대: 발을 헛디뎠다
+  person(v, 410, 236, 110, { f: -1, pose: 'bow', cloth: '#4a3a34', hair: '#1c1614', arm: 'fwd' }); { const [hx, hy] = handOf(410, 236, 110, -1); blade(v, hx - 4, hy + 8, -1, -0.7, 40); }
+  // 나: 곡도
+  person(v, 300, 236, 112, mine(v, { f: 1, arm: 'fwd', rim: COLD, rimDir: -1 })); { const [hx, hy] = handOf(300, 236, 112, 1); stroke(ctx, [hx - 6, hy + 2, hx, hy], 2.4, '#2a2018'); bend(ctx, [hx, hy, hx + 22, hy - 4, hx + 40, hy - 24], 2.2, '#d0d4dc'); bend(ctx, [hx + 4, hy - 1, hx + 22, hy - 6, hx + 39, hy - 23], 0.5, 'rgba(255,255,255,.7)'); }
+  slash(ctx, 318, 170, 46, -1.3, 0.5, 'rgba(220,236,250,.6)', 2.2);
+  // 지켜보는 뱃사람들
+  for (let i = 0; i < 3; i++) person(v, 40 + i * 34, 234 + (i % 2) * 3, 96, folk(i + 1, { f: 1, female: false, long: false, hat: i === 1, arm: i === 2 ? 'chest' : undefined }));
+  ctx.restore();
+  // 뱃전을 넘는 물보라
+  for (let i = 0; i < 40; i++) oval(ctx, 440 + hash(i, 5) * 200, 120 + hash(i, 6) * 70, 1 + hash(i, 7) * 1.4, 1 + hash(i, 7) * 1.4, 'rgba(230,240,246,.7)'); bend(ctx, [640, 190, 560, 120, 470, 170], 6, 'rgba(220,234,242,.25)');
+  finish(v, { noLeaves: true });
+}
+
+/** 감시탑의 파수꾼: 바닷가 벼랑 위 돌탑 꼭대기에 꺼지지 않는 불. 잿빛 외투의 파수꾼이 등잔을 들고 밤을 새운다 */
+function dgWatch(v) {
+  const { ctx } = v; sky(v);
+  rect(ctx, 0, 132, VW, 108, v.t('#26303e')); for (let i = 0; i < 22; i++) { const x = hash(i, 71) * VW, y = 138 + hash(i, 72) * 60; stroke(ctx, [x, y, x + 16 + hash(i, 73) * 22, y], 0.8, 'rgba(190,204,224,.28)'); }
+  // 먼 곶들: 탑이 하나만이 아니다
+  poly(ctx, [0, 132, 60, 118, 130, 122, 190, 132], v.t('#2e3644')); rect(ctx, 86, 100, 5, 20, v.t('#2e3644')); oval(ctx, 88.5, 98, 1.6, 1.6, '#ffc070'); glow(v, 88, 98, 14, '#ffa850', 0.22);
+  // 벼랑과 탑
+  poly(ctx, [640, 240, 640, 128, 560, 122, 470, 132, 400, 156, 330, 196, 250, 240], v.t('#3a3634')); poly(ctx, [640, 240, 640, 176, 520, 172, 400, 198, 320, 240], v.t('#4a4640')); stroke(ctx, [640, 128, 560, 122, 470, 132, 400, 156, 330, 196, 250, 240], 1, 'rgba(255,200,140,.22)');
+  const tx = 520, ty = 150, c = v.t('#6a6660'), c2 = v.t('#4a4744');
+  poly(ctx, [tx - 26, ty, tx - 19, ty - 112, tx + 19, ty - 112, tx + 26, ty], c); poly(ctx, [tx + 4, ty, tx + 6, ty - 112, tx + 19, ty - 112, tx + 26, ty], c2);
+  for (let i = 1; i < 8; i++) stroke(ctx, [tx - 25 + i * 0.8, ty - i * 14, tx + 25 - i * 0.8, ty - i * 14], 0.6, 'rgba(20,18,22,.35)');
+  rect(ctx, tx - 25, ty - 118, 50, 6, c2); for (const k of [-1, 1]) rect(ctx, tx + k * 16 - 1.5, ty - 140, 3, 22, c2); poly(ctx, [tx - 24, ty - 140, tx, ty - 156, tx + 24, ty - 140], c2);
+  for (const y of [ty - 84, ty - 48]) rect(ctx, tx - 9, y, 4, 9, '#14121a'); poly(ctx, [tx - 7, ty, tx - 7, ty - 16, tx, ty - 21, tx + 7, ty - 16, tx + 7, ty], '#14121a');
+  flame(v, tx, ty - 118, 11); glow(v, tx, ty - 128, 110, '#ffb060', 0.2); glow(v, tx, ty - 128, 22, '#ffd090', 0.2); glow(v, 470, 190, 150, '#ffb060', 0.1);
+  // 파수꾼들과 나
+  const lamp = (x, y) => { stroke(ctx, [x, y - 7, x, y - 4], 0.8, '#15110e'); rect(ctx, x - 2.4, y - 4, 4.8, 6.4, '#2a2018'); oval(ctx, x, y - 0.8, 1.6, 2, '#ffd890'); glow(v, x, y, 26, '#ffb060', 0.22); };
+  person(v, 566, 196, 62, { cloth: '#5a5c60', hair: '#3a3632', f: -1, cloak: true, hood: true, stick: 'spear', rim: FIRE, rimDir: -1 });
+  person(v, 430, 232, 100, { cloth: '#62646a', hair: '#8a8680', f: -1, cloak: true, old: true, arm: 'fwd', rim: WARM, rimDir: -1 }); { const [hx, hy] = handOf(430, 232, 100, -1); lamp(hx, hy + 7); }
+  person(v, 330, 238, 104, mine(v, { f: 1, cloak: true, rim: WARM, rimDir: 1 }));
+  for (let i = 0; i < 5; i++) { const x = 120 + hash(i, 75) * 240, y = 60 + hash(i, 76) * 50; bend(ctx, [x - 5, y, x - 2, y - 3, x, y, x + 2, y - 3, x + 5, y], 0.9, 'rgba(20,18,24,.6)'); }
+  finish(v, { noLeaves: true });
+}
 export const PLATES22 = {
   /** 마족 집안의 어린 시절. variant: warrior·trade·silent·hiding */
   demonkind(v) { const k = v.variant ?? 'warrior'; return ({ trade: dkTrade, silent: dkSilent, hiding: dkHiding }[k] ?? dkWarrior)(v); },
   /** 마대륙의 고장. variant: bones·harbor·city·outpost */
   demonland(v) { const k = v.variant ?? 'city'; return ({ bones: dlBones, harbor: dlHarbor, outpost: dlOutpost }[k] ?? dlCity)(v); },
-  /** 마신. variant: dream·shard·apostle·cult·war·choice */
-  demongod(v) { const k = v.variant ?? 'dream'; return ({ shard: dgShard, apostle: dgApostle, cult: dgCult, war: dgWar, choice: dgChoice }[k] ?? dgDream)(v); },
-  /** 검. variant: flow·heavy·feint·axe·twin·fist·aura·rank·rival·spellblade */
-  sword(v) { const k = v.variant ?? 'flow'; return ({ heavy: swHeavy, feint: swFeint, axe: swAxe, twin: swTwin, fist: swFist, aura: swAura, rank: swRank, rival: swRival, spellblade: swSpell }[k] ?? swFlow)(v); },
+  /** 마신. variant: dream·shard·apostle·cult·war·choice·watch */
+  demongod(v) { const k = v.variant ?? 'dream'; return ({ shard: dgShard, apostle: dgApostle, cult: dgCult, war: dgWar, choice: dgChoice, watch: dgWatch }[k] ?? dgDream)(v); },
+  /** 검. variant: flow·heavy·feint·vow·axe·twin·fist·deck·aura·rank·rival·spellblade */
+  sword(v) { const k = v.variant ?? 'flow'; return ({ heavy: swHeavy, feint: swFeint, vow: swVow, deck: swDeck, axe: swAxe, twin: swTwin, fist: swFist, aura: swAura, rank: swRank, rival: swRival, spellblade: swSpell }[k] ?? swFlow)(v); },
 };
