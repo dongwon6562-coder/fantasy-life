@@ -122,7 +122,7 @@ function expedition(g, id, startKey = 'entry', pick = (keys) => (keys.includes('
 
 // 1. 미궁 열셋, 자료가 맞다
 {
-  if (DELVE_IDS.length < 12) fail('delve count', DELVE_IDS.length);
+  if (DELVE_IDS.length < 18) fail('delve count', DELVE_IDS.length);
   for (const id of DELVE_IDS) {
     const d = DELVES[id];
     if (!PLACES[d.place]) fail('place', id, d.place);
