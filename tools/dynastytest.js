@@ -83,6 +83,8 @@ const bad = (t) => typeof t !== 'string' || /undefined|NaN|\[object|null/.test(t
     if (!me(h).isPlayer) { problems++; console.log('새 주인이 플레이어가 아님'); }
   }
 }
-if (lastGen < 2 && !process.argv[3]) { problems++; console.log('기본 씨앗에서 대가 한 번도 이어지지 않음'); }
+const diedYoung = g.over && lastGen === 1 && (g.people.find((p) => p.isPlayer)?.ageMonths ?? 999) < 12 * 35; // 41단계: 무작위로 사는 첫 대가 서른다섯 전에 자식 없이 죽는 씨앗이 있다
+if (diedYoung) console.log('첫 대가 일찍 자식 없이 죽어 대 잇기 점검은 건너뜀');
+else if (lastGen < 2 && !process.argv[3]) { problems++; console.log('기본 씨앗에서 대가 한 번도 이어지지 않음'); }
 console.log(problems ? `문제 ${problems}` : 'OK');
 process.exit(problems ? 1 : 0);

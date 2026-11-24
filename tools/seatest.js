@@ -124,7 +124,7 @@ for (let run = 0; run < 20; run++) {
     let m = 0;
     while (L(g).travel && m++ < 12 && !g.over) month(g, ['sea_deck', 'at_sea']);
     if (L(g).travel) fail('voyage never ended', L(g).travel);
-    if (!PLACES[L(g).place]?.port && !g.over && !g.crime?.jailed) fail('arrived somewhere not a port', L(g).place);
+    if (!PLACES[L(g).place]?.port && !PLACES[L(g).place]?.frontier && !g.over && !g.crime?.jailed) /* 41단계: 장터에서 개척단을 따라가는 선택도 있다 */ fail('arrived somewhere not a port', L(g).place);
   }
 }
 // 저절로 안 나온 드문 사건은 직접 띄워 본다 (무게대로 나오므로 항해 수에 따라 빠질 수 있다)
