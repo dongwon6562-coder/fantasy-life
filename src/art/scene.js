@@ -50,6 +50,12 @@ function techReader(techs, year, month) {
   return { n: list.length || ALL_TECH.filter(has).length, has, since: (id) => (list.includes(id) ? list.length - 1 - list.indexOf(id) : 99) };
 }
 
+/** 이 판의 기술 목록(풍경 시대 층용). sceneArgs에 같이 넣으면 판이 없는 제목 화면에서 미리 그린 그림과 열쇠가 같아진다 (41단계 헤드: 이어 하기) */
+export function techsOf(g) {
+  const list = Array.isArray(g?.history?.inventions) ? g.history.inventions : [];
+  return list.length ? list.slice() : ALL_TECH.filter((id) => { try { return invented(g, id); } catch { return false; } });
+}
+
 const cache = new Map();
 /** 풍경 그림 (data URL). 브라우저에서만 동작. techs: 나온 기술 id들(순서대로). 없으면 지금 하는 판에서 읽는다. */
 export function sceneImage({ year, month, famine = false, plague = false, place = 'ern', calamity = null, techs = null }) {
@@ -69,11 +75,16 @@ export function sceneImage({ year, month, famine = false, plague = false, place 
 
 // 다음 달 풍경을 미리 그려 둔다 (헤드 16단계). 풍경 한 장을 그리고 JPEG로 굳히는 데 폰에서 0.1초 가까이 걸려,
 // '한 달 보내기'를 누를 때마다 그만큼 멈췄다. 화면을 다 그린 뒤 쉬는 틈에 다음 달 것을 그려 두면 누를 때는 꺼내 쓰기만 한다.
-let warmTimer = null;
+let warmTimer = null, warmArgs = null, warmWait = false;
 export function prewarmScene(args) {
   if (typeof document === 'undefined' || typeof setTimeout === 'undefined') return;
-  if (warmTimer) clearTimeout(warmTimer);
-  warmTimer = setTimeout(() => { warmTimer = null; try { sceneImage(args); } catch { /* 미리 못 그려도 그만 */ } }, 120);
+  warmArgs = args;
+  if (warmTimer) { clearTimeout(warmTimer); warmTimer = null; }
+  if (warmWait) return;
+  // 화면이 한 번 그려진 뒤에 미리 그린다: 바로 뒤 타이머가 첫 그리기를 막지 않게 (41단계 헤드)
+  warmWait = true;
+  const go = () => { warmWait = false; warmTimer = setTimeout(() => { warmTimer = null; try { sceneImage(warmArgs); } catch { /* 미리 못 그려도 그만 */ } }, 400); };
+  try { requestAnimationFrame(go); } catch { go(); }
 }
 
 function draw(year, month, famine, plague, place, calamity, era) {
