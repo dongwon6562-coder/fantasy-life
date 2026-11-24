@@ -830,19 +830,31 @@ function build(svg, info, here, opt, signal) {
 
   // 확대·이동. 지도 칸의 모양(가로세로 비)에 맞춰 보이는 범위를 잡아, 좁은 화면에서도 칸이 꽉 찬다.
   const vb = { x: 0, y: 0, w: WW, h: WH };
-  let moved = false, lastFar = 0, lastW = 0, dcRaf = 0;
+  let moved = false, lastFar = 0, lastW = 0, dcRaf = 0, fontsIn = 0;
+  // 글꼴이 늦게 들어오면 글자 폭이 바뀌니 한 번 더 잰다
+  document.fonts?.ready?.then(() => { if (!signal?.aborted) { fontsIn = 1; apply(); } });
   // 44단계: 고장이 늘어 이름이 겹치면 덜 중요한 이름을 감춘다 (지금 있는 곳·수도 > 도시 > 작은 곳, 같으면 먼저 놓인 것).
   // 겹침은 확대 정도에만 달렸으니(옮겨도 같다) 확대가 바뀔 때만 다시 잰다.
   const order = labels.map((x, i) => [x[0], x[1], i]).sort((a, b) => a[1] - b[1] || a[2] - b[2]);
   const declutter = () => {
     dcRaf = 0; if (signal?.aborted) return;
     const kept = [];
+    const over = (b, k, px = 4) => b.left < k.right + px && b.right > k.left - px && b.top < k.bottom + 1 && b.bottom > k.top - 1;
+    // 다른 고장의 기호(가운데 60%)와 큰 땅 이름도 비켜 간다
+    const icons = [];
+    for (const [t] of labels) {
+      const h = t.parentNode.querySelector(".hit"); const r = h?.getBoundingClientRect();
+      if (!r || !r.width) continue;
+      const cx = (r.left + r.right) / 2, cy = (r.top + r.bottom) / 2, w = r.width * 0.22;
+      icons.push([t, { left: cx - w, right: cx + w, top: cy - w, bottom: cy + w }]);
+    }
+    const regionsR = [...svg.querySelectorAll(".rlbl")].map((g) => g.getBoundingClientRect()).filter((r) => r.width);
     for (const [t, imp] of order) {
       if (t.style.display === "none") continue;
       t.style.visibility = "";
       const b = t.getBoundingClientRect();
       if (!b.width) continue;
-      const hit = imp > 0 && kept.some((k) => b.left < k.right + 2 && b.right > k.left - 2 && b.top < k.bottom + 1 && b.bottom > k.top - 1);
+      const hit = imp > 0 && (kept.some((k) => over(b, k)) || (imp >= 2 && (icons.some(([o, k]) => o !== t && over(b, k, 0)) || regionsR.some((k) => over(b, k, 0)))));
       if (hit) t.style.visibility = "hidden"; else kept.push(b);
     }
   };
@@ -862,7 +874,8 @@ function build(svg, info, here, opt, signal) {
     svg.style.setProperty("--ls", Math.max(0.5, Math.min(far ? 1.4 : 1.15 + 0.6 * z, 0.95 / ppu)).toFixed(3));
     svg.style.setProperty("--rs", Math.max(0.6, Math.min(1.1 + 0.3 * z, 1 / ppu)).toFixed(3));
     svg.style.setProperty("--rb", Math.max(0.6, Math.min(1.12, 1 / ppu)).toFixed(3));
-    if (vb.w !== lastW) { lastW = vb.w; if (!dcRaf) dcRaf = requestAnimationFrame(declutter); }
+    const key = `${vb.w.toFixed(1)}|${Math.round(r.width)}|${fontsIn}`;
+    if (key !== lastW) { lastW = key; if (!dcRaf) dcRaf = requestAnimationFrame(declutter); }
   };
   const toWorld = (cx, cy) => { const r = svg.getBoundingClientRect(); return [vb.x + (cx - r.left) / r.width * vb.w, vb.y + (cy - r.top) / r.height * vb.h]; };
   const zoomAt = (f, wx, wy) => { const nw = Math.max(240, Math.min(WW, vb.w / f)); const k = nw / vb.w; vb.x = wx - (wx - vb.x) * k; vb.y = wy - (wy - vb.y) * k; vb.w = nw; apply(); };

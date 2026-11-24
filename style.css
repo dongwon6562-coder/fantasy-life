@@ -2234,3 +2234,17 @@ html.swiping .main { will-change: transform; }
 .dv-body { padding: 0 10px 8px; }
 .dv-lore { margin: 4px 0 6px; padding-left: 18px; font-size: 13px; line-height: 1.5; color: var(--ink); }
 .dv-lore li { margin: 2px 0; }
+
+/* ---------- 44단계 나라마다의 고장 ---------- */
+.ld-map h2 small { font-weight: 400; color: var(--muted); font-size: var(--fs-xs, 12px); margin-left: 4px; }
+.ld-here { margin-bottom: 8px; }
+.ld-realm { border: 1px solid rgba(201, 162, 90, .16); border-radius: 10px; margin: 0 0 6px; background: rgba(20, 16, 12, .4); }
+.ld-realm > summary { display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 9px 12px; min-height: 40px; cursor: pointer; list-style: none; }
+.ld-realm > summary::-webkit-details-marker { display: none; }
+.ld-realm > summary b { font-size: 12px; color: var(--muted); font-weight: 400; }
+.ld-list { list-style: none; margin: 0; padding: 4px 8px 8px; display: grid; grid-template-columns: repeat(auto-fill, minmax(min(140px, 100%), 1fr)); gap: 6px; }
+.ld-list li { display: flex; flex-direction: column; gap: 1px; padding: 7px 10px; border-radius: 8px; border: 1px solid rgba(169, 154, 128, .2); background: rgba(12, 10, 8, .3); min-width: 0; }
+.ld-list li span, .ld-list li em { font-size: 11px; color: var(--muted); font-style: normal; word-break: keep-all; }
+.ld-list li.seen { border-color: rgba(201, 162, 90, .4); }
+.ld-list li.seen em { color: var(--brass, #c9a25a); }
+.ld-list li.shut { opacity: .6; }
