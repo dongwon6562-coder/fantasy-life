@@ -12,7 +12,8 @@
 import { EVENTS, josa } from '../events/core.js';
 import { me, circleOf } from '../game.js';
 import { playerVitality } from '../adventure/combat.js';
-import { schoolOf, rankOf, SCHOOLS } from './schools.js';
+import { schoolOf, rankOf, SCHOOLS, formMul, formFor, bladeSpell } from './schools.js';
+import { J } from '../narrative/text.js';
 import { ENDS, registerDuelEnd, queueDuel } from './registry.js';
 export { registerDuelEnd, queueDuel };
 
@@ -72,7 +73,7 @@ export function duelSkill(g, magicDuel = false) {
   const s = g.player.stats, k = g.player.skills;
   if (magicDuel) return (k.magic * 0.7 + s.int * 0.2 + s.sen * 0.1 + s.wil * 0.1) * Math.max(0.5, 1 - g.player.injuries.length * 0.1);
   let v = k.sword * 0.75 + s.str * 0.12 + s.agi * 0.18 + s.sen * 0.08;
-  v += (g.life?.gear?.weapon ?? 0) * 0.4;
+  v += SCHOOLS[schoolOf(g)]?.bare ? 3 : (g.life?.gear?.weapon ?? 0) * 0.4; // 맨손 유파는 무기에 기대지 않는다
   v *= Math.max(0.5, 1 - g.player.injuries.length * 0.1);
   if (g.player.fatigue > 70) v *= 0.85;
   return v;
@@ -91,7 +92,7 @@ export function startDuel(g, rng, opts) {
   g.duel = {
     kind: opts.kind ?? 'spar', title: opts.title ?? '결투', lethal: !!opts.lethal, ctx: opts.ctx ?? {}, magicDuel: opts.mode === 'magic',
     foe, hp, hp0: hp, fhp, fhp0: fhp, round: 0, mom: 0, fmom: 0, history: [],
-    sharp: 0, read: 0, mana: Math.min(5, circleOf(g)), fmana: foe.circle ?? 0, log: [],
+    sharp: 0, read: 0, mana: Math.min(5, circleOf(g)) + (circleOf(g) > 0 ? (g.sword?.blade ?? 0) : 0), secretUsed: false, fmana: foe.circle ?? 0, log: [],
     next: null, tell: null,
   };
   planFoe(g, rng);
@@ -112,7 +113,7 @@ function planFoe(g, rng) {
     const count = {};
     for (const m of recent) count[m] = (count[m] ?? 0) + 1;
     const [fav, n] = Object.entries(count).sort((a, b) => b[1] - a[1])[0];
-    const adapt = clamp(0.3 + d.foe.skill / 150, 0.3, 0.8) * (n >= 3 ? 1.2 : n >= 2 ? 1 : 0.5) * (schoolOf(g) === 'hwanyeong' ? 0.6 : 1);
+    const adapt = clamp(0.3 + d.foe.skill / 150, 0.3, 0.8) * (n >= 3 ? 1.2 : n >= 2 ? 1 : 0.5) * (SCHOOLS[schoolOf(g)]?.adapt ?? 1);
     if (fav !== 'wait' && rng.chance(adapt)) {
       const counters = Object.keys(BEATS).filter((m) => BEATS[m].includes(fav) && (w[m] ?? 0) > 0);
       if (counters.length) { d.next = pick(rng, counters); return tellFor(g, rng); }
@@ -151,14 +152,20 @@ export function availableMoves(g) {
   const d = g.duel;
   const out = ['heavy', 'quick', 'guard', 'feint', 'wait'];
   if (d.mana > 0 && !d.magicDuel) out.push('magic');
-  if (rankOf(g) >= 3 && g.player.manaAwakened && g.player.mana >= 40) out.push('aura');
+  // 검기: 검성 이상에 마력이 있거나, 검기를 몸에 붙인 사람은 의지만으로도 (드물다)
+  if (rankOf(g) >= 3 && ((g.player.manaAwakened && g.player.mana >= 40) || ((g.sword?.aura ?? 0) >= 2 && g.player.stats.wil >= 80))) out.push('aura');
   out.push('yield');
   return out;
 }
 function moveLabel(g, m) {
   if (g.duel?.magicDuel && MAGIC_LABELS[m]) return MAGIC_LABELS[m];
   const sc = SCHOOLS[schoolOf(g)];
-  if (m === 'magic') return `주문을 쏜다 (${d2spell(g)})`;
+  if (m === 'magic') {
+    const bs = (g.sword?.blade ?? 0) >= 1 ? bladeSpell(g) : null;
+    return bs ? `칼에 ${J(bs.name, '을/를')} 싣는다 (마검)` : `주문을 쏜다 (${d2spell(g)})`;
+  }
+  const f = formFor(g, m);
+  if (f) return `${f.name} (${MOVES[m].name})`;
   return sc?.labels?.[m] ?? MOVES[m].label;
 }
 const d2spell = (g) => { const c = circleOf(g); return c >= 4 ? '번개' : c >= 3 ? '화염 고리' : c >= 2 ? '얼음 화살' : '불씨 화살'; };
@@ -198,10 +205,9 @@ function exchange(g, rng, mine) {
   const ratio = clamp(Math.pow((my + 10) / (fs + 10), 0.8), 0.35, 2.6);
   const dealt = (m, mult = 1) => {
     let base = MOVES[m].dmg;
-    if (m === 'magic') base = 12 + circleOf(g) * 9;
-    if (sc === 'ganggeom' && m === 'heavy') base *= 1.3;
-    if (sc === 'yusu' && m === 'guard') base *= 1.35;
-    if (sc === 'hwanyeong' && m === 'feint') base *= 1.3;
+    if (m === 'magic') base = 12 + circleOf(g) * 9 + (d.magicDuel ? 0 : (g.sword?.blade ?? 0) * 6);
+    if (m === 'aura') base += Math.max(0, (g.sword?.aura ?? 0) - 1) * 6;
+    if (sc) base *= (SCHOOLS[sc]?.sig?.[m] ?? 1) * formMul(g, m);
     return base * ratio * (1 + 0.1 * d.mom) * (1 + d.sharp) * mult * rng.float(0.8, 1.2);
   };
   const taken = (m, mult = 1) => {
@@ -216,8 +222,12 @@ function exchange(g, rng, mine) {
   let line;
   const F = d.foe.name;
 
+  // 마검: 칼에 실은 주문은 찌르기에 끊기지 않는다 (서로 맞는다)
+  const bladeHold = !d.magicDuel && mine === 'magic' && theirs === 'quick' && (g.sword?.blade ?? 0) >= 1;
   if (mine === 'wait') {
-    d.read = 1; d.sharp = 0.2;
+    d.read = 1; d.sharp = 0.2 + (sc ? formMul(g, 'wait') - 1 : 0);
+    const heal = sc ? SCHOOLS[sc]?.waitHeal ?? 0 : 0;
+    if (heal) d.hp = Math.min(d.hp0, d.hp + heal);
     if (theirs === 'feint' || theirs === 'guard' || theirs === 'wait') line = `거리를 두고 숨을 골랐다. ${josa(F, '도', '도')} 섣불리 들어오지 않았다. 상대의 버릇이 조금 보인다.`;
     else { const t = taken(theirs, 0.5); d.hp -= t; line = `물러서며 간을 보았다. ${F}의 ${MOVES[theirs].name}이 몸을 스쳤지만 깊지 않았다. 대신 상대의 호흡을 읽었다.`; }
     d.fmom = Math.min(3, d.fmom + (theirs === 'heavy' || theirs === 'quick' ? 1 : 0)); d.mom = Math.max(-3, d.mom - (theirs === 'heavy' ? 1 : 0));
@@ -225,14 +235,18 @@ function exchange(g, rng, mine) {
     const t = dealt(mine, 0.7); d.fhp -= t; d.mom = Math.min(3, d.mom + 1);
     line = `${josa(F, '이', '가')} 간을 보는 사이 먼저 파고들었다. ${hitLine(rng, mine)}`;
   } else if (beats(mine, theirs)) {
-    const t = dealt(mine); d.fhp -= t; d.mom = Math.min(3, d.mom + 1); d.fmom = Math.max(-3, d.fmom - 1);
+    // 비전: 기세를 탄 채 그 유파의 수로 이기면, 한 결투에 한 번
+    const sec = sc && g.sword?.secret ? SCHOOLS[sc]?.secret : null;
+    const fire = sec && sec.move === mine && d.mom >= 2 && !d.secretUsed;
+    const t = dealt(mine, fire ? 1.7 : 1); d.fhp -= t; d.mom = Math.min(3, d.mom + 1); d.fmom = Math.max(-3, d.fmom - 1);
     line = winLine(rng, mine, theirs, F);
-  } else if (beats(theirs, mine)) {
+    if (fire) { d.secretUsed = true; line = `비전, ${sec.name}. ${sec.desc} ${line}`; }
+  } else if (beats(theirs, mine) && !bladeHold) {
     const t = taken(theirs); d.hp -= t; d.fmom = Math.min(3, d.fmom + 1); d.mom = Math.max(-3, d.mom - 1);
     line = loseLine(rng, mine, theirs, F);
   } else if (mine === theirs) {
     // 같은 수: 실력과 유파로 가린다
-    let edge = (my - fs) / 40 + (sc === 'yusu' && mine === 'guard' ? 0.3 : 0);
+    let edge = (my - fs) / 40 + ((SCHOOLS[sc]?.sig?.[mine] ?? 1) > 1 ? 0.3 : 0);
     if (rng.chance(clamp(0.5 + edge, 0.1, 0.9))) { d.fhp -= dealt(mine, 0.4); d.mom = Math.min(3, d.mom + 1); line = `같은 수가 부딪혔다. 쇳소리 끝에 내 칼이 반 뼘 더 깊었다.`; }
     else { d.hp -= taken(theirs, 0.4); d.fmom = Math.min(3, d.fmom + 1); line = `같은 수가 부딪혔다. ${F}의 칼이 반 박자 빨랐다.`; }
   } else {
@@ -332,8 +346,8 @@ function endDuel(g, rng, result) {
     ? `검을 내렸다. ${josa(d.foe.name, '이', '가')} 고개를 끄덕였다.`
     : won ? `${d.log[d.log.length - 1]} ${josa(d.foe.name, '이', '가')} 무릎을 꿇었다.` : `${d.log[d.log.length - 1]} 더는 검을 들 수 없었다.`;
   const text = [head, extra].filter(Boolean).join(' ');
-  g.chronicle.push({ y: g.date.year, m: g.date.month, text: `${d.title}: ${d.foe.name}와(과) 겨뤄 ${won ? '이겼다' : '졌다'}.`, rel: 100 });
-  me(g).history.push({ y: g.date.year, m: g.date.month, text: `${d.title}. ${d.foe.name}와(과) 겨뤄 ${won ? '이겼다' : '졌다'}.` });
+  g.chronicle.push({ y: g.date.year, m: g.date.month, text: `${d.title}: ${J(d.foe.name, '과/와')} 겨뤄 ${won ? '이겼다' : '졌다'}.`, rel: 100 });
+  me(g).history.push({ y: g.date.year, m: g.date.month, text: `${d.title}. ${J(d.foe.name, '과/와')} 겨뤄 ${won ? '이겼다' : '졌다'}.` });
   return text;
 }
 
@@ -359,7 +373,7 @@ EVENTS.push({
 EVENTS.push({
   id: 'duel_start', once: true, noFlag: true, quiet: true,
   cond: (g) => !!g.duelQueued, weight: 99,
-  title: '결투', text: (g) => g.duelQueued.intro ?? `${g.duelQueued.foe.name}와(과) 마주 섰다.`,
+  title: '결투', text: (g) => g.duelQueued.intro ?? `${J(g.duelQueued.foe.name, '과/와')} 마주 섰다.`,
   choices: [
     { label: '검을 든다', run: (g, rng) => { const o = g.duelQueued; g.duelQueued = null; startDuel(g, rng, { ...o, intro: null }); return `${josa(o.foe.name, '이', '가')} 자세를 잡았다.`; } },
     { label: '물러난다', run: (g) => { const o = g.duelQueued; g.duelQueued = null; const fn = ENDS[o.kind + ':decline']; return fn ? fn(g, o) : '검을 뽑지 않고 돌아섰다.'; } },
