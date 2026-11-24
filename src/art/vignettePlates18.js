@@ -17,7 +17,7 @@ const waif = (i, o = {}) => ({ cloth: ['#6a6254', '#5e5a50', '#70685a'][i % 3], 
 const monk = (i, o = {}) => ({ cloth: ['#4a4034', '#443a30', '#50463a'][i % 3], hair: HR[(i + 2) % 6], robe: true, ...o });
 
 /** 집 앞면: 들보 벽과 문. 문이 열려 있으면 안의 빛이 샌다. 문 가운데 x, 바닥 y를 돌려준다 */
-function facade(v, x, w, top, base, o = {}) {
+export function facade(v, x, w, top, base, o = {}) {
   const { ctx, t } = v; const wall = t(o.wall ?? '#6a5c48'), beam = t('#2e241a'), dx = o.door ?? x + w * 0.4, dw = o.dw ?? 46, dh = o.dh ?? 96;
   rect(ctx, x, top, w, base - top, wall); rect(ctx, x, base - 14, w, 14, t('#57524a'));
   for (let i = 0; i <= 4; i++) rect(ctx, x + (w - 6) * (i / 4), top, 6, base - top - 14, beam); rect(ctx, x, top, w, 7, beam); rect(ctx, x, top + (base - top) * 0.45, w, 5, beam);
@@ -38,7 +38,7 @@ function basket(v, x, y, s = 1) {
   ctx.strokeStyle = t('#5a4226'); ctx.lineWidth = 1.6 * s; ctx.beginPath(); ctx.moveTo(x - 16 * s, y - 12 * s); ctx.quadraticCurveTo(x, y - 40 * s, x + 16 * s, y - 12 * s); ctx.stroke();
 }
 /** 긴 탁자: 윗판과 다리 */
-function table(ctx, x0, x1, y, c = '#4a3626', th = 7, leg = 30) { rect(ctx, x0 + 8, y, 6, leg, dark(c, 0.3)); rect(ctx, x1 - 14, y, 6, leg, dark(c, 0.3)); rect(ctx, x0, y - th, x1 - x0, th, c); rect(ctx, x0, y - th, x1 - x0, 2, dark(c, -0.2)); }
+export function table(ctx, x0, x1, y, c = '#4a3626', th = 7, leg = 30) { rect(ctx, x0 + 8, y, 6, leg, dark(c, 0.3)); rect(ctx, x1 - 14, y, 6, leg, dark(c, 0.3)); rect(ctx, x0, y - th, x1 - x0, th, c); rect(ctx, x0, y - th, x1 - x0, 2, dark(c, -0.2)); }
 /** 동전 무더기 */
 function coins(ctx, x, y, n, c = '#d8b04a') { for (let i = 0; i < n; i++) { rect(ctx, x + i * 7, y - 2 - (hash(i, x) * 4 | 0) * 2 - 4, 6, 4 + (hash(i, x) * 4 | 0) * 2, dark(c, 0.15)); rect(ctx, x + i * 7, y - 6 - (hash(i, x) * 4 | 0) * 2, 6, 1.4, c); } }
 /** 책등이 꽂힌 선반 */
