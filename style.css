@@ -2204,3 +2204,14 @@ html.swiping .main { will-change: transform; }
 .dg-lore li { padding-left: 10px; border-left: 2px solid rgba(150, 110, 130, .35); }
 .dg-lore p { margin: 0; font-family: var(--serif, serif); line-height: 1.55; word-break: keep-all; }
 .dg-lore .note { display: block; font-size: 12px; margin-top: 2px; text-align: right; }
+
+/* ---------- 43단계 마대륙 ---------- */
+.dk-places { list-style: none; margin: 4px 0 10px; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(min(140px, 100%), 1fr)); gap: 6px; }
+.dk-places li { display: flex; flex-direction: column; gap: 1px; padding: 7px 10px; border-radius: 8px; border: 1px solid rgba(150, 110, 130, .25); background: rgba(24, 14, 20, .4); min-width: 0; }
+.dk-places li span { font-size: 11px; color: var(--muted); word-break: keep-all; }
+.dk-places li em { font-style: normal; font-size: 11px; color: var(--muted); }
+.dk-places li.here { border-color: var(--brass, #c9a25a); background: rgba(201, 162, 90, .1); }
+.dk-places li.here em { color: var(--brass, #c9a25a); }
+.dk-places li.shut { opacity: .55; }
+.dk-block h3 small { font-weight: 400; color: var(--muted); font-size: var(--fs-xs, 12px); margin-left: 4px; }
+.dk-block b.down { color: #e08e7a; } .dk-block b.up { color: #9fc48a; }

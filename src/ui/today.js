@@ -14,6 +14,7 @@ import { mountLine } from '../mount/index.js';
 import { harborLine } from '../harbor/index.js';
 import { originLines } from '../origins/index.js';
 import { kindredLines } from '../kindred/index.js';
+import { demonkindLines } from '../demonkind/index.js';
 import { demonsLine } from '../demons/index.js';
 import { clothLine } from '../cloth/index.js';
 import { techLine } from '../techtree/index.js';
@@ -55,7 +56,7 @@ export const TODAY_SOURCES = {
   did: [sensesLine], // 지난달을 몸으로 느낀 한두 문장 (src/senses): '지난달 한 일' 머리에
   met: [
     (g) => encounterLines(g).map((x) => ({ text: x.text, cls: x.kind ? `ek-${String(x.kind).replace(/[^\w-]/g, '')}` : '' })), // 먼저 다가온 사람들 (src/encounter)
-    originLines, kindredLines, friendsLines, stepLines, adoptLines, bbLines, prisonLines, societyLines, siblingLines, orderLine, // 태어난 집안 사람들 (src/origins), 평생의 벗 (src/friends), 의붓가족 (src/stepfamily), 거둔 아이 (src/adopt), 사교계 (src/society), 형제자매 (src/siblings), 기사단 형제들 (src/order)
+    originLines, kindredLines, demonkindLines, friendsLines, stepLines, adoptLines, bbLines, prisonLines, societyLines, siblingLines, orderLine, // 태어난 집안 사람들 (src/origins), 평생의 벗 (src/friends), 의붓가족 (src/stepfamily), 거둔 아이 (src/adopt), 사교계 (src/society), 형제자매 (src/siblings), 기사단 형제들 (src/order)
   ],
   heard: [
     (g) => rumorLines(g).map((h) => ({ text: h.text, cls: h.fix ? 'rumor fix' : 'rumor' })), // 소문 (src/rumor)
