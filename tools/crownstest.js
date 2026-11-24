@@ -188,6 +188,7 @@ for (const id of CROWN_IDS) {
     m.realm = 'free'; m.office = 2; m.favor = 40;
     const [a, b] = [...R.cands].sort((x, y) => y.sup - x.sup);
     m.backed.free = (win ? a : b).id;
+    R.cands.push({ ...a, sex: a.sex === 'm' ? 'f' : 'm' }); // politics가 굴린 성별이 어느 쪽이든 a가 고르게
     succeed(g, rngOf(g), () => {}, () => {}, 'free', '세상을 떠났다');
     ok(rulerLine(g, 'free').includes(a.name), `후보가 의장이 됨 ${rulerLine(g, 'free')} / ${a.name}`);
     quiet(g, [{ id: 'rest' }], (kind) => (kind === 'cr_fall' ? 1 : null));

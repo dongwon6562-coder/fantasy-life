@@ -254,7 +254,7 @@ EVENTS.push(
     choices: [
       { label: '별로 배 길을 잡아 준다', run: (g, rng) => {
         const me = M(g);
-        if (rng.chance(0.45 + me.lore / 120)) { L(g).travel.left -= 1; me.navs += 1; gainSkill(g, 'sailing', 0.5); renown(g, 2); return '북쪽 별의 높이를 손가락 마디로 재고, 돛대 그림자를 셈했다. 키를 왼쪽으로 두 마디. 이틀 뒤 수평선에 낯익은 곶이 보였다. 선장이 처음으로 내게 술을 따랐다.'; }
+        if (rng.chance(0.45 + me.lore / 120)) { if (L(g).travel) L(g).travel.left = Math.max(1, L(g).travel.left - 1); me.navs += 1; gainSkill(g, 'sailing', 0.5); renown(g, 2); return '북쪽 별의 높이를 손가락 마디로 재고, 돛대 그림자를 셈했다. 키를 왼쪽으로 두 마디. 이틀 뒤 수평선에 낯익은 곶이 보였다. 선장이 처음으로 내게 술을 따랐다.'; }
         stress(g, 3); return '별 자리를 잘못 짚었다. 하루를 엉뚱한 쪽으로 갔다가 다시 구름이 걷히고서야 바로잡았다. 선원들이 나를 흘겨보았다.';
       } },
       { label: '선장에게 맡긴다', run: () => '선실로 내려와 누웠다. 배는 밤새 이리저리 흔들렸다.' },

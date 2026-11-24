@@ -95,20 +95,23 @@ const candAge = (g, x) => g.date.year - x.born;
 const top = (R) => [...R.cands].sort((a, b) => b.sup - a.sup)[0] ?? null;
 
 /* ---------- politics가 새 통치자를 고를 때 ---------- */
-SUCCESSION.pick = (g, rng, id, kind, old) => {
+// sex: politics가 이미 굴린 성별 (주사위를 바꾸지 않으려고 그 성별의 후보 가운데서 고른다)
+SUCCESSION.pick = (g, rng, id, kind, old, sex) => {
   if (!CROWNS[id] || !g?.crowns) return null;
   const R = RZ(g, id);
-  if (!R?.cands.length) return null;
-  let w = R.coupBy ? R.cands.find((x) => x.id === R.coupBy) : null;
-  if (!w && HEIR_ROLE(id) && old?.heir) w = R.cands.find((x) => x.role === HEIR_ROLE(id));
+  const pool = (R?.cands ?? []).filter((x) => !sex || x.sex === sex);
+  if (!pool.length) return null;
+  const best = (xs) => [...xs].sort((a, b) => b.sup - a.sup)[0] ?? null;
+  let w = R.coupBy ? pool.find((x) => x.id === R.coupBy) : null;
+  if (!w && HEIR_ROLE(id) && old?.heir) w = pool.find((x) => x.role === HEIR_ROLE(id));
   // 대가 끊긴 왕가(heir 없음)는 옛 가문 사람이 잇지 못한다
-  if (!w && kind === 'dynasty' && !old?.heir) w = [...R.cands].filter((x) => x.role !== HEIR_ROLE(id) && (!x.house || x.house !== old?.house)).sort((a, b) => b.sup - a.sup)[0] ?? null;
-  w ??= top(R);
+  if (!w && kind === 'dynasty' && !old?.heir) w = best(pool.filter((x) => x.role !== HEIR_ROLE(id) && (!x.house || x.house !== old?.house)));
+  w ??= best(pool);
   if (!w) return null;
   R.pending = w.id;
   // 후계자 자리는 옛 가문이 그대로 잇는다(politics가 house를 둔다). 새 가문 이름은 다른 후보에게서만
   const last = w.role === HEIR_ROLE(id) || w.house === old?.house ? '' : w.house ?? '';
-  return { name: w.name, last, sex: w.sex };
+  return { name: w.name, last };
 };
 
 // 통치자가 바뀐 뒤: 이긴 후보를 궁정에서 빼고, 진 쪽을 적고, 플레이어가 편든 쪽을 따진다
@@ -121,7 +124,7 @@ function crowned(g, rng, id, say) {
   S(g).tally.crowned += 1;
   if (w && r) {
     S(g).tally.picked += 1;
-    r.born = w.born; r.sex = w.sex;
+    // 나이(born)와 성별은 politics 것을 둔다: 통치자 수명이 세상 흐름을 정한다
     R.lean = clamp(R.lean + (w.side === 0 ? 12 : -12), 5, 95);
     const text = CROWNED[id]({ won: w.name, lost: lostC?.name ?? null, title: r.name }).trim();
     cnews(g, id, text);
@@ -135,7 +138,7 @@ function crowned(g, rng, id, say) {
     else if (R.cands.some((x) => x.id === backed)) m.pending.push({ kind: 'fall', realm: id, who: w?.name ?? rulerLine(g, id) });
     delete m.backed[id];
   }
-  R.cands = R.cands.filter((x) => x !== w);
+  R.cands = R.cands.filter((x) => x.id !== w?.id);
   for (const x of R.cands) x.sup = clamp(Math.round(x.sup * 0.6), 5, 95); // 새 통치자 아래 다들 숨을 고른다
   R.pending = null; R.coupBy = null; R.lastRuler = rulerLine(g, id);
   refill(g, rng, id);
@@ -193,7 +196,8 @@ function worldTick(g, _rng, say, record) {
       R.coupAt = mi(g); R.coupBy = t.id; s.tally.coups += 1;
       const old = line;
       succeed(g, rng, say, record, id, COUP_WHY[id]);
-      const text = COUP[id]({ who: t.name, ruler: old });
+      const won = RZ(g, id).cands.find((x) => x.id === RZ(g, id).pending)?.name ?? rulerOf(g, id)?.name ?? t.name;
+      const text = COUP[id]({ who: won, ruler: old });
       cnews(g, id, text);
       pnews(g, text);
       if (RZ(g, id).lastRuler !== rulerLine(g, id)) crowned(g, rng, id, say);

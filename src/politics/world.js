@@ -42,7 +42,7 @@ function deathChance(g, id) {
   if (id === 'dwarf') age = age / 3.5;
   return 0.0004 * Math.exp(Math.max(0, age - 45) / 12);
 }
-// 44단계 crowns가 채운다: pick(g, rng, id, kind, old) → { name, last, sex } | null
+// 44단계 crowns가 채운다: pick(g, rng, id, kind, old, sex) → { name, last } | null
 export const SUCCESSION = { pick: null };
 export function succeed(g, rng, say, record, id, why) {
   const P = PS(g);
@@ -51,10 +51,9 @@ export function succeed(g, rng, say, record, id, why) {
   const oldLine = rulerLine(g, id);
   let text;
   P.stab[id] = clamp((P.stab[id] ?? 60) - 6, 0, 100);
-  let sex = rng.chance(id === 'elf' ? 0.7 : 0.15) ? 'f' : 'm';
+  const sex = rng.chance(id === 'elf' ? 0.7 : 0.15) ? 'f' : 'm';
   // 44단계 crowns: 그 나라 궁정에 후계 후보가 있으면 그중에서 고른다
-  const pre = SUCCESSION.pick?.(g, rng, id, kind, old) ?? null;
-  if (pre?.sex) sex = pre.sex;
+  const pre = SUCCESSION.pick?.(g, rng, id, kind, old, sex) ?? null; // 주사위를 바꾸지 않도록 성별은 이미 굴린 것을 따른다
   const pickN = () => { const n = nameFor(rng, id, sex); return pre ?? n; }; // 주사위는 같게 굴린다
   if (kind === 'dynasty') {
     const spouse = P.pacts.find((p) => p.kind === 'marriage' && (p.a === id || p.b === id));
