@@ -31,7 +31,7 @@ function demon(v, x, y, h, o = {}) {
   if (f) oval(ctx, x + f * 3.2 * s, hy - 0.6 * s, 1 * s, 0.8 * s, o.eye ?? '#e8d49a');
 }
 /** 마족의 깃발: 검은 천에 길이가 다른 창백한 세로 줄 셋 */
-function demonBanner(v, x, y, h, o = {}) {
+export function demonBanner(v, x, y, h, o = {}) {
   const { ctx, t } = v, w = h * 0.2;
   stroke(ctx, [x, y, x, y - h], Math.max(1.2, h * 0.018), t('#1a1418')); stroke(ctx, [x - w * 0.7, y - h + 2, x + w * 0.7, y - h + 2], 1.6, t('#1a1418'));
   poly(ctx, [x - w * 0.6, y - h + 2, x + w * 0.6, y - h + 2, x + w * 0.6, y - h * 0.5, x + w * 0.2, y - h * 0.42, x, y - h * 0.5, x - w * 0.2, y - h * 0.4, x - w * 0.6, y - h * 0.48], o.raw ? '#1c161e' : t('#1c161e'));
@@ -258,9 +258,9 @@ function originPort(v) {
 
 /* ---------- 마족 ---------- */
 /** 마족 땅의 하늘빛을 덧씌운다 */
-const pall = (v, a = 0.3) => { const { ctx } = v, g = ctx.createLinearGradient(0, 0, 0, VH); g.addColorStop(0, rgba('#1a0e24', a)); g.addColorStop(0.5, rgba('#5a1e38', a * 0.9)); g.addColorStop(1, rgba('#1a1018', a * 0.6)); ctx.fillStyle = g; ctx.fillRect(0, 0, VW, VH); };
+export const pall = (v, a = 0.3) => { const { ctx } = v, g = ctx.createLinearGradient(0, 0, 0, VH); g.addColorStop(0, rgba('#1a0e24', a)); g.addColorStop(0.5, rgba('#5a1e38', a * 0.9)); g.addColorStop(1, rgba('#1a1018', a * 0.6)); ctx.fillStyle = g; ctx.fillRect(0, 0, VW, VH); };
 /** 멀리 솟은 검은 바위 첨탑들 */
-function spires(v, y, n, c, o = {}) {
+export function spires(v, y, n, c, o = {}) {
   const { ctx } = v; for (let i = 0; i < n; i++) { const x = (o.x0 ?? 0) + ((i + hash(i, 4) * 0.8) / n) * (o.w ?? VW), h = (o.h ?? 50) * (0.4 + hash(i, 5)), w = 5 + hash(i, 6) * 10; poly(ctx, [x - w, y, x - w * 0.4, y - h * 0.6, x - 1, y - h, x + w * 0.3, y - h * 0.7, x + w, y], c); }
 }
 /** 경계의 요새: 성벽 위의 파수꾼과 쇠뇌, 골짜기 너머 검은 땅과 보랏빛 불들 */

@@ -3,6 +3,7 @@
 // 42단계: 다른 종족 집안(src/kindred kindredInfo)도 같은 덩이로, 반마족은 뿔이 드러날 위험 막대
 import { originInfo } from '../origins/index.js';
 import { kindredInfo } from '../kindred/index.js';
+import { demonkindInfo } from '../demonkind/index.js';
 import { TREAT_WORD } from '../races/index.js';
 import { vignetteImage } from '../art/vignette.js';
 import { esc } from './util.js';
@@ -10,9 +11,9 @@ import { esc } from './util.js';
 const safe = (fn, d = null) => { try { return fn() ?? d; } catch (e) { console.error(e); return d; } };
 // 집안마다 어린 시절 그림 (vignettePlates12 origin·demon)
 const ART = { count_bastard: ['origin', 'manor'], tower_blood: ['origin', 'tower'], sexton: ['origin', 'church'], capital_artisan: ['origin', 'workshop'], slum_orphan: ['origin', 'slum'], port_folk: ['origin', 'port'], march_guard: ['demon', 'fort'], merchant_bastard: ['baseborn', 'door'] };
-const KD_ART = { elf_elder: ['kindred', 'grove'], elf_minstrel: ['kindred', 'minstrel'], elf_freed: ['kindred', 'freed'], dwarf_heir: ['kindred', 'hall'], dwarf_trader: ['kindred', 'trader'], dwarf_outcast: ['kindred', 'exile'], beast_wolf: ['kindred', 'wolf'], beast_tiger: ['kindred', 'tiger'], beast_hawk: ['kindred', 'hawk'], half_elf_border: ['kindred', 'border'], half_elf_noble: ['origin', 'manor'], hd_hidden: ['kindred', 'hidden'], hd_frontier: ['demon', 'land'] };
+const KD_ART = { elf_elder: ['kindred', 'grove'], elf_minstrel: ['kindred', 'minstrel'], elf_freed: ['kindred', 'freed'], dwarf_heir: ['kindred', 'hall'], dwarf_trader: ['kindred', 'trader'], dwarf_outcast: ['kindred', 'exile'], beast_wolf: ['kindred', 'wolf'], beast_tiger: ['kindred', 'tiger'], beast_hawk: ['kindred', 'hawk'], half_elf_border: ['kindred', 'border'], half_elf_noble: ['origin', 'manor'], hd_hidden: ['kindred', 'hidden'], hd_frontier: ['demon', 'land'], dk_garbes: ['demonkind', 'warrior'], dk_elinor: ['demonkind', 'trade'], dk_silent: ['demonkind', 'silent'], dk_hidden: ['demonkind', 'hiding'] };
 const bar = (v, cls = '') => `<span class="wd-bar ${cls}"><i style="width:${Math.max(0, Math.min(100, v))}%"></i></span>`;
-const ALT = { grove: '숲 깊은 곳 장로들의 자리', minstrel: '연회장 구석의 엘프 악사', freed: '사슬을 벗은 손목', hall: '땅 밑 씨족의 큰 방', trader: '지상 장터의 드워프 좌판', exile: '씨족을 떠난 길', wolf: '늑대 부족의 밤 모닥불', tiger: '호랑이 부족의 땅', hawk: '벼랑 위 매 부족', border: '숲 경계 마을', hidden: '두건 아래 감춘 뿔', land: '마족 땅이 보이는 변경',  manor: '귀족 저택의 뒤뜰', tower: '마탑 아래 골목', church: '성당 종탑', workshop: '장인 공방', slum: '빈민가 골목', port: '항구 도시 부두', fort: '얼음 해협을 지키는 요새', door: '거상의 저택 문간에 선 아이' };
+const ALT = { grove: '숲 깊은 곳 장로들의 자리', minstrel: '연회장 구석의 엘프 악사', freed: '사슬을 벗은 손목', hall: '땅 밑 씨족의 큰 방', trader: '지상 장터의 드워프 좌판', exile: '씨족을 떠난 길', wolf: '늑대 부족의 밤 모닥불', tiger: '호랑이 부족의 땅', hawk: '벼랑 위 매 부족', border: '숲 경계 마을', hidden: '두건 아래 감춘 뿔', land: '마족 땅이 보이는 변경', warrior: '마족 전사 가문의 마당', trade: '교역 가문의 장부와 부두', silent: '침묵의 마왕령 돌집', hiding: '사람 땅에 숨어 사는 마족의 집',  manor: '귀족 저택의 뒤뜰', tower: '마탑 아래 골목', church: '성당 종탑', workshop: '장인 공방', slum: '빈민가 골목', port: '항구 도시 부두', fort: '얼음 해협을 지키는 요새', door: '거상의 저택 문간에 선 아이' };
 
 function hornRows(h) {
   if (!h) return '';
@@ -25,8 +26,10 @@ function hornRows(h) {
 
 export function renderOriginBlock(game) {
   const o = safe(() => originInfo(game));
-  const k = o ? null : safe(() => kindredInfo(game));
-  const s = o ?? k;
+  const dki = o ? null : safe(() => demonkindInfo(game));
+  const dk = dki?.family;
+  const k = o || dk ? null : safe(() => kindredInfo(game));
+  const s = o ?? (dk ? { ...dk, raceName: '마족', log: [] } : null) ?? k; // 마족 기록은 '마왕 아래' 덩이에
   if (!s) return '';
   const h = k?.horn;
   if (s.past && !h) return '';
@@ -44,6 +47,6 @@ export function renderOriginBlock(game) {
     </ul>
     ${hornRows(h)}
     ${ties.length ? `<p class="note">어릴 적 곁의 사람: ${ties.map((t) => `${esc(t.word)} ${esc(t.name)}${t.race && k && t.race !== s.raceName ? `(${esc(t.race)})` : ''}${t.alive ? '' : '(세상을 떴다)'}`).join(', ')}</p>` : ''}
-    ${s.log.length ? `<details class="pl-more"><summary>집안에서 있었던 일 ${s.log.length}가지</summary><ul class="pl-news">${s.log.slice().reverse().map((n) => `<li><time>${n.y}년${n.m ? ` ${n.m}월` : ''}</time><span>${esc(n.text)}</span></li>`).join('')}</ul></details>` : ''}
+    ${s.log?.length ? `<details class="pl-more"><summary>집안에서 있었던 일 ${s.log.length}가지</summary><ul class="pl-news">${s.log.slice().reverse().map((n) => `<li><time>${n.y}년${n.m ? ` ${n.m}월` : ''}</time><span>${esc(n.text)}</span></li>`).join('')}</ul></details>` : ''}
   </div>`;
 }

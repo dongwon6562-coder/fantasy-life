@@ -203,6 +203,7 @@ HOOKS.afterMonth.push((g, rng) => {
   const race = playerRace(g);
   if (g.over || traveling(g) || isJailed(g) || playerAge(g) < 8 || L(g).queue.length) return;
   if (mi(g) - R.slightAt < 8) return;
+  if (realmOf(L(g).place) === 'demon') return; // 마대륙의 대우는 43단계 demonkind(dk_stranger)가 따로 그린다
   const t = treatment(g, realmOf(L(g).place));
   const p = { welcome: 0, normal: race === 'human' ? 0 : 0.02, wary: 0.08, scorn: 0.16, banned: 0.2 }[t] ?? 0;
   if (!SLIGHTS[race] || !rng.chance(p)) return;

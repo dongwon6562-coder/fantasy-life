@@ -15,7 +15,7 @@ import { esc } from './util.js';
 const PATHS = [
   { id: 'magic', name: '마법과 서클', what: '마력을 다듬어 서클을 이룬다. 서클을 이룬 마법사는 드물다. 계열을 정하고, 영창을 줄이고, 솜씨가 무르익으면 세상에 없던 주문을 짓는다.', acts: ['meditate', 'magic_lesson', 'magic_selfstudy', 'spell_study', 'circle_exam', 'sp_school', 'sp_chant', 'sp_create'], lock: '마력을 깨닫는 것이 먼저다. 마력은 어릴 때 우연히, 또는 오랜 수련 끝에 깨어난다.' },
   { id: 'tower', name: '마탑', what: '마탑에 들어가 견습 마도사로 산다. 탑 일을 하며 공을 쌓고, 서클 공인을 받고, 마도구를 만든다.', acts: ['tower_join', 'tower_duty', 'tower_exam', 'tower_craft'], lock: '열네 살부터, 마력을 깨닫고 마법 솜씨를 15쯤 쌓으면 마탑이 있는 고장에서 문을 두드릴 수 있다.' },
-  { id: 'sword', name: '검술 유파', what: '유파에 들어가 검을 배우고 단을 딴다. 겨루기와 결투도 있다.', acts: ['sword_school_join', 'sword_school_train', 'sword_rank_test', 'sword_spar', 'sword_father', 'sword_guard'], lock: '여덟 살부터, 유파의 사범이 있는 고장에서 들어갈 수 있다.' },
+  { id: 'sword', name: '검술 유파', what: '유파에 들어가 검을 배우고 단을 딴다. 초식과 비전을 익히고, 검기를 다듬고, 이름난 검객에게 도전하고, 내 유파를 세운다. 서클과 검을 함께 쓰는 마검사는 드물다.', acts: ['sword_school_join', 'sword_school_train', 'sword_rank_test', 'sword_spar', 'sword_father', 'sword_guard', 'sw_form', 'sw_secret', 'sw_aura', 'sw_challenge', 'sw_found', 'sw_hall', 'sw_blade'], lock: '여덟 살부터, 유파의 사범이 있는 고장에서 들어갈 수 있다.' },
   { id: 'army', name: '왕국군', what: '모병소에서 입대해 세 해 동안 창을 든다. 공을 세우면 십인장, 백인장으로 오르고, 원정을 떠난다.', acts: ['army_enlist', 'army_resign'], lock: '열여섯 살부터 마흔두 살까지, 병영이 있는 고장의 모병소에서 입대할 수 있다.' },
   { id: 'aftermath', name: '전쟁 뒤의 삶', what: '전쟁이 끝나면 끌려간 사람이 돌아오거나 돌아오지 못한다. 불탄 고장을 다시 세우고, 전쟁 과부와 고아를 돕고, 술과 악몽을 이겨 내고, 상처를 증명해 연금을 청한다.', acts: ['aftermath_rebuild', 'aftermath_aid', 'aftermath_sober', 'aftermath_petition'], lock: '다시 세우기는 열네 살부터 불탄 고장에서, 돕기는 열다섯 살부터 과부나 고아가 있는 고장에서, 술 끊기는 술에 기댈 때, 청원은 열여섯 살부터 몸에 상처가 있을 때 왕도·하르펜·베르덴에서 한 번.' },
   { id: 'inn', name: '주점과 여관', what: '돈을 모아 내 주점이나 여관을 산다. 값을 매기고, 일꾼과 단골을 두고, 세금과 패거리의 자릿세, 경쟁 가게를 견딘다. 뒷방에 노름판을 열거나 밀수품을 숨길 수도 있다. 가게는 자식에게 물려준다.', acts: ['inn_open', 'inn_work', 'inn_manage'], lock: '집값이 있는 고장에서 가게 값만큼 돈이 있으면 연다. 가게 일과 꾸리기는 가게가 있는 고장에서.' },
@@ -81,7 +81,7 @@ const PATHS = [
   { id: 'mentor', name: '제자와 문하', what: '솜씨가 무르익으면 제자를 들여 가르치고, 내 이름을 단 도장·학파·공방을 세운다. 문파는 대를 넘어 남는다.', acts: ['mentor_take', 'mentor_teach', 'mentor_found', 'mentor_heritage'], lock: '스무 살부터, 검술·마법(2서클)·글·약초·대장일·요리·장사 중 하나가 숙련(45)에 이르면 제자를 들일 수 있다.' },
   { id: 'feud', name: '원수와 복수', what: '나를, 내 집안을 미워하는 사람에게 복수를 꾸미거나 화해를 청한다. 원한은 대를 잇기도 한다.', acts: ['feud_plot', 'feud_reconcile'], lock: '원한을 품은 사람이 생기면 열린다. 원한은 다툼, 배신, 선대의 빚에서 생긴다.' },
   { id: 'war', name: '용병과 전쟁', what: '전쟁 중인 나라에 칼을 판다.', acts: ['pol_merc'], lock: '열여섯 살부터, 전쟁 중인 나라가 용병을 구할 때.' },
-  { id: 'seal', name: '봉인 조사', what: '마신의 봉인에 얽힌 기록과 조짐을 캔다.', acts: ['seal_study'], lock: '봉인이 흔들린다는 소문이 돌고, 글이나 마법을 갖추면 서고나 마탑에서 할 수 있다.' },
+  { id: 'seal', name: '봉인과 마신', what: '마신의 봉인에 얽힌 기록과 조짐을 캔다. 봉인 전쟁의 옛이야기를 조각조각 알아 가고, 마신의 파편을 쫓고, 봉인을 지키는 파수꾼이나 마신을 섬기는 모임에 들 수도 있다.', acts: ['seal_study', 'dg_lore', 'dg_relic', 'dg_watch', 'dg_order'], lock: '봉인이 흔들린다는 소문이 돌고, 글이나 마법을 갖추면 서고나 마탑에서 할 수 있다.' },
   { id: 'dark', name: '어두운 길', what: '소매치기부터 조직의 일까지. 들키면 감옥에 간다.', acts: ['crime_pickpocket', 'crime_burglary', 'crime_fraud', 'crime_snoop', 'gang_seek', 'gang_job', 'dawn_rite', 'repute_slander', 'forbidden_rite'], lock: '여덟 살부터 소매치기를 할 수 있다. 조직은 그런 무리가 있는 고장에서.' },
 ];
 const PATH_ACTS = new Set(PATHS.flatMap((p) => p.acts));

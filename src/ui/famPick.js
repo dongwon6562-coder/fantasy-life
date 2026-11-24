@@ -4,6 +4,7 @@
 import { PLACES } from '../places.js';
 import { originOf } from '../origins/index.js';
 import { kindredOf } from '../kindred/index.js';
+import { demonkindOf } from '../demonkind/index.js';
 import { VILLAGE } from '../data.js';
 import { esc } from './util.js';
 import { shield, crestFor } from '../art/ornament.js';
@@ -33,7 +34,7 @@ export function renderFamilyPick(fams, s) {
       <span>${esc(first(f.desc))}</span>
     </button>`;
   const detail = (f) => {
-    const o = safe(() => originOf(f.id)) ?? safe(() => kindredOf(f.id));
+    const o = safe(() => originOf(f.id)) ?? safe(() => kindredOf(f.id)) ?? safe(() => demonkindOf(f.id));
     return `<div class="fam-detail" aria-live="polite">
       <div class="fd-top"><span class="fm-crest">${crestOf(f, 48)}</span><strong>${esc(f.name)}</strong><span class="tag">${esc(f.standing)} · 집안 돈 은화 ${f.money}닢 · ${esc(where(f) || VILLAGE)}에서 태어난다</span></div>
       <p>${esc(f.desc)}</p>
