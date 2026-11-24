@@ -117,6 +117,7 @@ import { renderFamTree } from './famtree.js';
 import { renderSurveyNow, renderSurveyBlock, renderSurveyMap } from './survey.js';
 import { renderStarsMap, renderStarsChron, renderStarsBlock } from './stars.js';
 import { renderPrisonNow, renderPrisonBlock } from './prison.js';
+import { renderRacePick } from './racePick.js';
 import { renderMigrate, renderMigrateNow } from './migrate.js';
 import { renderAdopt, renderAdoptBlock } from './adopt.js';
 import { renderCloisterBlock, renderCloisters } from './cloister.js';
@@ -189,7 +190,6 @@ function renderSetup() {
   let races = [];
   try { races = playableRaces(); } catch (e) { console.error(e); }
   const race = s.race ?? 'human';
-  const raceNow = races.find((r) => r.id === race);
   const fams = races.length ? familiesOf(race) : FAMILIES;
   root().innerHTML = `
     <div class="title-hero">
@@ -229,10 +229,7 @@ function renderSetup() {
         </section>
         <section>
           <h2>종족</h2>
-          <div class="seg race-seg" role="group" aria-label="종족">
-            ${races.map((r) => `<button data-race="${r.id}" aria-pressed="${race === r.id}">${esc(r.name)}</button>`).join('')}
-          </div>
-          ${raceNow ? `<p class="race-desc"><b>${esc(raceNow.name)}</b> · 수명 ${raceNow.life >= 500 ? '천 년 가까이' : `${raceNow.life}년쯤`} · ${esc(raceNow.desc)}</p>` : ''}
+          ${renderRacePick(races, race)}
         </section>
         <section>
           <h2>태어날 집안</h2>

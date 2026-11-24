@@ -2130,3 +2130,18 @@ html.swiping .main { will-change: transform; }
 .ft-og { color: var(--brass, #c9a25a); text-decoration: underline; text-decoration-color: rgba(201, 162, 90, .4); text-underline-offset: 3px; cursor: pointer; }
 /* 탭이 옆에서 밀려 들어오는 동안 화면이 가로로 늘지 않게 */
 .wrap.game { overflow-x: clip; }
+
+/* ---------- 42단계 종족 고르기: 반신 초상 카드 ---------- */
+.rc-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(82px, 100%), 1fr)); gap: 6px; }
+@media (max-width: 360px) { .rc-pic svg { width: 50px; } .rc-card { padding: 6px 2px; } }
+.rc-card { display: flex; flex-direction: column; align-items: center; gap: 2px; min-width: 0; padding: 8px 4px 8px; border-radius: var(--r-md, 10px); border: 1px solid rgba(201, 162, 90, .22); background: linear-gradient(180deg, rgba(42, 34, 25, .9), rgba(26, 21, 16, .9)); color: var(--ink, #efe3c6); text-align: center; }
+.rc-card[aria-pressed="true"] { border-color: var(--brass, #c9a25a); box-shadow: 0 0 0 1px rgba(201, 162, 90, .5), 0 0 16px rgba(201, 162, 90, .22); background: linear-gradient(180deg, rgba(64, 50, 30, .95), rgba(34, 27, 19, .95)); }
+.rc-pic { line-height: 0; border-radius: 40px 40px 8px 8px; overflow: hidden; border: 1.5px solid rgba(201, 162, 90, .45); background: #1a140e; margin-bottom: 4px; }
+.rc-card[aria-pressed="true"] .rc-pic { border-color: var(--brass, #c9a25a); }
+.rc-pic svg { display: block; width: 58px; height: auto; }
+.rc-card strong { font-size: var(--fs-md, 15px); }
+.rc-life, .rc-treat { font-size: var(--fs-xs, 11px); color: var(--muted, #a99a80); line-height: 1.25; word-break: keep-all; }
+.rc-treat.up { color: #9fc48a; } .rc-treat.warn { color: #d8b46a; } .rc-treat.down { color: #e08e7a; }
+.rc-detail { margin-top: 10px; padding: 10px 12px; border-radius: var(--r-md, 10px); background: rgba(20, 16, 12, .55); border: 1px solid rgba(201, 162, 90, .16); }
+.rc-detail p { margin: 0 0 4px; }
+.rc-detail b.up { color: #9fc48a; } .rc-detail b.down { color: #e08e7a; }
