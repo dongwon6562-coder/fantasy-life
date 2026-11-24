@@ -244,7 +244,7 @@ defineScene('pr_break', {
       c.jailed = null; reportCrime(g, 'jailbreak', place); c.heat[place] = 100;
       if (stay) stay.how = 'escaped';
       // 그 고장에 남으면 곧 붙잡힌다: 이웃 고장으로 숨어든다
-      const away = Object.keys(PLACES[place]?.links ?? {}).filter((k) => PLACES[k]);
+      const away = Object.keys(PLACES[place]?.links ?? {}).filter((k) => PLACES[k] && (!PLACES[k].hidden || PLACES[k].open?.(g))); // 아직 아무도 안 사는 숨은 고장으로는 숨지 못한다
       if (away.length && L(g).place === place) { L(g).place = rng.pick(away); L(g).travel = null; }
       if (xm) { freeNpc(g, xm, 'escaped'); S(g).broke += 1; }
       aff(m, 15);
