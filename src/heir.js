@@ -8,6 +8,7 @@ import { byId, ageYears, fullName, kill, bodyAgeOf } from './npc.js';
 import { L, defineScene, showScene, chron, note, SCENE_ID } from './adventure/core.js';
 import { PLACES } from './places.js';
 import { WORK, takeJob } from './jobs.js';
+import { DUNGEONS } from './adventure/dungeons.js';
 
 /* ---------- 늙어서 죽는다 ---------- */
 // 48살부터 조금씩, 60살이 넘으면 눈에 띄게. 피로와 깊은 상처도 수명을 깎는다.
@@ -94,7 +95,7 @@ function lifeSummary(g) {
   if (gd?.member) parts.push(`모험가 ${['F', 'E', 'D', 'C', 'B', 'A', 'S'][gd.rank]}급`);
   if (life.houses.length) parts.push(`${life.houses.map((h) => PLACES[h].name).join(', ')}에 집`);
   if (life.stats.kills >= 20) parts.push(`쓰러뜨린 적 ${life.stats.kills}`);
-  for (const [id, d] of Object.entries(life.dungeons)) if (d.cleared) parts.push(`${id === 'old_tower' ? '무너진 탑' : id === 'grey_hollow' ? '회색 굴' : id === 'old_mine' ? '버려진 은광' : '왕도 지하수로'} 정복`);
+  for (const [id, d] of Object.entries(life.dungeons)) if (d.cleared) parts.push(`${DUNGEONS[id]?.name ?? '미궁'} 정복`);
   return parts.join(', ');
 }
 
