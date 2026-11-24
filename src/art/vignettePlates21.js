@@ -42,7 +42,7 @@ function beastman(v, x, y, h, kind, o = {}) {
   }
   if (kind === 'hawk') poly(ctx, [x - 10 * s, y - (78 - drop) * s, x + 10 * s, y - (78 - drop) * s, x + 14 * s, y - (40 - drop) * s, x + 6 * s, y - (34 - drop) * s, x, y - (40 - drop) * s, x - 6 * s, y - (34 - drop) * s, x - 14 * s, y - (40 - drop) * s], tone(dark(fur, 0.2)));
   person(v, x, y, h, { skin: '#b08a64', hair: fur, ...o });
-  if (kind === 'hawk') { for (let i = 0; i < 3; i++) { const a = -1.2 - i * 0.42 * (d > 0 ? -1 : 1) + (d > 0 ? 0.5 : -0.5); stroke(ctx, [x + d * r * 0.2, hy - r * 0.8, x + d * r * 0.2 + Math.cos(a) * r * 1.9, hy - r * 0.8 + Math.sin(a) * r * 1.9], 1.5 * s, i === 1 ? tone('#d8d0bc') : c); } return; }
+  if (kind === 'hawk') { for (let i = 0; i < 3; i++) stroke(ctx, [x + d * r * 0.5, hy - r * (0.5 - i * 0.35), x + d * r * 1.5, hy - r * (0.2 - i * 0.4)], 1.4 * s, i === 1 ? tone('#d8d0bc') : c); return; }
   for (const k of [-1, 1]) {
     const ex = x + k * r * 0.62 + f * r * 0.1;
     if (kind === 'wolf') { poly(ctx, [ex - r * 0.36, hy - r * 0.62, ex + r * 0.36, hy - r * 0.62, ex + k * r * 0.2, hy - r * 1.7], c); poly(ctx, [ex - r * 0.14, hy - r * 0.74, ex + r * 0.14, hy - r * 0.74, ex + k * r * 0.14, hy - r * 1.3], dk); }
@@ -66,11 +66,27 @@ function dwarf(v, x, y, h, o = {}) {
   ctx.restore();
 }
 const pack = (v, x, y, s, c = '#5a4a36') => { const { ctx, t } = v; rect(ctx, x - 7 * s, y - 12 * s, 14 * s, 16 * s, t(c)); rect(ctx, x - 8 * s, y - 15 * s, 16 * s, 4 * s, t(dark(c, 0.2))); };
-/** 가죽 천막 */
-function hideTent(v, x, y, w, h, c = '#7a6248') {
-  const { ctx, t } = v; poly(ctx, [x, y - h, x + w / 2, y, x - w / 2, y], t(c)); poly(ctx, [x, y - h, x + w / 2, y, x + w * 0.12, y], t(dark(c, 0.25))); poly(ctx, [x - w * 0.04, y - h * 0.5, x + w * 0.09, y, x - w * 0.13, y], t('#1c1612'));
-  for (const k of [-1, 0.2, 1]) stroke(ctx, [x, y - h, x + k * 5, y - h - 10], 1.2, t('#2a2018'));
-  for (let i = 1; i < 4; i++) stroke(ctx, [x - w / 2 * (i / 4) - 2, y - h * (1 - i / 4), x - w / 2 * (i / 4) + 6, y - h * (1 - i / 4) + 2], 0.7, t(dark(c, 0.3)));
+/** 가죽 덮은 긴 집: 휜 나무 갈비 위에 가죽을 기워 덮고 돌로 눌렀다. 낮고 길다 */
+function hideHall(v, x, y, w, h, c = '#7a6248') {
+  const { ctx, t } = v;
+  ctx.fillStyle = t(c); ctx.beginPath(); ctx.moveTo(x - w / 2, y); ctx.bezierCurveTo(x - w / 2, y - h * 1.3, x + w / 2, y - h * 1.3, x + w / 2, y); ctx.closePath(); ctx.fill();
+  ctx.fillStyle = t(dark(c, 0.28)); ctx.beginPath(); ctx.moveTo(x + w * 0.16, y); ctx.bezierCurveTo(x + w * 0.2, y - h * 0.9, x + w / 2, y - h * 1.1, x + w / 2, y); ctx.closePath(); ctx.fill();
+  for (let i = 1; i < 6; i++) { const u = i / 6, px = x - w / 2 + w * u, top = y - h * 0.98 * Math.sin(Math.PI * u) ** 0.6; stroke(ctx, [px, y, px + (u - 0.5) * 4, top], 0.8, t(dark(c, 0.36))); }
+  for (let i = 0; i < 5; i++) stroke(ctx, [x - w * 0.36 + i * w * 0.15, y - h * 0.5 - (i % 2) * 4, x - w * 0.3 + i * w * 0.15, y - h * 0.46 - (i % 2) * 4], 0.6, t('#c8b890'));
+  ctx.fillStyle = t('#1c1612'); ctx.beginPath(); ctx.moveTo(x - w * 0.2, y); ctx.lineTo(x - w * 0.2, y - h * 0.4); ctx.quadraticCurveTo(x - w * 0.12, y - h * 0.56, x - w * 0.04, y - h * 0.4); ctx.lineTo(x - w * 0.04, y); ctx.fill();
+  for (let i = 0; i < 7; i++) oval(ctx, x - w / 2 + 4 + i * (w - 8) / 6, y - 1, 4, 2.4, t('#5e5a54'));
+}
+/** 부족의 돌 표지: 세운 선돌에 짐승 머리뼈와 뿔, 색 바랜 긴 띠 */
+function clanStone(v, x, y, h, kind) {
+  const { ctx, t } = v, bone = t('#d0c8b0');
+  poly(ctx, [x - 11, y, x - 8, y - h * 0.7, x - 3, y - h, x + 6, y - h * 0.94, x + 10, y - h * 0.5, x + 12, y], t('#5e5a54')); poly(ctx, [x + 2, y, x + 1, y - h * 0.96, x + 6, y - h * 0.94, x + 10, y - h * 0.5, x + 12, y], t('#45423e'));
+  for (let i = 0; i < 4; i++) stroke(ctx, kind === 'tiger' ? [x - 7, y - h * (0.2 + i * 0.1), x - 1, y - h * (0.24 + i * 0.1)] : kind === 'hawk' ? [x - 6, y - h * (0.2 + i * 0.1), x - 3, y - h * (0.25 + i * 0.1), x, y - h * (0.2 + i * 0.1)] : [x - 4, y - h * (0.18 + i * 0.1), x - 4, y - h * (0.24 + i * 0.1)], 1, t('#2a2622'));
+  for (let i = 0; i < 5; i++) oval(ctx, x - 14 + i * 7, y + 1, 4.6, 2.6, t('#55514c'));
+  const sy = y - h * 0.66;
+  if (kind === 'hawk') { for (const k of [-1, 1]) for (let i = 0; i < 4; i++) stroke(ctx, [x + k * 2, sy - 4, x + k * (10 + i * 4), sy - 12 + i * 5], 1.3, t(i % 2 ? '#5a4630' : '#8a7a5a')); oval(ctx, x, sy, 3.6, 4.4, bone); poly(ctx, [x - 1.6, sy + 2, x + 1.6, sy + 2, x, sy + 8], bone); }
+  else { poly(ctx, [x - 5, sy - 5, x + 5, sy - 5, x + 3.4, sy + 3, x + 1.6, sy + 9, x - 1.6, sy + 9, x - 3.4, sy + 3], bone); oval(ctx, x - 2.2, sy - 1, 1.2, 1.5, t('#1c1612')); oval(ctx, x + 2.2, sy - 1, 1.2, 1.5, t('#1c1612')); if (kind === 'wolf') for (const k of [-1, 1]) bend(ctx, [x + k * 5, sy - 4, x + k * 16, sy - 6, x + k * 15, sy - 20], 1.8, bone); else for (const k of [-1, 1]) for (let i = 0; i < 3; i++) stroke(ctx, [x + k * 6, sy + 10 + i * 5, x + k * 8, sy + 15 + i * 5], 1.4, bone); }
+  stroke(ctx, [x + 14, y, x + 16, y - h * 1.25], 1.4, t('#2a2018'));
+  const bc = t(kind === 'wolf' ? '#4a5a6a' : kind === 'tiger' ? '#8a3a22' : '#b8a060'); ctx.fillStyle = bc; ctx.beginPath(); ctx.moveTo(x + 16, y - h * 1.25); ctx.quadraticCurveTo(x + 30, y - h * 1.2, x + 44, y - h * 1.28); ctx.lineTo(x + 40, y - h * 1.2); ctx.lineTo(x + 46, y - h * 1.14); ctx.quadraticCurveTo(x + 30, y - h * 1.08, x + 16, y - h * 1.12); ctx.fill();
 }
 /** 책 꽂힌 선반 */
 function shelf(ctx, x, y, w, rows, seed) {
@@ -416,22 +432,18 @@ function kdExile(v) {
   for (let i = 0; i < 90; i++) oval(ctx, hash(i, 5) * VW, hash(i, 6) * VH, 1 + hash(i, 7) * 0.8, 1 + hash(i, 7) * 0.8, 'rgba(236,240,244,.7)');
   finish(v, { noLeaves: true });
 }
-/** 수인 부족의 야영지: 가죽 천막과 토템 기둥, 모닥불. 늑대 부족은 달밤의 솔숲, 호랑이 부족은 해 질 녘 갈대밭, 매 부족은 벼랑 위 */
+/** 수인 부족의 마을: 가죽 덮은 긴 집과 머리뼈 건 선돌, 모닥불. 늑대 부족은 달밤의 솔숲, 호랑이 부족은 해 질 녘 갈대밭, 매 부족은 벼랑 위 */
 function kdTribe(v, kind) {
   const { ctx, t } = v; sky(v); const fn = far(v, { peaks: kind !== 'tiger' });
   const g = kind === 'hawk' ? (x) => (x > 470 ? 190 + (x - 470) * 0.9 : 176 - Math.sin(x / 120) * 6) : (x) => Math.max(fn(x), 148) + 28;
   ground(v, g, kind === 'wolf' ? { color: '#3e4a44', color2: '#26302c', tufts: 40 } : kind === 'tiger' ? { color: '#8a7a44', color2: '#5a4e2e', tufts: 90 } : { color: '#7a7862', color2: '#4e4c40', tufts: 30 });
   if (kind === 'wolf') { for (const x of [16, 60, 110, 560, 600, 636]) tree(v, x, 208, 150, { dark: true }); for (const [x, d] of [[530, -1], [150, 1]]) dogSil(v, x, 204, 40, d, '#2a2a30', {}); }
   if (kind === 'tiger') for (let i = 0; i < 70; i++) { const x = hash(i, 2) * VW, y = 170 + hash(i, 3) * 26, h = 30 + hash(i, 4) * 30; bend(ctx, [x, y, x + 2, y - h * 0.6, x + 8 + hash(i, 5) * 6, y - h], 1, rgba(t(i % 3 ? '#9a8a4a' : '#6a5e34'), 0.8)); }
-  if (kind === 'hawk') { crows(v, 540, 70, 5, 70); rect(ctx, 446, 110, 3, 80, t('#2a2018')); stroke(ctx, [436, 112, 460, 112], 2, t('#2a2018')); poly(ctx, [444, 112, 452, 112, 454, 98, 449, 92, 444, 99], t('#4a3a2a')); stroke(ctx, [449, 94, 453, 96], 1, t('#c8a850')); }
-  // 천막
-  hideTent(v, 130, 206, 120, 96, kind === 'tiger' ? '#8a6a3e' : '#6e5a46'); hideTent(v, 250, 196, 84, 70, '#5e4e3e'); if (kind !== 'hawk') hideTent(v, 560, 204, 110, 90, '#75604a');
-  // 토템 기둥
-  const tx = kind === 'hawk' ? 372 : 452; rect(ctx, tx - 7, 96, 14, 120, t('#3e3026')); for (let i = 0; i < 4; i++) { rect(ctx, tx - 7, 122 + i * 22, 14, 2, t('#1c1612')); oval(ctx, tx - 3, 132 + i * 22, 1.6, 2, t('#c8b890')); oval(ctx, tx + 3, 132 + i * 22, 1.6, 2, t('#c8b890')); }
-  if (kind === 'wolf') { poly(ctx, [tx - 12, 100, tx + 12, 100, tx + 9, 78, tx + 12, 60, tx + 4, 74, tx - 4, 74, tx - 12, 60, tx - 9, 78], t('#4a3a2e')); poly(ctx, [tx - 5, 100, tx + 5, 100, tx, 112], t('#2a2018')); }
-  else if (kind === 'tiger') { oval(ctx, tx, 86, 14, 13, t('#6a4a2a')); oval(ctx, tx - 10, 74, 4, 4, t('#6a4a2a')); oval(ctx, tx + 10, 74, 4, 4, t('#6a4a2a')); for (const k of [-1, 1]) for (let i = 0; i < 3; i++) stroke(ctx, [tx + k * 13, 80 + i * 5, tx + k * 6, 82 + i * 5], 1.2, t('#1c1612')); }
-  else { poly(ctx, [tx - 40, 84, tx - 8, 92, tx - 8, 102, tx - 34, 100], t('#4a3a2e')); poly(ctx, [tx + 40, 84, tx + 8, 92, tx + 8, 102, tx + 34, 100], t('#4a3a2e')); oval(ctx, tx, 88, 9, 10, t('#4a3a2e')); poly(ctx, [tx - 3, 90, tx + 3, 90, tx, 100], t('#c8a850')); }
-  for (const k of [-1, 1]) for (const c of ['#8a2e2a', '#c8b890']) stroke(ctx, [tx + k * 7, 110, tx + k * (12 + (c === '#8a2e2a' ? 0 : 3)), 126], 0.9, t(c));
+  if (kind === 'hawk') { crows(v, 540, 70, 5, 70); rect(ctx, 560, 130, 3, 60, t('#2a2018')); stroke(ctx, [550, 132, 574, 132], 2, t('#2a2018')); poly(ctx, [558, 132, 566, 132, 568, 118, 563, 112, 558, 119], t('#4a3a2a')); stroke(ctx, [563, 114, 567, 116], 1, t('#c8a850')); }
+  // 가죽 덮은 긴 집
+  hideHall(v, 130, 208, 190, 62, kind === 'tiger' ? '#8a6a3e' : '#6e5a46'); if (kind !== 'hawk') hideHall(v, 588, 206, 110, 50, '#75604a'); smoke(v, 150, 150, 60, 14, '#3a3632', 0.16);
+  // 선돌 표지
+  clanStone(v, kind === 'hawk' ? 474 : 498, 222, 104, kind);
   // 모닥불
   const fx = kind === 'hawk' ? 300 : 340; for (const k of [-1, 1]) stroke(ctx, [fx - 12 * k, 232, fx + 10 * k, 226], 2.4, t('#2a1c12')); flame(v, fx, 226, 10); glow(v, fx, 214, 90, '#ff9a48', kind === 'hawk' ? 0.08 : 0.2); pool(v, fx, 232, 90, 8, '#ff9a48', 0.12); smoke(v, fx, 200, 80, 24, '#2a2622', 0.2);
   // 사람들: 어른 둘과 노인, 아이(나)
@@ -442,7 +454,7 @@ function kdTribe(v, kind) {
   beastman(v, fx + 104, 238, 106, kind, { f: -1, female: true, long: true, cloth: '#6a4a36', arm: 'chest', ...R2 });
   beastman(v, 40, 236, 100, kind, { f: 1, cloth: '#54463a' });
   // 가죽 말리는 틀
-  const hx = kind === 'hawk' ? 110 : 610; stroke(ctx, [hx - 16, 236, hx - 12, 190, hx + 12, 190, hx + 16, 236], 1.6, t('#2a2018')); poly(ctx, [hx - 9, 194, hx + 9, 194, hx + 11, 222, hx, 228, hx - 11, 222], t('#9a7a54'));
+  const hx = kind === 'hawk' ? 612 : 250; stroke(ctx, [hx - 16, 236, hx - 12, 190, hx + 12, 190, hx + 16, 236], 1.6, t('#2a2018')); poly(ctx, [hx - 9, 194, hx + 9, 194, hx + 11, 222, hx, 228, hx - 11, 222], t('#9a7a54'));
   finish(v, { noLeaves: true });
 }
 /** 숲 경계 마을의 반엘프: 왼쪽은 밭과 초가, 오른쪽은 큰 숲. 사람 아버지와 엘프 어머니 사이에 선 아이, 양쪽에서 지켜보는 눈 */
