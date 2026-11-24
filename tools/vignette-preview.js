@@ -63,6 +63,8 @@ const GROUPS = [
   ['점령지', [['점령군 깃발', 'occupied:banner'], ['징발', 'occupied:levy'], ['밤의 저항', 'occupied:night'], ['해방의 날', 'occupied:free']]],
   ['길 위의 일', [['역참 마당', 'carrier:yard'], ['짐수레', 'carrier:cart'], ['눈길', 'carrier:snow'], ['도적', 'carrier:bandit']]],
   ['사교계', [['연회장', 'society:feast'], ['살롱', 'society:salon'], ['무도', 'society:ball'], ['망신', 'society:shame']]],
+  ['마법 계열', [['불', 'spell:fire'], ['물', 'spell:water'], ['바람', 'spell:wind'], ['흙', 'spell:earth'], ['빛', 'spell:light'], ['그림자', 'spell:shadow'], ['생명', 'spell:life'], ['정신', 'spell:mind'], ['폭주', 'spell:surge'], ['주문 짓는 책상', 'spell:desk']]],
+  ['다른 종족 집안', [['엘프 장로 집안', 'kindred:grove'], ['엘프 악사 집안', 'kindred:minstrel'], ['풀려난 엘프 집안', 'kindred:freed'], ['드워프 광산 씨족', 'kindred:hall'], ['드워프 상인 집안', 'kindred:trader'], ['쫓겨난 씨족', 'kindred:exile'], ['늑대 부족', 'kindred:wolf'], ['호랑이 부족', 'kindred:tiger'], ['매 부족', 'kindred:hawk'], ['반엘프 경계 마을', 'kindred:border'], ['뿔을 감추는 집', 'kindred:hidden']]],
   ['옥살이', [['지하 감옥', 'jail:cell'], ['면회 창살', 'jail:visit'], ['탈옥 밧줄', 'jail:rope'], ['출소 길', 'jail:release']]],
   ['별', [['천문대 지붕', 'stars:roof'], ['혜성 아래 군중', 'stars:comet'], ['일식', 'stars:eclipse'], ['별점 노점', 'stars:stall']]],
   ['측량', [['측량대와 막대', 'survey:field'], ['지도 공방', 'survey:shop'], ['경계석', 'survey:stone'], ['군막의 지도', 'survey:war']]],
