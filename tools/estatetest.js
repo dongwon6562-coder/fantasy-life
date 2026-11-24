@@ -190,7 +190,8 @@ for (let attempt = 0; attempt < 4; attempt++) {
 {
   let fires = 0, thefts = 0;
   // 불과 도둑은 드문 일이라 판이 적으면 다른 갈래가 늘 때마다 0이 나오기도 했다: 열 판을 본다
-  for (let run = 0; run < 10; run++) {
+  // 40단계(도우미3): 피난과 이주가 세상 소식을 더해 주사위가 바뀌자 열 판에 도둑 0이 나왔다 (전엔 2). 판을 열여섯으로 늘린다
+  for (let run = 0; run < 16; run++) {
     const g = adult(91500 + run);
     placeAt(g, 'harfen');
     L(g).houses.push('harfen'); L(g).home = 'own';
@@ -206,7 +207,7 @@ for (let attempt = 0; attempt < 4; attempt++) {
     fires += (notes.match(/불이 났다|불에 타/g) ?? []).length;
     thefts += (notes.match(/도둑이 들었다/g) ?? []).length;
   }
-  console.log(`10년 10판: 불 ${fires} · 도둑 ${thefts}`);
+  console.log(`10년 16판: 불 ${fires} · 도둑 ${thefts}`);
   if (!fires) fail('no fire in 60 years of old houses');
   if (!thefts) fail('no theft in 60 years of rich homes');
   const g = adult(91601);
