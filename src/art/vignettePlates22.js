@@ -26,7 +26,7 @@ const folk = (i, o = {}) => ({ cloth: CL[i % 6], hair: HR[i % 6], female: i % 3 
 const hooded = (i, o = {}) => ({ cloth: ['#1c181e', '#221c1c', '#1a1c22'][i % 3], hair: '#141214', hood: true, robe: true, ...o });
 
 /** 마족: 조금 가늘고, 잿빛 살갗, 뒤로 휜 뿔과 빛 도는 눈. 아이는 뿔이 짧다 */
-function fiend(v, x, y, h, o = {}) {
+export function fiend(v, x, y, h, o = {}) {
   const { ctx } = v, tone = (c) => (o.raw ? c : v.t(c));
   ctx.save(); ctx.translate(x, y); ctx.scale(o.thin ?? 0.9, 1); ctx.translate(-x, -y); person(v, x, y, h, { skin: '#8d8496', hair: '#16121a', cloth: '#241c2a', ...o }); ctx.restore();
   const { hy, r } = headOf(x, y, h, o), f = o.f ?? 0, c = tone(o.horn ?? '#2e2428'), big = o.child ? 0.6 : (o.hornSize ?? 1.15);
@@ -35,23 +35,23 @@ function fiend(v, x, y, h, o = {}) {
 }
 const dfolk = (i, o = {}) => ({ cloth: DC[i % 5], hair: DH[i % 5], female: i % 3 === 1, long: i % 2 === 1, eye: ['#e8d49a', '#e07060', '#c8a0f0'][i % 3], ...o });
 /** 손 자리(팔 모양에 따라) */
-const handOf = (x, y, h, f, arm = 'fwd', drop = 0) => (arm === 'up' ? [x + f * 0.12 * h, y - (1.0 - drop / 100) * h] : [x + f * 0.214 * h, y - (0.66 - drop / 100) * h]);
+export const handOf = (x, y, h, f, arm = 'fwd', drop = 0) => (arm === 'up' ? [x + f * 0.12 * h, y - (1.0 - drop / 100) * h] : [x + f * 0.214 * h, y - (0.66 - drop / 100) * h]);
 /** 칼: 손에서 ang(라디안, 위가 +) 쪽으로 뻗는다. 날 끝 좌표를 돌려준다 */
-function blade(v, hx, hy, f, ang, len, o = {}) {
+export function blade(v, hx, hy, f, ang, len, o = {}) {
   const { ctx } = v, c = o.raw === false ? v.t(o.color ?? '#c8ccd4') : (o.color ?? '#c8ccd4'), dx = Math.cos(ang) * f, dy = -Math.sin(ang), tx = hx + dx * len, ty = hy + dy * len;
   stroke(ctx, [hx - dx * len * 0.16, hy - dy * len * 0.16, hx, hy], 2.4, '#2a2018'); stroke(ctx, [hx - dy * 4, hy + dx * 4, hx + dy * 4, hy - dx * 4], 2, '#6a5a3a');
   stroke(ctx, [hx, hy, tx, ty], o.w ?? 1.8, c); stroke(ctx, [hx + dx * 3, hy + dy * 3 - 0.6, tx, ty - 0.4], 0.5, 'rgba(255,255,255,.6)');
   return [tx, ty];
 }
 /** 검이 지나간 호 */
-const slash = (ctx, cx, cy, r, a0, a1, c = 'rgba(230,238,255,.6)', w = 2.4) => lit(ctx, () => { ctx.lineCap = 'round'; for (let i = 0; i < 3; i++) { ctx.strokeStyle = i ? c : c.replace(/[\d.]+\)$/, '.18)'); ctx.lineWidth = i ? w * (i === 2 ? 0.35 : 1) : w * 3; ctx.beginPath(); ctx.arc(cx, cy, r, a0, a1); ctx.stroke(); } });
+export const slash = (ctx, cx, cy, r, a0, a1, c = 'rgba(230,238,255,.6)', w = 2.4) => lit(ctx, () => { ctx.lineCap = 'round'; for (let i = 0; i < 3; i++) { ctx.strokeStyle = i ? c : c.replace(/[\d.]+\)$/, '.18)'); ctx.lineWidth = i ? w * (i === 2 ? 0.35 : 1) : w * 3; ctx.beginPath(); ctx.arc(cx, cy, r, a0, a1); ctx.stroke(); } });
 /** 화로 */
-const brazier = (v, x, y, s = 1, a = 0.2) => { const { ctx } = v; stroke(ctx, [x - 6 * s, y, x - 2 * s, y - 18 * s], 1.4, '#15110e'); stroke(ctx, [x + 6 * s, y, x + 2 * s, y - 18 * s], 1.4, '#15110e'); poly(ctx, [x - 8 * s, y - 24 * s, x + 8 * s, y - 24 * s, x + 5 * s, y - 17 * s, x - 5 * s, y - 17 * s], '#1c1614'); flame(v, x, y - 25 * s, 8 * s); glow(v, x, y - 30 * s, 60 * s, '#ff8a3a', a); };
+export const brazier = (v, x, y, s = 1, a = 0.2) => { const { ctx } = v; stroke(ctx, [x - 6 * s, y, x - 2 * s, y - 18 * s], 1.4, '#15110e'); stroke(ctx, [x + 6 * s, y, x + 2 * s, y - 18 * s], 1.4, '#15110e'); poly(ctx, [x - 8 * s, y - 24 * s, x + 8 * s, y - 24 * s, x + 5 * s, y - 17 * s, x - 5 * s, y - 17 * s], '#1c1614'); flame(v, x, y - 25 * s, 8 * s); glow(v, x, y - 30 * s, 60 * s, '#ff8a3a', a); };
 /** 마대륙의 검은 땅 */
 function blackGround(v, y0, seed = 1, c = '#1a151c') { const { ctx } = v; const gy = (x) => y0 - Math.sin(x / 90 + seed) * 4 - Math.sin(x / 37 + seed * 2) * 2; ctx.fillStyle = c; ctx.beginPath(); ctx.moveTo(0, VH); for (let x = 0; x <= VW; x += 8) ctx.lineTo(x, gy(x)); ctx.lineTo(VW, VH); ctx.fill(); for (let i = 0; i < 40; i++) { const x = hash(i, seed) * VW, y = y0 + 8 + hash(i, seed + 1) * (VH - y0 - 10); stroke(ctx, [x, y, x + 6 + hash(i, seed + 2) * 12, y - 1], 0.6, 'rgba(110,94,124,.3)'); } return gy; }
 const redSun = (v, x, y, r = 22) => { const { ctx } = v; oval(ctx, x, y, r, r, '#c8463a'); glow(v, x, y, r * 4.4, '#c8463a', 0.24); rect(ctx, x - r - 2, y + r * 0.3, r * 2 + 4, 2.4, 'rgba(58,20,32,.6)'); rect(ctx, x - r + 3, y - r * 0.3, r * 2 - 6, 1.8, 'rgba(58,20,32,.5)'); };
 /** 좁고 긴 보랏빛 창이 난 검은 탑 */
-function darkTower(v, x, y, w, h, seed = 1, c = '#201a26') { const { ctx } = v; poly(ctx, [x - w / 2, y, x - w / 2 + 2, y - h, x, y - h - w * 0.5, x + w / 2 - 2, y - h, x + w / 2, y], c); poly(ctx, [x + w * 0.1, y, x + w * 0.1, y - h - w * 0.3, x + w / 2 - 2, y - h, x + w / 2, y], dark(c, 0.3)); for (let j = 0; j < Math.floor(h / 15); j++) if (hash(j, seed) < 0.6) { rect(ctx, x - 1, y - h + 8 + j * 14, 2, 7, '#c890f0'); if (j % 2) glow(v, x, y - h + 11 + j * 14, 8, '#a060e0', 0.22); } }
+export function darkTower(v, x, y, w, h, seed = 1, c = '#201a26') { const { ctx } = v; poly(ctx, [x - w / 2, y, x - w / 2 + 2, y - h, x, y - h - w * 0.5, x + w / 2 - 2, y - h, x + w / 2, y], c); poly(ctx, [x + w * 0.1, y, x + w * 0.1, y - h - w * 0.3, x + w / 2 - 2, y - h, x + w / 2, y], dark(c, 0.3)); for (let j = 0; j < Math.floor(h / 15); j++) if (hash(j, seed) < 0.6) { rect(ctx, x - 1, y - h + 8 + j * 14, 2, 7, '#c890f0'); if (j % 2) glow(v, x, y - h + 11 + j * 14, 8, '#a060e0', 0.22); } }
 
 // ───────── 마족 집안의 어린 시절 ─────────
 /** 가르베스의 전사 가문: 붉은 깃발 건 검은 성의 뜰. 줄지어 선 전사들 앞에서 아버지가 날 없는 칼을 쥐여 준다 */
