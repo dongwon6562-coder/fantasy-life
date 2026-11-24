@@ -6,6 +6,10 @@ import { icon } from '../art/icons.js';
 import { esc } from './util.js';
 import { vignetteImage } from '../art/vignette.js';
 
+const GIFT_ART = { plate: 'gift', year: 500, month: 3 };
+const GIFT_ALT = '창으로 드는 빛 아래 요람에 누운 아이';
+let giftArtReady = false;
+
 const ICON = { hammer: 'smith', herb: 'herb' };
 const opts = (race) => { try { return birthOptions(race); } catch (e) { console.error(e); return null; } };
 
@@ -16,11 +20,19 @@ export function renderBirthPick(s, race) {
   const traits = s.traits ?? [];
   const picked = traits.length + (s.hair != null ? 1 : 0) + (s.eyes != null ? 1 : 0);
   const trName = (id) => o.traits.find((t) => t.id === id)?.name ?? '';
+  // 이 삽화는 폰에서 그리는 데 0.15초쯤 걸린다. 처음엔 자리만 두고 글과 단추가 먼저 뜬 뒤 채운다 (40단계 헤드: 첫 화면 시간)
   let art = '';
-  try { art = vignetteImage({ plate: 'gift', year: 500, month: 3 }); } catch (e) { console.error(e); }
+  if (giftArtReady) { try { art = vignetteImage(GIFT_ART); } catch (e) { console.error(e); } }
+  else if (typeof setTimeout !== 'undefined') setTimeout(() => {
+    giftArtReady = true;
+    let url = '';
+    try { url = vignetteImage(GIFT_ART); } catch (e) { console.error(e); }
+    const ph = typeof document !== 'undefined' && document.querySelector('.birth-pick .bt-ph');
+    if (url && ph) ph.outerHTML = `<img class="bt-art" src="${url}" alt="${GIFT_ALT}">`;
+  }, 120);
   return `<section class="birth-pick">
     <h2>타고난 것</h2>
-    ${art ? `<img class="bt-art" src="${art}" alt="창으로 드는 빛 아래 요람에 누운 아이">` : ''}
+    ${art ? `<img class="bt-art" src="${art}" alt="${GIFT_ALT}">` : '<div class="bt-art bt-ph" aria-hidden="true"></div>'}
     <div class="seg birth-mode" role="group" aria-label="타고난 것">
       ${o.modes.map((m) => `<button data-bmode="${m.id}" aria-pressed="${mode === m.id}">${esc(m.name)}</button>`).join('')}
     </div>
