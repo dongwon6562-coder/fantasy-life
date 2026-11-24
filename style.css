@@ -2192,3 +2192,15 @@ html.swiping .main { will-change: transform; }
 .sw-f .note { display: block; font-size: 12px; line-height: 1.45; word-break: keep-all; }
 .sw-f.on { opacity: 1; border-left-color: var(--brass, #c9a25a); }
 .sw-f.secret.on { border-left-color: #d8b46a; background: rgba(201, 162, 90, .08); }
+
+/* ---------- 43단계 마신의 조각 ---------- */
+.dg-block h3 small { font-weight: 400; color: var(--muted); font-size: var(--fs-xs, 12px); margin-left: 4px; }
+.dg-topic { border: 1px solid rgba(150, 110, 130, .22); border-radius: 10px; margin: 0 0 6px; background: rgba(24, 14, 20, .4); }
+.dg-topic > summary { display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 9px 12px; min-height: 40px; cursor: pointer; list-style: none; }
+.dg-topic > summary::-webkit-details-marker { display: none; }
+.dg-topic > summary b { font-size: 12px; color: var(--muted); font-weight: 400; }
+.dg-topic[open] > summary { border-bottom: 1px solid rgba(150, 110, 130, .16); }
+.dg-lore { list-style: none; margin: 0; padding: 6px 10px 8px; display: grid; gap: 8px; }
+.dg-lore li { padding-left: 10px; border-left: 2px solid rgba(150, 110, 130, .35); }
+.dg-lore p { margin: 0; font-family: var(--serif, serif); line-height: 1.55; word-break: keep-all; }
+.dg-lore .note { display: block; font-size: 12px; margin-top: 2px; text-align: right; }

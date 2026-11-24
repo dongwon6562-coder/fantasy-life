@@ -129,6 +129,7 @@ const GROUPS = [
   ['harbor', '포구와 고기잡이', /^harbor_/],
   ['cloth', '옷감과 바느질', /^cloth_/],
   ['demon', '해협 너머 마족', /^demon_/],
+  ['demongod', '봉인과 마신', /^dg_/],
   ['newage', '새 시대', /^(na_|city_)/],
   ['builder', '목수와 석공', /^builder_/],
   ['carrier', '길 위의 일', /^carrier_/],
