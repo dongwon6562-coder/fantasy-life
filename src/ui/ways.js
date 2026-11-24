@@ -13,7 +13,7 @@ import { esc } from './util.js';
 
 // 갈래: 이름, 하는 일, 묶음 행동, 아무 데서도 안 될 때 보일 말
 const PATHS = [
-  { id: 'magic', name: '마법과 서클', what: '마력을 다듬어 서클을 이룬다. 서클을 이룬 마법사는 드물다.', acts: ['meditate', 'magic_lesson', 'magic_selfstudy', 'spell_study', 'circle_exam'], lock: '마력을 깨닫는 것이 먼저다. 마력은 어릴 때 우연히, 또는 오랜 수련 끝에 깨어난다.' },
+  { id: 'magic', name: '마법과 서클', what: '마력을 다듬어 서클을 이룬다. 서클을 이룬 마법사는 드물다. 계열을 정하고, 영창을 줄이고, 솜씨가 무르익으면 세상에 없던 주문을 짓는다.', acts: ['meditate', 'magic_lesson', 'magic_selfstudy', 'spell_study', 'circle_exam', 'sp_school', 'sp_chant', 'sp_create'], lock: '마력을 깨닫는 것이 먼저다. 마력은 어릴 때 우연히, 또는 오랜 수련 끝에 깨어난다.' },
   { id: 'tower', name: '마탑', what: '마탑에 들어가 견습 마도사로 산다. 탑 일을 하며 공을 쌓고, 서클 공인을 받고, 마도구를 만든다.', acts: ['tower_join', 'tower_duty', 'tower_exam', 'tower_craft'], lock: '열네 살부터, 마력을 깨닫고 마법 솜씨를 15쯤 쌓으면 마탑이 있는 고장에서 문을 두드릴 수 있다.' },
   { id: 'sword', name: '검술 유파', what: '유파에 들어가 검을 배우고 단을 딴다. 겨루기와 결투도 있다.', acts: ['sword_school_join', 'sword_school_train', 'sword_rank_test', 'sword_spar', 'sword_father', 'sword_guard'], lock: '여덟 살부터, 유파의 사범이 있는 고장에서 들어갈 수 있다.' },
   { id: 'army', name: '왕국군', what: '모병소에서 입대해 세 해 동안 창을 든다. 공을 세우면 십인장, 백인장으로 오르고, 원정을 떠난다.', acts: ['army_enlist', 'army_resign'], lock: '열여섯 살부터 마흔두 살까지, 병영이 있는 고장의 모병소에서 입대할 수 있다.' },

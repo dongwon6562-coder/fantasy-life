@@ -248,16 +248,24 @@ export function drawHair(style, h) {
     }
     case 'feathers': {
       // 매 부족: 머리카락 대신 뒤로 누운 깃
-      let fe = '';
-      const n = 9;
+      // 42단계: 종족 고르기 작은 초상에서도 보이게 깃을 길고 굵게, 끝에 밝은 띠, 관자놀이 뒤로 뻗는 긴 깃
+      let fe = '', side = '';
+      const n = 9, pale = light || hair;
       for (let k = 0; k < n; k++) {
-        const u = -1 + (2 * k) / (n - 1); const bx = cx + u * hw * 0.86, by = top + hh * (0.3 + Math.abs(u) * 0.34); const len = 11 - Math.abs(u) * 3;
-        const tx = bx + u * 5.5, ty = by - len;
-        fe += `<path d="M${f(bx - 2.4)} ${f(by)} Q${f(bx - 2.6 + u * 2)} ${f(by - len * 0.6)} ${f(tx)} ${f(ty)} Q${f(bx + 2.6 + u * 2)} ${f(by - len * 0.6)} ${f(bx + 2.4)} ${f(by)}Z" fill="${k % 2 ? hair : fillG}" ${line}/><path d="M${f(bx)} ${f(by)} L${f(tx)} ${f(ty + 1)}" stroke="${dark}" stroke-width="0.35" opacity="0.7"/>`;
+        const u = -1 + (2 * k) / (n - 1); const bx = cx + u * hw * 0.86, by = top + hh * (0.3 + Math.abs(u) * 0.34); const len = 15 - Math.abs(u) * 4;
+        const tx = bx + u * 7, ty = by - len;
+        const mx = lerp(bx, tx, 0.68), my = lerp(by, ty, 0.68);
+        fe += `<path d="M${f(bx - 2.9)} ${f(by)} Q${f(bx - 3.1 + u * 2.4)} ${f(by - len * 0.6)} ${f(tx)} ${f(ty)} Q${f(bx + 3.1 + u * 2.4)} ${f(by - len * 0.6)} ${f(bx + 2.9)} ${f(by)}Z" fill="${k % 2 ? hair : fillG}" ${line}/>`
+          + `<path d="M${f(mx - 2.2)} ${f(my + 0.6)} Q${f(mx)} ${f(my - 0.8)} ${f(mx + 2.2)} ${f(my + 0.6)}" stroke="${pale}" stroke-width="1.1" opacity="0.75" fill="none" stroke-linecap="round"/>`
+          + `<path d="M${f(bx)} ${f(by)} L${f(tx)} ${f(ty + 1)}" stroke="${dark}" stroke-width="0.4" opacity="0.75"/>`;
+      }
+      for (const s of [-1, 1]) for (let j = 0; j < 3; j++) { // 관자놀이에서 뒤로 눕는 긴 깃
+        const bx = cx + s * hw * (0.82 + j * 0.06), by = top + hh * (0.42 + j * 0.1), tx = bx + s * (9 + j * 2), ty = by - 7 + j * 3;
+        side += `<path d="M${f(bx)} ${f(by - 2.2)} Q${f(lerp(bx, tx, 0.5))} ${f(lerp(by, ty, 0.5) - 2.6)} ${f(tx)} ${f(ty)} Q${f(lerp(bx, tx, 0.5))} ${f(lerp(by, ty, 0.5) + 2.4)} ${f(bx)} ${f(by + 2.2)}Z" fill="${j % 2 ? hair : fillG}" ${line}/><path d="M${f(lerp(bx, tx, 0.62))} ${f(lerp(by, ty, 0.62) - 1.6)} l${f(s * 0.6)} 3" stroke="${pale}" stroke-width="1" opacity="0.7"/>`;
       }
       const c = cap({ v: 1.4, drop: hh * 0.1, hl: hlBase + hh * 0.02, peak: hh * 0.08 });
       out.front = capDraw(c) + fe;
-      out.back = backMass(chin + 4, 1, 2);
+      out.back = backMass(chin + 4, 1, 2) + side;
       break;
     }
     case 'long': {

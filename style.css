@@ -790,7 +790,7 @@ button.danger { background: #6b2a20; color: var(--ink); border: 1px solid var(--
 .sv-meter .bar i { display: block; height: 100%; background: var(--brass-dim); }
 .sv-meter.full .bar i { background: var(--blood); }
 .setup-h { display: flex; flex-wrap: wrap; gap: 4px 12px; align-items: baseline; }
-.setup-h small { font-family: var(--f-body); font-size: 13px; color: var(--muted); font-weight: 400; }
+.setup-h small, .setup section > h2 small { font-family: var(--f-body); font-size: 13px; color: var(--muted); font-weight: 400; }
 .first-time { padding: 14px 16px; border-left: 2px solid var(--brass); background: var(--panel); border-radius: 0 8px 8px 0; margin-bottom: 8px; }
 .first-time h2 { margin: 0 0 8px; font-size: 16px; }
 .first-time ol { margin: 0; padding-left: 20px; display: grid; gap: 6px; font-size: 14px; line-height: 1.55; }
@@ -2130,3 +2130,48 @@ html.swiping .main { will-change: transform; }
 .ft-og { color: var(--brass, #c9a25a); text-decoration: underline; text-decoration-color: rgba(201, 162, 90, .4); text-underline-offset: 3px; cursor: pointer; }
 /* 탭이 옆에서 밀려 들어오는 동안 화면이 가로로 늘지 않게 */
 .wrap.game { overflow-x: clip; }
+
+/* ---------- 42단계 종족 고르기: 반신 초상 카드 ---------- */
+.rc-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(82px, 100%), 1fr)); gap: 6px; }
+@media (max-width: 360px) { .rc-pic svg { width: 50px; } .rc-card { padding: 6px 2px; } }
+.rc-card { display: flex; flex-direction: column; align-items: center; gap: 2px; min-width: 0; padding: 8px 4px 8px; border-radius: var(--r-md, 10px); border: 1px solid rgba(201, 162, 90, .22); background: linear-gradient(180deg, rgba(42, 34, 25, .9), rgba(26, 21, 16, .9)); color: var(--ink, #efe3c6); text-align: center; }
+.rc-card[aria-pressed="true"] { border-color: var(--brass, #c9a25a); box-shadow: 0 0 0 1px rgba(201, 162, 90, .5), 0 0 16px rgba(201, 162, 90, .22); background: linear-gradient(180deg, rgba(64, 50, 30, .95), rgba(34, 27, 19, .95)); }
+.rc-pic { line-height: 0; border-radius: 40px 40px 8px 8px; overflow: hidden; border: 1.5px solid rgba(201, 162, 90, .45); background: #1a140e; margin-bottom: 4px; }
+.rc-card[aria-pressed="true"] .rc-pic { border-color: var(--brass, #c9a25a); }
+.rc-pic svg { display: block; width: 58px; height: auto; }
+.rc-card strong { font-size: var(--fs-md, 15px); }
+.rc-life, .rc-treat { font-size: var(--fs-xs, 11px); color: var(--muted, #a99a80); line-height: 1.25; word-break: keep-all; }
+.rc-treat.up { color: #9fc48a; } .rc-treat.warn { color: #d8b46a; } .rc-treat.down { color: #e08e7a; }
+.rc-detail { margin-top: 10px; padding: 10px 12px; border-radius: var(--r-md, 10px); background: rgba(20, 16, 12, .55); border: 1px solid rgba(201, 162, 90, .16); }
+.rc-detail p { margin: 0 0 4px; }
+.rc-detail b.up { color: #9fc48a; } .rc-detail b.down { color: #e08e7a; }
+
+/* ---------- 42단계 내 주문서: 서클 표, 계열별 주문 카드, 지은 주문 ---------- */
+.sp-book h3 small { font-weight: 400; color: var(--muted); font-size: var(--fs-xs, 12px); margin-left: 4px; }
+.sp-circles { list-style: none; display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 4px; margin: 8px 0 10px; padding: 0; }
+.sp-c { display: flex; flex-direction: column; align-items: center; padding: 5px 0 4px; border-radius: 8px; border: 1px solid rgba(127, 179, 213, .14); background: rgba(16, 20, 26, .35); color: var(--muted); line-height: 1.15; }
+.sp-c b { font-size: 15px; font-family: var(--serif, serif); }
+.sp-c span { font-size: 11px; }
+.sp-c.on { color: var(--ink); border-color: rgba(127, 179, 213, .35); background: rgba(127, 179, 213, .1); }
+.sp-c.now { color: #e9f3fa; border-color: var(--mana); background: rgba(127, 179, 213, .22); box-shadow: 0 0 10px rgba(127, 179, 213, .3); }
+.sp-c.once { border-style: dashed; }
+.sp-school { border: 1px solid rgba(201, 162, 90, .16); border-radius: 10px; margin: 0 0 6px; background: rgba(20, 16, 12, .4); }
+.sp-school.mine { border-color: rgba(127, 179, 213, .45); }
+.sp-school > summary { display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 9px 12px; min-height: 40px; cursor: pointer; list-style: none; }
+.sp-school > summary::-webkit-details-marker { display: none; }
+.sp-school > summary i { font-style: normal; font-size: 11px; color: var(--mana); margin-left: 6px; }
+.sp-school > summary b { font-size: 12px; color: var(--muted); font-weight: 400; }
+.sp-school[open] > summary { border-bottom: 1px solid rgba(201, 162, 90, .12); }
+.sp-list { list-style: none; margin: 0; padding: 6px 8px 8px; display: grid; gap: 6px; }
+.sp-list.made { padding: 0 0 6px; }
+.sp-spell { padding: 7px 10px; border-radius: 8px; border-left: 3px solid rgba(169, 154, 128, .3); background: rgba(12, 10, 8, .35); opacity: .78; }
+.sp-spell p { margin: 0 0 2px; display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 6px; }
+.sp-spell small { color: var(--muted); font-size: 11px; }
+.sp-spell em { font-style: normal; font-size: 11px; margin-left: auto; color: var(--muted); }
+.sp-spell .note { display: block; font-size: 12px; line-height: 1.45; word-break: keep-all; }
+.sp-spell.on { opacity: 1; border-left-color: var(--mana); background: rgba(127, 179, 213, .08); }
+.sp-spell.on em { color: var(--mana); }
+.sp-spell.can { opacity: 1; border-left-color: var(--brass, #c9a25a); }
+.sp-spell.can em { color: var(--brass, #c9a25a); }
+.sp-spell.far { opacity: .55; }
+.og-block b.down { color: #e08e7a; }
