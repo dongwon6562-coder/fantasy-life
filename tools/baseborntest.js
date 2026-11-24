@@ -84,10 +84,17 @@ ok((kinds.npc ?? 0) >= 1, 'NPC 집안 글');
 let selfLives = 0;
 for (let k = 0; k < 4; k++) {
   const fam = k % 2 ? 'merchant_bastard' : 'count_bastard';
-  const g = newGame({ name: '한스', sex: k < 2 ? 'm' : 'f', familyId: fam, mode: 'free', seed: 4020 + k });
-  ok(bbState(g).self || true, 'self');
-  me(g).ageMonths = 14 * 12 + 6;
-  for (let i = 0; i < 14 * 12 && !g.over; i++) { rest(g); if (i === 6 * 12) { const f = byId(g, bbState(g).self?.fid); if (f && k >= 2) kill(g, f, '낙마'); } }
+  // 41단계: 하늘 소식이 주사위를 밀어 포르텔 서출 둘이 열일곱·스무 살에 갑작스러운 병과 칼 상처로 죽고 아우가 대를 잇는 판이 나왔다.
+  // 서출 장면을 재는 동안은 다친 데를 낫게 두고, 그래도 본인이 죽어 대가 넘어가면 다른 씨앗으로 다시 산다 (재려는 건 서출 본인의 삶)
+  let g;
+  for (let t = 0; t < 4; t++) {
+    g = newGame({ name: '한스', sex: k < 2 ? 'm' : 'f', familyId: fam, mode: 'free', seed: 4020 + k + t * 977 });
+    ok(bbState(g).self || true, 'self');
+    me(g).ageMonths = 14 * 12 + 6;
+    const pid0 = g.player.id;
+    for (let i = 0; i < 14 * 12 && !g.over && g.player.id === pid0; i++) { rest(g); g.player.injuries = []; if (i === 6 * 12) { const f = byId(g, bbState(g).self?.fid); if (f && k >= 2) kill(g, f, '낙마'); } }
+    if (g.player.id === pid0) break;
+  }
   const st = bbState(g);
   ok(st.self && st.self.fid != null, `서출 삶인데 self 없음 ${fam}`);
   if (Object.keys(st.done).length >= 2) selfLives++;
