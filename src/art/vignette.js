@@ -255,6 +255,8 @@ const BY_SCENE = {
   company_found: 'muster', company_board: 'army:camp', company_fight: 'army:clash', company_manage: 'army:camp', company_rules: 'army:camp', company_take: 'muster', company_event: 'army:camp',
   inn_open: 'trade:builder', inn_work: 'trade:bard', inn_manage: 'ritual:study', inn_price: 'ritual:study', inn_hire: 'trade:builder', inn_fire: 'trade:builder', inn_event: 'trade:bard',
 };
+// 42단계 다른 종족 집안(g.kindred.id)의 어린 시절 그림
+const KINDRED_ART = { elf_elder: 'kindred:grove', elf_minstrel: 'kindred:minstrel', elf_freed: 'kindred:freed', dwarf_heir: 'kindred:hall', dwarf_trader: 'kindred:trader', dwarf_outcast: 'kindred:exile', beast_wolf: 'kindred:wolf', beast_tiger: 'kindred:tiger', beast_hawk: 'kindred:hawk', half_elf_border: 'kindred:border', half_elf_noble: 'origin:manor', hd_hidden: 'kindred:hidden', hd_frontier: 'demon:land' };
 const ORIGIN_ART = { count_bastard: 'origin:manor', tower_blood: 'origin:tower', sexton: 'origin:church', capital_artisan: 'origin:workshop', slum_orphan: 'origin:slum', port_folk: 'origin:port', march_guard: 'demon:fort' };
 const TRADE_ART = { famine: 'famine', army: 'muster', smuggle: 'seal:alley', credit: 'court', guard_thief: 'square:flog', porter: 'road', rumor: 'trade:bard' };
 // 새 일(voc_path의 길 id, voc_event의 사건 id)마다의 그림. 없으면 지금 하는 일의 일터 그림
@@ -416,6 +418,7 @@ export function vignetteFor(g, { title = '', text = '', outcome = false } = {}) 
     if (kind === 'brew_event') pick = { taxman: 'square:notice', ban: 'square:herald', smuggler: 'brew:still', festival: 'festival' }[g.life.scene.ev] ?? pick;
     if (kind === 'spirit_meet' || kind === 'spirit_whim') pick = { sp_water: 'spirit:water', sp_fire: 'spirit:fire', sp_wind: 'spirit:wind', sp_earth: 'spirit:earth' }[g.life.scene.id] ?? pick;
     if (/^origin_/.test(kind ?? '')) pick = ORIGIN_ART[g.origins?.id] ?? (/elf|dwarf|beast|wolf|tiger|hawk|demon/.test(g.origins?.id ?? '') ? plate42(`kd_${g.origins.id}`) : null) ?? pick;
+    if (/^kd_/.test(kind ?? id)) pick = ((kind ?? id) === 'kd_horns' ? 'kindred:hidden' : KINDRED_ART[g.kindred?.id]) ?? pick;
     if (kind === 'harbor_event') pick = { first: 'harbor:dawn', ground: 'feud:offer', smuggler: 'seal:alley', pirate: 'voyage:pirate', salvage: 'harbor:wait', widow: 'harbor:wait', festival: 'festival', omen: 'harbor:wait' }[g.life.scene.ev] ?? pick;
     if (kind === 'farm_event') pick = { water: 'farm:water', boundary: 'feud:offer', blight: 'nature:locust', hands: 'feud:plot', tenant: 'famine', buyer: 'farm:sell', thief: 'seal:alley', levy: 'square:guards' }[g.life.scene.ev] ?? pick;
     if (kind === 'cuisine_event') pick = { plot: 'feud:plot', suspect: 'cuisine:taster', taster: 'cuisine:taster', rival: 'cuisine:contest', shortage: 'cuisine:create', guest: 'cuisine:feast', apprentice: 'cuisine:kitchen', spoiled: 'cuisine:create' }[g.life.scene.ev] ?? pick;
