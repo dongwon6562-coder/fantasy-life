@@ -2175,3 +2175,21 @@ html.swiping .main { will-change: transform; }
 .sp-spell.can em { color: var(--brass, #c9a25a); }
 .sp-spell.far { opacity: .55; }
 .og-block b.down { color: #e08e7a; }
+
+/* ---------- 43단계 내 검술 수첩: 등급 표, 초식 ---------- */
+.sw-book h3 small { font-weight: 400; color: var(--muted); font-size: var(--fs-xs, 12px); margin-left: 4px; }
+.sw-ranks { list-style: none; display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 4px; margin: 8px 0 10px; padding: 0; }
+.sw-r { display: flex; flex-direction: column; align-items: center; padding: 5px 2px 4px; border-radius: 8px; border: 1px solid rgba(201, 162, 90, .14); background: rgba(20, 16, 12, .35); color: var(--muted); line-height: 1.2; text-align: center; min-width: 0; }
+.sw-r b { font-size: 13px; font-family: var(--serif, serif); word-break: keep-all; }
+.sw-r span { font-size: 10px; }
+.sw-r.on { color: var(--ink); border-color: rgba(201, 162, 90, .35); background: rgba(201, 162, 90, .08); }
+.sw-r.now { color: #fbf1da; border-color: var(--brass, #c9a25a); background: rgba(201, 162, 90, .2); box-shadow: 0 0 10px rgba(201, 162, 90, .28); }
+.sw-forms { list-style: none; margin: 0 0 6px; padding: 0; display: grid; gap: 6px; }
+.sw-f { padding: 7px 10px; border-radius: 8px; border-left: 3px solid rgba(169, 154, 128, .3); background: rgba(12, 10, 8, .35); opacity: .7; }
+.sw-f p { margin: 0 0 2px; display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 6px; }
+.sw-f small { font-size: 11px; color: #d8b46a; }
+.sw-f em { font-style: normal; font-size: 11px; margin-left: auto; color: var(--muted); }
+.sw-f .note { display: block; font-size: 12px; line-height: 1.45; word-break: keep-all; }
+.sw-f.on { opacity: 1; border-left-color: var(--brass, #c9a25a); }
+.sw-f.secret.on { border-left-color: #d8b46a; background: rgba(201, 162, 90, .08); }
+@media (max-width: 360px) { .sw-ranks { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
