@@ -100,7 +100,7 @@ EVENTS.push(
     choices: [
       { label: '손을 잡는다', run: (g) => { like(spouse(g), 10); stress(g, -10); return '주름진 손이 따뜻했다. 아무 말도 하지 않았다. 할 필요가 없었다.'; } },
       { label: '싸웠던 날들을 꺼낸다', run: (g) => { like(spouse(g), 5); stress(g, -6); return '그때는 왜 그렇게 화가 났는지 둘 다 기억나지 않았다. 한참을 웃었다.'; } },
-      { label: '"고마웠다."', run: (g) => { like(spouse(g), 14); gainStat(g, 'cha', 0.3); return `처음 하는 말이었다. ${spouse(g).name}은(는) 대답 대신 어깨에 머리를 기댔다.`; } },
+      { label: '"고마웠다."', run: (g) => { like(spouse(g), 14); gainStat(g, 'cha', 0.3); return `처음 하는 말이었다. ${spouse(g)?.name ?? '그 사람'}은(는) 대답 대신 어깨에 머리를 기댔다.`; } },
     ],
   },
   {

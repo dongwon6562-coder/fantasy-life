@@ -41,7 +41,9 @@ const placeName = (id) => PLACES[id]?.name ?? '먼 고장';
 const ownRng = (g, salt = 0) => makeRng({ s: ((g.rngState?.s ?? 421) ^ Math.imul(mi(g) * 197 + salt + 59, 2654435761)) | 0 });
 export const kindredOf = (id) => KINDRED.find((o) => o.id === id) ?? null;
 const O = (g) => kindredOf(g.kindred?.id);
-const LONG = new Set(['elf', 'dwarf', 'half_elf', 'half_demon']);
+const LONG = new Set(['elf', 'dwarf', 'half_elf', 'half_demon', 'demon']);
+// 뿔을 감추고 사는 피: 반마족, 그리고 43단계부터 사람 땅에 숨은 마족(demonkind)
+const HORNED = new Set(['half_demon', 'demon']);
 
 /* ---------- 상태 ---------- */
 export function kindredState(g) {
@@ -219,7 +221,7 @@ defineScene('kd_slow', {
 });
 
 /* ---------- 반마족: 들킬 뻔한 날 ---------- */
-const hornRealm = (g) => { const r = realmOf(L(g).place ?? 'ern'); return TREATMENT[r]?.half_demon ?? 'normal'; };
+const hornRealm = (g) => { const r = realmOf(L(g).place ?? 'ern'); const race = raceOf(me(g)); return TREATMENT[r]?.[HORNED.has(race) ? race : 'half_demon'] ?? 'normal'; };
 defineScene('kd_horns', {
   title: () => '이마를 본 눈',
   text: (g, s) => s.how === 'wind'
@@ -252,7 +254,7 @@ defineScene('kd_horns', {
     st.revealed = true; st.horn = 100; stress(g, 12);
     const bad = ['scorn', 'banned'].includes(hornRealm(g));
     if (bad) f.suspicion = clamp((f.suspicion ?? 0) + 20, 0, 100);
-    note(g, '뿔을 감추지 않기로 했다.'); chron(g, `${g.player.name}, 반마족임을 숨기지 않다.`, 6);
+    note(g, '뿔을 감추지 않기로 했다.'); chron(g, `${g.player.name}, ${raceName(raceOf(me(g)))}임을 숨기지 않다.`, 6);
     return bad
       ? '두건을 내려놓았다. 상대가 비명을 지르며 달아났다. 그날 저녁 성당 종이 이상한 때에 울렸다. 이제부터는 숨는 게 아니라 버티는 삶이다.'
       : '두건을 내려놓았다. 상대가 한참 보더니 어깨를 으쓱했다. "뿔이 작네." 그게 다였다. 여기서는 그게 다일 수도 있다.';
@@ -276,12 +278,12 @@ function monthTick(g) {
   const age = playerAge(g);
   const busy = traveling(g) || isJailed(g) || ['kd_child', 'kd_want', 'kd_burden', 'kd_slow', 'kd_horns'].some((k) => sceneQueued(g, k));
   // 반마족: 꺼리는 나라에서 감춘 뿔이 들킬 뻔한다 (어느 집안이든, 대를 이은 뒤에도)
-  if (race === 'half_demon' && !s.revealed && age >= 12 && !busy && mi(g) - s.hornAt >= 18) {
+  if (HORNED.has(race) && !s.revealed && age >= 12 && !busy && mi(g) - s.hornAt >= 18 && hornRealm(g) !== 'welcome') {
     const tr = hornRealm(g);
     const p = (tr === 'banned' ? 0.03 : tr === 'scorn' ? 0.012 : tr === 'wary' ? 0.006 : 0.002) * (0.5 + s.horn / 50);
     if (rng.chance(p)) { s.hornAt = mi(g); queueScene(g, 'kd_horns', { how: rng.pick(['wind', 'heal', 'inn']) }); return; }
   }
-  if (race === 'half_demon' && !s.revealed && age >= 16 && mi(g) % 12 === 0) s.horn = clamp(s.horn + 2, 0, 100); // 뿔은 천천히 자란다
+  if (HORNED.has(race) && !s.revealed && age >= 16 && mi(g) % 12 === 0) s.horn = clamp(s.horn + 2, 0, 100); // 뿔은 천천히 자란다
   if (!mine(g)) {
     // 대를 이은 뒤에도 오래 사는 피의 글은 이어진다
     slowTick(g, rng, race, age, busy);
@@ -305,7 +307,7 @@ function slowTick(g, rng, race, age, busy) {
   const f = slowFriend(g);
   if (f && !s.slow && !busy && ageYears(f) >= 50 && mi(g) - s.sceneAt >= 6 && rng.chance(0.06)) { s.sceneAt = mi(g); queueScene(g, 'kd_slow', { f: f.name, id: f.id }); return; }
   if (mi(g) - s.lineAt < 8) return;
-  if (race === 'half_demon' && !s.revealed && rng.chance(0.15)) { s.lineAt = mi(g); s.month.push({ kind: 'horn', text: HORN[pickFrom(g, rng, HORN, 'h')]() }); return; }
+  if (HORNED.has(race) && !s.revealed && rng.chance(0.15)) { s.lineAt = mi(g); s.month.push({ kind: 'horn', text: HORN[pickFrom(g, rng, HORN, 'h')]() }); return; }
   if (f && rng.chance(0.12)) {
     s.lineAt = mi(g);
     const call = me(g).sex === 'm' ? '아저씨' : '아주머니';
@@ -318,7 +320,7 @@ HOOKS.heir.push((g) => {
   const s = S(g);
   s.slow = null; s.hornAt = -99;
   // 새 플레이어가 반마족이 아니면 뿔 걱정은 끝난다. 반마족이면 감춘 채로 시작한다.
-  if (raceOf(me(g)) === 'half_demon') { s.revealed = false; s.horn = 25; }
+  if (HORNED.has(raceOf(me(g)))) { s.revealed = false; s.horn = 25; }
   if (!s.id || s.past) return;
   s.past = true;
   const o = O(g);
@@ -331,7 +333,7 @@ export function kindredLine(g) { return kindredLines(g)[0]?.text ?? null; }
 export function kindredInfo(g) {
   const s = S(g); const o = O(g);
   const race = raceOf(me(g));
-  const horn = race === 'half_demon' ? { risk: s.revealed ? null : s.horn, revealed: s.revealed, near: s.horns, realm: hornRealm(g) } : null;
+  const horn = HORNED.has(race) ? { risk: s.revealed ? null : s.horn, revealed: s.revealed, near: s.horns, realm: hornRealm(g) } : null;
   if (!o && !horn) return null;
   const base = o ? {
     id: o.id, name: o.name, race: o.race, raceName: raceName(o.race), place: placeName(o.place), standing: FAMILIES.find((f) => f.id === o.id)?.standing ?? '',

@@ -26,8 +26,8 @@ for (const [from, to] of Object.entries({ ...LEONIA_LINKS })) Object.assign(PLAC
 for (const [from, to] of Object.entries(EXTRA_LINKS)) Object.assign(PLACES[from].links, to);
 // 잊힌 땅(에스텔라)은 어느 나라의 땅도 아니다
 export const realmOf = (place) => PLACES[place]?.realm ?? (place === 'estella' ? 'wild' : 'leonia');
-export const realmName = (id) => REALMS[id]?.name ?? '주인 없는 땅';
-const realmShort = (id) => REALMS[id]?.short ?? '잊힌 땅';
+export const realmName = (id) => REALMS[id]?.name ?? (id === 'demon' ? '마대륙' : '주인 없는 땅');
+const realmShort = (id) => REALMS[id]?.short ?? (id === 'demon' ? '마대륙' : '잊힌 땅');
 export const realmPlaces = (id) => Object.keys(PLACES).filter((p) => realmOf(p) === id && !PLACES[p].hidden);
 
 /* ---------- 상태 ---------- */
@@ -371,7 +371,7 @@ function naturalizeBlock(g, realm) {
   if (treatmentIn(g, realm) === 'banned') return '이 나라는 나 같은 종족을 받아 주지 않는다';
   const race = g.player.race ?? 'human';
   if (r.naturalize.races && !r.naturalize.races.includes(race)) return '이 나라는 같은 종족만 받아 준다';
-  if (r.naturalize.blockCitizen?.includes(R.citizen)) return `${REALMS[R.citizen].short} 사람은 받아 주지 않는다`;
+  if (r.naturalize.blockCitizen?.includes(R.citizen)) return `${realmShort(R.citizen)} 사람은 받아 주지 않는다`;
   if (r.naturalize.skillReq && !(r.naturalize.skillFor === 'nonDwarf' && race === 'dwarf')) {
     for (const [k, v] of Object.entries(r.naturalize.skillReq)) if ((g.player.skills[k] ?? 0) < v) return `손으로 증명해야 한다 (대장일 ${v})`;
   }
@@ -793,7 +793,7 @@ export function realmStatus(g) {
   return {
     here, hereName: realmName(here), citizen: R.citizen, citizenName: realmName(R.citizen),
     foreigner: isForeigner(g), accent: accentOf(g), asylum: R.asylum, info: realmInfo(g, here),
-    line: !REALMS[here] ? '주인 없는 땅' : isForeigner(g) ? `${REALMS[here].short} (외지인, ${REALMS[R.citizen].short} 사람)` : REALMS[here].short,
+    line: !REALMS[here] ? realmName(here) : isForeigner(g) ? `${REALMS[here].short} (외지인, ${realmShort(R.citizen)} 사람)` : REALMS[here].short,
   };
 }
 // 지도에 넣을 왕국 장소: 게임에서 갈 수 있는 다른 나라 장소 (지도 P에 이미 같은 id가 있다)
