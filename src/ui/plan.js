@@ -168,7 +168,7 @@ const GROUPS = [
   ['elder', '마지막 해들', /^elder_/],
   ['lineage', '가문', /^lineage_/],
   ['house', '집과 살림', /^(house_|household_)/],
-  ['road', '길과 모험', /^(party_|gather_party|travel|on_road|housing|quest|delve|deep_|pol_|explore_|gear|pioneer|buy_title|tower_dare|wolves|goblins|ruin_dig)/],
+  ['road', '길과 모험', /^(party_|gather_party|travel|on_road|housing|quest|delve|dv_|deep_|pol_|explore_|gear|pioneer|buy_title|tower_dare|wolves|goblins|ruin_dig)/],
   ['wilds', '마물 사냥', /^wilds_/],
   ['dragon', '용의 땅', /^dragon_/],
   ['haunt', '망자와 저주', /^haunt_/],
