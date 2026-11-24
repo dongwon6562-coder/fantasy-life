@@ -349,6 +349,9 @@ const DG_ART = { dg_dream: 'demongod:dream', dg_shard_call: 'demongod:dream', dg
 // 43단계 마족 장면(dk_)은 장면 kind로 먼저 가르고, 어린 날·바람·짐·이름은 집안(g.demonkind.id)의 판을 쓴다. 장면 안의 sid(dg_horn 같은)는 보지 않는다
 const DK_ART = { dk_garbes: 'demonkind:warrior', dk_elinor: 'demonkind:trade', dk_silent: 'demonkind:silent', dk_hidden: 'demonkind:hiding' };
 const DK_SCENE = { dk_rank: 'demonkind:warrior', dk_war: 'demonkind:warrior', dk_cross: 'demonland:outpost', dk_home: 'demonland:harbor', dk_banned: 'demonkind:hiding', dk_stranger: 'demonland:city' };
+// 44단계: 새 고장 장면(ld_)은 고장 id로, 왕가 장면(cr_)은 나라(scene.realm)로 판을 고른다
+const LAND_ART = { milles: 'farm:harvest', rosen: 'origin:manor', roten: 'lands:minetown', stein: 'lands:warport', abel: 'lands:pilgrim', riana: 'cloister:walk', luen: 'lands:lake', scholae: 'lands:academy', krossen: 'carrier:yard', libera: 'lands:canal', kalten: 'migrate:village', wolfwood: 'hunter:furs', iela: 'lands:canopy', silver: 'lands:canopy', border: 'kindred:border', garum: 'crowns:tribes', wolf: 'lands:camp', grondar: 'lands:under' };
+const CROWN_ART = { valhart: 'crowns:emperor', holy: 'crowns:curia', serenia: 'crowns:tower', free: 'crowns:merchant', elf: 'crowns:elders', dwarf: 'crowns:clans', beast: 'crowns:tribes', leonia: 'court', march: 'court' };
 const SCHOOL_ART = { yusu: 'sword:flow', ganggeom: 'sword:heavy', hwanyeong: 'sword:feint', seonghwi: 'sword:vow', moru: 'sword:axe', ipsae: 'sword:twin', balto: 'sword:fist', mulgyeol: 'sword:deck' };
 // 43단계: 마족으로 태어나기(dk_·demonkind_), 마신(dg_·demongod_), 검술과 마검사(sw_·sword_).
 // 44단계: 새 고장의 살이(ld_·lands_), 나라마다 다른 궁정(cr_·crowns_), 미궁 깊게(dv_·delve_)
@@ -444,6 +447,9 @@ export function vignetteFor(g, { title = '', text = '', outcome = false } = {}) 
     if (kind === 'spirit_meet' || kind === 'spirit_whim') pick = { sp_water: 'spirit:water', sp_fire: 'spirit:fire', sp_wind: 'spirit:wind', sp_earth: 'spirit:earth' }[g.life.scene.id] ?? pick;
     if (/^origin_/.test(kind ?? '')) pick = ORIGIN_ART[g.origins?.id] ?? (/elf|dwarf|beast|wolf|tiger|hawk|demon/.test(g.origins?.id ?? '') ? plate42(`kd_${g.origins.id}`) : null) ?? pick;
     if (/^kd_/.test(kind ?? id)) pick = ((kind ?? id) === 'kd_horns' ? 'kindred:hidden' : KINDRED_ART[g.kindred?.id]) ?? pick;
+    if (/^ld_/.test(kind ?? id)) pick = LAND_ART[g.life?.scene?.id] ?? LAND_ART[g.life?.place] ?? pick;
+    if (/^cr_/.test(kind ?? id) && !/^cr_(bank_wobble|crown_ask|debtor_plea)$/.test(kind ?? id)) { const ck = kind ?? id; pick = (ck === 'cr_coup' ? 'crowns:coup' : ck === 'cr_side' ? 'crowns:heir' : CROWN_ART[g.life?.scene?.realm]) ?? pick; }
+    if (/^dv_/.test(kind ?? id)) { const dk = kind ?? id, fl = g.life?.scene?.floor ?? 0; pick = ({ dv_crew: 'delve:party', dv_plan: 'delve:gate', dv_rival: 'delve:rival', dv_go: 'delve:gate' }[dk] ?? (dk === 'dv_run' ? (/가장 깊은 곳/.test(text) ? 'delve:lord' : fl >= 8 ? 'delve:deep' : fl >= 1 ? 'delve:shallow' : 'delve:gate') : null)) ?? pick; }
     if (/^dk_/.test(kind ?? id)) pick = DK_SCENE[kind ?? id] ?? DK_ART[g.demonkind?.id] ?? pick;
     if (/^dg_/.test(kind ?? id)) pick = DG_ART[kind ?? id] ?? pick;
     if (/^sw_/.test(kind ?? id)) { const sk = kind ?? id; pick = (sk === 'sw_rite' || sk === 'sw_found' ? 'sword:rank' : sk === 'sw_secret' ? SCHOOL_ART[g.sword?.school] : null) ?? pick; }
