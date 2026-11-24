@@ -57,6 +57,8 @@ function adult(seed) {
 function placeAt(g, place) { const l = L(g); l.place = place; l.travel = null; l.home = 'inn'; l.queue = []; l.scene = null; g.pendingEvent = null; const R = realmState(g); R.cur = PLACES[place].realm ?? 'leonia'; R.last = place; if (g.army) Object.assign(g.army, { service: null, campaign: null, captive: null }); if (g.crime) g.crime.jailed = null; if (g.explore) g.explore.exp = null; }
 function fresh(seed, pl) {
   const g = adult(seed); placeAt(g, pl);
+  // 세계가 흘러 기사단이 이미 무너진 판이면 되살린다(무너짐은 따로 시험한다)
+  for (const o of Object.values(g.order?.orders ?? {})) if (o.fallen) Object.assign(o, { fallen: null, heresy: null, strength: Math.max(o.strength, 30), wealth: Math.max(o.wealth, 30) });
   g.player.injuries = []; g.player.fatigue = 0; g.player.stress = 10; g.player.money = 100;
   for (const k of ['wil', 'sen', 'agi', 'cha', 'str', 'int']) g.player.stats[k] = 40;
   g.player.skills.sword = 30;

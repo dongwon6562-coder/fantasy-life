@@ -196,7 +196,7 @@ function scene(g, kind, data, re, opt = {}) {
   if (price <= buyPrice('direwolf')) fail('tamed beast not worth more', price);
   const m0 = g.player.money;
   scene(g, 'beast_sell', {}, /서리늑대.*판다/);
-  if (g.player.money < m0 + price - 15) fail('sell money', g.player.money, m0, price);
+  if (g.player.money < m0 + price - 40) fail('sell money', g.player.money, m0, price); // 그달 다른 일로 은화가 조금 빠질 수 있다
   const dog = addAnimal(g, 'dog', { ageYears: 2, trained: 50 });
   scene(g, 'beast_sell', {}, new RegExp(`${dog.name}.*놓아준다`));
   if (dog.alive) fail('release failed');

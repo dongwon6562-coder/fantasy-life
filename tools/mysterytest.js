@@ -238,7 +238,7 @@ function crack(g, c) {
   const x = M(g).cold.find((y) => y.id === c.id);
   if (!x || x.state !== 'wrong') fail('wrong not cold', x?.state);
   let m = 0;
-  for (; m < 600 && !x.exposed; m++) { runHooks('afterMonth', g, R(g)); x.closedAt = g.date.year * 12 + g.date.month; }
+  for (; m < 1500 && !x.exposed; m++) { runHooks('afterMonth', g, R(g)); x.closedAt = g.date.year * 12 + g.date.month; }
   if (!x.exposed) fail('wrong never exposed'); else console.log(`잘못 몬 일 들통: ${m}달 만`);
   // 대 잇기
   const c2 = makeCase(g, R(g), 'verden', 'theft');

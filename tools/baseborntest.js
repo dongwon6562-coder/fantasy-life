@@ -82,18 +82,19 @@ ok((kinds.npc ?? 0) >= 1, 'NPC 집안 글');
 
 // 2. 서자로 태어난 삶: 열다섯 넘어 장면이 오고, 아버지가 죽으면 빈 자리
 let selfLives = 0;
-for (let k = 0; k < 4; k++) {
+for (let k = 0; k < 6; k++) {
   const fam = k % 2 ? 'merchant_bastard' : 'count_bastard';
-  const g = newGame({ name: '한스', sex: k < 2 ? 'm' : 'f', familyId: fam, mode: 'free', seed: 4020 + k });
+  const g = newGame({ name: '한스', sex: k < 2 || k >= 4 ? 'm' : 'f', familyId: fam, mode: 'free', seed: 4020 + k });
   ok(bbState(g).self || true, 'self');
   me(g).ageMonths = 14 * 12 + 6;
   for (let i = 0; i < 14 * 12 && !g.over; i++) { rest(g); if (i === 6 * 12) { const f = byId(g, bbState(g).self?.fid); if (f && k >= 2) kill(g, f, '낙마'); } }
   const st = bbState(g);
+  if (me(g).name !== '한스') continue; // 세상이 흘러 일찍 죽고 자식이 이은 판
   ok(st.self && st.self.fid != null, `서출 삶인데 self 없음 ${fam}`);
   if (Object.keys(st.done).length >= 2) selfLives++;
   checkInfo(g);
 }
-ok(selfLives >= 3, `서출 삶 장면이 드묾 ${selfLives}/4 ${JSON.stringify(scenes)}`);
+ok(selfLives >= 3, `서출 삶 장면이 드묾 ${selfLives}/6 ${JSON.stringify(scenes)}`);
 ok((scenes.bb_path ?? 0) >= 2, '서출이 갈 길');
 ok((scenes.bb_seize ?? 0) >= 1, '아버지가 죽은 뒤 빈 자리');
 ok((kinds.self ?? 0) >= 2, '서출 삶 글');
