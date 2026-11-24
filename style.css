@@ -2174,3 +2174,4 @@ html.swiping .main { will-change: transform; }
 .sp-spell.can { opacity: 1; border-left-color: var(--brass, #c9a25a); }
 .sp-spell.can em { color: var(--brass, #c9a25a); }
 .sp-spell.far { opacity: .55; }
+.og-block b.down { color: #e08e7a; }
