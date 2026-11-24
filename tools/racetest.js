@@ -26,7 +26,7 @@ const samples = [];
   delete p.race; ok(bodyAge(p) === 300, 'human body = age');
   ok(childRace('elf', 'human', rng) === 'half_elf', 'elf+human = half elf');
   ok(childRace('demon', 'human', rng) === 'half_demon', 'demon+human = half demon');
-  ok(playableRaces().length === 5 && playableRaces().every((r) => r.family), 'playable races with families');
+  ok(playableRaces().length === 6 && playableRaces().every((r) => r.family), 'playable races with families'); // 42단계: 반마족도 고를 수 있다
 }
 
 // 2) 종족마다 삶 (쉬엄쉬엄 아무거나 하며)
