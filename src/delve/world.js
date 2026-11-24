@@ -9,7 +9,7 @@ import { D, DELVES, DELVE_IDS, mi, clamp, ownRng, layerOf, logD } from './core.j
 const PARTY_NAMES = ['은빛 송곳니', '붉은 등불', '세 번째 계단', '늙은 까마귀단', '돌아온 자들', '푸른 밧줄', '마석 사냥꾼', '깊은 숨', '열두 번째 횃불', '젖은 장화'];
 const LEADERS = ['브란트', '세라', '오스카', '네일', '하르트', '이본', '그레타', '로칸', '미렐', '타벤', '에다', '쿠르트'];
 // 공략대가 노리는 곳: 사람이 많이 오가는 미궁
-const BUSY = ['tower', 'tower', 'tower', 'undercity', 'grey_hollow', 'old_mine', 'rift', 'iron_keep', 'sunken_library', 'catacomb', 'deep_forge', 'sea_cave', 'root_maze', 'beast_den'];
+const BUSY = ['tower', 'tower', 'tower', 'undercity', 'grey_hollow', 'old_mine', 'rift', 'iron_keep', 'sunken_library', 'catacomb', 'deep_forge', 'sea_cave', 'root_maze', 'beast_den', 'red_pit', 'glow_cave', 'lower_halls', 'lower_halls'];
 
 function newParty(rng, s) {
   const used = new Set(s.parties.filter((p) => p.alive).map((p) => p.name));

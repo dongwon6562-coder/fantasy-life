@@ -43,6 +43,20 @@ const HAND = {
   ort: { camp: true, houses: 30, zoom: 1.5, span: 420 }, stellen: { camp: true, houses: 38, zoom: 1.5, span: 480 }, wolffort: { camp: true, houses: 26, zoom: 1.5, span: 400 }, grey: { camp: true, houses: 26, zoom: 1.5, span: 400 }, wall: { camp: true, houses: 24, zoom: 1.5, span: 400 },
   barracks: { camp: true, houses: 54, zoom: 1.4, span: 560 },
   estella: { size: 'ruin', biome: 'cold', feature: 'ruinpalace', houses: 26 },
+  // 44단계: 새 고장 (src/lands). 지도 자리에서 나오는 풍경에 고장다운 것만 얹는다
+  milles: { size: 'village', feature: 'windmill', river: true, vines: true, houses: 32 },
+  rosen: { size: 'town', feature: 'castle', wall: true, houses: 40 },
+  roten: { size: 'city', biome: 'hills', feature: 'citadel', wall: true, mount: true, houses: 52 },
+  stein: { size: 'city', feature: 'fortress', wall: true, coast: true, houses: 40 },
+  abel: { size: 'village', feature: 'church', white: true, houses: 30 },
+  riana: { size: 'hamlet', feature: 'church', white: true, houses: 12 },
+  luen: { size: 'village', biome: 'lake', houses: 22 },
+  scholae: { size: 'town', feature: 'towers', houses: 40 },
+  krossen: { size: 'city', feature: 'church', wall: true, houses: 58 },
+  libera: { size: 'capital', feature: 'cathedral', coast: true, river: true, wall: true, houses: 72 },
+  kalten: { size: 'village', feature: 'keep', wall: true, houses: 16 },
+  wolfwood: { size: 'hamlet', houses: 14 },
+  iela: { size: 'capital', zoom: 1.3 },
 };
 const COAST = new Set(['klein', 'portel', 'stein', 'kars', 'maren', 'salt', 'wall', 'cape', 'nocturna', 'post', 'barracks', 'silver', 'light', 'crow', 'saltmare', 'pearl', 'slaveisle', 'coral', 'kraken', 'noah', 'libera']);
 

@@ -42,6 +42,8 @@ function deathChance(g, id) {
   if (id === 'dwarf') age = age / 3.5;
   return 0.0004 * Math.exp(Math.max(0, age - 45) / 12);
 }
+// 44단계 crowns가 채운다: pick(g, rng, id, kind, old, sex) → { name, last } | null
+export const SUCCESSION = { pick: null };
 export function succeed(g, rng, say, record, id, why) {
   const P = PS(g);
   const old = rulerOf(g, id);
@@ -50,11 +52,14 @@ export function succeed(g, rng, say, record, id, why) {
   let text;
   P.stab[id] = clamp((P.stab[id] ?? 60) - 6, 0, 100);
   const sex = rng.chance(id === 'elf' ? 0.7 : 0.15) ? 'f' : 'm';
+  // 44단계 crowns: 그 나라 궁정에 후계 후보가 있으면 그중에서 고른다
+  const pre = SUCCESSION.pick?.(g, rng, id, kind, old, sex) ?? null; // 주사위를 바꾸지 않도록 성별은 이미 굴린 것을 따른다
+  const pickN = () => { const n = nameFor(rng, id, sex); return pre ?? n; }; // 주사위는 같게 굴린다
   if (kind === 'dynasty') {
     const spouse = P.pacts.find((p) => p.kind === 'marriage' && (p.a === id || p.b === id));
     const crisis = !old.heir || ((P.stab[id] ?? 60) < 30 && rng.chance(0.5));
     if (!crisis) {
-      const n = nameFor(rng, id, sex);
+      const n = pickN();
       const same = sex === 'm' && (old.sex ?? 'm') === 'm' && rng.chance(0.3);
       const no = same ? (old.no || 1) + 1 : 0;
       P.rulers[id] = { title: titleFor(id, sex), sex, name: same ? `${old.name.replace(/ \d세$/, '')}${ROMAN[no] ?? ''}` : n.name, house: old.house, born: g.date.year - rng.int(18, 40), since: g.date.year, heir: rng.chance(0.75), legend: null, no };
@@ -63,13 +68,13 @@ export function succeed(g, rng, say, record, id, why) {
       // 혼인으로 얽힌 가문이 왕관을 가져간다
       const other = spouse.a === id ? spouse.b : spouse.a;
       const house = other === 'leonia' ? '레오니아 왕가' : rulerOf(g, other)?.house ?? short(other);
-      const n = nameFor(rng, id, sex);
+      const n = pickN();
       P.rulers[id] = { title: titleFor(id, sex), sex, name: n.name, house, born: g.date.year - rng.int(20, 35), since: g.date.year, heir: rng.chance(0.6), legend: null, no: 0 };
       P.fallen.push({ realm: id, house: old.house, y: g.date.year }); tally(g, 'fall');
       shiftRel(g, id, other, 25);
       text = `${full(id)}의 ${J(oldLine, '이/가')} ${why}. 대 이을 사람이 없었다. 혼인으로 얽힌 ${house} 핏줄의 ${J(n.name, '이/가')} 왕관을 썼다. ${old.house} 가문의 대가 끊겼다.`;
     } else {
-      const n = nameFor(rng, id, sex);
+      const n = pickN();
       const house = n.last || `${n.name}의 집안`;
       P.rulers[id] = { title: titleFor(id, sex), sex, name: n.name, house, born: g.date.year - rng.int(28, 50), since: g.date.year, heir: rng.chance(0.7), legend: null, no: 0 };
       P.fallen.push({ realm: id, house: old.house, y: g.date.year }); tally(g, 'fall');
@@ -79,15 +84,15 @@ export function succeed(g, rng, say, record, id, why) {
   } else if (kind === 'elect') {
     let name;
     if (id === 'holy') { const base = rng.pick(POPE_NAMES); const used = P.rulers[id].popes ?? {}; used[base] = (used[base] ?? (base === '그레고르' ? 7 : rng.int(1, 4))) + 1; name = `${base}${ROMAN[Math.min(8, used[base])] ?? ''}`; P.rulers[id] = { title: '교황', name, house: null, born: g.date.year - rng.int(58, 74), since: g.date.year, heir: false, legend: null, no: 0, popes: used }; }
-    else { const n = nameFor(rng, id, sex); name = `${n.name}${n.last ? ` ${n.last}` : ''}`; P.rulers[id] = { title: ELECT_TITLE[id], name, house: null, born: g.date.year - rng.int(id === 'beast' ? 26 : 45, id === 'beast' ? 40 : 70), since: g.date.year, heir: false, legend: null, no: 0 }; }
+    else { const n = pickN(); name = `${n.name}${n.last ? ` ${n.last}` : ''}`; P.rulers[id] = { title: ELECT_TITLE[id], name, house: null, born: g.date.year - rng.int(id === 'beast' ? 26 : 45, id === 'beast' ? 40 : 70), since: g.date.year, heir: false, legend: null, no: 0 }; }
     const how = id === 'holy' ? '추기경들이 콘클라베에 들었고, 흰 연기가 올랐다' : id === 'beast' ? '부족들이 모여 결투로 새 대족장을 정했다' : id === 'serenia' ? '탑의 주인들이 모여 표를 던졌다' : '회의가 새 사람을 뽑았다';
     text = `${full(id)}의 ${J(oldLine, '이/가')} ${why}. ${how}. 새 ${J(ELECT_TITLE[id] ?? '통치자', '은/는')} ${name}.`;
   } else if (kind === 'council') {
-    const n = nameFor(rng, id, sex);
+    const n = pickN();
     P.rulers[id] = { title: old.title, sex, name: `${n.name}${n.last ? ` ${n.last}` : ''}`, house: null, born: g.date.year - rng.int(40, 60), since: g.date.year, heir: false, legend: null, no: 0 };
     text = `${full(id)}의 ${J(oldLine, '이/가')} ${why}. 새 ${J(old.title, '은/는')} ${P.rulers[id].name}.`;
   } else {
-    const n = nameFor(rng, id, sex);
+    const n = pickN();
     P.rulers[id] = { title: sex === 'f' ? '여왕' : '왕', sex, name: n.name, house: null, born: g.date.year - rng.int(200, 400), since: g.date.year, heir: true, legend: null, no: 0 };
     text = `${full(id)}의 ${J(oldLine, '이/가')} ${why}. 숲이 석 달 동안 울었다. 새 ${J(P.rulers[id].title, '은/는')} ${n.name}.`;
   }

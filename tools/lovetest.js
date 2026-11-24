@@ -136,7 +136,8 @@ ok(married >= 3, `married ${married}/16`); // 씨앗마다 3~8: 한 달에 같�
 ok(wishesDone >= 2, `wishes done ${wishesDone}`);
 
 // 4) 오래 소홀한 혼인: 다툼, 떠나려는 배우자, 배신
-for (let run = 0; run < 8; run++) {
+// 44단계(도우미2): 행동이 하나 늘자 주사위가 바뀌어 여덟 판에 들킨 바람(love_caught)이 안 나오는 판이 나왔다. 안 나오면 네 판까지 더 산다
+for (let run = 0; run < 12 && (run < 8 || !seen.scenes.love_caught); run++) {
   const g = adult(4000 + run, 'farmer', 28);
   spouseFor(g, { traits: ['ambitious', 'gossip'] });
   for (let i = 0; i < 6; i++) { const p = makePerson(rngOf(g), { sex: me(g).sex === 'm' ? 'f' : 'm', ageMonths: (24 + i * 2) * 12 }); p.known = true; p.affection = 40; g.people.push(p); }

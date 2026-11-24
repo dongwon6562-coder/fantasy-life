@@ -179,6 +179,58 @@ export const DELVES = {
     lore: ['틈 벽에 박힌 쐐기 모양 돌. 봉인 쐐기와 닮았다.', '마물들이 한 방향으로만 기어 나온다.', '밑바닥에서 들리는 소리가 맥박처럼 일정하다.'],
     secret: '틈은 마물이 파낸 굴이 아니라 봉인이 갈라진 자리였다. 틈의 주인은 그 금이 더 벌어지지 않게 몸으로 막고 있던 것이었고, 그를 쓰러뜨린 뒤로 성채 사람들은 밤마다 땅이 우는 소리를 듣는다.',
   },
+  // 44단계 새 고장(src/lands/)의 미궁
+  red_pit: {
+    name: '붉은 갱', place: 'roten', floors: 10, step: 2, guild: true, town: '갱 입구 광부 술집 거리',
+    layers: [
+      { to: 5, name: '버려진 철갱', danger: 4, harvest: [12, 20], foes: [['kobold', 6, 9], ['cave_spider', 2, 3]], hazard: '녹물 고인 갱' },
+      { to: 10, name: '용광로 밑 굴', danger: 6, harvest: [20, 34], foes: [['golem', 1, 2], ['orc', 2, 4]], hazard: '뜨거운 쇳가루 바람' },
+    ],
+    master: { unit: 'golem', count: 2, leader: 'forge_golem', text: '쇳물에 반쯤 잠긴 거인' },
+    lore: ['갱 벽에 드워프와 인간의 이름이 나란히 새겨져 있다.', '제국 광산 감독관의 장부. 갱이 닫히기 사흘 전까지 캐라고 적혀 있다.', '용광로 밑 돌에 식지 않는 쇳물 자국.'],
+    secret: '붉은 갱은 쇠가 떨어져서 닫힌 것이 아니었다. 갱 밑바닥에서 식은 대장간의 거인과 같은 것이 깨어났고, 제국은 광부들에게 알리지 않은 채 입구를 막았다.',
+  },
+  burnt_cellar: {
+    name: '불탄 기둥 밑 굴', place: 'kalten', floors: 8, step: 2, town: null,
+    layers: [
+      { to: 4, name: '무너진 지하 창고', danger: 4, harvest: [10, 18], foes: [['giant_rat', 6, 10], ['bandit', 2, 4]], hazard: '그을린 들보' },
+      { to: 8, name: '마족이 판 굴', danger: 6, harvest: [18, 30], foes: [['rift_spawn', 1, 2], ['shade', 2, 3]], hazard: '숨이 막히는 재' },
+    ],
+    master: { unit: 'shade', count: 3, leader: 'legion_wraith', text: '세 번 불탄 마을의 첫 촌장' },
+    lore: ['불탄 기둥 셋 가운데 하나의 밑동이 굴로 이어진다.', '마족의 글씨. 길 표시다. 굴은 마을을 노리고 판 것이 아니라 지나가려고 판 것이었다.', '촌장의 일지. "세 번째에도 우리는 떠나지 않는다."'],
+    secret: '마족들이 판 굴은 칼텐을 치려던 길이 아니라 마대륙으로 돌아가려던 길이었다. 길이 막힌 것을 안 그들이 마을에 불을 질렀고, 첫 촌장의 망령은 아직도 그 굴 앞을 지키고 있다.',
+  },
+  glow_cave: {
+    name: '물빛 동굴', place: 'luen', floors: 9, step: 2, town: '호숫가 물고기 장터',
+    layers: [
+      { to: 4, name: '빛나는 물길', danger: 3, harvest: [10, 18], foes: [['lizardman', 2, 4], ['giant_rat', 5, 8]], hazard: '미끄러운 이끼 바위' },
+      { to: 9, name: '마력이 고인 못', danger: 6, harvest: [20, 36], foes: [['lizardman', 4, 6], ['shade', 1, 2]], hazard: '정신을 흐리는 물빛' },
+    ],
+    master: { unit: 'lizardman', count: 3, leader: 'sea_serpent', text: '빛나는 비늘의 늙은 호수뱀' },
+    lore: ['동굴 천장에서 탑의 마력이 물방울로 떨어진다.', '못 바닥에 버려진 실험 기구들. 마탑 문장이 있다.', '호수뱀의 비늘 하나가 마석처럼 빛난다.'],
+    secret: '호수 물고기가 빛나는 것은 탑의 마력이 스며서가 아니었다. 마탑이 실패한 마력을 몰래 이 동굴 못에 버려 왔고, 호수뱀은 그것을 먹고 자랐다.',
+  },
+  lower_halls: {
+    name: '그론다르 아랫거리', place: 'grondar', floors: 18, step: 3, town: '아랫계단 장터',
+    layers: [
+      { to: 6, name: '버려진 계단 거리', danger: 4, harvest: [14, 24], foes: [['kobold', 6, 10], ['golem', 1, 2]], hazard: '무너진 계단' },
+      { to: 12, name: '닫힌 씨족의 집들', danger: 6, harvest: [22, 40], foes: [['golem', 2, 3], ['shade', 2, 3]], hazard: '바람 굴이 막혀 고인 연기' },
+      { to: 18, name: '맨 아래 봉인문', danger: 8, harvest: [36, 60], foes: [['golem', 3, 5], ['rift_spawn', 2, 3]], hazard: '땅 밑에서 올라오는 열' },
+    ],
+    master: { unit: 'golem', count: 4, leader: 'forge_golem', text: '봉인문 앞에 선 첫 씨족의 수호상' },
+    lore: ['계단마다 씨족 문장. 맨 아래로 갈수록 지금은 없는 씨족들이다.', '닫힌 집의 문에 "우리가 판 것을 다시 묻는다"는 글.', '봉인문의 문양이 봉인 쐐기와 닮았다.'],
+    secret: '그론다르는 위로 쌓은 도시가 아니라 아래로 도망쳐 온 도시였다. 드워프들은 너무 깊이 판 맨 아래를 봉인하고 그 위에 새 거리를 지었고, 사라진 씨족들은 그 봉인 안쪽에 남기로 한 사람들이었다.',
+  },
+  old_wood: {
+    name: '늙은 숲의 굴', place: 'wolfwood', floors: 7, step: 1, town: null,
+    layers: [
+      { to: 3, name: '뿌리 밑 굴', danger: 3, harvest: [8, 14], foes: [['wolf', 4, 7], ['cave_spider', 1, 2]], hazard: '발목을 감는 뿌리' },
+      { to: 7, name: '늑대 무덤', danger: 5, harvest: [14, 24], foes: [['wolf', 5, 8], ['dire_wolf', 1, 1]], hazard: '무너지는 흙벽' },
+    ],
+    master: { unit: 'wolf', count: 5, leader: 'wolf_king', text: '숲보다 오래된 흰 늑대' },
+    lore: ['굴 입구에 마을 사람들이 남긴 사냥 첫 몫.', '늑대 두개골에 새긴 이름들. 마을 사람 이름이다.', '흰 털 한 줌. 마을 처마의 두개골과 같은 빛깔.'],
+    secret: '처마 밑 늑대 두개골은 사냥한 늑대가 아니었다. 마을을 처음 세운 사람들이 흰 늑대와 맺은 약속의 표시였고, 마을 사람들은 사냥 첫 몫을 굴 앞에 두는 것으로 그 약속을 이어 왔다.',
+  },
 };
 export const DELVE_IDS = Object.keys(DELVES);
 export const delveAt = (pl) => DELVE_IDS.find((id) => DELVES[id].place === pl) ?? null;
