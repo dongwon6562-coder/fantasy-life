@@ -31,18 +31,25 @@ function rankTable(s) {
 
 export function renderSwordbook(game) {
   const s = safe(() => (typeof D.swordInfo === 'function' ? D.swordInfo(game) : basic(game)));
-  if (!s) return '';
+  if (!s || (!s.school && s.skill < 5 && !s.blade && !s.hall && !s.other?.length)) return '';
   const forms = s.forms ?? [];
   const known = forms.filter((f) => f.learned);
-  const rn = s.rank >= 0 ? s.ranks[s.rank]?.name : null;
+  const rn = s.rankName ?? (s.rank >= 0 ? s.ranks[s.rank]?.name : null);
+  const need = (f) => (typeof f.need === 'number' ? `검술 ${f.need}` : f.need ?? '아직');
+  const h = s.hall;
   return `<div class="block sw-book">
     <h3>내 검술 수첩 <small>${s.school ? `${esc(s.school.name)}${rn ? ` ${esc(rn)}` : ''}` : '유파 없음'}</small></h3>
     ${s.school?.desc ? `<p class="note">${esc(s.school.desc)}</p>` : '<p class="note">아직 어느 유파에도 들지 않았다. 혼자 휘두르는 검이다.</p>'}
     <div class="wd-row kn-row"><span>검술 · ${s.skill}</span>${bar(s.skill, 'kin')}</div>
-    ${s.aura ? `<div class="wd-row kn-row"><span>검기 · ${esc(s.aura.word ?? '')}</span>${bar(s.aura.v ?? 0, 'mana')}</div>` : ''}
+    ${s.aura?.v ? `<div class="wd-row kn-row"><span>칼에 싣는 기운 · ${esc(s.aura.word ?? '')}</span>${bar(s.aura.v * 33.4, 'mana')}</div>` : ''}
     ${s.school ? rankTable(s) : ''}
-    ${forms.length ? `<p class="note">초식 ${known.length}/${forms.length}</p><ul class="sw-forms">${forms.map((f) => `<li class="sw-f${f.learned ? ' on' : ''}${f.secret ? ' secret' : ''}"><p><strong>${esc(f.name)}</strong>${f.secret ? ' <small>비전</small>' : ''}${f.learned ? '' : ` <em>${esc(f.need ?? '아직')}</em>`}</p>${f.desc ? `<span class="note">${esc(f.desc)}</span>` : ''}</li>`).join('')}</ul>` : ''}
+    ${forms.length ? `<p class="note">초식 ${known.length}/${forms.length}</p><ul class="sw-forms">${forms.map((f) => `<li class="sw-f${f.learned ? ' on' : ''}${f.secret ? ' secret' : ''}"><p><strong>${esc(f.name)}</strong>${f.secret ? ' <small>비전</small>' : ''}${f.learned ? '' : ` <em>${esc(need(f))}</em>`}</p>${f.desc ? `<span class="note">${esc(f.desc)}</span>` : ''}</li>`).join('')}</ul>` : ''}
+    ${s.other?.length ? `<p class="note">다른 유파에서 익힌 초식: ${s.other.map((f) => `<b>${esc(f.name)}</b>`).join(', ')}</p>` : ''}
+    ${s.blade ? `<div class="wd-row kn-row"><span>마검 · ${esc(s.blade.word)}${s.blade.spell ? ` · ${esc(s.blade.spell)}` : ''}</span>${bar((s.blade.v ?? 0) * 33.4, 'mana')}</div>` : ''}
+    ${h ? `<p class="note"><b>${h.mine ? '내 유파' : '집안 유파'}</b> ${esc(h.name)} · ${esc(h.place)}${h.closed ? ' · 문을 닫았다' : ` · 문하생 ${h.pupils}명 · 이름값 ${h.fame}`}${h.head ? ` · 지금 맡은 사람 ${esc(h.head)}` : ''}</p>` : ''}
     ${s.master ? `<p class="note">스승 ${esc(s.master.name)}${s.master.alive === false ? ' (세상을 떠났다)' : ''}</p>` : ''}
-    ${s.rivals?.length ? `<p class="note">겨뤄 본 이름난 검객: ${s.rivals.map((r) => `${esc(r.name)}${r.won == null ? '' : r.won ? '(이겼다)' : '(졌다)'}`).join(', ')}</p>` : ''}
+    ${s.rivals?.length ? `<p class="note">겨뤄 본 상대: ${s.rivals.map((r) => `${esc(r.name)}${r.won == null ? '' : r.won ? '(이겼다)' : '(졌다)'}`).join(', ')}</p>` : ''}
+    ${s.famous?.length ? `<p class="note">세상의 이름난 검객: ${s.famous.slice(0, 6).map((f) => `${esc(f.name)}(${esc(f.school)}, ${esc(f.place)}${f.blade ? ', 마검사' : ''})`).join(', ')}</p>` : ''}
+    ${s.log?.length ? `<details class="pl-more"><summary>검을 들고 있었던 일 ${s.log.length}가지</summary><ul class="pl-news">${s.log.slice().reverse().map((n) => `<li><time>${n.y}년${n.m ? ` ${n.m}월` : ''}</time><span>${esc(n.text)}</span></li>`).join('')}</ul></details>` : ''}
   </div>`;
 }

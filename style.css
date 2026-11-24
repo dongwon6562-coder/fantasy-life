@@ -2178,7 +2178,7 @@ html.swiping .main { will-change: transform; }
 
 /* ---------- 43단계 내 검술 수첩: 등급 표, 초식 ---------- */
 .sw-book h3 small { font-weight: 400; color: var(--muted); font-size: var(--fs-xs, 12px); margin-left: 4px; }
-.sw-ranks { list-style: none; display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 4px; margin: 8px 0 10px; padding: 0; }
+.sw-ranks { list-style: none; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 4px; margin: 8px 0 10px; padding: 0; }
 .sw-r { display: flex; flex-direction: column; align-items: center; padding: 5px 2px 4px; border-radius: 8px; border: 1px solid rgba(201, 162, 90, .14); background: rgba(20, 16, 12, .35); color: var(--muted); line-height: 1.2; text-align: center; min-width: 0; }
 .sw-r b { font-size: 13px; font-family: var(--serif, serif); word-break: keep-all; }
 .sw-r span { font-size: 10px; }
@@ -2192,4 +2192,3 @@ html.swiping .main { will-change: transform; }
 .sw-f .note { display: block; font-size: 12px; line-height: 1.45; word-break: keep-all; }
 .sw-f.on { opacity: 1; border-left-color: var(--brass, #c9a25a); }
 .sw-f.secret.on { border-left-color: #d8b46a; background: rgba(201, 162, 90, .08); }
-@media (max-width: 360px) { .sw-ranks { grid-template-columns: repeat(3, minmax(0, 1fr)); } }

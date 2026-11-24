@@ -144,7 +144,7 @@ const GROUPS = [
   ['spread', '기술 퍼뜨리기', /^spread_/],
   ['herd', '목축과 유목', /^herd_/],
   ['frontier', '개척', /^frontier_/],
-  ['learn', '배움과 수련', /^(school_|study|train_body|sword_|meditate|magic_|spell_|circle_exam|sp_(school|chant|create)$|legend_lesson|research|seal_study|tower_(join|duty|exam|craft)|ruin_(read|restore|book))/],
+  ['learn', '배움과 수련', /^(school_|study|train_body|sword_|sw_(form|secret|aura|challenge|blade)$|meditate|magic_|spell_|circle_exam|sp_(school|chant|create)$|legend_lesson|research|seal_study|tower_(join|duty|exam|craft)|ruin_(read|restore|book))/],
   ['mana', '마나 샘', /^mana_/],
   ['spirit', '정령', /^spirit_/],
   ['ageless', '늙지 않는 몸', /^(noah_|dragonname_|after_rename|sealbreath_)/],
