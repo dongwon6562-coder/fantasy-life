@@ -113,7 +113,7 @@ const gateFor = (g) => Object.entries(LANDS).find(([id, d]) => d.gate && d.gate.
 ACTIONS.push({
   id: 'ld_pass',
   name: '통행 허가 청하기',
-  icon: 'scroll',
+  icon: 'seal',
   desc: '이 고장 너머 숨은 도시로 들어갈 허가를 청한다. 보증과 수수료가 든다.',
   available: (g) => !busy(g) && !onRoad(g) && age(g) >= 16 && !!gateFor(g),
   run(g, rng) {
