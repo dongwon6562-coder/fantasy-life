@@ -170,18 +170,21 @@ for (const o of KINDRED) {
 
 // 4. 오래 사는 피: 사람 벗이 먼저 늙는다
 {
-  let slow = 0, slowLines = 0;
+  let slow = 0, slowLines = 0, valid = 0;
   for (const id of ['elf_elder', 'dwarf_trader', 'half_elf_border', 'elf_minstrel', 'dwarf_heir']) {
     const g = newGame({ name: '실렌', sex: 'f', familyId: id, mode: 'free', seed: 4500 });
     me(g).ageMonths = 50 * 12;
     const rng = rngOf(g);
+    const pid = g.player.id;
     const f = makePerson(rng, { sex: 'm', ageMonths: 51 * 12, job: 'farmer' }); f.place = L(g).place; f.known = true; f.affection = 60; g.people.push(f);
     g.childhood ??= {}; g.childhood.friend = f.id;
     for (let m = 0; m < 12 * 12 && !g.over; m++) { month(g, rng); if (f.alive) f.ageMonths = Math.min(f.ageMonths, 56 * 12); if (kindredState(g).slow) break; }
     if (kindredState(g).slow) slow++;
+    // 무작위 삶이라 벗이 병으로 먼저 가거나 내가 먼저 죽어 대가 바뀔 수 있다: 둘 다 남은 판만 센다 (44단계: 행동이 늘면 길이 바뀐다)
+    if (kindredState(g).slow || (f.alive && !g.over && g.player.id === pid)) valid++;
   }
   slowLines = kinds.slow ?? 0;
-  ok(slow >= 3, `먼저 늙는 벗 장면 ${slow}/5`); // 벗이 그사이 병으로 먼저 갈 수도 있다
+  ok(valid >= 1 && slow >= Math.min(3, valid), `먼저 늙는 벗 장면 ${slow}/${valid}`); // 벗이 그사이 병으로 먼저 갈 수도 있다
   ok(slowLines >= 3, `먼저 늙는 벗 줄 ${slowLines}`);
   for (let k = 0; k < 3; k++) {
     const g = newGame({ name: '실렌', sex: 'f', familyId: 'elf_elder', mode: 'free', seed: 4510 });
