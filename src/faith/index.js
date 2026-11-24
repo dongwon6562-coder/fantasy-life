@@ -608,8 +608,8 @@ defineScene('faith_inquisition', {
   text: (g) => {
     const f = F(g);
     const why = f.dawn ? '검은 새벽의 집회에서 너를 보았다는 사람이 있다.'
-      : f.god !== 'solar' ? `${J(GODS[f.god].deity, '을/를')} 섬긴다고 들었다.`
-        : ['half_demon', 'demon'].includes(playerRace(g)) ? '너의 핏줄에 대해 묻고 싶은 것이 있다.'
+      : ['half_demon', 'demon'].includes(playerRace(g)) ? '너의 핏줄에 대해 묻고 싶은 것이 있다.'
+        : f.god !== 'solar' && GODS[f.god]?.deity ? `${J(GODS[f.god].deity, '을/를')} 섬긴다고 들었다.`
           : '네 이름이 고발장에 적혀 있다.';
     return `회색 망토의 사내 둘이 문을 두드렸다. 이단심문소의 표식. "${why} 함께 가자. 오래 걸리지 않는다." 오래 걸리지 않는다고 말한 사람치고 금방 돌아온 사람은 없다고 들었다.`;
   },
