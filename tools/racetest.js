@@ -86,7 +86,8 @@ for (const [race, fam] of Object.entries(FAMS)) {
   const info = raceInfo(g);
   for (const [k, v] of Object.entries(info)) ok(!bad(String(v)) || k === 'beast', `raceInfo ${k}=${v}`);
   // 세월 흘려보내기 (엘프)
-  const e = newGame({ name: '엘프', sex: 'f', familyId: 'elf_exile', mode: 'free', seed: 11 });
+  // 44단계: 고장이 늘어 주사위가 밀리자 씨앗 11은 흘려보내는 다섯째 해에 엘프가 숨을 거두는 판이 되었다(대 잇기에서 멈춤). 씨앗만 바꾼다
+  const e = newGame({ name: '엘프', sex: 'f', familyId: 'elf_exile', mode: 'free', seed: 12 });
   me(e).ageMonths = 40 * 12;
   const y0 = e.date.year;
   const text = driftYears(e, 10);

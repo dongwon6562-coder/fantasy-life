@@ -38,7 +38,8 @@ for (const id of Object.keys(DK_PLACES)) {
   ok(p && p.hidden && p.realm === 'demon' && Object.keys(p.links).length, `고장 ${id}`);
   ok(travelMonths('graubel', id) < 99, `해협 길 ${id}`);
 }
-ok(travelMonths('graubel', 'portel') === 6 && travelMonths('barka', 'graubel') === 4, '사람 땅 지름길이 생기지 않음');
+// 44단계: 새 고장(크로센·로텐부르크)으로 사람 땅 길이 짧아졌다(그라우벨→포르텔 5달). 마대륙을 거치는 길(9달)이 지름길이 아니면 된다
+ok(travelMonths('graubel', 'portel') >= 5 && travelMonths('barka', 'graubel') >= 4, '사람 땅 지름길이 생기지 않음');
 
 function resolveAll(g, pick) {
   for (let k = 0; k < 8 && g.pendingEvent; k++) {
