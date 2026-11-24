@@ -29,6 +29,7 @@ import { renderPeople, bindPeople } from './people.js';
 import { yearFold, yearSpan } from './yearfold.js';
 import { applyPrefs, prefs, reducedMotion, revealOn, smoothOn, renderSettings, bindSettings } from './settings.js';
 import { runGuide, stopGuide } from './guide.js';
+import { installTouch } from './touch.js';
 import { audio } from '../audio/index.js';
 import { renderWorkshop } from './workshop.js';
 import { renderWorld, bindWorld } from './world.js';
@@ -147,6 +148,8 @@ let lastMonth = null; // 바로 전에 그린 달 (달이 바뀌면 이번 달 �
 // 폰 폭(860px 아래)이나 지도에서는 옆 '나' 칸이 CSS로 숨는데, 그래도 매달 통째로 그리고 있었다.
 // 오래 한 판에서는 이 칸만 화면 요소 2천 개가 넘어 한 달 넘기기가 네 배 느려졌다 (31단계 헤드). 숨을 때는 아예 그리지 않는다.
 const NARROW = '(max-width: 860px)';
+// 탭을 옮기면 옆에서 밀려 들어온다 (오른쪽 탭이면 오른쪽에서)
+const slideFrom = (a, b) => { const i = VIEWS.findIndex(([id]) => id === a), j = VIEWS.findIndex(([id]) => id === b); return i < 0 || j < 0 || i === j ? '' : j > i ? ' from-r' : ' from-l'; };
 const narrow = () => { try { return matchMedia(NARROW).matches; } catch { return false; } };
 
 export function start() {
@@ -656,6 +659,22 @@ const VIEWS = [
   ['save', '설정', 'gear'],
 ];
 
+// 탭 차례: '나'는 좁은 화면에서만 아래 탭에 있다
+const tabOrder = () => VIEWS.filter(([id]) => id !== 'me' || narrow());
+function stepView(dir) {
+  const list = tabOrder(), i = list.findIndex(([id]) => id === ui.view);
+  return i < 0 ? null : list[i + dir] ?? null;
+}
+function goView(id) {
+  if (!game || id === ui.view) return;
+  ui.view = id; ui.saves = {}; renderGame(); window.scrollTo({ top: 0 });
+}
+installTouch({
+  canSwipe: () => !!(game && !game.over && !game.pendingEvent && !ui.outcome && document.querySelector('.layout > .main') && !document.querySelector('.overlay, .month-card, .guide-bubble, .book-ov, .ways-ov')),
+  neighbor: (dir) => { const v = stepView(dir); return v ? { id: v[0], name: v[1], icon: icon(v[2], 22) } : null; },
+  go: (dir) => { const v = stepView(dir); if (v) goView(v[0]); },
+});
+
 let roomTimer = null;
 function paintRoomLater(args, monthKey, roomName) {
   if (typeof setTimeout === 'undefined') return;
@@ -716,7 +735,7 @@ function renderGame() {
     <div class="wrap game">
       <div class="layout view-${ui.view}">
         ${ui.view === 'me' || ui.view === 'map' || narrow() ? '' : renderSheet().replace('class="sheet"', 'class="sheet side"')}
-        <div class="main${lastView !== ui.view || (ui.view === 'month' && lastMonth !== monthKey) ? ' enter' : ''}">${main}</div>
+        <div class="main${lastView !== ui.view || (ui.view === 'month' && lastMonth !== monthKey) ? ` enter${slideFrom(lastView, ui.view)}` : ''}">${main}</div>
       </div>
     </div>
     ${game.over ? '' : renderEvent()}`;
@@ -855,7 +874,7 @@ function bindGame() {
   const th = $('#to-house');
   if (th) th.onclick = () => { ui.view = 'chron'; ui.chronTab = 'house'; renderGame(); window.scrollTo({ top: 0 }); };
   bindSettings(rerender, () => { ui.view = 'month'; renderGame(); window.scrollTo({ top: 0 }); });
-  $$('[data-view]').forEach((b) => b.onclick = () => { ui.view = b.dataset.view; ui.saves = {}; renderGame(); window.scrollTo({ top: 0 }); });
+  $$('[data-view]').forEach((b) => b.onclick = () => { if (b.dataset.view === ui.view) { window.scrollTo({ top: 0, behavior: reducedMotion() ? 'auto' : 'smooth' }); return; } goView(b.dataset.view); });
   bindSaves(ui.saves, { rerender, game });
   const tt = $('#to-title');
   if (tt) tt.onclick = () => { closeBook(); closeWays(); game = null; if (unmountMap) { unmountMap(); unmountMap = null; } document.querySelectorAll('.month-card').forEach((x) => x.remove()); start(); };

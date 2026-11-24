@@ -2049,3 +2049,39 @@ details.act-group[open] > .act-grid { margin-top: 10px; }
 .ad-head { display: flex; gap: 12px; align-items: center; }
 .ad-head p { margin: 0; }
 .ad-kid.gone { opacity: .7; }
+
+/* ---------- 40단계 폰 손맛 ---------- */
+/* 누르는 순간: 조금 밝아지고(늘), 살짝 눌린다(움직임을 켰을 때만). .pressing은 touch.js가 붙인다 */
+:where(button, summary, a[href], .act, [role="button"], label.chip) { transition: filter .14s ease, transform .14s ease, background-color .14s ease; }
+.pressing:not(:disabled) { filter: brightness(1.18) saturate(1.05); }
+html.motion .pressing:not(:disabled) { transform: scale(.965); transition-duration: .06s; }
+html.motion .nav button.pressing { transform: none; }
+html.motion .nav button.pressing .ico { transform: scale(.88); }
+.nav button .ico { transition: transform .16s cubic-bezier(.3, 1.6, .5, 1), background-color .2s, color .2s; }
+html.motion .nav button[aria-current="page"] .ico { animation: tab-pop .32s cubic-bezier(.3, 1.6, .5, 1); }
+@keyframes tab-pop { from { transform: scale(.82); } }
+summary.pressing, details.card > summary.pressing { transform: none !important; }
+html.motion .card.pressing, html.motion .block.pressing { transform: scale(.99); }
+
+/* 탭 넘김: 옆 탭이면 그쪽에서 밀려 들어온다 */
+html.motion .main.enter.from-r { animation: view-from-r .3s cubic-bezier(.2, .75, .25, 1); }
+html.motion .main.enter.from-l { animation: view-from-l .3s cubic-bezier(.2, .75, .25, 1); }
+@keyframes view-from-r { from { opacity: 0; transform: translateX(26px); } }
+@keyframes view-from-l { from { opacity: 0; transform: translateX(-26px); } }
+html.motion .main.swipe-back { transition: transform .2s ease-out, opacity .2s ease-out; }
+html.swiping, html.swiping body { overflow-x: hidden; }
+html.swiping .main { will-change: transform; }
+
+/* 가장자리에서 밀 때 옆 탭 이름이 놋쇠 표로 따라 나온다 */
+.swipe-hint {
+  --k: 0; position: fixed; top: 46%; z-index: 50; display: flex; flex-direction: column; align-items: center; gap: 4px;
+  padding: 10px 10px 8px; min-width: 58px; border: 1px solid #6f5122; border-radius: var(--r-lg, 14px);
+  background: var(--grain, none), linear-gradient(180deg, #2c2319, #1d1711); color: #e9d9b6; font-size: var(--fs-xs, 12px);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, .5), inset 0 1px 0 rgba(255, 230, 180, .08); pointer-events: none;
+  opacity: calc(.25 + var(--k) * .75);
+}
+.swipe-hint.l { left: 6px; transform: translate(calc(-70% + var(--k) * 70%), -50%); }
+.swipe-hint.r { right: 6px; transform: translate(calc(70% - var(--k) * 70%), -50%); }
+.swipe-hint .ico { color: var(--brass, #c9a25a); }
+.swipe-hint.ready { border-color: var(--brass, #c9a25a); color: #f6ebd0; box-shadow: 0 6px 18px rgba(0, 0, 0, .5), 0 0 0 2px rgba(201, 162, 90, .25); }
+.swipe-hint.ready .ico { color: #1d140b; background: linear-gradient(180deg, #dcb873, #b9904a); border-radius: var(--r-pill, 99px); padding: 2px 8px; }
