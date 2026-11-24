@@ -147,6 +147,7 @@ defineScene('pr_guard', {
   ],
   resolve(g, rng, s, key) {
     const st = S(g); st.done.guard = mi(g); const stay = st.stay; const gd = guardOf(g);
+    if ((key === 'warm' && g.player.money < 6) || (key === 'book' && g.player.money < 20)) return '주머니를 뒤졌지만 은화가 모자랐다. 옥졸은 혀를 차고 지나갔다.';
     if (key === 'warm') { g.player.money -= 6; if (stay) stay.bribed = true; stress(g, -8); aff(gd, 6); return '그날 밤 담요가 들어왔다. 양털 냄새가 났다. 죽에는 정말로 고기 한 점이 떠 있었다. 감방 동료들이 그걸 보았다. 나눠 줄지 말지, 한참 고민했다.'; }
     if (key === 'book') {
       g.player.money -= 20; if (stay) stay.bribed = true;
