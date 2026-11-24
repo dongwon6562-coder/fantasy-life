@@ -132,7 +132,8 @@ for (const o of KINDRED) {
 // 3. 반마족: 감춘 뿔은 꺼리는 나라에서 들킬 뻔한다
 {
   let near = 0, shows = 0;
-  for (let k = 0; k < 4; k++) {
+  // 44단계: 고장이 늘어 주사위가 밀리자 네 판에서 들킬 뻔한 날이 둘에 그쳤다. 판을 여섯으로 늘린다
+  for (let k = 0; k < 6; k++) {
     const g = newGame({ name: '리제', sex: 'f', familyId: 'hd_hidden', mode: 'free', seed: 4400 + k });
     me(g).ageMonths = 18 * 12; kindredState(g).horn = 80;
     ok(realmOf(L(g).place) === 'leonia', '하르펜은 레오니아');

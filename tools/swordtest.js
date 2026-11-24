@@ -225,7 +225,8 @@ function playDuel(g, pick) {
   const g = fresh(50, 'hammer', { sword: 75, school: 'yusu', rank: 2 });
   if (H(g).famous.filter((f) => f.alive).length < 8) fail('famous count', H(g).famous.length);
   if (H(g).famous.filter((f) => f.blade).length !== 1) fail('one spellblade famous');
-  const f = H(g).famous.find((x) => x.school === 'moru'); f.place = 'hammer'; f.lastAt = -99;
+  // 44단계: 주사위가 밀려 모루류 검객이 어른이 되기 전에 숨을 거둔 판이 나왔다. 살아 있는 걸로 세운다
+  const f = H(g).famous.find((x) => x.school === 'moru'); f.place = 'hammer'; f.lastAt = -99; f.alive = true;
   if (!famousHere(g).length || !can(g, 'sw_challenge')) fail('challenge hidden');
   runAct(g, 'sw_challenge');
   if (g.duelQueued?.kind !== 'sw_famous') fail('famous duel not queued');

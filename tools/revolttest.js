@@ -121,13 +121,14 @@ function rising(g, { place = L(g).place, phase = 'brewing', me: role = null, str
 // 1) 분노가 끓으면 봉기가 저절로 인다 (플레이어 없이도)
 {
   let n = 0;
-  for (let t = 0; t < 5; t++) {
+  // 44단계: 고장이 늘어 주사위가 밀리자 다섯 판 가운데 세 판이 스물네 달 내내 6% 주사위를 못 넘겼다(0.94^24≈22%). 판을 여덟으로 늘린다
+  for (let t = 0; t < 8; t++) {
     const g = adult(1 + t);
     V(g).anger.verden = 90; V(g).anger.ern = 5;
     play(g, 24, ['rest', 'work'], {}, 1);
     if (V(g).risings.some((r) => r.place === 'verden') || V(g).past.some((x) => x.place === 'verden')) n++;
   }
-  ok(n >= 3, `natural risings ${n}/5`);
+  ok(n >= 3, `natural risings ${n}/8`);
   // 결말이 난다 (이김·꺾임)
   let ends = 0;
   for (let t = 0; t < 4; t++) {

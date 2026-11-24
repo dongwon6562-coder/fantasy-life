@@ -215,6 +215,8 @@ function scene(g, kind, data, re, opt = {}) {
       const place = ev === 'cub' ? 'fur' : ev === 'egg_offer' ? 'saltmare' : 'harfen';
       placeAt(g, place);
       g.player.money = 200;
+      // 44단계: 주사위가 밀려 어린 시절에 이미 짐승을 가득 들인 판이 나왔다. 장면마다 깨끗한 우리에서 시작한다
+      if (g.beasts) g.beasts.animals = [];
       addAnimal(g, 'dog', { ageYears: 4, trained: 80, bond: ev === 'dog_bite' ? 40 : 60 });
       if (ev === 'horse_lame') addAnimal(g, 'horse', { ageYears: 6, trained: 100, bond: 50 });
       if (ev === 'hawk_flee') addAnimal(g, 'hawk', { ageYears: 3, trained: 100, bond: 50 });
