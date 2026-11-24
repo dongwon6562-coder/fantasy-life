@@ -32,7 +32,7 @@ for (const o of KINDRED) {
   ok(o.scenes.length === 3 && o.lines.length >= 3 && o.ties.length === 2 && o.want && o.burden && o.burdenScene?.choices.length >= 2, `집안 내용 ${o.id}`);
 }
 ok(playableRaces().some((r) => r.id === 'half_demon' && r.family), '반마족을 고를 수 있음');
-ok(!playableRaces().some((r) => r.id === 'demon'), '마족은 아직 못 고름');
+ok(playableRaces().some((r) => r.id === 'demon' && r.family), '43단계부터 마족도 고름');
 
 function resolveAll(g, pick) {
   for (let k = 0; k < 8 && g.pendingEvent; k++) {
