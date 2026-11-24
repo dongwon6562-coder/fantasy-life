@@ -99,6 +99,7 @@ import { renderEnvoyNow, renderEnvoyBlock } from './envoy.js';
 import { renderSiblings } from './siblings.js';
 import { renderFamilyPick } from './famPick.js';
 import { renderRuinsBlock, renderRuins } from './ruins.js';
+import { renderSpellbook } from './spellbook.js';
 import { renderOrderBlock, renderOrders } from './order.js';
 import { renderFoundingBlock, renderFoundings, renderFoundingChron } from './founding.js';
 import { renderMountCard, renderMountBlock } from './mount.js';
@@ -117,6 +118,8 @@ import { renderFamTree } from './famtree.js';
 import { renderSurveyNow, renderSurveyBlock, renderSurveyMap } from './survey.js';
 import { renderStarsMap, renderStarsChron, renderStarsBlock } from './stars.js';
 import { renderPrisonNow, renderPrisonBlock } from './prison.js';
+import { renderRacePick } from './racePick.js';
+import { renderMagejobNow } from './magejob.js';
 import { renderMigrate, renderMigrateNow } from './migrate.js';
 import { renderAdopt, renderAdoptBlock } from './adopt.js';
 import { renderCloisterBlock, renderCloisters } from './cloister.js';
@@ -189,7 +192,6 @@ function renderSetup() {
   let races = [];
   try { races = playableRaces(); } catch (e) { console.error(e); }
   const race = s.race ?? 'human';
-  const raceNow = races.find((r) => r.id === race);
   const fams = races.length ? familiesOf(race) : FAMILIES;
   root().innerHTML = `
     <div class="title-hero">
@@ -229,13 +231,10 @@ function renderSetup() {
         </section>
         <section>
           <h2>종족</h2>
-          <div class="seg race-seg" role="group" aria-label="종족">
-            ${races.map((r) => `<button data-race="${r.id}" aria-pressed="${race === r.id}">${esc(r.name)}</button>`).join('')}
-          </div>
-          ${raceNow ? `<p class="race-desc"><b>${esc(raceNow.name)}</b> · 수명 ${raceNow.life >= 500 ? '천 년 가까이' : `${raceNow.life}년쯤`} · ${esc(raceNow.desc)}</p>` : ''}
+          ${renderRacePick(races, race)}
         </section>
         <section>
-          <h2>태어날 집안</h2>
+          <h2>태어날 집안${races.length > 1 ? ` <small>${esc(races.find((r) => r.id === race)?.name ?? '')} 집안 ${fams.length}곳</small>` : ''}</h2>
           ${renderFamilyPick(fams, s)}
         </section>
         ${renderBirthPick(s, race)}
@@ -355,6 +354,7 @@ function renderSheet() {
            <p class="note">${circle ? `<span class="chip mana">${circle}서클</span>` : '아직 서클을 이루지 못했다. 마력과 마법 수련이 둘 다 필요하다.'}</p>`
         : '<p class="note">아직 마력을 느낀 적이 없다.</p>'}
     </div>
+    ${renderSpellbook(game, ui)}
     <div class="block">
       <h3>기술</h3>
       ${skillsShown.length
@@ -555,7 +555,7 @@ function nowCards(parts) {
   return parts.map((h, i) => (i === first ? merged : lines[i] ? '' : h)).join('');
 }
 
-const SHEET_SHORT = { '늙음과 마지막 해들': '늙음', '내기와 겨루기': '내기', '풀리지 않은 일': '미제', '연구와 발명': '연구', '글과 예술': '예술', '병과 의술': '병', '내 집 마련': '집', '법과 재판': '법', '학원과 시험': '학원', '밑바닥 삶': '밑바닥', '내 가게': '가게', '마물 사냥': '마물', '용병단과 깃발': '용병단', '광산과 땅 밑': '광산', '사슬과 자유': '사슬', '무대와 재주': '무대', '전쟁 뒤': '전쟁 뒤', '몸과 마음': '몸과 마음', '집과 재산': '재산', '어린 시절': '어린 시절', '가문의 내력': '가문', '망자와 저주': '저주', '목축과 유목': '목축', '봉기와 반란': '봉기', '요리사의 길': '요리', '유배와 망명': '유배', '첩보와 밀정': '첩보', '마나의 흐름': '마나', '숨은 왕가의 피': '왕가의 피', '약초와 약방': '약방', '성유물': '성유물', '늙지 않는 몸': '불로', '타고남과 핏줄': '핏줄', '스스로 고른 끝': '마지막', '정령': '정령', '양조장': '양조', '사절과 볼모': '사절', '유적과 고대 마법': '유적', '기사단': '기사단', '내 나라': '내 나라', '하늘 기수': '하늘 기수', '뱃일': '뱃일', '태어난 집안': '집안', '옷감과 바느질': '바느질', '마족': '마족', '새 시대': '새 시대', '목수와 석공': '목수', '길 위의 일': '길', '사교계': '사교계', '점령 아래에서': '점령', '사냥': '사냥', '산적': '산적', '빚과 돈놀이': '빚', '장의사와 묘지기': '장의', '서자와 혼외 자식': '서자', '측량과 지도': '측량', '별 공부': '별', '옥살이': '옥살이', '수도원과 은둔': '수도원', '거둔 아이와 거둔 집': '거둔 아이' };
+const SHEET_SHORT = { '늙음과 마지막 해들': '늙음', '내기와 겨루기': '내기', '풀리지 않은 일': '미제', '연구와 발명': '연구', '글과 예술': '예술', '병과 의술': '병', '내 집 마련': '집', '법과 재판': '법', '학원과 시험': '학원', '밑바닥 삶': '밑바닥', '내 가게': '가게', '마물 사냥': '마물', '용병단과 깃발': '용병단', '광산과 땅 밑': '광산', '사슬과 자유': '사슬', '무대와 재주': '무대', '전쟁 뒤': '전쟁 뒤', '몸과 마음': '몸과 마음', '집과 재산': '재산', '어린 시절': '어린 시절', '가문의 내력': '가문', '망자와 저주': '저주', '목축과 유목': '목축', '봉기와 반란': '봉기', '요리사의 길': '요리', '유배와 망명': '유배', '첩보와 밀정': '첩보', '마나의 흐름': '마나', '숨은 왕가의 피': '왕가의 피', '약초와 약방': '약방', '성유물': '성유물', '늙지 않는 몸': '불로', '타고남과 핏줄': '핏줄', '스스로 고른 끝': '마지막', '정령': '정령', '양조장': '양조', '사절과 볼모': '사절', '유적과 고대 마법': '유적', '기사단': '기사단', '내 나라': '내 나라', '하늘 기수': '하늘 기수', '뱃일': '뱃일', '태어난 집안': '집안', '옷감과 바느질': '바느질', '마족': '마족', '새 시대': '새 시대', '목수와 석공': '목수', '길 위의 일': '길', '사교계': '사교계', '점령 아래에서': '점령', '사냥': '사냥', '산적': '산적', '빚과 돈놀이': '빚', '장의사와 묘지기': '장의', '서자와 혼외 자식': '서자', '측량과 지도': '측량', '별 공부': '별', '옥살이': '옥살이', '수도원과 은둔': '수도원', '거둔 아이와 거둔 집': '거둔 아이', '내 주문서': '주문서' };
 function sheetJump() {
   const sheet = document.querySelector('.sheet:not(.side)');
   if (!sheet || sheet.querySelector('.view-jump')) return;
@@ -723,7 +723,7 @@ function renderGame() {
   const roomArt = roomArgs ? (() => { try { return interiorCached(roomArgs); } catch (e) { console.error(e); return ''; } })() : '';
   const art = roomArt || sceneImage(sceneArgs);
   let main = '';
-  if (ui.view === 'month') main = game.over ? renderOver() : renderCrisis(game) + renderNews() + nowCards([renderPrisonNow(game), renderBondageNow(game), renderMigrateNow(game), renderExileNow(game), renderLawNow(game), renderSecretNow(game), renderEnvoyNow(game), renderSpyNow(game, ui), renderHeistNow(game, ui), renderClaimNow(game, ui), renderRevoltNow(game), renderPoorNow(game), renderArmyNow(game), renderAftermathNow(game), renderDragonNow(game), renderHauntNow(game), renderExploreNow(game), renderFrontierNow(game), renderWildsNow(game), renderMineNow(game), renderHerdLine(game), renderTradeNow(game), renderWorksNow(game), renderNatureNow(game), renderManaNow(game), renderRelicNow(game), renderAgelessNow(game), renderSpiritNow(game), renderHealthNow(game), renderMysteryNow(game), renderOmenNow(game), renderLineageNow(game), renderSchoolNow(game), renderTroupeNow(game)]) + renderYouthCard(game, ui) + renderCompanyNow(game, ui) + renderFarmNow(game, ui) + renderHerdNow(game, ui) + renderCuisineNow(game, ui) + renderApoNow(game, ui) + renderBrewNow(game, ui) + renderHarborNow(game, ui) + renderClothNow(game, ui) + renderBuilderNow(game, ui) + renderCarrierNow(game, ui) + renderCreditNow(game, ui) + renderUndertakerNow(game, ui) + renderSurveyNow(game, ui) + renderHunterNow(game, ui) + renderInnNow(game, ui) + renderWorkshop(game, ui) + renderPlan(game, ui);
+  if (ui.view === 'month') main = game.over ? renderOver() : renderCrisis(game) + renderNews() + nowCards([renderPrisonNow(game), renderBondageNow(game), renderMigrateNow(game), renderExileNow(game), renderLawNow(game), renderSecretNow(game), renderEnvoyNow(game), renderSpyNow(game, ui), renderHeistNow(game, ui), renderClaimNow(game, ui), renderRevoltNow(game), renderPoorNow(game), renderArmyNow(game), renderAftermathNow(game), renderDragonNow(game), renderHauntNow(game), renderExploreNow(game), renderFrontierNow(game), renderWildsNow(game), renderMineNow(game), renderHerdLine(game), renderTradeNow(game), renderWorksNow(game), renderNatureNow(game), renderManaNow(game), renderRelicNow(game), renderAgelessNow(game), renderSpiritNow(game), renderHealthNow(game), renderMysteryNow(game), renderOmenNow(game), renderLineageNow(game), renderSchoolNow(game), renderTroupeNow(game)]) + renderYouthCard(game, ui) + renderCompanyNow(game, ui) + renderFarmNow(game, ui) + renderHerdNow(game, ui) + renderCuisineNow(game, ui) + renderApoNow(game, ui) + renderBrewNow(game, ui) + renderHarborNow(game, ui) + renderClothNow(game, ui) + renderBuilderNow(game, ui) + renderCarrierNow(game, ui) + renderCreditNow(game, ui) + renderUndertakerNow(game, ui) + renderSurveyNow(game, ui) + renderMagejobNow(game, ui) + renderHunterNow(game, ui) + renderInnNow(game, ui) + renderWorkshop(game, ui) + renderPlan(game, ui);
   else if (ui.view === 'me') main = renderSheet();
   else if (ui.view === 'people') main = withJump([['tree', '족보', renderFamTree(game)], ['love', '사랑', renderLove(game)], ['kin', '자식', renderKin(game)], ['siblings', '형제', renderSiblings(game)], ['stepfamily', '새 식구', renderStepfamily(game)], ['adopt', '거둔 아이', renderAdopt(game)], ['baseborn', '서자', renderBaseborn(game)], ['friends', '벗', renderFriends(game)], ['society', '사교계', renderSociety(game)], ['oath', '맹세', renderOath(game)], ['household', '식솔', renderHousehold(game)], ['troupe', '극단', renderTroupe(game)], ['letters', '편지', renderLetters(game)], ['village', '이웃', renderVillage(game)], ['aftermath', '전쟁 뒤', renderAftermath(game)], ['mentor', '제자', renderMentor(game)], ['beasts', '짐승', renderBeasts(game)], ['mount', '하늘 짐승', renderMountCard(game)], ['feud', '원한', renderFeud(game)], ['peoples', '종족의 땅', renderPeoples(game)], ['party', '동료', renderParty(game)], ['notebook', '인물 수첩', renderPeople(game, ui)]]);
   else if (ui.view === 'map') main = withJump([['map', '지도', renderMap()], ['pol', '대륙 정세', renderPolitics(game, ui)], ['occupied', '점령지', renderOccupied(game)], ['migrate', '피난', renderMigrate(game)], ['outlaws', '산적', renderOutlaws(game)], ['founding', '새 나라', renderFoundings(game)], ['revolt', '민심', renderRevolt(game)], ['later', '새 기술', renderLater(game)], ['spread', '기술의 길', renderSpread(game)], ['city', '공장 거리', renderCity(game)], ['newage', '새 시대', renderNewage(game)], ['trade', '장사 길', renderTrade(game)], ['works', '큰 공사', renderWorks(game)], ['nature', '하늘과 땅', renderNature(game)], ['explore', '미지의 땅', renderExplore(game)], ['survey', '지도 공방', renderSurveyMap(game)], ['stars', '하늘', renderStarsMap(game)], ['ruins', '유적', renderRuins(game)], ['frontier', '변경 너머', renderFrontier(game)], ['wilds', '마물', renderWilds(game)], ['mine', '광산', renderMines(game)], ['herd', '목축', renderHerd(game)], ['seal', '봉인', renderSeal(game)], ['demons', '마족', renderDemons(game)], ['orders', '기사단', renderOrders(game)], ['cloister', '수도원', renderCloisters(game)], ['mana', '마나', renderMana(game)], ['dragon', '용', renderDragon(game)], ['haunt', '망자', renderHaunt(game)], ['omen', '예언', renderOmen(game)], ['deep', '구렁', renderDeep(game)], ['sea', '바다', renderSea(game)], ['harbor', '포구', renderHarbor(game)], ['world', '레오니아', renderWorldCard()]], { after: 1 }); // 지도가 먼저 (폰에서 바로 보이게), 바로 가기는 지도 아래
@@ -862,6 +862,9 @@ function bindGame() {
   // 족보 나무가 넓으면 '나'가 가운데 오게
   const fts = $('.ftree-scroll'), ftm = fts?.querySelector('.ftn.me');
   if (fts && ftm && fts.scrollWidth > fts.clientWidth) { const r = ftm.getBoundingClientRect(), c = fts.getBoundingClientRect(); fts.scrollLeft += r.left + r.width / 2 - (c.left + c.width / 2); }
+  document.querySelectorAll('details.sp-school').forEach((d) => { d.ontoggle = () => { if (d.open) ui.spOpen = d.dataset.sp; else if (ui.spOpen === d.dataset.sp) ui.spOpen = ''; }; });
+  const mjc = $('details.mj-card');
+  if (mjc) mjc.ontoggle = () => { ui.mjOpen = mjc.open; };
   const svc = $('details.sv-card');
   if (svc) svc.ontoggle = () => { ui.svOpen = svc.open; };
   const utc = $('details.ut-card');
