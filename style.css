@@ -2128,3 +2128,5 @@ html.swiping .main { will-change: transform; }
 .ftn.more { width: auto; padding: 10px 8px; border: 1px dashed rgba(201, 162, 90, .35); border-radius: var(--r-md, 10px); cursor: default; }
 .ftree-side { margin-top: 6px; }
 .ft-og { color: var(--brass, #c9a25a); text-decoration: underline; text-decoration-color: rgba(201, 162, 90, .4); text-underline-offset: 3px; cursor: pointer; }
+/* 탭이 옆에서 밀려 들어오는 동안 화면이 가로로 늘지 않게 */
+.wrap.game { overflow-x: clip; }
