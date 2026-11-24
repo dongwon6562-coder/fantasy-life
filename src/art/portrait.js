@@ -380,7 +380,11 @@ function drawFace(game, p, age, stage, scars, ring, mood, detail, life, bust = f
 
   /* ----- 귀 ----- */
   const earAt = [];
-  if (!hat.coversEars && !(beast && p.beast !== 'hawk')) {
+  // 42단계: 뾰족한 귀(엘프·하프엘프·마족)는 두건·모자를 뚫고 위로 그린다 (종족이 보이게)
+  const pointy = elf || race === 'half_elf' || race === 'demon';
+  const earBuf = [];
+  if ((!hat.coversEars || pointy) && !(beast && p.beast !== 'hawk')) {
+    const EP = hat.coversEars ? earBuf : P;
     // 38단계 둘째: 귀는 조금 작고 낮게, 뺨 뒤로 물러나 그늘에 (얼굴 옆에 붙인 반원처럼 보이지 않게)
     const er = (hh * 0.12 + g.ears * 0.9) * (1 + kid * 0.12 + old * 0.1 + (dwarf ? 0.14 : 0));
     const eyC = (browY + noseBot) / 2 + 0.6 + hh * 0.04;
@@ -388,18 +392,18 @@ function drawFace(game, p, age, stage, scars, ring, mood, detail, life, bust = f
       const ex = cx + s * (hw * cheekW - 0.5);
       let d;
       if (elf || race === 'half_elf') {
-        const L = elf ? 7.5 + g.ears * 2.5 : 4.6;
+        const L = elf ? 7.5 + g.ears * 2.5 : 6.4 + g.ears * 0.8; // 42단계: 하프엘프 귀는 사람보다 눈에 띄게 길게
         d = `M${f(ex)} ${f(eyC - er * 0.9)} Q${f(ex + s * er * 1.2)} ${f(eyC - er * 1.6)} ${f(ex + s * (er * 1.2 + L * 0.6))} ${f(eyC - er * 1.1 - L * 0.8)} Q${f(ex + s * (er * 1.5))} ${f(eyC + er * 0.1)} ${f(ex + s * er * 0.95)} ${f(eyC + er * 0.9)} Q${f(ex + s * er * 0.5)} ${f(eyC + er * 1.7)} ${f(ex - s * 0.4)} ${f(eyC + er * 1.25)}Z`;
       } else if (race === 'demon') {
         d = `M${f(ex)} ${f(eyC - er * 0.9)} Q${f(ex + s * er * 1.3)} ${f(eyC - er * 1.9)} ${f(ex + s * er * 2)} ${f(eyC - er * 2.3)} Q${f(ex + s * er * 1.5)} ${f(eyC)} ${f(ex + s * er * 0.9)} ${f(eyC + er * 0.9)} Q${f(ex + s * er * 0.5)} ${f(eyC + er * 1.6)} ${f(ex - s * 0.4)} ${f(eyC + er * 1.2)}Z`;
       } else {
         d = `M${f(ex - s * 0.6)} ${f(eyC - er * 0.95)} C${f(ex + s * er * 0.85)} ${f(eyC - er * 1.8)} ${f(ex + s * er * 1.3)} ${f(eyC - er * 0.6)} ${f(ex + s * er * 0.9)} ${f(eyC + er * 0.5)} C${f(ex + s * er * 0.75)} ${f(eyC + er * 1.45)} ${f(ex + s * er * 0.25)} ${f(eyC + er * 1.75)} ${f(ex - s * 0.6)} ${f(eyC + er * 1.2)}Z`;
       }
-      P.push(`<path d="${d}" fill="${s > 0 ? mixHex(skin, sh2, 0.55) : mixHex(mixHex(skin, sh1, 0.4), blush, 0.12)}" stroke="${lineC}" stroke-width="0.5"${detail ? ' stroke-opacity="0.45"' : ''} stroke-linejoin="round"/>`);
-      if (detail) P.push(`<path d="M${f(ex + s * 0.2)} ${f(eyC - er)} Q${f(ex + s * er * 0.4)} ${f(eyC + er * 0.3)} ${f(ex)} ${f(eyC + er * 1.3)}" fill="none" stroke="${sh2}" stroke-width="${f(er * 0.7)}" opacity="0.55" filter="url(#${uid}xs)"/>`); // 귀가 머리에 붙는 자리의 그늘
-      if (detail) P.push(`<path d="M${f(ex + s * er * 0.35)} ${f(eyC - er * 0.75)} q${f(s * er * 0.8)} ${f(er * 0.3)} ${f(s * er * 0.35)} ${f(er * 1.3)}" fill="none" stroke="${sh2}" stroke-width="0.45" opacity="0.7"/><ellipse cx="${f(ex + s * er * 0.5)}" cy="${f(eyC + er * 0.25)}" rx="${f(er * 0.32)}" ry="${f(er * 0.55)}" fill="${sh2}" opacity="${s > 0 ? 0.5 : 0.32}" filter="url(#${uid}xs)"/><path d="M${f(ex + s * er * 0.2)} ${f(eyC - er * 1.05)} Q${f(ex + s * er * 1.2)} ${f(eyC - er * 1.5)} ${f(ex + s * er * 1.2)} ${f(eyC - er * 0.2)}" fill="none" stroke="${hi}" stroke-width="0.5" opacity="${s < 0 ? 0.45 : 0.18}" stroke-linecap="round"/>`);
+      EP.push(`<path d="${d}" fill="${s > 0 ? mixHex(skin, sh2, 0.55) : mixHex(mixHex(skin, sh1, 0.4), blush, 0.12)}" stroke="${lineC}" stroke-width="0.5"${detail ? ' stroke-opacity="0.45"' : ''} stroke-linejoin="round"/>`);
+      if (detail) EP.push(`<path d="M${f(ex + s * 0.2)} ${f(eyC - er)} Q${f(ex + s * er * 0.4)} ${f(eyC + er * 0.3)} ${f(ex)} ${f(eyC + er * 1.3)}" fill="none" stroke="${sh2}" stroke-width="${f(er * 0.7)}" opacity="0.55" filter="url(#${uid}xs)"/>`); // 귀가 머리에 붙는 자리의 그늘
+      if (detail) EP.push(`<path d="M${f(ex + s * er * 0.35)} ${f(eyC - er * 0.75)} q${f(s * er * 0.8)} ${f(er * 0.3)} ${f(s * er * 0.35)} ${f(er * 1.3)}" fill="none" stroke="${sh2}" stroke-width="0.45" opacity="0.7"/><ellipse cx="${f(ex + s * er * 0.5)}" cy="${f(eyC + er * 0.25)}" rx="${f(er * 0.32)}" ry="${f(er * 0.55)}" fill="${sh2}" opacity="${s > 0 ? 0.5 : 0.32}" filter="url(#${uid}xs)"/><path d="M${f(ex + s * er * 0.2)} ${f(eyC - er * 1.05)} Q${f(ex + s * er * 1.2)} ${f(eyC - er * 1.5)} ${f(ex + s * er * 1.2)} ${f(eyC - er * 0.2)}" fill="none" stroke="${hi}" stroke-width="0.5" opacity="${s < 0 ? 0.45 : 0.18}" stroke-linecap="round"/>`);
       earAt.push({ x: ex, y: eyC, er, s });
-      if (o.earring && s < 0) P.push(`<circle cx="${f(ex + s * er * 0.5)}" cy="${f(eyC + er * 1.9)}" r="1.1" fill="none" stroke="#c9a25a" stroke-width="0.55"/>`);
+      if (o.earring && s < 0) EP.push(`<circle cx="${f(ex + s * er * 0.5)}" cy="${f(eyC + er * 1.9)}" r="1.1" fill="none" stroke="#c9a25a" stroke-width="0.55"/>`);
     }
   }
 
@@ -657,7 +661,7 @@ function drawFace(game, p, age, stage, scars, ring, mood, detail, life, bust = f
   P.push(marks.skin, marks.chest, gearArt.chest, gearArt.face);
 
   /* ----- 앞머리·쓰개·뿔·짐승 귀 ----- */
-  P.push(HW(hairS.front), hat.front, marks.over);
+  P.push(HW(hairS.front), hat.front, ...earBuf, marks.over);
   if (beast && p.beast !== 'hawk') P.push(beastEars(p.beast, { cx, cy, hw, hh, top }, hair, hairDark, skin, uid, 'front'));
   if (race === 'demon' || race === 'half_demon') P.push(horns(race, { cx, cy, hw, hh, top }, hashStr('horn' + key) / 4294967296, 'front'));
   P.push('</g></g></g>');
@@ -750,13 +754,15 @@ function horns(race, h, roll, layer) {
   const { cx, hw, hh, top } = h;
   const small = race === 'half_demon';
   let out = '';
-  const col = '#3a3136', hi = '#8a7f84';
+  const col = small ? '#5c4e55' : '#3a3136', hi = small ? '#c8b8bd' : '#8a7f84';
   for (const s of [-1, 1]) {
     const bx = cx + s * hw * 0.6, by = top + hh * 0.24;
     let d, ridge;
     if (small) {
-      d = `M${f(bx - s * 2)} ${f(by)} Q${f(bx + s * 0.4)} ${f(by - 5.6)} ${f(bx + s * 3.4)} ${f(by - 7)} Q${f(bx + s * 3)} ${f(by - 2.4)} ${f(bx + s * 2.2)} ${f(by + 0.8)}Z`;
-      ridge = '';
+      // 42단계: 반마족 뿔은 20% 크게, 검은 머리에 묻히지 않게 밑동을 밝게
+      const k = 1.2;
+      d = `M${f(bx - s * 2 * k)} ${f(by)} Q${f(bx + s * 0.4 * k)} ${f(by - 5.6 * k)} ${f(bx + s * 3.4 * k)} ${f(by - 7 * k)} Q${f(bx + s * 3 * k)} ${f(by - 2.4 * k)} ${f(bx + s * 2.2 * k)} ${f(by + 0.8)}Z`;
+      ridge = `M${f(bx - s * 1.4)} ${f(by - 0.6)} Q${f(bx + s * 0.2)} ${f(by - 1.6)} ${f(bx + s * 2.2)} ${f(by - 0.2)}`;
     } else if (roll < 0.5) { // 뒤로 휘어 오르는 뿔
       d = `M${f(bx - s * 3)} ${f(by + 0.6)} C${f(bx - s * 1)} ${f(by - 9)} ${f(bx + s * 7)} ${f(by - 15)} ${f(bx + s * 13.4)} ${f(by - 16.5)} C${f(bx + s * 9)} ${f(by - 11.4)} ${f(bx + s * 5)} ${f(by - 6)} ${f(bx + s * 3.4)} ${f(by + 1.4)}Z`;
       ridge = `M${f(bx - s * 0.6)} ${f(by - 4)} l${f(s * 3.4)} 1.6 M${f(bx + s * 2.2)} ${f(by - 8.4)} l${f(s * 2.8)} 2 M${f(bx + s * 5.6)} ${f(by - 12)} l${f(s * 2.2)} 2.2`;
@@ -764,7 +770,7 @@ function horns(race, h, roll, layer) {
       d = `M${f(bx - s * 3)} ${f(by + 0.6)} C${f(bx - s * 2)} ${f(by - 8)} ${f(bx + s * 9)} ${f(by - 10)} ${f(bx + s * 12)} ${f(by - 1)} C${f(bx + s * 13.4)} ${f(by + 5)} ${f(bx + s * 9)} ${f(by + 8.4)} ${f(bx + s * 6.4)} ${f(by + 5.4)} C${f(bx + s * 9)} ${f(by + 4.6)} ${f(bx + s * 9)} ${f(by - 0.4)} ${f(bx + s * 6)} ${f(by - 2.4)} C${f(bx + s * 4.6)} ${f(by - 3)} ${f(bx + s * 3.6)} ${f(by - 1.4)} ${f(bx + s * 3.4)} ${f(by + 1.4)}Z`;
       ridge = `M${f(bx - s * 0.4)} ${f(by - 4)} l${f(s * 3)} 2 M${f(bx + s * 4)} ${f(by - 6.6)} l${f(s * 1.2)} 3.6 M${f(bx + s * 8.6)} ${f(by - 4.6)} l${f(-s * 1.4)} 3.4`;
     }
-    if (layer === 'back') out += `<path d="${d}" fill="#1c1619" stroke="#120d10" stroke-width="0.6"/>`;
+    if (layer === 'back') out += `<path d="${d}" fill="${small ? '#3a3036' : '#1c1619'}" stroke="#120d10" stroke-width="0.6"/>`;
     else out += `<path d="${d}" fill="${col}" stroke="#120d10" stroke-width="0.55" stroke-linejoin="round"/>${ridge ? `<path d="${ridge}" stroke="${hi}" stroke-width="0.45" opacity="0.6" fill="none"/>` : ''}<path d="M${f(bx - s * 1.6)} ${f(by - 1)} Q${f(bx)} ${f(by - 5)} ${f(bx + s * 2.6)} ${f(by - 6.4)}" fill="none" stroke="${hi}" stroke-width="0.6" opacity="0.5"/>`;
   }
   return out;

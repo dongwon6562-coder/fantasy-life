@@ -3,6 +3,7 @@
 // 고른 집안은 그 묶음 바로 아래에 자세히 펼친다(집안이 바라는 것과 짐은 src/origins).
 import { PLACES } from '../places.js';
 import { originOf } from '../origins/index.js';
+import { kindredOf } from '../kindred/index.js';
 import { VILLAGE } from '../data.js';
 import { esc } from './util.js';
 import { shield, crestFor } from '../art/ornament.js';
@@ -15,7 +16,8 @@ const where = (f) => (f.home ? PLACES[f.home]?.name ?? '' : '');
 
 /** fams: 이 종족의 집안들, s: 시작 화면 상태(family) */
 export function renderFamilyPick(fams, s) {
-  if (fams.length <= 4) {
+  // 42단계: 사람 아닌 종족은 집안이 둘 이상이면 짧은 칸 + 자세히(바라는 것과 짐) 틀로
+  if (fams.length <= 4 && (fams.length < 2 || fams.every((f) => (f.race ?? 'human') === 'human'))) {
     return `<div class="choice-row">${fams.map((f) => `
       <button class="choice" data-family="${f.id}" aria-pressed="${s.family === f.id}">
         <span class="tag">${esc(f.standing)} · 집안 돈 은화 ${f.money}닢</span>
@@ -31,7 +33,7 @@ export function renderFamilyPick(fams, s) {
       <span>${esc(first(f.desc))}</span>
     </button>`;
   const detail = (f) => {
-    const o = safe(() => originOf(f.id));
+    const o = safe(() => originOf(f.id)) ?? safe(() => kindredOf(f.id));
     return `<div class="fam-detail" aria-live="polite">
       <div class="fd-top"><span class="fm-crest">${crestOf(f, 48)}</span><strong>${esc(f.name)}</strong><span class="tag">${esc(f.standing)} · 집안 돈 은화 ${f.money}닢 · ${esc(where(f) || VILLAGE)}에서 태어난다</span></div>
       <p>${esc(f.desc)}</p>

@@ -135,6 +135,8 @@ function owner(seed, pl = 'harfen', kind = 'tavern') {
   if (Math.abs(away.rev - Math.round((here.rev - here.back) * 0.5 / 1.0)) > here.rev * 0.2 + 2) fail('away without manager', here.rev, away.rev);
   // 내 여관에 묵으면 방값이 들지 않는다
   placeAt(g, 'leocast'); L(g).home = 'inn';
+  // 42단계: 주사위가 밀려 앞선 달에 짐승을 들인 판이 나왔다. 짐승 먹이(은화 1닢)가 끼지 않게 이 한 달만 짐승을 비운다
+  if (g.beasts) g.beasts.animals = [];
   const m1 = g.player.money; clearQ(g); tick(g);
   if (g.player.money - m1 !== myInn(g).last.net + PLACES.leocast.inn) fail('free bed', g.player.money - m1, myInn(g).last.net);
   // 일 년 장사
