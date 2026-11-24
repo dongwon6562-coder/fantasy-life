@@ -392,6 +392,7 @@ const BY_ID = {
   cuisine_serve: 'bread', cuisine_feast: 'bread', drift_years: 'hourglass', elder_retire: 'hourglass', elder_care: 'hourglass', bloodyears_rite: 'hourglass', claim_forge: 'anvil',
   graubel_forge: 'anvil', pirate_raid: 'ship', pirate_den: 'tankard', hunter_go: 'hunt', hunter_poach: 'hunt', hunter_sell: 'coin', hunter_lodge: 'home', hunter_apprentice: 'hunt',
   credit_pawn: 'ring', credit_bank: 'seal', credit_lend: 'scale', // 39단계 빚과 돈놀이
+  mg_camp: 'tent', mg_help: 'bread', // 40단계 피난과 이주
   out_ride: 'torch', out_hunt: 'hunt', out_give: 'bread', out_lie_low: 'mask', spread_patron: 'flask', envoy_join: 'seal', envoy_tongue: 'letter', demon_trade: 'coin', demon_voyage: 'ship',
   army_enlist: 'banner', army_escape: 'boot', army_resign: 'door', army_captive_wait: 'chain', dragon_climb: 'dragon', serpent_lair: 'dungeon', kin_adopt: 'home', kin_time: 'heart',
 };

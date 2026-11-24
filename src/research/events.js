@@ -123,14 +123,14 @@ EVENTS.push({
     {
       label: '산다',
       run: (g, rng) => {
-        g.player.money -= 25;
+        g.player.money = Math.max(0, g.player.money - 25); // 40단계: 사건이 뜬 뒤 돈이 줄면 음수가 됐다
         const p = RS(g).project; if (p) p.prog = Math.min(0.95, p.prog + 0.3);
         if (rng.chance(0.3)) { setFlag(g, 'research_thief'); renown(g, -10); g.chronicle.push({ y: g.date.year, m: g.date.month, text: `${g.player.name}, 남의 연구 노트를 샀다는 소문이 돌다.`, rel: 100 }); return '노트는 진짜였다. 연구가 몇 달을 건너뛰었다. 그리고 한 달 뒤, 그 젊은이가 같은 꾸러미를 다른 사람에게도 팔았다는 소문과 함께 내 이름이 돌기 시작했다.'; }
         return '노트는 진짜였다. 막혔던 곳이 남의 글씨 한 줄로 풀렸다. 기뻐야 할 텐데 밤에 잠이 오지 않았다.';
       },
     },
     { label: '거절한다', run: (g) => { gainStat(g, 'wil', 0.4); return '"내 것은 내가 만든다." 젊은이는 어깨를 으쓱하고 다른 탁자로 갔다. 그 꾸러미를 산 사람이 있는지는 모른다.'; } },
-    { label: '노트 주인에게 돌려보낸다', run: (g, rng, c) => { g.player.money -= 25; renown(g, 5); return `은화를 치르고 꾸러미를 받아 ${c.rival.name}에게 그대로 보냈다. 답장은 오지 않았다. 대신 한 달 뒤 학회 모임에서 그 사람이 내게 먼저 고개를 숙였다.`; } },
+    { label: '노트 주인에게 돌려보낸다', run: (g, rng, c) => { g.player.money = Math.max(0, g.player.money - 25); renown(g, 5); return `은화를 치르고 꾸러미를 받아 ${c.rival.name}에게 그대로 보냈다. 답장은 오지 않았다. 대신 한 달 뒤 학회 모임에서 그 사람이 내게 먼저 고개를 숙였다.`; } },
   ],
 });
 // 늙은 장인의 손: 연구가 자꾸 막힐 때
