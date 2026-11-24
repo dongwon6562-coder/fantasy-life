@@ -139,12 +139,14 @@ ok(scenes.fr_meet > 0, '벗 사귀기 장면');
     if (m === 60) far.place = L(g).place;          // 멀리 간 벗이 돌아온다
     if (m === 30 && !lazy.spouseId) { const w = makePerson(rng, { ageMonths: 24 * 12, sex: 'f' }); g.people.push(w); lazy.spouseId = w.id; w.spouseId = lazy.id; }
     if (m === 200) kill(g, envy.alive ? lazy : envy, '사고');
+    if (m > 240) { L(g).pendingDeath = null; const el = elderState(g); el.dying = null; el.frail = Math.min(el.frail ?? 0, 40); } // 40단계(도우미3): 주사위가 바뀌자 예순여섯에 노환으로 죽는 판이 나왔다. 늙은 벗 장면을 보려고 아래 고리처럼 붙잡아 둔다
     endMonth(g, [{ id: 'rest' }]); resolveAll(g); checkMonth(g);
     if (me(g).ageMonths < 60 * 12 && m > 240) { me(g).ageMonths = 61 * 12; for (const f of s.list) { const p = byId(g, f.pid); if (p?.alive) { p.ageMonths = Math.max(p.ageMonths, 58 * 12); if (f.state === 'close') f.depth = Math.max(f.depth, 45); } } }
   }
   // 늙은 벗 장면은 가까운 벗 가운데 하나를 골라 달에 8%라, 젊은 벗이 많이 생긴 판이면 늦게 온다: 늙은 벗을 붙잡아 두고(나도 죽지 않게) 조금 더 산다
   for (let m = 0; m < 120 && !g.over && (scenes.fr_old ?? 0) === (before.fr_old ?? 0); m++) {
-    for (const f of s.list) { const p = byId(g, f.pid); if (p?.alive && ageYears(p) >= 55 && f.state === 'close') { f.depth = Math.max(f.depth, 45); p.place = L(g).place; p.away = false; } }
+    // 40단계(도우미3): 주사위가 바뀌자 남은 가까운 벗이 쉰둘뿐인 판이 나왔다. 가까운 벗은 쉰다섯으로 맞춰 둔다
+    for (const f of s.list) { const p = byId(g, f.pid); if (p?.alive && f.state === 'close') { p.ageMonths = Math.max(p.ageMonths, 55 * 12); f.depth = Math.max(f.depth, 45); p.place = L(g).place; p.away = false; } }
     L(g).pendingDeath = null; const el = elderState(g); el.dying = null; el.frail = Math.min(el.frail ?? 0, 40);
     endMonth(g, [{ id: 'rest' }]); resolveAll(g); checkMonth(g);
   }

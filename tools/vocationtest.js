@@ -80,7 +80,7 @@ const SETUP = {
   tutor: { place: 'harfen', sk: { letters: 30 } },
   scholar: { place: 'leocast', sk: { letters: 48 } },
   alchemist: { place: 'serenia', st: { int: 35 }, sk: { alchemy: 10 } },
-  carpenter: { place: 'verden', sk: { building: 5 } },
+  carpenter: { place: 'leocast', sk: { building: 5 } }, // 40단계(도우미3): 베르덴은 전선이라 피난 행렬 사건이 끼어들어 승급이 문턱에 걸렸다. 일 자체만 보려고 왕도로 옮김
   mason: { place: 'graubel', st: { str: 30 }, sk: { building: 10 } },
   hunter: { place: 'verden', sk: { hunting: 10 } },
 };
