@@ -214,7 +214,7 @@ defineScene('sw_rite', {
   resolve(g, rng, s, key) {
     if (key === 'bow') { const p = byId(g, g.sword.master); if (p) { p.affection += 5; remember(g, p, `${RANKS[s.rank]}이 되던 날 술을 따랐다`, 1, { tag: 'rite' }); } gainStat(g, 'wil', 0.4); return '스승이 잔을 비우고 한마디만 했다. "여기서 멈추지 마라."'; }
     if (key === 'show') { renown(g, 2 + s.rank); return '형이 끝나자 마루가 조용했다가 박수가 터졌다. 어린 문하생 하나가 눈을 빛냈다.'; }
-    if (key === 'blade') { g.player.money -= 30; if (g.life?.gear) g.life.gear.weapon = Math.max(g.life.gear.weapon ?? 0, 6 + s.rank); return '대장장이가 한 달을 들여 칼을 벼렸다. 손에 쥐자 무게가 손목에 꼭 맞았다.'; }
+    if (key === 'blade') { if (g.player.money < 30) return '대장장이가 값을 불렀다. 주머니를 뒤져 보고 다음으로 미뤘다.'; g.player.money -= 30; if (g.life?.gear) g.life.gear.weapon = Math.max(g.life.gear.weapon ?? 0, 6 + s.rank); return '대장장이가 한 달을 들여 칼을 벼렸다. 손에 쥐자 무게가 손목에 꼭 맞았다.'; }
     stress(g, -10); return '칼날에 비친 얼굴이 처음 목검을 쥐던 날보다 많이 늙었다. 그래도 손은 그날보다 덜 떨린다.';
   },
 });
@@ -270,6 +270,7 @@ defineScene('sw_found', {
   resolve(g, rng, s, key) {
     if (key === 'no') return '간판 없는 마루에 혼자 앉아 있다가 문을 잠갔다.';
     const name = foundNames(g)[Number(key.slice(1))];
+    if (g.player.money < 100) return '마루 깔 돈을 셈해 보니 모자랐다. 간판은 다음으로 미뤘다.';
     g.player.money -= 100;
     const H = hallState(g);
     H.own = { name, base: schoolOf(g), place: here(g), since: mi(g), pupils: 2, fame: Math.min(40, (L(g).renown ?? 0) / 3), mine: true, headName: null, away: 0, closed: false };
