@@ -104,7 +104,8 @@ for (let run = 0; run < 14; run++) {
   // 미워하는 사람 몇
   for (let i = 0; i < 2; i++) { const p = makePerson(rngOf(g), { ageMonths: 30 * 12, job: 'farmer' }); p.known = true; p.affection = -30; g.people.push(p); }
   // 혼담을 받아 보는 삶은 좋은 평 하나를 안고 시작한다 (다른 모듈의 장면이 늘어 운에 덜 기대도록)
-  if (run % 3) deed(g, 'kind', 25, '굶는 이웃에게 곡식을 나눠 주었다더라');
+  // 44단계: 고장이 늘어 주사위가 밀리자 열네 판 내내 혼담이 한 번도 안 드는 판이 나왔다(전에도 한 번뿐). 좋은 평을 한 번 더 얹는다
+  if (run % 3) { deed(g, 'kind', 25, '굶는 이웃에게 곡식을 나눠 주었다더라'); deed(g, 'honest', 20, '빌린 것은 꼭 갚는 사람이라더라'); }
   play(g, 12 * 15, run % 2 ? REP_ACTS : REP_ACTS.filter((x) => x !== 'repute_slander'), { repute_lie: run % 4, repute_match: run % 3 === 0 ? 0 : 2 });
   const r = reputeState(g);
   if (r.nick) nicks++;
