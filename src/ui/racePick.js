@@ -12,6 +12,7 @@ const SAMPLE = {
   beast: { name: '카르', sex: 'm', beast: 'wolf' }, half_elf: { name: '리엔', sex: 'f' }, half_demon: { name: '세라', sex: 'f' }, demon: { name: '아즈', sex: 'm' },
 };
 const lifeWord = (n) => (n >= 500 ? '천 년 가까이' : n >= 150 ? `${Math.round(n / 50) * 50}년쯤` : `${n}년쯤`);
+const EXTRA_REALM = { demon: '마대륙의 마왕령' };
 const TONE = { welcome: 'up', normal: '', wary: 'warn', scorn: 'down', banned: 'down' };
 
 function face(id, i, size) {
@@ -24,7 +25,7 @@ function treatOf(id) {
   const here = TREATMENT.leonia?.[id] ?? 'normal';
   const welcome = [], cold = [];
   for (const [k, row] of Object.entries(TREATMENT)) {
-    const t = row[id]; const name = REALMS[k]?.name ?? k;
+    const t = row[id]; const name = REALMS[k]?.name ?? EXTRA_REALM[k] ?? k;
     if (t === 'welcome') welcome.push(name);
     else if (t === 'scorn' || t === 'banned') cold.push(name);
   }
