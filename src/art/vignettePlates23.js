@@ -22,13 +22,13 @@ const CL = ['#4a4038', '#3e4a40', '#54463a', '#3a3e4a', '#5a4a3a', '#4e3a34'], H
 const mine = (v, o = {}) => ({ cloth: v.me.cloth, hair: v.me.hair, female: v.me.female, long: v.me.long, ...o });
 const folk = (i, o = {}) => ({ cloth: CL[i % 6], hair: HR[i % 6], female: i % 3 === 1, long: i % 3 === 1, ...o });
 const robed = (i, c, o = {}) => ({ cloth: c, hair: ['#b8b4ac', '#3a2a1e', '#8a8680', '#1c1614'][i % 4], robe: true, old: i % 2 === 0, ...o });
-const lamp = (v, x, y, a = 0.22) => { const { ctx } = v; stroke(ctx, [x, y - 7, x, y - 4], 0.8, '#15110e'); rect(ctx, x - 2.4, y - 4, 4.8, 6.4, '#2a2018'); oval(ctx, x, y - 0.8, 1.6, 2, '#ffd890'); glow(v, x, y, 26, '#ffb060', a); };
+export const lamp = (v, x, y, a = 0.22) => { const { ctx } = v; stroke(ctx, [x, y - 7, x, y - 4], 0.8, '#15110e'); rect(ctx, x - 2.4, y - 4, 4.8, 6.4, '#2a2018'); oval(ctx, x, y - 0.8, 1.6, 2, '#ffd890'); glow(v, x, y, 26, '#ffb060', a); };
 /** 물: 잔물결 줄 */
-const water = (v, y0, c, seed = 1, y1 = VH) => { const { ctx } = v; rect(ctx, 0, y0, VW, y1 - y0, v.t(c)); for (let i = 0; i < 26; i++) { const x = hash(i, seed) * VW, y = y0 + 4 + hash(i, seed + 1) * (y1 - y0 - 8); stroke(ctx, [x, y, x + 12 + hash(i, seed + 2) * 24, y], 0.8, 'rgba(220,230,240,.26)'); } };
+export const water = (v, y0, c, seed = 1, y1 = VH) => { const { ctx } = v; rect(ctx, 0, y0, VW, y1 - y0, v.t(c)); for (let i = 0; i < 26; i++) { const x = hash(i, seed) * VW, y = y0 + 4 + hash(i, seed + 1) * (y1 - y0 - 8); stroke(ctx, [x, y, x + 12 + hash(i, seed + 2) * 24, y], 0.8, 'rgba(220,230,240,.26)'); } };
 /** 돛 내린 배 */
-const hull = (v, x, y, w, c = '#2a2420', mast = 0) => { const { ctx } = v, k = v.t(c); poly(ctx, [x - w / 2, y - w * 0.12, x + w / 2, y - w * 0.12, x + w * 0.4, y, x - w * 0.4, y], k); if (mast) { rect(ctx, x - 1, y - w * 0.12 - mast, 2, mast, k); stroke(ctx, [x - w * 0.24, y - w * 0.12 - mast * 0.7, x + w * 0.24, y - w * 0.12 - mast * 0.7], 1.2, k); stroke(ctx, [x, y - w * 0.12 - mast, x - w * 0.42, y - w * 0.14], 0.5, k); stroke(ctx, [x, y - w * 0.12 - mast, x + w * 0.42, y - w * 0.14], 0.5, k); } };
+export const hull = (v, x, y, w, c = '#2a2420', mast = 0) => { const { ctx } = v, k = v.t(c); poly(ctx, [x - w / 2, y - w * 0.12, x + w / 2, y - w * 0.12, x + w * 0.4, y, x - w * 0.4, y], k); if (mast) { rect(ctx, x - 1, y - w * 0.12 - mast, 2, mast, k); stroke(ctx, [x - w * 0.24, y - w * 0.12 - mast * 0.7, x + w * 0.24, y - w * 0.12 - mast * 0.7], 1.2, k); stroke(ctx, [x, y - w * 0.12 - mast, x - w * 0.42, y - w * 0.14], 0.5, k); stroke(ctx, [x, y - w * 0.12 - mast, x + w * 0.42, y - w * 0.14], 0.5, k); } };
 /** 줄지은 높은 집(운하·학원 거리) */
-function rowHouse(v, x, w, top, base, c, o = {}) {
+export function rowHouse(v, x, w, top, base, c, o = {}) {
   const { ctx } = v, wall = v.t(c), roof = v.t(o.roof ?? '#4a3630');
   rect(ctx, x, top, w, base - top, wall); poly(ctx, o.step ? [x - 2, top, x + w * 0.2, top, x + w * 0.2, top - 8, x + w * 0.35, top - 8, x + w * 0.35, top - 16, x + w * 0.65, top - 16, x + w * 0.65, top - 8, x + w * 0.8, top - 8, x + w * 0.8, top, x + w + 2, top] : [x - 3, top, x + w / 2, top - w * 0.42, x + w + 3, top], o.step ? wall : roof);
   const cols = Math.max(2, Math.floor(w / 18)), rows = Math.floor((base - top - 26) / 24);
@@ -188,7 +188,7 @@ function ldCanal(v) {
 export const LANDS23 = { pilgrim: ldPilgrim, academy: ldAcademy, lake: ldLake, canopy: ldCanopy, under: ldUnder, camp: ldCamp, warport: ldWarport, minetown: ldMinetown, canal: ldCanal };
 
 // ───────── 나라마다 다른 궁정 ─────────
-const steps = (ctx, cx, y, w, n, c) => { for (let i = 0; i < n; i++) rect(ctx, cx - w / 2 - (n - i) * 12, y - (i + 1) * 7, w + (n - i) * 24, 7, dark(c, i % 2 ? 0.08 : 0)); };
+export const steps = (ctx, cx, y, w, n, c) => { for (let i = 0; i < n; i++) rect(ctx, cx - w / 2 - (n - i) * 12, y - (i + 1) * 7, w + (n - i) * 24, 7, dark(c, i % 2 ? 0.08 : 0)); };
 /** 발하르트 황가: 검은 쇠 옥좌와 붉은 깃발, 양쪽에 늘어선 장군들. 긴 융단 끝에 무릎 꿇은 나 */
 function crEmperor(v) {
   const { ctx } = v; room(v, { wall: '#3a3638', floor: '#242022', fy: 180, stone: true });

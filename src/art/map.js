@@ -20,6 +20,8 @@ export { MAP_MARKS };
 export const MAP_ACTIONS = [];
 // MAP_INFO에 (game, place) => html 함수를 넣으면 설명 칸 아래에 덧붙는다 (예: 나라의 법과 나와의 관계).
 export const MAP_INFO = [];
+// 45단계: 나라 사이 선. (game) => [{ a, b, tone: 'good'|'tense'|'war', word }] (a·b는 나라 id). 나라 이름 자리끼리 잇는다.
+export const MAP_LINKS = [];
 // 지도의 나라 이름(또는 '레오니아 왕국 남부' 같은 소속 글)에서 나라 id를 찾는다
 export const nationOf = (text) => (text ? nations.find((N) => text === N.name || text.startsWith(N.name))?.id ?? null : null);
 
@@ -750,6 +752,28 @@ function build(svg, info, here, opt, signal) {
   el("path", { d: "M1082 300 Q1120 340 1192 382", fill: "none", stroke: "#9a2618", "stroke-width": 2.6, "stroke-dasharray": "7 4", "stroke-linecap": "round" }, frontG);
   for (let k = 0; k < 4; k++) { const t = 0.16 + k * 0.23, x = (1 - t) * (1 - t) * 1082 + 2 * (1 - t) * t * 1120 + t * t * 1192, y = (1 - t) * (1 - t) * 300 + 2 * (1 - t) * t * 340 + t * t * 382; el("path", { d: `M${x - 3.4} ${y - 3.4}L${x + 3.4} ${y + 3.4}M${x + 3.4} ${y - 3.4}L${x - 3.4} ${y + 3.4}`, stroke: "#6e1a10", "stroke-width": 1.1, "stroke-linecap": "round" }, frontG); }
   el("text", { x: 1166, y: 328, "text-anchor": "middle", fill: "#9a2618", stroke: PAPER, "stroke-width": 3, "paint-order": "stroke", "font-family": SERIF, "font-size": 12.5, "font-weight": 700 }, frontG).textContent = "북부 전선";
+
+  // 45단계: 나라 사이 선 (동맹은 초록 실선, 날 선 사이는 갈색 점선, 전쟁은 붉은 굵은 선)
+  if (opt.game && MAP_LINKS.length) {
+    const at = {}; regions.forEach((r) => { const id = nationOf(r.name); if (id && !at[id]) at[id] = [Math.min(r.x, WW - 30), Math.min(r.y, WH - 17) - 6]; });
+    nations.forEach((N) => { if (!at[N.id] && N.seeds?.length) at[N.id] = [N.seeds.reduce((a, q) => a + q[0], 0) / N.seeds.length, N.seeds.reduce((a, q) => a + q[1], 0) / N.seeds.length]; });
+    const RANK = { war: 0, tense: 1, good: 2 };
+    const links = MAP_LINKS.flatMap((fn) => { try { return fn(opt.game) || []; } catch (e) { console.error(e); return []; } }).sort((x, y) => (RANK[x.tone] ?? 1) - (RANK[y.tone] ?? 1));
+    const linkG = el("g", { class: "ac-links" }, svg);
+    const STY = { good: ["#3f6e3a", 2, ""], tense: ["#8a5a1e", 1.8, "5 4"], war: ["#9a2618", 3, "9 3"] };
+    const seen = new Set();
+    for (const l of links) {
+      const A = at[l.a], B = at[l.b], key = [l.a, l.b].sort().join("|");
+      if (!A || !B || seen.has(key)) continue; seen.add(key);
+      const [col, w, dash] = STY[l.tone] ?? STY.tense;
+      const mx = (A[0] + B[0]) / 2, my = (A[1] + B[1]) / 2, dx = B[0] - A[0], dy = B[1] - A[1], len = Math.hypot(dx, dy) || 1;
+      const bend = Math.min(60, len * 0.14), cx = mx - dy / len * bend, cy = my + dx / len * bend;
+      const d = `M${A[0]} ${A[1]}Q${cx.toFixed(1)} ${cy.toFixed(1)} ${B[0]} ${B[1]}`;
+      el("path", { d, fill: "none", stroke: PAPER, "stroke-width": w + 2.4, "stroke-linecap": "round", opacity: 0.55 }, linkG);
+      const ln = el("path", { d, fill: "none", stroke: col, "stroke-width": w, "stroke-dasharray": dash, "stroke-linecap": "round", opacity: l.tone === "good" ? 0.62 : 0.9 }, linkG);
+      if (l.word) el("title", {}, ln).textContent = l.word;
+    }
+  }
 
   // 설명 칸
   let current = null;
