@@ -40,7 +40,8 @@ export function eventMood(game) {
   if (/^circle_exam/.test(e.id ?? '')) return 'mystic';
   const s = e.id === 'life_scene' ? game.life?.scene : null;
   if (s) {
-    if (s.kind === 'fight') return s.enc?.nemesisId ? 'boss' : 'battle';
+    if (s.kind === 'fight' || s.kind === 'fight_beat') return s.enc?.nemesisId ? 'boss' : 'battle';
+    if (s.kind === 'battle_beat') return SCENE_CUE.battle ?? 'battle';
     return SCENE_CUE[s.kind] ?? null;
   }
   if (SCENE_CUE[e.id]) return SCENE_CUE[e.id]; // 장면이 아닌 사건으로 뜨는 것 (마탑 사건 등)
