@@ -59,7 +59,7 @@ const drive = (g, pickFn) => { let n = 0; while (g.pendingEvent && n++ < 60) { c
   // 아버지(퇴역 기사)가 살아 있으면 유수류에 들 수 있다
   while (playerAge(g) < 10) { month(g, []); drive(g, () => 0); }
   g.flags.school = null; g.sword = { school: null, rank: -1, master: null, tests: 0 };
-  const f = g.people.find((p) => p.id === g.player.familyIds[0]); f.alive = true; f.away = false;
+  const f = g.people.find((p) => p.id === g.player.familyIds[0]); f.alive = true; f.away = false; f.drafted = null; Object.assign(g.realm.balhart, { war: false, tension: 20 }); // 45단계 나라 사이 흐름으로 주사위가 밀려 발하르트 전쟁에 아버지가 징집되던 것: 시험 준비만 고정
   ok(!!act(g, 'sword_school_join'), '유파 입문 행동이 보여야 한다');
   month(g, ['sword_school_join']);
   ok(g.pendingEvent?.id === 'sword_join', '입문 사건이 떠야 한다 ' + g.pendingEvent?.id);
