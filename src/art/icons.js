@@ -397,6 +397,7 @@ const BY_ID = {
   sp_school: 'rune', sp_chant: 'magic', sp_create: 'quill', // 42단계 마법 깊게
   dg_lore: 'scroll', dg_relic: 'skull', dg_order: 'mask', dg_watch: 'lantern', // 43단계 마신 깊게
   ld_work: 'labor', ld_pass: 'seal', // 44단계 고장 늘리기
+  ac_smuggle: 'coin', ac_mediate: 'seal', ac_spy: 'eye', // 45단계 나라 사이 흐름
   out_ride: 'torch', out_hunt: 'hunt', out_give: 'bread', out_lie_low: 'mask', spread_patron: 'flask', envoy_join: 'seal', envoy_tongue: 'letter', demon_trade: 'coin', demon_voyage: 'ship',
   army_enlist: 'banner', army_escape: 'boot', army_resign: 'door', army_captive_wait: 'chain', dragon_climb: 'dragon', serpent_lair: 'dungeon', kin_adopt: 'home', kin_time: 'heart',
 };

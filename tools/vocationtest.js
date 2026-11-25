@@ -209,7 +209,7 @@ function pathGame(seed, id, setup) {
 {
   let pelts = 0, sold = 0, beasts = 0, legend = 0;
   for (let run = 0; run < 4; run++) {
-    const g = adult(34000 + run, 'farmer');
+    const g = adult(34100 + run, 'farmer'); // 45단계: 나라 사이 흐름으로 주사위가 밀려 큰 짐승 장면 중에 길을 떠나던 판이 있어 씨앗 34000→34100
     placeAt(g, 'verden');
     g.player.skills.hunting = 45; g.player.money = 100;
     takeJob(g, 'hunter');
@@ -223,9 +223,11 @@ function pathGame(seed, id, setup) {
     }
     if (!V(g).traps && !V(g).lastCatch && !pelts) fail('traps do nothing');
     // 큰 짐승 억지로
-    for (const b of ['great_boar', 'cave_bear', 'mana_bear']) { const t = V(g).trophies.length; g.player.skills.hunting = 80; g.player.stats.agi = 45; g.player.stats.sen = 45; scene(g, 'voc_beast', { beast: b }, /숨어서/); healAll(g); beasts += V(g).trophies.length - t; }
+    // 45단계: 주사위가 밀려 이 판에서 다른 갈래(징집·옥·노예)에 묶여 장면이 안 뜬 일이 있어, 큰 짐승 장면 전에 풀어 둔다
+    const loose = (x) => { crimeState(x).jailed = null; if (x.army) Object.assign(x.army, { service: null, campaign: null, captive: null }); if (x.bondage) x.bondage.slave = null; L(x).heirPending = null; placeAt(x, 'verden'); };
+    for (const b of ['great_boar', 'cave_bear', 'mana_bear']) { loose(g); const t = V(g).trophies.length; g.player.skills.hunting = 80; g.player.stats.agi = 45; g.player.stats.sen = 45; scene(g, 'voc_beast', { beast: b }, /숨어서/); healAll(g); beasts += V(g).trophies.length - t; }
     const h = JSON.parse(JSON.stringify(g)); setNextId(h.nextId); runHooks('migrate', h);
-    scene(h, 'voc_beast', { beast: 'ash_bear' }, /숨어서/);
+    loose(h); scene(h, 'voc_beast', { beast: 'ash_bear' }, /숨어서/);
     if (V(h).paths.beast_slayer) legend++;
   }
   console.log(`사냥 2년 4판: 가죽 ${pelts}장, 판 가죽 ${sold}장, 큰 짐승 ${beasts}/12, 잿빛 큰곰 ${legend}/4`);
@@ -245,7 +247,7 @@ function pathGame(seed, id, setup) {
 
 /* ---------- 5) 음유시인 떠돌기, 물약, 옛 저장, 대 잇기, 저절로 ---------- */
 {
-  const g = adult(35003); // 34단계: 세계 흐름이 바뀌자 물약 파는 달에 다른 사건으로 돈이 나가 '팔았다'가 안 보였다. 판 씨앗만 옮김
+  const g = adult(35004); // 45단계: 나라 사이 흐름으로 또 밀려 35003→35004. 34단계: 세계 흐름이 바뀌자 물약 파는 달에 다른 사건으로 돈이 나가 '팔았다'가 안 보였다. 판 씨앗만 옮김
   placeAt(g, 'barka'); g.player.stats.cha = 35; g.player.skills.music = 30; takeJob(g, 'bard');
   placeAt(g, 'harfen');
   const m0 = g.player.money;

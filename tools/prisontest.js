@@ -58,7 +58,7 @@ ok(prisonKind('leocast') === 'tower' && prisonKind('graubel') === 'quarry' && pr
 // 1. 그냥 사는 삶: NPC가 갇히고 나오고 탈옥한다
 let made = 0, broke = 0, out = 0;
 for (let k = 0; k < 4; k++) {
-  const g = newGame({ name: k % 2 ? '요나스' : '클라라', sex: k % 2 ? 'm' : 'f', familyId: ['farmer', 'merchant', 'slum_orphan', 'port_folk'][k], mode: 'free', seed: 4100 + k });
+  const g = newGame({ name: k % 2 ? '요나스' : '클라라', sex: k % 2 ? 'm' : 'f', familyId: ['farmer', 'merchant', 'slum_orphan', 'port_folk'][k], mode: 'free', seed: 4110 + k }); // 45단계: 나라 사이 흐름으로 주사위가 밀려, 풀려난 NPC가 다른 일로 다시 away가 된 판이 있어 씨앗 4100→4110
   const rng = rngOf(g);
   for (let m = 0; m < 30 * 12 && !g.over; m++) {
     const acts = availableActions(g).filter((a) => !/travel|move/.test(a.id));

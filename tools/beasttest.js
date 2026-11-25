@@ -122,6 +122,7 @@ function scene(g, kind, data, re, opt = {}) {
   const g = adult(62000);
   placeAt(g, 'harfen');
   heal(g);
+  B(g).animals = []; // 45단계: 주사위가 밀려 열여덟 살까지 집에서 짐승을 들인 판이 있어, 이 점검은 빈 우리에서 시작한다
   const p0 = playerPower(g);
   addAnimal(g, 'warhorse', { ageYears: 5, trained: 100, bond: 70 });
   addAnimal(g, 'dog', { ageYears: 3, trained: 100, bond: 70 });
@@ -176,6 +177,7 @@ function scene(g, kind, data, re, opt = {}) {
   for (let run = 0; run < 6; run++) {
     const g = adult(63000 + run);
     placeAt(g, 'serenia');
+    B(g).animals = []; // 45단계: 짐승 넷이 우리를 채워 사역마 자리가 없던 판이 있어 빈 우리에서 시작
     Object.assign(g.player, { manaAwakened: true, manaPotential: g.player.manaPotential || 60, mana: Math.max(g.player.mana ?? 0, 400) });
     Object.assign(g.player.stats, { int: 60, wil: 55 }); g.player.skills.magic = 50;
     g.player.money = 100;
