@@ -756,7 +756,9 @@ function build(svg, info, here, opt, signal) {
   // 45단계: 나라 사이 선 (동맹은 초록 실선, 날 선 사이는 갈색 점선, 전쟁은 붉은 굵은 선)
   if (opt.game && MAP_LINKS.length) {
     const at = {}; regions.forEach((r) => { const id = nationOf(r.name); if (id && !at[id]) at[id] = [Math.min(r.x, WW - 30), Math.min(r.y, WH - 17) - 6]; });
-    const links = MAP_LINKS.flatMap((fn) => { try { return fn(opt.game) || []; } catch (e) { console.error(e); return []; } });
+    nations.forEach((N) => { if (!at[N.id] && N.seeds?.length) at[N.id] = [N.seeds.reduce((a, q) => a + q[0], 0) / N.seeds.length, N.seeds.reduce((a, q) => a + q[1], 0) / N.seeds.length]; });
+    const RANK = { war: 0, tense: 1, good: 2 };
+    const links = MAP_LINKS.flatMap((fn) => { try { return fn(opt.game) || []; } catch (e) { console.error(e); return []; } }).sort((x, y) => (RANK[x.tone] ?? 1) - (RANK[y.tone] ?? 1));
     const linkG = el("g", { class: "ac-links" }, svg);
     const STY = { good: ["#3f6e3a", 2, ""], tense: ["#8a5a1e", 1.8, "5 4"], war: ["#9a2618", 3, "9 3"] };
     const seen = new Set();
@@ -768,7 +770,7 @@ function build(svg, info, here, opt, signal) {
       const bend = Math.min(60, len * 0.14), cx = mx - dy / len * bend, cy = my + dx / len * bend;
       const d = `M${A[0]} ${A[1]}Q${cx.toFixed(1)} ${cy.toFixed(1)} ${B[0]} ${B[1]}`;
       el("path", { d, fill: "none", stroke: PAPER, "stroke-width": w + 2.4, "stroke-linecap": "round", opacity: 0.55 }, linkG);
-      const ln = el("path", { d, fill: "none", stroke: col, "stroke-width": w, "stroke-dasharray": dash, "stroke-linecap": "round", opacity: 0.85 }, linkG);
+      const ln = el("path", { d, fill: "none", stroke: col, "stroke-width": w, "stroke-dasharray": dash, "stroke-linecap": "round", opacity: l.tone === "good" ? 0.62 : 0.9 }, linkG);
       if (l.word) el("title", {}, ln).textContent = l.word;
     }
   }

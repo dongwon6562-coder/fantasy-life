@@ -156,6 +156,7 @@ const GROUPS = [
   ['revolt', '봉기와 반란', /^revolt_/],
   ['court', '궁정', /^(court_|crowns_)/],
   ['envoy', '사절과 외교', /^envoy_/],
+  ['accord', '나라 사이 일', /^ac_/],
   ['claim', '숨은 왕가의 피', /^claim_/],
   ['relic', '성유물', /^relic_/],
   ['army', '군대', /^army_/],

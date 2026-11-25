@@ -2303,3 +2303,8 @@ html.swiping .main { will-change: transform; }
 .af-work.g3 { border-color: rgba(127, 179, 213, .45); }
 .af-work.g4, .af-work.g5 { border-color: rgba(201, 162, 90, .6); box-shadow: inset 0 0 12px rgba(201, 162, 90, .12); }
 .af-work.g5 small { color: var(--brass, #c9a25a); }
+.ac-st { list-style: none; margin: 0 0 6px; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(min(112px, 100%), 1fr)); gap: 4px; }
+.ac-st li { display: flex; justify-content: space-between; gap: 6px; padding: 5px 9px; border-radius: 6px; background: rgba(12, 10, 8, .3); font-size: 12.5px; min-width: 0; }
+.ac-st li span { color: var(--muted); font-size: 11.5px; white-space: nowrap; }
+.ac-more { margin: 6px 0; }
+.ac-more > .ac-ties { margin-top: 6px; }
