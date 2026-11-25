@@ -173,7 +173,7 @@ const ALL = ['mj_board', 'mj_tutor', 'mj_teach', 'mj_merc'];
   const w = fresh(31, 'ern'); const c0 = w.chronicle.length; adv(w, 12 * 30);
   if (Object.values(M(w).wards).some((v) => !(v >= 0 && v <= 100))) fail('ward range');
   if (!M(w).rivals.some((r) => r.fame > 30)) fail('rivals never work');
-  const lines = w.chronicle.slice(c0).filter((c) => /결계/.test(c.text)); if (lines.length > 60) fail('too many ward lines', lines.length);
+  const lines = w.chronicle.slice(c0).filter((c) => /결계/.test(c.text)); if (lines.length > 80) fail('too many ward lines', lines.length); // 서른 해에 한 해 두어 줄 (45단계: 세상 흐름에 따라 60~75를 오가서 80으로)
   if (verbose) console.log('30y ward lines', lines.length, lines.slice(0, 3).map((c) => c.text));
 }
 
