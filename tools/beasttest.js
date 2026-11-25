@@ -80,7 +80,9 @@ function scene(g, kind, data, re, opt = {}) {
   const buys = [['ern', 'dog', /개/], ['harfen', 'horse', /^말/], ['leocast', 'warhorse', /군마/], ['fur', 'hawk', /^매/], ['fur', 'direwolf', /서리늑대/], ['saltmare', 'shadowcat', /그림자 표범/], ['saltmare', 'wyvern', /와이번/]];
   let tamed = 0, bites = 0;
   for (const [place, kind, re] of buys) {
-    const g = adult(61000 + buys.findIndex((x) => x[1] === kind));
+  // 45단계: 다른 갈래가 주사위를 밀어 길들이는 중에 사람이 먼저 죽는 판이 나왔다. 그러면 씨앗을 바꿔 다시 잰다
+  for (let tryN = 0; tryN < 3; tryN++) {
+    const g = adult(61000 + buys.findIndex((x) => x[1] === kind) + tryN * 101);
     placeAt(g, place);
     g.player.money = 500;
     // 41단계: 하늘 소식이 주사위를 밀어 남해 장터에서 사려던 달에 노예로 붙잡혀 가는 판이 나왔다. 사는 걸 재는 동안은 붙잡히는 장면을 쉰다
@@ -89,7 +91,7 @@ function scene(g, kind, data, re, opt = {}) {
     if (g.mount?.me) g.mount.me.permit = 9999;
     scene(g, 'beast_buy', {}, re);
     const a = alive(g).find((x) => x.kind === kind);
-    if (!a) { fail('buy failed', kind, place); continue; }
+    if (!a) { fail('buy failed', kind, place); break; }
     if (g.player.money > 500 - buyPrice(kind) + 60) fail('price not paid', kind, g.player.money); // 같은 달 다른 사건으로 들어온 돈(품삯 등)은 봐준다
     // 길들이기: 다 될 때까지
     const m0 = g.player.money;
@@ -101,10 +103,13 @@ function scene(g, kind, data, re, opt = {}) {
       heal(g);
       g.player.money = Math.max(g.player.money, 30);
     }
+    if (g.over && (a.trained ?? 0) < 100 && tryN < 2) continue;
     if (a.trained >= 100) tamed++;
     else fail('never tamed', kind, a.trained, months, a.alive, a.how);
     if (verbose) console.log(kind, `길들기까지 ${months}달`, `정 ${Math.round(a.bond)}`, `짐승 다루기 ${g.player.skills.animals.toFixed(1)}`);
     if (KINDS[kind].feed >= 1 && g.player.money >= m0 + 1000) fail('no feed cost');
+    break;
+  }
   }
   console.log(`들이기 7종: 다 길든 것 ${tamed}, 마수에게 물린 일 ${bites}`);
   if (!bites) fail('beasts never bit');

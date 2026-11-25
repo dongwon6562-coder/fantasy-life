@@ -94,17 +94,20 @@ if (travelMonths('ern', 'portel') >= 99) fail('portel unreachable by land');
 
 // 1) 선원 일
 {
-  const g = adult(71001);
+  // 45단계: 다른 갈래가 주사위를 밀어 이 씨앗의 뱃사람이 일찍 죽는 판이 나왔다. 승급이 없으면 씨앗을 바꿔 두 번 더 본다
+  let g, promoted = 0, text = '';
+  for (let tryN = 0; tryN < 3 && !promoted; tryN++) {
+  g = adult(71001 + tryN * 31);
   placeAt(g, 'klein');
   if (!WORK.sailor) fail('no sailor job');
   takeJob(g, 'sailor');
-  let promoted = 0, text = '';
   for (let m = 0; m < 12 * 12 && !g.over; m++) {
     const before = jobRank(g);
     month(g, ['work']);
     if (L(g).job?.id === 'sailor' && jobRank(g) > before) promoted++;
     // 다른 갈래 사건(탈영병 수배 등)으로 갇혀 일을 잃으면 다시 들게 한다: 이 점검은 선원 일 자체만 본다
     if (crimeState(g).jailed || L(g).job?.id !== 'sailor') { crimeState(g).jailed = null; if (L(g).place !== 'klein') placeAt(g, 'klein'); if (L(g).job?.id !== 'sailor') takeJob(g, 'sailor'); }
+  }
   }
   if (!promoted) fail('sailor never promoted', g.player.skills.sailing);
   const r = WORK.sailor.work.call(WORK.sailor, g, rngOf(g));
