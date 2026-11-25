@@ -62,6 +62,7 @@ export function paintDefs(uid, detail = true, H = 100) {
     <feComposite in="SourceGraphic" in2="a" operator="in"/>
   </filter>
   <filter id="${uid}xs" x="-10" y="-10" width="120" height="120" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB"><feGaussianBlur stdDeviation="0.7"/></filter>
+  <filter id="${uid}xy" x="-10" y="-10" width="120" height="120" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB"><feGaussianBlur stdDeviation="3.2"/></filter>
   <filter id="${uid}xt" x="-10" y="-10" width="120" height="120" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB"><feGaussianBlur stdDeviation="0.26"/></filter>
 `;
   return detail ? filters + grads : grads.replace('stop-opacity="0.5"/></linearGradient>', 'stop-opacity="0.3"/></linearGradient>').replace('stop-opacity="0.55"/></radialGradient>', 'stop-opacity="0.32"/></radialGradient>');
@@ -78,10 +79,11 @@ export function faceShadow(uid, m, skin, dark, strength = 1, detail = true) {
   if (!detail) { // 작은 초상: 필터 없이 그러데이션 한 장
     return `<defs><linearGradient id="${uid}xf" x1="0" x2="1" y1="0" y2="0.12"><stop offset="0.52" stop-color="${sh}" stop-opacity="0"/><stop offset="0.8" stop-color="${sh}" stop-opacity="${f(0.5 * strength)}"/><stop offset="1" stop-color="${sh}" stop-opacity="${f(0.6 * strength)}"/></linearGradient></defs><rect x="${f(cx - hw - 1)}" y="${f(top - 1)}" width="${f(hw * 2 + 2)}" height="${f(chin - top + 2)}" fill="url(#${uid}xf)"/>`;
   }
-  const d = `M${f(cx + hw * 0.1)} ${f(top - 2)} C${f(cx + hw * 0.28)} ${f(top + hh * 0.35)} ${f(cx + hw * 0.36)} ${f(browY - 2)} ${f(cx + eyeGap - ew * 0.2)} ${f(browY + 0.6)}`
-    + ` C${f(cx + eyeGap + ew * 0.5)} ${f(eyeY + 0.5)} ${f(cx + hw * 0.4)} ${f(eyeY + hh * 0.2)} ${f(cx + hw * 0.3)} ${f(eyeY + hh * 0.34)}`
-    + ` C${f(cx + hw * 0.22)} ${f(noseBot + 1)} ${f(cx + hw * 0.26)} ${f(my)} ${f(cx + hw * 0.16)} ${f(my + (chin - my) * 0.55)}`
-    + ` C${f(cx + hw * 0.08)} ${f(chin - 1)} ${f(cx + hw * 0.02)} ${f(chin + 1)} ${f(cx)} ${f(chin + 3)} L${f(cx + hw + 4)} ${f(chin + 3)} L${f(cx + hw + 4)} ${f(top - 2)}Z`;
+  // 46단계: 경계를 콧대에서 뺨 쪽으로 물리고(가운데를 세로로 가르는 탈 같은 그늘 없애기) 더 넓게 번지게
+  const d = `M${f(cx + hw * 0.3)} ${f(top - 2)} C${f(cx + hw * 0.46)} ${f(top + hh * 0.35)} ${f(cx + hw * 0.52)} ${f(browY - 2)} ${f(cx + eyeGap + ew * 0.5)} ${f(browY + 0.6)}`
+    + ` C${f(cx + eyeGap + ew * 1.1)} ${f(eyeY + 0.5)} ${f(cx + hw * 0.6)} ${f(eyeY + hh * 0.2)} ${f(cx + hw * 0.52)} ${f(eyeY + hh * 0.34)}`
+    + ` C${f(cx + hw * 0.44)} ${f(noseBot + 1)} ${f(cx + hw * 0.44)} ${f(my)} ${f(cx + hw * 0.34)} ${f(my + (chin - my) * 0.55)}`
+    + ` C${f(cx + hw * 0.24)} ${f(chin - 1)} ${f(cx + hw * 0.14)} ${f(chin + 1)} ${f(cx + hw * 0.1)} ${f(chin + 3)} L${f(cx + hw + 4)} ${f(chin + 3)} L${f(cx + hw + 4)} ${f(top - 2)}Z`;
   // 눈구멍 안쪽 그늘이 콧대 쪽으로 이어지는 자리
   const bridge = `M${f(cx + 0.6)} ${f(browY + 1)} Q${f(cx + 2.6)} ${f(eyeY)} ${f(cx + eyeGap - ew * 0.6)} ${f(eyeY + ew * 0.5)} Q${f(cx + 2.4)} ${f(eyeY + ew * 1.6)} ${f(cx + 1.2)} ${f(noseBot - 3)}Z`;
   const rim = `M${f(cx + hw * 0.98)} ${f(cy - hh * 0.1)} Q${f(cx + hw * 0.92)} ${f(cy + hh * 0.5)} ${f(cx + hw * 0.45)} ${f(chin - 1)}`;
@@ -101,7 +103,7 @@ export function faceShadow(uid, m, skin, dark, strength = 1, detail = true) {
   ].join('');
   // 반대쪽 테두리 빛 (얼굴 오른쪽 가장자리, 차가운 빛)
   const rimC = `<path d="M${f(cx + hw * 0.9)} ${f(top + hh * 0.35)} Q${f(cx + hw * 1.02)} ${f(cy + hh * 0.2)} ${f(cx + hw * 0.62)} ${f(cy + hh * 0.82)}" fill="none" stroke="#cfdcf0" stroke-width="0.9" opacity="${f(0.32 * strength)}" filter="url(#${uid}xs)"/>`;
-  return glow + cast + rimC + `<g><path d="${d}" fill="${sh}" opacity="${f(0.82 * strength)}" filter="url(#${uid}xb)"/><path d="${bridge}" fill="${sh}" opacity="${f(0.35 * strength)}" filter="url(#${uid}xs)"/></g>`
+  return glow + cast + rimC + `<g><path d="${d}" fill="${sh}" opacity="${f(0.62 * strength)}" filter="url(#${uid}xy)"/><path d="${d}" fill="${sh}" opacity="${f(0.22 * strength)}" filter="url(#${uid}xb)" transform="translate(${f(hw * 0.14)} 0)"/><path d="${bridge}" fill="${sh}" opacity="${f(0.35 * strength)}" filter="url(#${uid}xs)"/></g>`
     + `<path d="${d}" fill="none" stroke="${mixHex(skin, '#b04a30', 0.35)}" stroke-width="1.6" opacity="${f(0.18 * strength)}" filter="url(#${uid}xb)"/>`
     + `<path d="${rim}" fill="none" stroke="${mixHex(skin, '#c08a6a', 0.3)}" stroke-width="1.4" opacity="${f(0.22 * strength)}" filter="url(#${uid}xs)"/>`;
 }
