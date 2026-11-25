@@ -15,10 +15,10 @@ export function paintDefs(uid, detail = true, H = 100) {
   <filter id="${uid}xg" x="0" y="0" width="100" height="${H}" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
     <feGaussianBlur in="SourceAlpha" stdDeviation="2.2" result="dome"/>
     <feDiffuseLighting in="dome" surfaceScale="4" diffuseConstant="1.1" lighting-color="#ffffff" result="d1"><feDistantLight azimuth="235" elevation="42"/></feDiffuseLighting>
-    <feComposite in="SourceGraphic" in2="d1" operator="arithmetic" k1="0.62" k2="0.48" k3="0" k4="0" result="sh"/>
+    <feComposite in="SourceGraphic" in2="d1" operator="arithmetic" k1="0.74" k2="0.38" k3="0" k4="0" result="sh"/>
     <feSpecularLighting in="dome" surfaceScale="4" specularConstant="1" specularExponent="9" lighting-color="${RIM}" result="rim"><feDistantLight azimuth="15" elevation="6"/></feSpecularLighting>
     <feComposite in="rim" in2="SourceAlpha" operator="in" result="rimIn"/>
-    <feComposite in="sh" in2="rimIn" operator="arithmetic" k1="0" k2="1" k3="0.2" k4="0" result="lit"/>
+    <feComposite in="sh" in2="rimIn" operator="arithmetic" k1="0" k2="1" k3="0.32" k4="0" result="lit"/>
     <feTurbulence type="fractalNoise" baseFrequency="1.9" numOctaves="2" seed="11" result="n"/>
     <feColorMatrix in="n" type="matrix" values="1.3 0 0 0 -0.15  1.3 0 0 0 -0.15  1.3 0 0 0 -0.15  0 0 0 0 1" result="g"/>
     <feComposite in="lit" in2="g" operator="arithmetic" k1="0.07" k2="0.965" k3="0" k4="0" result="o"/>
@@ -27,7 +27,10 @@ export function paintDefs(uid, detail = true, H = 100) {
   <filter id="${uid}xh" x="0" y="0" width="100" height="${H}" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
     <feTurbulence type="fractalNoise" baseFrequency="0.9 0.045" numOctaves="3" seed="3" result="n"/>
     <feColorMatrix in="n" type="matrix" values="2.2 0 0 0 -0.55  2.2 0 0 0 -0.55  2.2 0 0 0 -0.55  0 0 0 0 1" result="streak"/>
-    <feComposite in="SourceGraphic" in2="streak" operator="arithmetic" k1="0.34" k2="0.8" k3="0" k4="0" result="s1"/>
+    <feTurbulence type="fractalNoise" baseFrequency="0.24 0.016" numOctaves="2" seed="7" result="cn"/>
+    <feColorMatrix in="cn" type="matrix" values="2.6 0 0 0 -0.75  2.6 0 0 0 -0.75  2.6 0 0 0 -0.75  0 0 0 0 1" result="clump"/>
+    <feComposite in="SourceGraphic" in2="clump" operator="arithmetic" k1="0.55" k2="0.62" k3="0" k4="0" result="s0"/>
+    <feComposite in="s0" in2="streak" operator="arithmetic" k1="0.4" k2="0.76" k3="0" k4="0" result="s1"/>
     <feColorMatrix in="SourceGraphic" type="luminanceToAlpha" result="lum"/>
     <feGaussianBlur in="lum" stdDeviation="0.45" result="h"/>
     <feSpecularLighting in="h" surfaceScale="2.2" specularConstant="0.6" specularExponent="22" lighting-color="${WARM}" result="spec"><feDistantLight azimuth="235" elevation="48"/></feSpecularLighting>
@@ -35,9 +38,9 @@ export function paintDefs(uid, detail = true, H = 100) {
     <feComposite in="s1" in2="specIn" operator="arithmetic" k1="0" k2="1" k3="0.16" k4="0" result="s2"/>
     <feGaussianBlur in="SourceAlpha" stdDeviation="2.4" result="dome"/>
     <feSpecularLighting in="dome" surfaceScale="7" specularConstant="0.8" specularExponent="14" lighting-color="${WARM}" result="sheen"><feDistantLight azimuth="235" elevation="50"/></feSpecularLighting>
-    <feComposite in="sheen" in2="streak" operator="arithmetic" k1="1" k2="0.35" k3="0" k4="0" result="sheenS"/>
+    <feComposite in="sheen" in2="clump" operator="arithmetic" k1="1.1" k2="0.3" k3="0" k4="0" result="sheenS"/>
     <feComposite in="sheenS" in2="SourceAlpha" operator="in" result="sheenIn"/>
-    <feComposite in="s2" in2="sheenIn" operator="arithmetic" k1="0" k2="1" k3="0.26" k4="0" result="o"/>
+    <feComposite in="s2" in2="sheenIn" operator="arithmetic" k1="0" k2="1" k3="0.4" k4="0" result="o"/>
     <feComposite in="o" in2="SourceAlpha" operator="in"/>
   </filter>
   <filter id="${uid}xc" x="0" y="0" width="100" height="${H}" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
@@ -80,9 +83,10 @@ export function faceShadow(uid, m, skin, dark, strength = 1, detail = true) {
     return `<defs><linearGradient id="${uid}xf" x1="0" x2="1" y1="0" y2="0.12"><stop offset="0.52" stop-color="${sh}" stop-opacity="0"/><stop offset="0.8" stop-color="${sh}" stop-opacity="${f(0.5 * strength)}"/><stop offset="1" stop-color="${sh}" stop-opacity="${f(0.6 * strength)}"/></linearGradient></defs><rect x="${f(cx - hw - 1)}" y="${f(top - 1)}" width="${f(hw * 2 + 2)}" height="${f(chin - top + 2)}" fill="url(#${uid}xf)"/>`;
   }
   // 46단계: 경계를 콧대에서 뺨 쪽으로 물리고(가운데를 세로로 가르는 탈 같은 그늘 없애기) 더 넓게 번지게
-  const d = `M${f(cx + hw * 0.3)} ${f(top - 2)} C${f(cx + hw * 0.46)} ${f(top + hh * 0.35)} ${f(cx + hw * 0.52)} ${f(browY - 2)} ${f(cx + eyeGap + ew * 0.5)} ${f(browY + 0.6)}`
-    + ` C${f(cx + eyeGap + ew * 1.1)} ${f(eyeY + 0.5)} ${f(cx + hw * 0.6)} ${f(eyeY + hh * 0.2)} ${f(cx + hw * 0.52)} ${f(eyeY + hh * 0.34)}`
-    + ` C${f(cx + hw * 0.44)} ${f(noseBot + 1)} ${f(cx + hw * 0.44)} ${f(my)} ${f(cx + hw * 0.34)} ${f(my + (chin - my) * 0.55)}`
+  // 46단계 둘째: 경계를 다시 조금 안쪽으로 (콧대는 피하고 눈 바깥쪽부터), 폰에서 얼굴 한쪽이 확실히 그늘로 읽히게
+  const d = `M${f(cx + hw * 0.2)} ${f(top - 2)} C${f(cx + hw * 0.34)} ${f(top + hh * 0.35)} ${f(cx + hw * 0.4)} ${f(browY - 2)} ${f(cx + eyeGap + ew * 0.05)} ${f(browY + 0.6)}`
+    + ` C${f(cx + eyeGap + ew * 0.7)} ${f(eyeY + 0.5)} ${f(cx + hw * 0.5)} ${f(eyeY + hh * 0.2)} ${f(cx + hw * 0.42)} ${f(eyeY + hh * 0.34)}`
+    + ` C${f(cx + hw * 0.36)} ${f(noseBot + 1)} ${f(cx + hw * 0.36)} ${f(my)} ${f(cx + hw * 0.28)} ${f(my + (chin - my) * 0.55)}`
     + ` C${f(cx + hw * 0.24)} ${f(chin - 1)} ${f(cx + hw * 0.14)} ${f(chin + 1)} ${f(cx + hw * 0.1)} ${f(chin + 3)} L${f(cx + hw + 4)} ${f(chin + 3)} L${f(cx + hw + 4)} ${f(top - 2)}Z`;
   // 눈구멍 안쪽 그늘이 콧대 쪽으로 이어지는 자리
   const bridge = `M${f(cx + 0.6)} ${f(browY + 1)} Q${f(cx + 2.6)} ${f(eyeY)} ${f(cx + eyeGap - ew * 0.6)} ${f(eyeY + ew * 0.5)} Q${f(cx + 2.4)} ${f(eyeY + ew * 1.6)} ${f(cx + 1.2)} ${f(noseBot - 3)}Z`;
