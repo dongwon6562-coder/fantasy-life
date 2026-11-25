@@ -159,6 +159,24 @@ const MY_SCENES = ['arrest', 'witness_blackmail', 'thugs', 'bounty_hunters', 'ga
   'court_offer', 'court_patron', 'court_marriage', 'court_plot', 'court_strike', 'court_fall', 'court_turn', 'court_affair'];
 const STATES = ['plain', 'jailed', 'travel', 'broke', 'dead', 'old', 'child', 'heir'];
 const PLACES_TRY = ['ern', 'harfen', 'leocast', 'eisen', 'solaris', 'serenia', 'barka', 'graubel', 'silverleaf', 'hammer', 'fur', 'estella'].filter((p) => PLACES[p]);
+// 45단계 헤드: 예전엔 2,368판마다 새 게임을 만들고 여섯 달씩 살렸다(점검 시간의 거의 절반).
+// 이제 (집안·성별·나이)마다 여섯 달 살린 판을 한 번만 만들어 두고, 판마다 JSON으로 복사해 쓴다.
+// 장면·상태·고르기·장소·대상은 예전처럼 판마다 따로 고른다.
+const WARM = new Map();
+function warmed(famId, choice, child) {
+  const key = `${famId}|${choice % 2}|${child ? 1 : 0}`;
+  if (!WARM.has(key)) {
+    const seed = 70000 + WARM.size * 37;
+    const g = newGame({ name: '깨기', sex: choice % 2 ? 'm' : 'f', familyId: famId, mode: 'free', seed });
+    me(g).ageMonths = (child ? 9 : 26) * 12;
+    const side = makeRng({ s: seed });
+    // 몇 달 살려서 아는 사람과 상태를 만든다
+    for (let m = 0; m < 6; m++) { endMonth(g, Array(slotsFor(g)).fill(0).map(() => ({ id: side.pick(availableActions(g).filter((a) => !a.needsTarget)).id }))); for (let k = 0; k < 4 && g.pendingEvent; k++) resolveEvent(g, rngOf(g), 0); }
+    WARM.set(key, JSON.stringify(g));
+  }
+  localStorage.setItem('fantasy-life:warm', WARM.get(key));
+  return load('warm');
+}
 let forced = 0;
 for (const [si, kind] of MY_SCENES.entries()) {
   for (const [sti, st] of STATES.entries()) {
@@ -168,11 +186,8 @@ for (const [si, kind] of MY_SCENES.entries()) {
       const where = `${kind} state=${st} choice=${choice} ${famId}`;
       let g;
       try {
-        g = newGame({ name: '깨기', sex: choice % 2 ? 'm' : 'f', familyId: famId, mode: 'free', seed });
-        me(g).ageMonths = (st === 'child' ? 9 : 26) * 12;
+        g = warmed(famId, choice, st === 'child');
         const side = makeRng({ s: seed });
-        // 몇 달 살려서 아는 사람과 상태를 만든다
-        for (let m = 0; m < 6; m++) { endMonth(g, Array(slotsFor(g)).fill(0).map(() => ({ id: side.pick(availableActions(g).filter((a) => !a.needsTarget)).id }))); for (let k = 0; k < 4 && g.pendingEvent; k++) resolveEvent(g, rngOf(g), 0); }
         L(g).place = side.pick(PLACES_TRY); L(g).travel = null;
         const known = knownPeople(g).filter((p) => p.alive);
         const v = side.pick(known) ?? g.people.find((p) => !p.isPlayer && p.alive);
