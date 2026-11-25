@@ -34,6 +34,18 @@ export const FOES = {
   wyvern: { name: '와이번', pow: 110, bite: true, leader: true },
 };
 
+// 46단계: 적 종류마다 다른 움직임 (고비마다 고르는 교전에서만 수치에 닿는다)
+//   pack 둘러싼다 · flee 불리하면 달아난다 · charge 돌진 · swarm 떼로 기어든다 · undead 겁이 없다 · caster 주문을 쓴다
+export const MOVES = {
+  wolf: 'pack', dire_wolf: 'pack', giant_rat: 'pack', cave_spider: 'pack', spider_queen: 'pack',
+  thug: 'flee', bandit: 'flee', deserter: 'flee', bandit_chief: 'flee',
+  orc: 'charge', hobgoblin: 'charge', orc_chief: 'charge', goblin_chief: 'charge', mana_bear: 'charge', wyvern: 'charge', sewer_horror: 'charge',
+  goblin: 'swarm', kobold: 'swarm',
+  skeleton: 'undead', ghoul: 'undead', wight: 'undead', tower_wraith: 'undead',
+  cultist: 'caster', cult_priest: 'caster',
+};
+export const moveOf = (enc) => MOVES[enc.unit] ?? MOVES[enc.leader] ?? null;
+
 // 내 전투력: 검술이 가장 크고, 몸과 감각, 서클 마법, 장비가 더한다. 다치고 지치면 줄어든다.
 // 익힌 전투·결계 주문을 전투력에 더한다. 주문 표는 magic/spells.js에 있고, war/spellpower.js가 이어 준다.
 let spellLookup = () => null;
@@ -97,110 +109,131 @@ export function describeFoes(enc) {
 const pick = (rng, arr) => arr[Math.floor(rng.next() * arr.length)];
 
 // 교전 한 판. opts: { tactic: charge|ambush|magic, flee: 물러설 체력, companions: [{ name, pow }], hp }
+// 46단계: 한 판을 '시작 → 몇 합씩 → 끝'으로 나눠, 고비마다 고르기를 끼울 수 있게 했다(fight.js).
+// 고르기가 없으면(mod 없이 일곱 합을 내리 치면) 예전 skirmish와 주사위 순서까지 같다.
 export function skirmish(g, rng, enc, opts = {}) {
+  const st = skirmishStart(g, rng, enc, opts);
+  skirmishRounds(g, rng, st, 7);
+  return skirmishEnd(st);
+}
+export function skirmishStart(g, rng, enc, opts = {}) {
   const F = FOES[enc.unit] ?? null;
   const LP = enc.leader ? leaderPow(enc) : 0;
-  const lname = leaderName(enc);
   const myPow = playerPower(g);
   const comps = opts.companions ?? [];
   const compPow = comps.reduce((s, c) => s + c.pow, 0);
   const party = myPow + compPow;
-  const share = myPow / party;
   const log = [];
-  let hp = opts.hp ?? playerVitality(g);
-  const hp0 = hp;
+  const hp = opts.hp ?? playerVitality(g);
   const out = { outcome: 'win', log, kills: 0, leaderDown: false, leaderFled: false, hits: [], compHits: [], hp };
-  let units = F ? enc.count : 0;
-  const count0 = units;
-  let leaderHp = LP * 2.4;
-  let leaderAlive = !!enc.leader;
-  let morale = 100 + (leaderAlive ? 25 : 0);
+  const units = F ? enc.count : 0;
+  const st = { enc, myPow, party, share: myPow / party, comps: comps.map((c) => c.name), hp, hp0: hp, units, count0: units, LP, leaderHp: LP * 2.4, leaderHp0: LP * 2.4, leaderAlive: !!enc.leader, morale: 100 + (enc.leader ? 25 : 0), flee: opts.flee ?? 30, atkBonus: 1, firstRoundSafe: false, enemyFirst: false, r: 0, done: false, out };
 
   // 압승: 한 줄로 끝난다
-  if ((!F || party >= F.pow * 4.2) && (!leaderAlive || party >= LP * 2.6)) {
+  if ((!F || party >= F.pow * 4.2) && (!st.leaderAlive || party >= LP * 2.6)) {
     out.outcome = 'overwhelm';
-    out.kills = units + (leaderAlive ? 1 : 0);
-    out.leaderDown = leaderAlive;
+    out.kills = units + (st.leaderAlive ? 1 : 0);
+    out.leaderDown = st.leaderAlive;
     const n = describeCount(enc);
     log.push(pick(rng, [
       `${J(n, '이/가')} 무기를 제대로 들기도 전에 쓰러졌다.`,
       `싸움이라 부르기도 어려웠다. ${J(n, '은/는')} 몇 번의 칼질에 땅에 누웠다.`,
       `${J(n, '이/가')} 덤벼들었고, 숨 몇 번 고르는 사이에 끝났다.`,
     ]));
-    return out;
+    st.done = true;
+    return st;
   }
 
   log.push(`${J(describeCount(enc), '이/가')} 앞을 막아섰다.`);
   // 싸움 전 선택의 효과
-  let atkBonus = 1, firstRoundSafe = false, enemyFirst = false;
   const tactic = opts.tactic ?? 'charge';
   if (tactic === 'ambush') {
-    const ok = rng.chance(Math.max(0.1, Math.min(0.9, 0.5 + (g.player.stats.sen + g.player.stats.agi / 2 - 25 - count0 * 1.5) / 40)));
-    if (ok) { atkBonus = 1.9; firstRoundSafe = true; log.push('바람을 등지고 다가가 먼저 덮쳤다. 적은 무기를 뽑을 틈도 없었다.'); }
-    else { enemyFirst = true; log.push('마른 가지가 발밑에서 부러졌다. 기습은 실패했고, 적이 먼저 달려들었다.'); }
+    const ok = rng.chance(Math.max(0.1, Math.min(0.9, 0.5 + (g.player.stats.sen + g.player.stats.agi / 2 - 25 - st.count0 * 1.5) / 40)));
+    if (ok) { st.atkBonus = 1.9; st.firstRoundSafe = true; log.push('바람을 등지고 다가가 먼저 덮쳤다. 적은 무기를 뽑을 틈도 없었다.'); }
+    else { st.enemyFirst = true; log.push('마른 가지가 발밑에서 부러졌다. 기습은 실패했고, 적이 먼저 달려들었다.'); }
   } else if (tactic === 'magic') {
-    const c = circleOf(g);
-    if (c >= 1 && units > 0) {
-      const burst = Math.min(units, Math.floor(c * 1.3 + rng.next() * (c + 1) + (F.pow <= 10 ? 1 : 0)));
-      units -= burst; out.kills += burst; morale -= (burst / Math.max(1, count0)) * 80;
-      g.player.fatigue = Math.min(100, g.player.fatigue + 6 + c * 2);
-      log.push(burst > 0
-        ? `영창을 마치자 ${c >= 3 ? '화염의 고리가' : c >= 2 ? '불꽃 창이' : '불씨 화살이'} 날아갔다. ${F.name} ${burst}${F.human ? '명이' : '마리가'} 불길 속에 쓰러졌다.`
-        : '영창이 늦었다. 마법은 빗나가 바위만 그을렸다.');
-    } else if (c >= 1 && leaderAlive) {
-      leaderHp -= c * 14;
-      log.push(`마력을 끌어모아 ${lname}에게 쏘았다. 살이 타는 냄새가 났다.`);
-    }
+    castBurst(g, rng, st, 1.3, F && F.pow <= 10 ? 1 : 0, true);
   } else {
     log.push(pick(rng, ['검을 뽑고 정면으로 나섰다.', '숨을 크게 들이쉬고 앞으로 나섰다.', '물러설 곳은 없었다. 정면으로 맞섰다.']));
   }
-
-  for (let r = 0; r < 7; r++) {
+  return st;
+}
+// 주문 한 번: 무리를 태우거나 우두머리를 친다. 처음 고르기(k 1.3)와 고비의 주문(k 1.0)이 같이 쓴다
+export function castBurst(g, rng, st, k = 1, plus = 0, first = false) {
+  const c = circleOf(g), F = FOES[st.enc.unit] ?? null, lname = leaderName(st.enc), log = st.out.log;
+  if (c >= 1 && st.units > 0) {
+    const burst = Math.min(st.units, Math.floor(c * k + rng.next() * (c + 1) + plus));
+    st.units -= burst; st.out.kills += burst; st.morale -= (burst / Math.max(1, st.count0)) * 80;
+    g.player.fatigue = Math.min(100, g.player.fatigue + 6 + c * 2);
+    log.push(burst > 0
+      ? `${first ? '영창을 마치자' : '숨을 고르고 다시 영창했다.'} ${c >= 3 ? '화염의 고리가' : c >= 2 ? '불꽃 창이' : '불씨 화살이'} 날아갔다. ${F.name} ${burst}${F.human ? '명이' : '마리가'} 불길 속에 쓰러졌다.`
+      : '영창이 늦었다. 마법은 빗나가 바위만 그을렸다.');
+    return burst;
+  }
+  if (c >= 1 && st.leaderAlive) {
+    st.leaderHp -= c * (first ? 14 : 12);
+    if (!first) g.player.fatigue = Math.min(100, g.player.fatigue + 6 + c * 2);
+    log.push(`마력을 끌어모아 ${lname}에게 쏘았다. 살이 타는 냄새가 났다.`);
+  }
+  return 0;
+}
+// 합을 upto째까지 친다. mod: { atk, inc, toLeader, brk(흩어지는 사기), mor(사기 깎임 배수), noComp, firstInc, firstAtk }
+export function skirmishRounds(g, rng, st, upto, mod = {}) {
+  const F = FOES[st.enc.unit] ?? null, lname = leaderName(st.enc), out = st.out, log = out.log, enc = st.enc;
+  const from = st.r;
+  for (; st.r < Math.min(7, upto) && !st.done; st.r++) {
+    const r = st.r, firstOfBeat = r === from;
     // 우리 공격
-    const atk = party * rng.float(0.6, 1.15) * (r === 0 ? atkBonus : 1);
-    if (units > 0) {
-      const toLeader = leaderAlive && (units <= count0 / 2 || r >= 3) ? 0.45 : 0;
-      const ka = atk * (1 - toLeader) / (F.pow * 1.6);
-      const kills = Math.min(units, Math.floor(ka) + (rng.chance(ka % 1) ? 1 : 0));
-      units -= kills; out.kills += kills;
-      morale -= (kills / Math.max(1, count0)) * 70;
-      if (toLeader) leaderHp -= atk * toLeader * 0.9;
-    } else if (leaderAlive) {
-      leaderHp -= atk * 0.9;
+    const atk = st.party * rng.float(0.6, 1.15) * (r === 0 ? st.atkBonus : 1) * (mod.atk ?? 1) * (firstOfBeat ? mod.firstAtk ?? 1 : 1);
+    if (st.units > 0) {
+      const toLeader = st.leaderAlive && (st.units <= st.count0 / 2 || r >= 3) ? 0.45 : mod.toLeader && st.leaderAlive ? mod.toLeader : 0;
+      const tl = mod.toLeader && toLeader ? Math.max(toLeader, mod.toLeader) : toLeader;
+      const ka = atk * (1 - tl) / (F.pow * 1.6);
+      const kills = Math.min(st.units, Math.floor(ka) + (rng.chance(ka % 1) ? 1 : 0));
+      st.units -= kills; out.kills += kills;
+      st.morale -= (kills / Math.max(1, st.count0)) * 70 * (mod.mor ?? 1);
+      if (tl) st.leaderHp -= atk * tl * 0.9;
+    } else if (st.leaderAlive) {
+      st.leaderHp -= atk * 0.9;
     }
-    if (leaderAlive && leaderHp <= 0) {
-      leaderAlive = false; out.leaderDown = true; out.kills += 1; morale -= 90;
+    if (st.leaderAlive && st.leaderHp <= 0) {
+      st.leaderAlive = false; out.leaderDown = true; out.kills += 1; st.morale -= 90 * (mod.mor ?? 1);
       log.push(pick(rng, [`${J(lname, '이/가')} 무릎을 꿇었다. 마지막 일격이 목을 갈랐다.`, `${lname}의 몸이 무너지듯 쓰러졌다.`, `${J(lname, '이/가')} 쓰러지자 주위가 한순간 조용해졌다.`]));
     }
-    if (units <= 0 && !leaderAlive) { out.outcome = 'win'; break; }
-    if (morale <= 22) {
-      out.outcome = 'win';
-      if (leaderAlive) { out.leaderFled = true; log.push(`무리가 무너졌다. ${J(lname, '은/는')} 남은 놈들을 버리고 어둠 속으로 달아났다.`); }
-      else log.push(`남은 ${units}${F.human ? '명은' : '마리는'} ${F.human ? '무기를 버리고' : '꼬리를 말고'} 흩어졌다.`);
+    if (st.units <= 0 && !st.leaderAlive) { out.outcome = 'win'; st.done = true; break; }
+    if (st.morale <= (mod.brk ?? 22)) {
+      out.outcome = 'win'; st.done = true;
+      if (st.leaderAlive) { out.leaderFled = true; log.push(`무리가 무너졌다. ${J(lname, '은/는')} 남은 놈들을 버리고 어둠 속으로 달아났다.`); }
+      else log.push(`남은 ${st.units}${F.human ? '명은' : '마리는'} ${F.human ? '무기를 버리고' : '꼬리를 말고'} 흩어졌다.`);
       break;
     }
 
     // 적의 공격
-    if (r === 0 && firstRoundSafe) continue;
-    let inc = ((F ? units * F.pow * 0.5 : 0) + (leaderAlive ? LP * 0.8 : 0)) * rng.float(0.6, 1.2);
-    if (r === 0 && enemyFirst) inc *= 1.5;
-    const mine = inc * share * 22 / (22 + myPow * 0.5);
-    hp -= mine;
+    if (r === 0 && st.firstRoundSafe) continue;
+    let inc = ((F ? st.units * F.pow * 0.5 : 0) + (st.leaderAlive ? st.LP * 0.8 : 0)) * rng.float(0.6, 1.2);
+    if (r === 0 && st.enemyFirst) inc *= 1.5;
+    inc *= (mod.inc ?? 1) * (firstOfBeat ? mod.firstInc ?? 1 : 1);
+    const mine = inc * st.share * 22 / (22 + st.myPow * 0.5);
+    st.hp -= mine;
     if (mine >= 13 && rng.chance(0.55)) out.hits.push(r);
-    if (comps.length && inc * (1 - share) > 18 && rng.chance(0.3)) out.compHits.push(pick(rng, comps).name);
+    if (st.comps.length && inc * (1 - st.share) > 18 && rng.chance(0.3)) { const who = pick(rng, st.comps); if (!mod.noComp) out.compHits.push(who); }
     if (r === 1 || mine >= 13) { const ln = roundLine(rng, enc, mine); if (!log.includes(ln)) log.push(ln); }
-    if (hp <= 0) { out.outcome = 'lose'; break; }
-    if (hp <= (opts.flee ?? 30) && (units > 0 || leaderAlive)) {
-      if (rng.chance(Math.max(0.25, Math.min(0.9, 0.45 + (g.player.stats.agi - 20) / 60)))) { out.outcome = 'flee'; log.push('더는 버틸 수 없었다. 등을 보이지 않으려 애쓰며 물러났다.'); break; }
-      hp -= inc * share * 0.5 * 22 / (22 + myPow * 0.5);
+    if (st.hp <= 0) { out.outcome = 'lose'; st.done = true; break; }
+    if (st.hp <= st.flee && (st.units > 0 || st.leaderAlive)) {
+      if (rng.chance(Math.max(0.25, Math.min(0.9, 0.45 + (g.player.stats.agi - 20) / 60)))) { out.outcome = 'flee'; st.done = true; log.push('더는 버틸 수 없었다. 등을 보이지 않으려 애쓰며 물러났다.'); break; }
+      st.hp -= inc * st.share * 0.5 * 22 / (22 + st.myPow * 0.5);
       if (!log.includes('물러서려 했지만 적이 놓아주지 않았다.')) log.push('물러서려 했지만 적이 놓아주지 않았다.');
-      if (hp <= 0) { out.outcome = 'lose'; break; }
+      if (st.hp <= 0) { out.outcome = 'lose'; st.done = true; break; }
     }
-    if (r === 6) { out.outcome = 'flee'; log.push('싸움이 길어졌다. 서로 지쳐 물러났다.'); }
+    if (r === 6) { out.outcome = 'flee'; st.done = true; log.push('싸움이 길어졌다. 서로 지쳐 물러났다.'); }
   }
-  if (out.outcome === 'lose') log.push('눈앞이 하얘졌다. 땅이 솟아오르듯 다가왔다.');
-  out.hp = Math.max(0, hp);
-  out.hpLost = hp0 - out.hp;
+  if (st.r >= 7 && !st.done) { out.outcome = 'flee'; st.done = true; }
+  return st;
+}
+export function skirmishEnd(st) {
+  const out = st.out;
+  if (out.outcome === 'lose' && !out.log.includes('눈앞이 하얘졌다. 땅이 솟아오르듯 다가왔다.')) out.log.push('눈앞이 하얘졌다. 땅이 솟아오르듯 다가왔다.');
+  if (out.outcome !== 'overwhelm') { out.hp = Math.max(0, st.hp); out.hpLost = st.hp0 - out.hp; }
   return out;
 }
 
