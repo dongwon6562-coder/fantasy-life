@@ -47,7 +47,8 @@ function duelState(g) {
     me: { name: g.player?.name ?? '나', hp: d.hp, hp0: d.hp0 },
     foe: { name: d.foe?.name ?? '상대', hp: d.fhp, hp0: d.fhp0, line: d.foe?.line ?? null },
     mom: Math.max(-3, Math.min(3, (d.mom ?? 0) - (d.fmom ?? 0))),
-    intro: d.round === 0 && parts.length > 2 ? parts[0] : null,
+    // 장면 글: 상태 줄(몸 형편)과 낌새, 바로 앞 합의 한 줄(결과 창에서 이미 보였다)만 빼고 다 남긴다
+    intro: parts.map((x) => x.trim()).filter((x) => x && x !== String(d.tell ?? '').trim() && x !== String(d.log?.at?.(-1) ?? '').trim() && !/^나는 [^.]*\./.test(x)).join('\n\n') || null,
     tell: d.tell ?? '', mana: d.mana ?? 0, magic: !!d.magicDuel,
     moves,
   };
@@ -119,7 +120,7 @@ export function battleBody(g) {
   const st = safe(() => battleState(g));
   if (!st) return null;
   if (st.kind === 'fight') return st.intro ? `<p class="ev-text bt-intro">${esc(st.intro)}</p>` : '';
-  return `${st.intro ? `<p class="ev-text bt-intro">${esc(st.intro)}</p>` : ''}
+  return `${st.intro ? st.intro.split('\n\n').map((x) => `<p class="ev-text bt-intro">${esc(x)}</p>`).join('') : ''}
     ${st.foe.line ? `<p class="bt-line">“${esc(st.foe.line)}”</p>` : ''}
     ${st.tell ? `<p class="bt-tell">${icon('eye', 18)}<span>${esc(st.tell)}</span></p>` : ''}`;
 }
