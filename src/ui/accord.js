@@ -3,9 +3,12 @@
 // 지도 위 선은 src/art/map.js MAP_LINKS로 그린다 (accordLinks).
 import { accordInfo } from '../accord/index.js';
 import { MAP_LINKS } from '../art/map.js';
+import { vignetteImage } from '../art/vignette.js';
 import { esc } from './util.js';
 
 const safe = (fn, d = null) => { try { return fn() ?? d; } catch (e) { console.error(e); return d; } };
+let G = null; // 그림 날짜용
+const art = (variant) => (G ? safe(() => vignetteImage({ plate: 'accord', variant, year: G.date.year, month: G.date.month }), '') : '');
 
 // 사이 갈래: 좋은 사이(동맹·혼인·조약·무역), 날 선 사이(봉쇄·국경 다툼·끊김), 싸움(전쟁)
 export const TIE_KIND = {
@@ -30,15 +33,19 @@ function tie(t) {
   </li>`;
 }
 
-export function renderAccordMap(game) { return accordView(safe(() => accordInfo(game))); }
+export function renderAccordMap(game) { G = game; try { return accordView(safe(() => accordInfo(game))); } finally { G = null; } }
 
 export function accordView(s) {
   if (!s || !s.ties?.length) return '';
   const tone = (x) => kindOf(x.kind).tone;
   const groups = [['war', '싸우는 나라'], ['tense', '날 선 사이'], ['good', '손잡은 나라']]
     .map(([t, label]) => [label, s.ties.filter((x) => tone(x) === t)]).filter(([, l]) => l.length);
+  const has = (k) => s.ties.some((x) => x.kind === k);
+  const v = has('war') || has('border') ? 'border' : has('embargo') ? 'blockade' : s.ties.some((x) => x.kind === 'marriage' && s.year - (x.since ?? 0) <= 2) ? 'wedding' : 'map';
+  const src = art(v);
   return `<section class="card ac-map">
     <h2>대륙 정세 <small>${s.year ? `${s.year}년 ` : ''}얽힌 사이 ${s.ties.length}</small></h2>
+    ${src ? `<img class="blk-art" src="${src}" alt="나라 사이의 일">` : ''}
     ${s.line ? `<p class="note">${esc(((t) => (t === '잠잠하다' ? '큰 싸움 없이 잠잠하다.' : `${t}.`))(String(s.line).replace(/^대륙 정세:\s*/, '')))}</p>` : ''}
     ${groups.map(([label, list]) => list.length > 4 ? `<details class="pl-more ac-more"><summary>${label} ${list.length}</summary><ul class="ac-ties">${list.map(tie).join('')}</ul></details>` : `<p class="ac-h">${label}</p><ul class="ac-ties">${list.map(tie).join('')}</ul>`).join('')}
     ${s.stances?.length ? `<p class="ac-h">나라마다 다스리는 이의 속셈</p><ul class="ac-st">${s.stances.map((x) => `<li${x.ruler ? ` title="${esc(x.ruler)}"` : ''}><b>${esc(x.name)}</b><span>${esc(x.word ?? '')}</span></li>`).join('')}</ul>` : ''}
