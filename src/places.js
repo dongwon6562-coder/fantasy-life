@@ -59,18 +59,37 @@ export const placeName = (g) => (traveling(g) ? `${J(PLACES[L(g).travel.to]?.nam
 export const HOME_NAMES = { family: '부모님 집', inn: '여관', rent: '셋방', own: '내 집', barracks: '숙소', street: '노숙' };
 
 // 두 장소 사이에 걸리는 달 수 (가장 짧은 길)
-export function travelMonths(from, to) {
-  if (from === to) return 0;
+// 45단계 헤드: 고장이 48곳이 되자 사람마다·달마다 부르는 이 길 찾기가 점검 시간의 큰 몫이 됐다.
+// 길(links)은 공사·개척·마대륙이 열릴 때 바뀌므로, 길 전체의 지문이 같을 때만 출발지별 거리표를 다시 쓴다.
+let routeFp = '', routeCache = new Map();
+function linksFp() {
+  let n = 0, sum = 0, h = 0;
+  for (const k in PLACES) {
+    n++;
+    const ls = PLACES[k].links;
+    for (const nb in ls) { const m = ls[nb]; sum += m; h = (h * 31 + nb.length * 7 + m + k.length) | 0; }
+  }
+  return `${n}:${sum}:${h}`;
+}
+function distFrom(from) {
   const dist = { [from]: 0 };
   const todo = [from];
   while (todo.length) {
     todo.sort((a, b) => dist[a] - dist[b]);
     const cur = todo.shift();
-    for (const [nb, m] of Object.entries(PLACES[cur].links)) {
+    for (const [nb, m] of Object.entries(PLACES[cur]?.links ?? {})) {
       const d = dist[cur] + m;
       if (dist[nb] == null || d < dist[nb]) { dist[nb] = d; todo.push(nb); }
     }
   }
+  return dist;
+}
+export function travelMonths(from, to) {
+  if (from === to) return 0;
+  const fp = linksFp();
+  if (fp !== routeFp) { routeFp = fp; routeCache = new Map(); }
+  let dist = routeCache.get(from);
+  if (!dist) { dist = distFrom(from); routeCache.set(from, dist); }
   return dist[to] ?? 99;
 }
 export const fareOf = (months) => months * 3;
