@@ -13,6 +13,7 @@ import { HOOKS } from '../hooks.js';
 import { invented } from '../era/state.js';
 import { TECH, eraOf, eraKey, eraBack, eraFront, ironBridge, ironcart, rails, train, station, crane, shipyard, steamship, airship, headframe } from './sceneEra.js';
 import { STYLE, house, tower, wallRun, windmill, church, cathedral, keep, castle, citadel, mageTowers, endlessTower, wizardTower, elfGreatTree, ropeBridge, dwarfFacade, yurt, herd, ruinArch, bastion, manor, fortress, ruins, ruinPalace, lighthouse, ship, docks, elfSpire, tent, totem, blackSpire, stiltHut, dwarfGate, worldTree } from './sceneTown.js';
+import { gradeScene } from './sceneGrade.js';
 
 /** 그 달의 때와 날씨 (같은 달이면 늘 같음) */
 export function conditions(year, month) {
@@ -121,6 +122,7 @@ function draw(year, month, famine, plague, place, calamity, era) {
   nearFrame(ctx, S, P, D.biome, rng(D.seed + 3));
   paintWeather(ctx, S, wr, { leaves: !!P.autumn && !P.blight, embers: D.culture === 'demon', month, snowy: !!P.snow, barren: !!P.blight });
   if (cal) seasonAir(ctx, cal, e);
+  gradeScene(ctx, S, { month, lit: e.lit, blight: !!P.blight, dry: !!P.dry }); // 46단계: 대비·계절 색·하늘 빛·밤 불빛
   paintFinish(ctx, W, H, S, { hz: HZ / H });
   grain(ctx);
   land.width = land.height = 0;
@@ -316,7 +318,7 @@ const LAYOUTS = {
     const farm = STYLE[D.culture] && !P.blight && b !== 'swamp' && D.size !== 'ruin' && D.size !== 'site';
     farRanges(L, e, D.id === 'ern' || D.id === 'gruental' ? 1 : P.blight ? 1.15 : b === 'cold' ? 1.1 : 0.55 + (q % 5) * 0.09);
     if (P.dry) dunes(L, HZ + 14, P, S, q, { amp: 18, n: 3, gap: 10, haze: 0.4 }); else farHills(L, e, { wood: P.blight ? 2 : b === 'dry' ? 0.66 : 0.52 });
-    const cx = 760 + (q % 7) * 8;
+    const cx = 660 + (q % 7) * 8; // 46단계: 760→660, 폰에서 보이는 가운데 60% 안으로
     const ground = (x) => 284 - fbm1(x / 260 + q, 21, 3) * 44 - sbump(x, cx, 290) * 22 - (D.feature === 'windmill' || D.feature === 'manor' ? sbump(x, 232, 150) * 24 : 0) - (D.mount ? sbump(x, cx + 90, 120) * 20 : 0);
     hillBand(L, ground, P.hill, S, { seed: 21, depth: 130 });
     const span = SPAN[D.size] ?? 300, inTown = (x, y) => Math.abs(x - cx) < span * 0.6 && y < ground(x) + 112;
@@ -354,7 +356,7 @@ const LAYOUTS = {
       for (const [x, y, s, fl] of [[330, HZ + 30, 0.62, true], [205, HZ + 40, 0.7, false], [290, HZ + 74, 1.05, false], [60, HZ + 104, 1.3, true]]) ship(L, x, y, s, S, fl);
       for (let i = 0; i < 6; i++) { const x = 120 + R() * 300, y = HZ + 50 + R() * 90, s = 0.5 + (y - HZ) / 200; poly(L, [[x - 9 * s, y - 2 * s], [x + 9 * s, y - 2 * s], [x + 6 * s, y + 1.5 * s], [x - 6 * s, y + 1.5 * s]], '#3a2a1c'); }
     }
-    const cx = 800;
+    const cx = 730; // 46단계: 800→730
     const ground = (x) => lerp(418, 284, sm(x)) - fbm1(x / 260 + q, 21, 3) * 30 * sm(x) - sbump(x, cx, 280) * 16;
     const h1 = (x) => lerp(HZ + 40, HZ + 6, sm(x + 80)) - fbm1(x / 220 + q, 11, 3) * 30 * sm(x + 80);
     hillBand(L, (x) => h1(x) + Math.pow(1 - sm(x + 60), 1.6) * 240, mixh(P.hill, S.haze, 0.45), S, { seed: 11, depth: 40, tex: 10 });
@@ -417,7 +419,7 @@ const LAYOUTS = {
     if (!P.frozen) for (const [dx, w, h] of [[-176, 13, 30], [-112, 16, 44], [-56, 14, 36], [0, 22, 62], [60, 15, 40], [118, 17, 50], [176, 13, 32]]) { L.fillStyle = rgba('#3a4460', 0.16); L.fillRect(cx + dx - w / 2, 294, w, h); }
     const ground = (x) => 366 - fbm1(x / 260 + q, 23, 3) * 12 + (1 - sbump(x, cx, 620)) * -30;
     hillBand(L, ground, P.hill, S, { seed: 23, depth: 80 });
-    settle(L, e, (x) => ground(x) - 6, 890, { span: 330, depth: 46, lx: 0 });
+    settle(L, e, (x) => ground(x) - 6, 830, { span: 330, depth: 46, lx: 0 }); // 46단계: 890→830
     const fg = (x) => 418 - fbm1(x / 200 + q, 31, 3) * 22 + sbump(x, 520, 300) * 14;
     foreground(L, fg, P, S, R, { month });
     for (let i = 0; i < 8; i++) reedClump(L, 380 + R() * 360, fg(500) + 6 + R() * 10, 16 + R() * 10, P, R);
@@ -430,7 +432,7 @@ const LAYOUTS = {
     const a = (x) => 214 - ridged1(x / 140 + q * 2, 5) * 150 - sbump(x, 300, 300) * 50;
     mountains(L, b, { color: P.far, S, haze: 0.56, snowLine: P.snowLine + 40, seed: 15, reach: 2.2, base: HZ + 40 });
     mountains(L, a, { color: P.far, S, haze: 0.3, snowLine: P.snowLine + 40, seed: 5, reach: 2, base: HZ + 60 });
-    const cx = 760;
+    const cx = 680; // 46단계: 760→680
     const mid = (x) => 262 - ridged1(x / 110 + q, 25, 4) * 70 - sbump(x, cx + 40, 260) * 46;
     mountains(L, mid, { color: mixh(P.far, P.rock, 0.5), S, haze: 0.1, snowLine: P.snow ? HZ + 80 : P.snowLine + 26, seed: 25, reach: 1.4, base: 330 });
     const ground = (x) => 312 - fbm1(x / 220 + q, 21, 3) * 30 - sbump(x, cx, 300) * 12;
@@ -456,7 +458,7 @@ const LAYOUTS = {
       forestMass(L, (x) => fn(x) + 2, 22, P, S, R, { size: 6 + k * 2, haze: 0.5 - k * 0.14, pine: elf ? 0.15 : 0.5 });
       mist(L, HZ + 14 + k * 20, 16, S.haze, 0.3);
     }
-    const cx = 740;
+    const cx = 680; // 46단계: 740→680
     if (D.id === 'iela') worldTree(L, cx + 120, 300, 1, S, P, R);
     const ground = (x) => 296 - fbm1(x / 240 + q, 21, 3) * 30 - sbump(x, cx, 300) * 10;
     hillBand(L, ground, P.hill, S, { seed: 21, depth: 120 });

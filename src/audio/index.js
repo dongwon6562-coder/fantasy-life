@@ -243,10 +243,11 @@ function onClick(ev) {
     const pe = game?.pendingEvent;
     const kind = pe?.id === 'life_scene' ? game.life?.scene?.kind : null;
     const duel = pe?.id === 'duel_round';
-    pendingFight = kind === 'fight' || kind === 'battle' || duel;
+    const fightish = kind === 'fight' || kind === 'fight_beat', warish = kind === 'battle' || kind === 'battle_beat'; // 46단계: 교전·전쟁 고비 장면
+    pendingFight = fightish || warish || duel;
     const before = circle(game);
     if (duel) duelSfx(pe, +el.dataset.choice, el.textContent);
-    else sfx(kind === 'fight' ? 'clash' : kind === 'battle' ? 'march' : 'choose');
+    else sfx(fightish ? 'clash' : warish ? 'march' : 'choose');
     // 무게 있는 사건에서는 고르는 순간 음악이 숨을 죽인다
     const heavy = !pendingFight && safe(() => weighty(game), false);
     if (heavy) safe(() => engine?.duck(0.4, 0.9));
