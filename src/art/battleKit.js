@@ -1,6 +1,6 @@
-// 전투 연출의 그림 도구: 사람·짐승·망령 실루엣과 칼자국·불꽃·먼지 같은 효과.
-// 무대 좌표는 가로 640, 세로 220, 땅은 y = 178. 그림은 어두운 실루엣에 빛 받는 쪽만 살짝 밝힌다.
-export const SW = 640, SH = 220, GY = 178;
+// 전투 연출의 그림 도구: 무대 크기, 자세, 적 종류별 생김새, 칼자국·불티·먼지 같은 효과.
+// 무대 좌표는 가로 640, 세로 300, 땅은 y = 248. 사람·짐승 그림은 battleFigure.js, 주문은 battleSpell.js, 배경은 battleBack.js.
+export const SW = 640, SH = 300, GY = 248;
 
 export const lerp = (a, b, t) => a + (b - a) * t;
 export const clamp = (v, a = 0, b = 1) => Math.max(a, Math.min(b, v));
@@ -11,7 +11,17 @@ export const EASE = {
   io: (t) => (t < 0.5 ? 4 * t * t * t : 1 - (-2 * t + 2) ** 3 / 2),
   back: (t) => 1 + 2.2 * (t - 1) ** 3 + 1.2 * (t - 1) ** 2,
 };
-const rad = (d) => (d * Math.PI) / 180;
+export const rad = (d) => (d * Math.PI) / 180;
+const hexRgb = (h) => { const n = parseInt(h.slice(1), 16); return h.length === 4 ? [((n >> 8) & 15) * 17, ((n >> 4) & 15) * 17, (n & 15) * 17] : [(n >> 16) & 255, (n >> 8) & 255, n & 255]; };
+const mixes = new Map();
+/** 두 빛깔을 섞는다 (#rrggbb 둘, t = 0이면 a). 같은 물음은 적어 둔다 */
+export function mix(a, b, t) {
+  const key = a + b + (t * 64 | 0);
+  let v = mixes.get(key);
+  if (!v) { const [r1, g1, b1] = hexRgb(a), [r2, g2, b2] = hexRgb(b); v = '#' + [lerp(r1, r2, t), lerp(g1, g2, t), lerp(b1, b2, t)].map((x) => Math.round(clamp(x, 0, 255)).toString(16).padStart(2, '0')).join(''); if (mixes.size > 600) mixes.clear(); mixes.set(key, v); }
+  return v;
+}
+export const rgba = (h, a) => { const [r, g, b] = hexRgb(h); return `rgba(${r},${g},${b},${a})`; };
 
 /* ---------- 자세 (각도는 도. 팔 0 = 아래로 늘어뜨림, 90 = 앞으로, 180 = 위로) ---------- */
 export const POSE = {
@@ -27,213 +37,57 @@ export const POSE = {
   cast: { lean: -7, crouch: 0.06, armA: 124, elbow: 8, wpn: 0, armB: 104, elbB: 10, step: 0.35, spread: 0.45 },
   lower: { lean: 5, crouch: 0.02, armA: 6, elbow: 6, wpn: 4, armB: 6, elbB: 10, step: 0.15, spread: 0.2 },
   run: { lean: 22, crouch: 0.14, armA: 50, elbow: 60, wpn: 40, armB: -30, elbB: 60, step: 1.0, spread: 1.0 },
+  // 46단계: 수마다 다른 몸짓
+  overhead: { lean: -16, crouch: 0.04, armA: 198, elbow: 34, wpn: 8, armB: 150, elbB: 40, step: 0.1, spread: 0.75 }, // 강공: 머리 위로 치켜든다
+  chop: { lean: 36, crouch: 0.44, armA: 44, elbow: 6, wpn: 34, armB: 30, elbB: 30, step: 1.2, spread: 0.85 }, // 내려친다
+  twist: { lean: -6, crouch: 0.26, armA: 138, elbow: 52, wpn: -70, armB: 64, elbB: 60, step: -0.15, spread: 0.85 }, // 허초: 몸을 튼다
+  low: { lean: 26, crouch: 0.5, armA: 30, elbow: 30, wpn: 40, armB: -40, elbB: 30, step: 1.1, spread: 0.9 }, // 낮게 벤다
+  parry: { lean: 0, crouch: 0.2, armA: 84, elbow: 44, wpn: 52, armB: 20, elbB: 60, step: 0.4, spread: 0.7 }, // 칼을 세워 받는다
+  deflect: { lean: 12, crouch: 0.24, armA: 74, elbow: 16, wpn: -52, armB: -10, elbB: 40, step: 0.6, spread: 0.7 }, // 흘린다
+  dodge: { lean: -24, crouch: 0.3, armA: 40, elbow: 50, wpn: 50, armB: -40, elbB: 40, step: -0.5, spread: 0.9 }, // 물러나며 피한다
+  charge: { lean: 4, crouch: 0.24, armA: 150, elbow: 70, wpn: -30, armB: 110, elbB: 60, step: 0.5, spread: 0.8 }, // 검기: 기를 모은다
+  invoke: { lean: -10, crouch: 0.02, armA: 168, elbow: 8, wpn: -6, armB: 160, elbB: 10, step: 0.2, spread: 0.5 }, // 두 팔을 든다
+  push: { lean: 14, crouch: 0.16, armA: 94, elbow: 2, wpn: 0, armB: 86, elbB: 4, step: 0.8, spread: 0.6 }, // 손바닥을 내민다
+  sway: { lean: -12, crouch: 0.1, armA: 30, elbow: 40, wpn: 60, armB: 120, elbB: 100, step: 0, spread: 0.4 }, // 정신 마법에 흔들린다
   cheer: { lean: -4, crouch: 0, armA: 176, elbow: 6, wpn: 0, armB: 20, elbB: 20, step: 0.25, spread: 0.3 },
 };
 
 /* ---------- 누구를 어떻게 그릴까 ---------- */
 // 적 종류 → 그림 틀. 모르는 종류는 사람 모양으로 그린다.
 const LOOK = {
-  giant_rat: { form: 'beast', s: 0.55, body: '#2a2422' },
-  wolf: { form: 'beast', s: 0.9, body: '#24262a', eye: '#d8b060' },
-  dire_wolf: { form: 'beast', s: 1.3, body: '#1c1e24', eye: '#e0a050' },
-  mana_bear: { form: 'beast', s: 1.9, bulk: 1.5, body: '#231e22', eye: '#a8c8ff' },
-  sewer_horror: { form: 'beast', s: 2.1, bulk: 1.6, body: '#1a2220', eye: '#b8e070' },
-  wyvern: { form: 'beast', s: 2.0, bulk: 1.1, body: '#222a26', eye: '#e8c050', wings: true },
-  cave_spider: { form: 'spider', s: 0.9, body: '#1c1a20' },
-  spider_queen: { form: 'spider', s: 1.7, body: '#201820', eye: '#d04a4a' },
-  tower_wraith: { form: 'wraith', s: 1.1, body: '#20242e', eye: '#a8d4ff' },
-  wight: { form: 'wraith', s: 1.25, body: '#1e2226', eye: '#b8ffd0' },
-  kobold: { s: 0.72, body: '#2e2a22', weapon: 'spear', hunch: 10 },
-  goblin: { s: 0.74, body: '#2a3122', weapon: 'sword', hunch: 12 },
-  goblin_chief: { s: 0.95, body: '#2a3122', weapon: 'sword', hunch: 8, accent: '#6a2a22', helm: true },
-  thug: { s: 1, body: '#2a2420', weapon: 'dagger' },
-  bandit: { s: 1, body: '#2c2620', weapon: 'axe', accent: '#4a3a26' },
-  bandit_chief: { s: 1.08, body: '#261f1c', weapon: 'sword', accent: '#6a2c24', cloak: true },
-  deserter: { s: 1.02, body: '#2a2a2e', weapon: 'sword', helm: true },
-  skeleton: { s: 1, body: '#8c8778', weapon: 'sword', thin: true },
-  ghoul: { s: 1, body: '#5a5f52', weapon: 'none', thin: true, hunch: 18 },
-  cultist: { s: 1, body: '#1e181c', weapon: 'dagger', cloak: true, accent: '#5a1e22', hood: true },
-  cult_priest: { s: 1.1, body: '#191418', weapon: 'staff', cloak: true, accent: '#7a2026', hood: true, glow: '#c04060' },
-  hobgoblin: { s: 1.12, bulk: 1.25, body: '#2c3026', weapon: 'club' },
-  orc: { s: 1.18, bulk: 1.35, body: '#2a3028', weapon: 'axe' },
-  orc_chief: { s: 1.34, bulk: 1.45, body: '#262c24', weapon: 'axe', accent: '#5a2a20', helm: true },
+  giant_rat: { form: 'beast', s: 0.55, body: '#4a4038', kind: 'rat', eye: '#d06050' },
+  wolf: { form: 'beast', s: 0.9, body: '#565a62', eye: '#e8c060', kind: 'wolf' },
+  dire_wolf: { form: 'beast', s: 1.3, body: '#33363e', eye: '#f0a040', kind: 'wolf', mane: true },
+  mana_bear: { form: 'beast', s: 1.9, bulk: 1.5, body: '#4a3c34', eye: '#a8c8ff', kind: 'bear', glow: '#7aa8ff' },
+  sewer_horror: { form: 'beast', s: 2.1, bulk: 1.6, body: '#2e3c36', eye: '#b8e070', kind: 'horror' },
+  wyvern: { form: 'beast', s: 2.0, bulk: 1.1, body: '#3c4a40', eye: '#e8c050', wings: true, kind: 'wyvern' },
+  cave_spider: { form: 'spider', s: 0.9, body: '#2c2830' },
+  spider_queen: { form: 'spider', s: 1.7, body: '#34242e', eye: '#e05a4a', mark: '#8a2c3a' },
+  tower_wraith: { form: 'wraith', s: 1.1, body: '#3a4254', eye: '#a8d4ff' },
+  wight: { form: 'wraith', s: 1.25, body: '#34403c', eye: '#b8ffd0' },
+  kobold: { s: 0.72, body: '#3a3024', weapon: 'spear', hunch: 10, skin: '#7a5c3a', bare: true, snout: true },
+  goblin: { s: 0.74, body: '#3a3426', weapon: 'sword', hunch: 12, skin: '#66783e', bare: true, ears: true },
+  goblin_chief: { s: 0.95, body: '#3a3426', weapon: 'sword', hunch: 8, accent: '#7a3026', helm: true, skin: '#66783e', ears: true, shield: true },
+  thug: { s: 1, body: '#4a3c30', weapon: 'dagger', hair: '#2a2018' },
+  bandit: { s: 1, body: '#4a4034', weapon: 'axe', accent: '#6a4a2c', hoodie: true, hair: '#3a2a1c' },
+  bandit_chief: { s: 1.08, body: '#3a302a', weapon: 'sword', accent: '#7a3026', cloak: true, hair: '#1c1614', armor: true },
+  deserter: { s: 1.02, body: '#44464e', weapon: 'sword', helm: true, armor: true, shield: true },
+  skeleton: { s: 1, body: '#a8a290', weapon: 'sword', thin: true, skin: '#c4bea8', bare: true, bald: true, eye: '#9ad0ff' },
+  ghoul: { s: 1, body: '#5a5f52', weapon: 'none', thin: true, hunch: 18, skin: '#7c846e', bare: true, bald: true, eye: '#d8e080' },
+  cultist: { s: 1, body: '#2e2228', weapon: 'dagger', accent: '#5a1e22', hood: true, robe: true },
+  cult_priest: { s: 1.1, body: '#261a20', weapon: 'staff', accent: '#7a2026', hood: true, robe: true, glow: '#c04060' },
+  hobgoblin: { s: 1.12, bulk: 1.25, body: '#3c3a2c', weapon: 'club', skin: '#6a7044', bare: true, ears: true, bald: true },
+  orc: { s: 1.18, bulk: 1.35, body: '#3a362c', weapon: 'axe', skin: '#5c6a48', bare: true, tusk: true, hair: '#1a1816' },
+  orc_chief: { s: 1.34, bulk: 1.45, body: '#34302a', weapon: 'axe', accent: '#7a3424', helm: true, skin: '#5c6a48', tusk: true, armor: true },
 };
 export function lookOf(unit) {
   if (LOOK[unit]) return { form: 'human', bulk: 1, ...LOOK[unit] };
-  return { form: 'human', s: 1, bulk: 1, body: '#2a2622', weapon: 'sword' };
+  return { form: 'human', s: 1, bulk: 1, body: '#4a4238', weapon: 'sword', hair: '#2a2018' };
 }
-export const HERO = { form: 'human', s: 1.02, bulk: 1, body: '#1e2026', weapon: 'sword', cloak: true, accent: '#7a5a2c' };
-export const MAGE = { form: 'human', s: 1, bulk: 0.95, body: '#1c1e2a', weapon: 'staff', cloak: true, accent: '#3a4a7a', hood: true, glow: '#9cc4ff' };
-export const ALLY = { form: 'human', s: 0.98, bulk: 1, body: '#22242a', weapon: 'sword', accent: '#4a5a6a', helm: true };
-export const SOLDIER = { form: 'human', s: 1, bulk: 1.05, body: '#24262c', weapon: 'sword', helm: true, accent: '#6a5a3a' };
-
-/* ---------- 사람 모양 ---------- */
-const STEEL = '#c2c7cc';
-function limb(c, ax, ay, bx, by, w) { c.lineWidth = w; c.beginPath(); c.moveTo(ax, ay); c.lineTo(bx, by); c.stroke(); }
-function knee(hx, hy, fx, fy, l, bend) {
-  const dx = fx - hx, dy = fy - hy, d = Math.min(Math.hypot(dx, dy), l * 2 - 0.01) || 0.01;
-  const h = Math.sqrt(Math.max(0, l * l - (d / 2) ** 2));
-  return [hx + dx / 2 + (-dy / d) * h * -bend, hy + dy / 2 + (dx / d) * h * -bend];
-}
-function weapon(c, kind, hx, hy, ang, f, s, glow, t) {
-  const dir = (len) => [hx + f * Math.sin(ang) * len, hy + Math.cos(ang) * len];
-  c.lineCap = 'round';
-  if (kind === 'none') return null;
-  if (kind === 'sword' || kind === 'dagger') {
-    const L = (kind === 'sword' ? 30 : 13) * s, [tx, ty] = dir(L), [gx, gy] = dir(-4 * s);
-    c.strokeStyle = '#0c0c0e'; limb(c, gx, gy, tx, ty, 3.6 * s);
-    c.strokeStyle = glow ?? STEEL; limb(c, hx, hy, tx, ty, 1.9 * s);
-    const [qx, qy] = dir(2 * s), px = Math.cos(ang) * 4 * s * f, py = -Math.sin(ang) * 4 * s; // 코등이
-    c.strokeStyle = '#3a2e22'; limb(c, qx - px, qy - py, qx + px, qy + py, 2 * s);
-    return [tx, ty];
-  }
-  if (kind === 'axe' || kind === 'club' || kind === 'spear' || kind === 'staff') {
-    const L = (kind === 'spear' ? 46 : kind === 'staff' ? 40 : 24) * s, back = (kind === 'spear' || kind === 'staff' ? 14 : 4) * s;
-    const [tx, ty] = dir(L), [bx, by] = dir(-back);
-    c.strokeStyle = '#2a2018'; limb(c, bx, by, tx, ty, (kind === 'club' ? 3.4 : 2.4) * s);
-    if (kind === 'axe') {
-      const [ax, ay] = dir(L * 0.82), nx = Math.cos(ang) * f, ny = -Math.sin(ang);
-      c.fillStyle = STEEL; c.beginPath(); c.moveTo(ax, ay); c.lineTo(ax + nx * 9 * s + (tx - ax) * 0.6, ay + ny * 9 * s + (ty - ay) * 0.6); c.lineTo(ax + nx * 9 * s - (tx - ax) * 0.9, ay + ny * 9 * s - (ty - ay) * 0.9); c.closePath(); c.fill();
-    } else if (kind === 'club') { c.strokeStyle = '#1e1814'; const [mx, my] = dir(L * 0.62); limb(c, mx, my, tx, ty, 6.4 * s); }
-    else if (kind === 'spear') { const [mx, my] = dir(L - 8 * s); c.strokeStyle = STEEL; limb(c, mx, my, tx, ty, 2.6 * s); }
-    else if (glow) orb(c, tx, ty, (6 + Math.sin(t * 5) * 1.2) * s, glow, 0.85);
-    return [tx, ty];
-  }
-  return null;
-}
-/**
- * 사람 모양 한 명. a: { x, y, face(+1 오른쪽을 봄), look, st(지금 자세 값), t(시간) }
- * 돌려주는 값: 무기 끝과 가슴 자리 (효과를 붙일 곳)
- */
-export function human(c, a) {
-  const { look: k, st: p } = a, f = a.face, s = k.s * (a.scale ?? 1), b = (k.bulk ?? 1) * (k.thin ? 0.72 : 1);
-  const hunch = k.hunch ?? 0, breath = Math.sin(a.t * 2.2 + a.seed) * 0.6;
-  const leg = 23 * s, torso = 21 * s;
-  const hy = a.y - leg * 2 * (1 - p.crouch * 0.42) * 0.96, hx = a.x + f * (p.lean * 0.12 + p.crouch * 2) * s;
-  const f1 = [a.x + f * (4 + p.step * 15) * s, a.y], f2 = [a.x - f * (4 + p.spread * 11) * s, a.y];
-  const la = rad(p.lean + hunch);
-  const sx = hx + f * Math.sin(la) * torso, sy = hy - Math.cos(la) * torso + breath;
-  const hdx = sx + f * Math.sin(la + rad(hunch * 0.8)) * 8.5 * s, hdy = sy - Math.cos(la) * 8.5 * s;
-  const arm = (base, el, l1, l2) => {
-    const a1 = rad(base) + la * 0.4, a2 = rad(base + el) + la * 0.4;
-    const ex = sx + f * Math.sin(a1) * l1, ey = sy + Math.cos(a1) * l1;
-    return [ex, ey, ex + f * Math.sin(a2) * l2, ey + Math.cos(a2) * l2, a2];
-  };
-  c.lineCap = 'round'; c.lineJoin = 'round';
-  const body = k.body, dark = '#0e0d10';
-  // 망토 (몸 뒤)
-  if (k.cloak) {
-    const sway = Math.sin(a.t * 3 + a.seed) * 3 * s + p.lean * -0.25 * s;
-    c.fillStyle = k.accent ?? '#2a2a30'; c.beginPath(); c.moveTo(sx - f * 2 * s, sy - 3 * s);
-    c.quadraticCurveTo(hx - f * (13 * s + sway), hy - 4 * s, hx - f * (11 * s + sway * 1.6), hy + leg * 0.9 * (1 - p.crouch * 0.5));
-    c.lineTo(hx + f * 2 * s, hy + 3 * s); c.closePath(); c.fill();
-  }
-  // 뒷다리, 뒷팔
-  c.strokeStyle = dark;
-  const k2 = knee(hx, hy, f2[0], f2[1], leg, f); limb(c, hx, hy, k2[0], k2[1], 6.2 * s * b); limb(c, k2[0], k2[1], f2[0], f2[1], 5 * s * b);
-  const B = arm(p.armB, p.elbB, 10 * s, 9 * s); limb(c, sx, sy, B[0], B[1], 4.4 * s * b); limb(c, B[0], B[1], B[2], B[3], 3.8 * s * b);
-  // 앞다리
-  c.strokeStyle = body;
-  const k1 = knee(hx, hy, f1[0], f1[1], leg, f); limb(c, hx, hy, k1[0], k1[1], 6.8 * s * b); limb(c, k1[0], k1[1], f1[0], f1[1], 5.4 * s * b);
-  c.strokeStyle = dark; limb(c, f1[0] - f * 1 * s, f1[1], f1[0] + f * 5 * s, f1[1], 3.2 * s); limb(c, f2[0] - f * 1 * s, f2[1], f2[0] + f * 5 * s, f2[1], 3.2 * s);
-  // 몸통
-  c.strokeStyle = body; limb(c, hx, hy, sx, sy, 11.5 * s * b);
-  if (k.accent && !k.cloak) { c.strokeStyle = k.accent; limb(c, hx + f * 1, hy - 2 * s, lerp(hx, sx, 0.3), lerp(hy, sy, 0.3), 12 * s * b); }
-  // 빛 받는 쪽 가장자리
-  c.strokeStyle = 'rgba(214,200,176,.2)'; limb(c, hx + a.lit * 5 * s * b, hy - 2 * s, sx + a.lit * 5 * s * b, sy + 2 * s, 1.2);
-  // 머리
-  c.fillStyle = k.thin && !k.hunch ? body : k.hood ? (k.accent ?? body) : '#2a2420';
-  c.beginPath(); c.arc(hdx, hdy, 5.6 * s, 0, 6.3); c.fill();
-  if (k.hood) { c.beginPath(); c.moveTo(hdx - f * 6 * s, hdy + 5 * s); c.quadraticCurveTo(hdx - f * 8 * s, hdy - 9 * s, hdx + f * 4 * s, hdy - 5.5 * s); c.lineTo(hdx + f * 2 * s, hdy + 5 * s); c.closePath(); c.fill(); }
-  if (k.helm) { c.fillStyle = '#4a4e56'; c.beginPath(); c.arc(hdx, hdy - 0.6 * s, 6 * s, Math.PI * 1.02, Math.PI * 1.98); c.lineTo(hdx + f * 6.4 * s, hdy + 1 * s); c.closePath(); c.fill(); }
-  c.strokeStyle = 'rgba(224,210,186,.26)'; c.lineWidth = 1.1; c.beginPath(); c.arc(hdx, hdy, 5.2 * s, a.lit > 0 ? -1.2 : Math.PI - 0.4, a.lit > 0 ? 0.4 : Math.PI + 1.2); c.stroke();
-  // 무기 든 팔
-  const A = arm(p.armA, p.elbow, 10.5 * s, 9.5 * s);
-  const tip = weapon(c, k.weapon, A[2], A[3], A[4] + rad(p.wpn), f, s, a.blade, a.t);
-  c.strokeStyle = body; limb(c, sx, sy, A[0], A[1], 4.8 * s * b); limb(c, A[0], A[1], A[2], A[3], 4.2 * s * b);
-  if (a.blade && tip) orb(c, lerp(A[2], tip[0], 0.6), lerp(A[3], tip[1], 0.6), 16 * s, a.blade, 0.5);
-  a.tip = tip ?? [A[2], A[3]]; a.hand = [B[2], B[3]]; a.chest = [lerp(hx, sx, 0.6), lerp(hy, sy, 0.6)]; a.head = [hdx, hdy];
-}
-
-/* ---------- 네발짐승 ---------- */
-export function beast(c, a) {
-  const k = a.look, p = a.st, f = a.face, s = k.s * (a.scale ?? 1), b = k.bulk ?? 1;
-  const lunge = p.lunge ?? 0, rear = p.rear ?? 0;
-  const bx = a.x + f * lunge * 10 * s, by = a.y - (15 + rear * 7 - p.crouch * 5) * s;
-  const gait = Math.sin(a.t * 9 + a.seed) * (p.gait ?? 0);
-  c.lineCap = 'round'; c.strokeStyle = '#0d0c0f';
-  const legAt = (ox, sw, back) => { const tx = bx + f * ox * s, fx = tx + f * (sw * 9 + (back ? -lunge : lunge) * 9) * s; limb(c, tx, by + 2 * s, lerp(tx, fx, 0.4) - f * (back ? 3 : -1) * s, by + 9 * s, 4.2 * s * b); limb(c, lerp(tx, fx, 0.4) - f * (back ? 3 : -1) * s, by + 9 * s, fx, a.y, 3.2 * s * b); };
-  legAt(-13, -gait, true); legAt(11, gait, false);
-  if (k.wings) {
-    const flap = Math.sin(a.t * 4 + a.seed) * 8;
-    c.fillStyle = '#161c1a'; c.beginPath(); c.moveTo(bx - f * 4 * s, by - 6 * s); c.lineTo(bx - f * 30 * s, by - (40 + flap) * s); c.lineTo(bx - f * 16 * s, by - (20 + flap * 0.4) * s); c.lineTo(bx - f * 40 * s, by - (22 + flap) * s); c.lineTo(bx - f * 22 * s, by - 6 * s); c.lineTo(bx - f * 34 * s, by + 2 * s); c.closePath(); c.fill();
-  }
-  c.save(); c.translate(bx, by); c.rotate(-f * rad(rear * 26 + lunge * -6));
-  c.fillStyle = k.body; c.beginPath(); c.ellipse(0, 0, (20 + lunge * 3) * s, (8.5 - lunge) * s * b, 0, 0, 6.3); c.fill();
-  // 꼬리, 목, 머리
-  c.strokeStyle = k.body; c.lineWidth = 3 * s; c.beginPath(); c.moveTo(-f * 18 * s, -2 * s); c.quadraticCurveTo(-f * 30 * s, -6 * s - gait * 3, -f * 34 * s, 2 * s + lunge * -8 * s); c.stroke();
-  const hx = f * (21 + lunge * 4) * s, hy = (-7 + (k.wings ? -8 : 0)) * s;
-  c.lineWidth = 8 * s * b; c.beginPath(); c.moveTo(f * 12 * s, -3 * s); c.lineTo(hx, hy); c.stroke();
-  c.fillStyle = k.body; c.beginPath(); c.ellipse(hx + f * 3 * s, hy, 7 * s, 5.2 * s, f * 0.3, 0, 6.3); c.fill();
-  c.beginPath(); c.moveTo(hx + f * 6 * s, hy - 3 * s); c.lineTo(hx + f * 15 * s, hy + (1 + (p.bite ?? 0) * -2) * s); c.lineTo(hx + f * 6 * s, hy + 3 * s); c.closePath(); c.fill();
-  if (p.bite) { c.beginPath(); c.moveTo(hx + f * 6 * s, hy + 2 * s); c.lineTo(hx + f * 13 * s, hy + (3 + p.bite * 5) * s); c.lineTo(hx + f * 4 * s, hy + 5 * s); c.closePath(); c.fill(); }
-  c.beginPath(); c.moveTo(hx - f * 1 * s, hy - 4 * s); c.lineTo(hx, hy - 11 * s); c.lineTo(hx + f * 4 * s, hy - 4 * s); c.closePath(); c.fill();
-  c.strokeStyle = 'rgba(214,200,176,.16)'; c.lineWidth = 1.1; c.beginPath(); c.ellipse(0, 0, 19 * s, 7.6 * s * b, 0, Math.PI * 1.1, Math.PI * 1.9); c.stroke();
-  if (k.eye) { c.fillStyle = k.eye; c.beginPath(); c.arc(hx + f * 5 * s, hy - 1.4 * s, 1.1 * Math.max(1, s * 0.8), 0, 6.3); c.fill(); }
-  c.restore();
-  c.strokeStyle = '#0d0c0f'; legAt(-9, gait, true); legAt(14, -gait, false);
-  a.tip = [bx + f * 34 * s, by - 6 * s]; a.chest = [bx, by]; a.head = [bx + f * 24 * s, by - 8 * s];
-}
-
-/* ---------- 거미 ---------- */
-export function spider(c, a) {
-  const k = a.look, p = a.st, f = a.face, s = k.s * (a.scale ?? 1);
-  const bx = a.x + f * (p.lunge ?? 0) * 12 * s, by = a.y - (13 - p.crouch * 5 + (p.rear ?? 0) * 6) * s;
-  c.lineCap = 'round'; c.lineJoin = 'round'; c.strokeStyle = '#0d0c10'; c.lineWidth = 2.2 * s;
-  for (let i = 0; i < 8; i++) {
-    const side = i < 4 ? 1 : -1, n = i % 4, w = Math.sin(a.t * 10 + i * 1.7 + a.seed) * (p.gait ?? 0) * 3;
-    const dx = side * (10 + n * 7) * s + w, kx = bx + dx * 0.9, ky = by - (12 + n * 3) * s, fx = bx + dx * 1.7, fy = a.y;
-    c.beginPath(); c.moveTo(bx + side * 3 * s, by); c.lineTo(kx, ky); c.lineTo(fx, fy); c.stroke();
-  }
-  c.fillStyle = k.body; c.beginPath(); c.ellipse(bx - f * 9 * s, by - 2 * s, 12 * s, 9 * s, 0, 0, 6.3); c.fill();
-  c.beginPath(); c.ellipse(bx + f * 6 * s, by, 7 * s, 5.6 * s, 0, 0, 6.3); c.fill();
-  c.fillStyle = k.eye ?? '#b84a4a'; for (const [ex, ey] of [[10, -2], [12, 0.5], [8, 0]]) { c.beginPath(); c.arc(bx + f * ex * s, by + ey * s, 0.9 * Math.max(1, s * 0.8), 0, 6.3); c.fill(); }
-  a.tip = [bx + f * 16 * s, by + 2 * s]; a.chest = [bx, by]; a.head = [bx + f * 8 * s, by];
-}
-
-/* ---------- 망령 ---------- */
-export function wraith(c, a) {
-  const k = a.look, p = a.st, f = a.face, s = k.s * (a.scale ?? 1);
-  const bob = Math.sin(a.t * 1.8 + a.seed) * 3, x = a.x + f * (p.lunge ?? 0) * 16 * s, top = a.y - 62 * s + bob - (p.rear ?? 0) * 6;
-  c.save(); c.globalAlpha *= 0.86;
-  c.fillStyle = k.body; c.beginPath(); c.moveTo(x, top);
-  c.bezierCurveTo(x + 14 * s, top + 4 * s, x + 14 * s, top + 30 * s, x + 18 * s, a.y - 6 + bob);
-  for (let i = 0; i <= 6; i++) { const xx = x + (18 - i * 6) * s, w = Math.sin(a.t * 4 + i * 1.3 + a.seed) * 3; c.lineTo(xx, a.y - (i % 2 ? 2 : 10) * s + bob + w); }
-  c.bezierCurveTo(x - 14 * s, top + 30 * s, x - 14 * s, top + 4 * s, x, top); c.fill();
-  // 뻗은 팔
-  c.strokeStyle = k.body; c.lineCap = 'round'; c.lineWidth = 4 * s; c.beginPath(); c.moveTo(x + f * 6 * s, top + 22 * s); c.quadraticCurveTo(x + f * 20 * s, top + (22 - (p.lunge ?? 0) * 6) * s, x + f * (24 + (p.lunge ?? 0) * 10) * s, top + (30 - (p.lunge ?? 0) * 8) * s); c.stroke();
-  c.restore();
-  orb(c, x + f * 3 * s, top + 11 * s, 9 * s, k.eye, 0.5);
-  c.fillStyle = k.eye; c.beginPath(); c.arc(x + f * 1 * s, top + 11 * s, 1.2, 0, 6.3); c.arc(x + f * 5.5 * s, top + 11 * s, 1.2, 0, 6.3); c.fill();
-  a.tip = [x + f * 30 * s, top + 26 * s]; a.chest = [x, top + 30 * s]; a.head = [x, top + 10 * s];
-}
-
-export function drawActor(c, a) {
-  if (a.st.alpha <= 0.01) return;
-  c.save(); c.globalAlpha = clamp(a.st.alpha);
-  // 발밑 그림자
-  c.fillStyle = 'rgba(0,0,0,.34)'; c.beginPath(); c.ellipse(a.x, a.y + 1.5, 15 * a.look.s * (1 + a.st.fall * 0.8), 3.2, 0, 0, 6.3); c.fill();
-  const fl = a.st.fall;
-  if (fl > 0.001) {
-    c.translate(a.x, a.y);
-    if (a.look.form === 'human') c.rotate(-a.face * rad(fl * 86)); // 사람은 뒤로 넘어간다
-    else if (a.look.form === 'wraith') { c.globalAlpha *= 1 - fl; c.scale(1 - fl * 0.3, 1 + fl * 0.3); } // 망령은 흩어진다
-    else { c.rotate(a.face * rad(fl * 10)); c.scale(1, 1 - fl * 0.5); } // 짐승은 옆으로 눕는다
-    c.translate(-a.x, -a.y + fl * 3);
-  }
-  ({ human, beast, spider, wraith })[a.look.form](c, a);
-  c.restore();
-}
+export const HERO = { form: 'human', s: 1.02, bulk: 1, body: '#3c465a', weapon: 'sword', cloak: true, accent: '#8a6a34', hair: '#3a2a1c', armor: true };
+export const MAGE = { form: 'human', s: 1, bulk: 0.95, body: '#2e3654', weapon: 'staff', accent: '#4a5a94', hood: true, robe: true, glow: '#9cc4ff' };
+export const ALLY = { form: 'human', s: 0.98, bulk: 1, body: '#4a4e58', weapon: 'sword', accent: '#5a6a7a', helm: true, armor: true };
+export const SOLDIER = { form: 'human', s: 1, bulk: 1.05, body: '#44464e', weapon: 'sword', helm: true, accent: '#7a6a44', armor: true, shield: true };
 
 /* ---------- 빛과 효과 ---------- */
 const orbs = new Map();
@@ -259,7 +113,7 @@ export function drawFx(c, e, k) {
   if (e.type === 'slash') { // 칼이 지나간 자리: 초승달 꼴 빛
     c.save(); c.translate(e.x, e.y); c.rotate(e.ang); c.scale(e.flip ?? 1, 1);
     const r = e.r * (0.8 + k * 0.3), sweep = lerp(0.3, 1, EASE.out(clamp(k * 2.4)));
-    c.globalAlpha *= fade ** 1.4; c.fillStyle = e.color ?? '#f2ead8';
+    c.globalCompositeOperation = 'lighter'; c.globalAlpha *= fade ** 1.4; c.fillStyle = e.color ?? '#f2ead8';
     c.beginPath(); c.arc(0, 0, r, -1.15, -1.15 + 2.3 * sweep); c.arc(r * 0.24, 0, r * 0.86, -1.15 + 2.3 * sweep, -1.15, true); c.closePath(); c.fill();
     c.restore();
     if (e.glow) orb(c, e.x, e.y, e.r * 1.5, e.glow, fade * 0.6);
@@ -270,9 +124,70 @@ export function drawFx(c, e, k) {
     const x = e.x + e.vx * k * e.life, y = e.y + e.vy * k * e.life + 160 * (k * e.life) ** 2;
     c.save(); c.globalAlpha *= fade; c.strokeStyle = e.color ?? '#ffd9a0'; c.lineWidth = 1.3; c.lineCap = 'round';
     c.beginPath(); c.moveTo(x, y); c.lineTo(x - e.vx * 0.035, y - e.vy * 0.035); c.stroke(); c.restore();
-  } else if (e.type === 'blood') {
-    const tt = k * e.life, x = e.x + e.vx * tt, y = Math.min(GY + 1, e.y + e.vy * tt + 300 * tt * tt);
-    c.save(); c.globalAlpha *= clamp(fade * 2); c.fillStyle = '#5a1418'; c.beginPath(); c.arc(x, y, e.r, 0, 6.3); c.fill(); c.restore();
+  } else if (e.type === 'chip') { // 튀는 조각: 천·쇠·돌·얼음 (돌면서 떨어진다)
+    const tt = k * e.life, x = e.x + e.vx * tt, y = Math.min(GY + 1, e.y + e.vy * tt + (e.g ?? 420) * tt * tt);
+    c.save(); c.globalAlpha *= clamp(fade * 2.4); c.translate(x, y); c.rotate((e.spin ?? 9) * tt + e.vx); c.fillStyle = e.color ?? '#8a8478';
+    c.beginPath(); c.moveTo(-e.r, -e.r * 0.5); c.lineTo(e.r * 0.8, -e.r * 0.7); c.lineTo(e.r, e.r * 0.6); c.lineTo(-e.r * 0.6, e.r * 0.5); c.closePath(); c.fill(); c.restore();
+  } else if (e.type === 'star') { // 맞는 순간: 사방으로 뻗는 짧은 빛줄기
+    c.save(); c.globalCompositeOperation = 'lighter'; c.globalAlpha *= fade ** 1.2; c.strokeStyle = e.color ?? '#fff4dc'; c.lineCap = 'round';
+    const n = e.n ?? 9, r0 = e.r * (0.25 + EASE.out(k) * 0.5), r1 = e.r * (0.5 + EASE.out(k) * 0.9);
+    for (let i = 0; i < n; i++) { const an = (i / n) * 6.283 + (e.rot ?? 0), q = 0.6 + ((i * 7) % 5) * 0.14; c.lineWidth = (2.2 - k * 1.6) * (i % 2 ? 0.6 : 1); c.beginPath(); c.moveTo(e.x + Math.cos(an) * r0, e.y + Math.sin(an) * r0 * 0.8); c.lineTo(e.x + Math.cos(an) * r1 * q, e.y + Math.sin(an) * r1 * q * 0.8); c.stroke(); }
+    c.restore();
+  } else if (e.type === 'wave') { // 검기: 날아가는 초승달
+    const kk = clamp(k / 0.8), x = lerp(e.x, e.tx, EASE.out(kk) * 0.4 + kk * 0.6), a = k < 0.8 ? 1 : 1 - (k - 0.8) / 0.2, f = Math.sign(e.tx - e.x) || 1, r = e.r * (0.8 + kk * 0.5);
+    c.save(); c.globalCompositeOperation = 'lighter'; c.translate(x, e.y); c.scale(f, 1);
+    for (let i = 0; i < 4; i++) { c.globalAlpha = a * (0.8 - i * 0.2); c.fillStyle = i ? e.color : '#ffffff'; const o = -i * 9; c.beginPath(); c.arc(o - r * 0.7, 0, r, -0.95, 0.95); c.arc(o - r * 0.42 - i * 1.5, 0, r * 0.84, 0.95, -0.95, true); c.closePath(); c.fill(); }
+    c.restore(); orb(c, x, e.y, r * 1.5, e.color, a * 0.5);
+  } else if (e.type === 'streak') { // 빠르게 스치는 선
+    const x = e.x + e.vx * k * e.life, y = e.y + (e.vy ?? 0) * k * e.life;
+    c.save(); c.globalAlpha *= Math.sin(k * Math.PI) * (e.a ?? 0.6); c.strokeStyle = e.color ?? '#f4f0e4'; c.lineWidth = e.w ?? 1; c.lineCap = 'round';
+    c.beginPath(); c.moveTo(x, y); if (e.curl) c.quadraticCurveTo(x - e.len * 0.5 * Math.sign(e.vx), y - e.curl, x - e.len * Math.sign(e.vx), y + e.curl * 0.4); else c.lineTo(x - e.len * Math.sign(e.vx || 1), y - (e.vy ?? 0) * 0.05); c.stroke(); c.restore();
+  } else if (e.type === 'gather') { // 한 점으로 모여드는 빛
+    const q = EASE.in(k), x = lerp(e.x, e.tx, q), y = lerp(e.y, e.ty, q);
+    orb(c, x, y, e.r * (1 - q * 0.5), e.color, Math.sin(k * Math.PI) * 0.9 + 0.1);
+  } else if (e.type === 'beam') { // 빛기둥·광선
+    const a = k < 0.15 ? k / 0.15 : fade ** 1.5, w = e.w * (k < 0.15 ? 0.4 + k * 4 : 1 - k * 0.5);
+    const dx = e.tx - e.x, dy = e.ty - e.y, d = Math.hypot(dx, dy) || 1, nx = -dy / d, ny = dx / d;
+    c.save(); c.globalCompositeOperation = 'lighter';
+    for (const [m, col, al] of [[2.6, e.color, 0.25], [1.2, e.color, 0.55], [0.4, '#ffffff', 0.95]]) { c.globalAlpha = a * al; c.fillStyle = col; c.beginPath(); c.moveTo(e.x + nx * w * m * 0.5, e.y + ny * w * m * 0.5); c.lineTo(e.tx + nx * w * m, e.ty + ny * w * m); c.lineTo(e.tx - nx * w * m, e.ty - ny * w * m); c.lineTo(e.x - nx * w * m * 0.5, e.y - ny * w * m * 0.5); c.closePath(); c.fill(); }
+    c.restore(); orb(c, e.tx, e.ty, w * 6, e.color, a * 0.8);
+  } else if (e.type === 'spike') { // 땅에서 솟는 돌기둥 (솟았다가 부서진다)
+    const up = k < 0.18 ? EASE.out(k / 0.18) : 1, a = k > 0.7 ? 1 - (k - 0.7) / 0.3 : 1, h = e.h * up, w = e.w;
+    c.save(); c.globalAlpha *= a; c.translate(e.x, e.y); c.rotate(e.tilt ?? 0);
+    c.fillStyle = e.color ?? '#5a5248'; c.beginPath(); c.moveTo(-w, 2); c.lineTo(-w * 0.5, -h * 0.5); c.lineTo(w * 0.1, -h); c.lineTo(w * 0.7, -h * 0.4); c.lineTo(w, 2); c.closePath(); c.fill();
+    c.fillStyle = e.lit ?? 'rgba(232,220,196,.3)'; c.beginPath(); c.moveTo(-w, 2); c.lineTo(-w * 0.5, -h * 0.5); c.lineTo(w * 0.1, -h); c.lineTo(-w * 0.1, 2); c.closePath(); c.fill();
+    c.restore();
+  } else if (e.type === 'tendril') { // 땅에서 자라 휘감는 줄기 (그림자·덩굴)
+    const grow = clamp(k / 0.35), a = k > 0.75 ? 1 - (k - 0.75) / 0.25 : 1, n = 14;
+    c.save(); c.globalAlpha *= a; c.strokeStyle = e.color; c.lineCap = 'round'; c.lineJoin = 'round';
+    let px = e.x, py = e.y;
+    for (let i = 1; i <= n * grow; i++) { const q = i / n, wob = Math.sin(q * 7 + e.ph + k * 6) * e.curl * (1 - q * 0.4), x = lerp(e.x, e.tx, q) + wob, y = lerp(e.y, e.ty, EASE.out(q)); c.lineWidth = e.w * (1.1 - q * 0.8); c.beginPath(); c.moveTo(px, py); c.lineTo(x, y); c.stroke(); if (e.leaf && i % 3 === 0) { c.fillStyle = e.leaf; c.beginPath(); c.ellipse(x + 3, y - 1, 3.4, 1.5, q * 5, 0, 6.3); c.fill(); } px = x; py = y; }
+    c.restore(); if (e.glow) orb(c, px, py, 8, e.glow, a * 0.6);
+  } else if (e.type === 'ripple') { // 정신 마법: 번져 가는 겹고리
+    c.save(); c.globalCompositeOperation = 'lighter'; c.strokeStyle = e.color;
+    for (let i = 0; i < 3; i++) { const q = (k * 1.4 + i * 0.22) % 1; c.globalAlpha = (1 - q) * fade * 0.8; c.lineWidth = 1.6 * (1 - q) + 0.4; c.beginPath(); c.ellipse(e.x, e.y, e.r * q, e.r * q * (e.flat ?? 0.7), e.rot ?? 0, 0, 6.3); c.stroke(); }
+    c.restore();
+  } else if (e.type === 'rune') { // 발밑 마법진
+    const a = Math.sin(clamp(k) * Math.PI) ** 0.5;
+    c.save(); c.globalCompositeOperation = 'lighter'; c.globalAlpha *= a * 0.8; c.strokeStyle = e.color; c.translate(e.x, e.y); c.scale(1, 0.24);
+    c.lineWidth = 1.6; c.beginPath(); c.arc(0, 0, e.r, 0, 6.3); c.stroke(); c.lineWidth = 0.9; c.beginPath(); c.arc(0, 0, e.r * 0.72, 0, 6.3); c.stroke();
+    c.rotate(k * 2.4); c.beginPath(); for (let i = 0; i < 6; i++) { const an = i * 1.0472; c.moveTo(Math.cos(an) * e.r * 0.72, Math.sin(an) * e.r * 0.72); c.lineTo(Math.cos(an + 2.0944) * e.r * 0.72, Math.sin(an + 2.0944) * e.r * 0.72); } c.stroke();
+    c.restore(); orb(c, e.x, e.y - 4, e.r * 1.2, e.color, a * 0.22);
+  } else if (e.type === 'claw') { // 할퀸 자국: 세 줄
+    c.save(); c.globalCompositeOperation = 'lighter'; c.globalAlpha *= fade ** 1.3; c.strokeStyle = e.color ?? '#fff0dc'; c.lineCap = 'round'; c.lineWidth = 2.2 * fade + 0.4;
+    const len = e.r * EASE.out(clamp(k * 3));
+    for (const o of [-1, 0, 1]) { c.beginPath(); c.moveTo(e.x - e.f * e.r * 0.5 + o * 5, e.y - e.r * 0.6 + o * 3); c.lineTo(e.x - e.f * e.r * 0.5 + o * 5 + e.f * len, e.y - e.r * 0.6 + o * 3 + len * 1.1); c.stroke(); }
+    c.restore();
+  } else if (e.type === 'blade') { // 손에서 떨어져 날아가는 칼: 돌다가 땅에 꽂힌다
+    const tt = k * e.life, fall = (-e.vy + Math.sqrt(e.vy * e.vy + 1040 * Math.max(1, GY - e.len * 0.84 - e.y))) / 520, q = Math.min(tt, fall);
+    const x = e.x + e.vx * q, y = e.y + e.vy * q + 260 * q * q, ang = tt < fall ? e.spin * q : Math.PI + (e.vx > 0 ? 0.3 : -0.3), L = e.len;
+    c.save(); c.translate(x, y); c.rotate(ang); c.lineCap = 'round';
+    c.strokeStyle = '#8e959c'; c.lineWidth = L * 0.1; c.beginPath(); c.moveTo(0, 0); c.lineTo(0, -L); c.stroke(); c.strokeStyle = '#e4e8ec'; c.lineWidth = L * 0.04; c.beginPath(); c.moveTo(-L * 0.02, 0); c.lineTo(-L * 0.02, -L * 0.94); c.stroke();
+    c.strokeStyle = '#7a6a44'; c.lineWidth = L * 0.07; c.beginPath(); c.moveTo(-L * 0.14, 0); c.lineTo(L * 0.14, 0); c.stroke(); c.strokeStyle = '#2a2018'; c.lineWidth = L * 0.08; c.beginPath(); c.moveTo(0, 0); c.lineTo(0, L * 0.22); c.stroke();
+    c.restore();
+  } else if (e.type === 'smoke') { // 피어오르는 연기·김
+    c.save(); c.globalAlpha *= Math.sin(k * Math.PI) * (e.a ?? 0.3); c.fillStyle = e.color ?? '#3a3438';
+    c.beginPath(); c.arc(e.x + (e.vx ?? 0) * k, e.y - (e.rise ?? 30) * k, e.r * (0.6 + k), 0, 6.3); c.fill(); c.restore();
   } else if (e.type === 'dust') {
     c.save(); c.globalAlpha *= fade * 0.34; c.fillStyle = e.color ?? '#a89a84';
     c.beginPath(); c.ellipse(e.x + e.vx * k, e.y - 10 * k, e.r * (0.5 + k), e.r * (0.3 + k * 0.5), 0, 0, 6.3); c.fill(); c.restore();
@@ -292,11 +207,13 @@ export function drawFx(c, e, k) {
     c.save(); c.globalAlpha *= clamp(fade * 1.6); c.globalCompositeOperation = 'lighter'; c.lineJoin = 'miter'; c.lineCap = 'round';
     for (const [w, col] of [[5, 'rgba(120,150,255,.4)'], [1.6, '#eef4ff']]) { c.strokeStyle = col; c.lineWidth = w; c.beginPath(); e.pts.forEach(([x, y], i) => (i ? c.lineTo(x, y) : c.moveTo(x, y))); c.stroke(); }
     c.restore(); orb(c, e.tx, e.ty, 40, '#9ab4ff', fade);
-  } else if (e.type === 'ward') { // 결계: 반투명한 둥근 막
-    const a = Math.sin(clamp(k) * Math.PI) ** 0.6;
-    c.save(); c.globalAlpha *= a * 0.9; c.strokeStyle = e.color ?? '#a8d0ff'; c.lineWidth = 1.6;
-    c.beginPath(); c.arc(e.x, e.y, e.r, -1.3, 1.3); c.stroke(); c.globalAlpha *= 0.5; c.beginPath(); c.arc(e.x - e.f * 3, e.y, e.r * 0.86, -1.1, 1.1); c.stroke();
-    c.restore(); orb(c, e.x + e.r * 0.8, e.y, e.r * 1.1, e.color ?? '#a8d0ff', a * 0.3);
+  } else if (e.type === 'ward') { // 결계: 반투명한 둥근 막 (맞으면 육각 무늬가 번쩍인다)
+    const a = Math.sin(clamp(k) * Math.PI) ** 0.6, col = e.color ?? '#a8d0ff';
+    c.save(); c.globalCompositeOperation = 'lighter'; c.translate(e.x, e.y); c.scale(e.f, 1);
+    c.globalAlpha = a * 0.07; c.fillStyle = col; c.beginPath(); c.arc(0, 0, e.r, -1.35, 1.35); c.closePath(); c.fill();
+    c.globalAlpha = a * 0.9; c.strokeStyle = col; c.lineWidth = 1.8; c.beginPath(); c.arc(0, 0, e.r, -1.35, 1.35); c.stroke();
+    c.globalAlpha = a * 0.5 * (e.hit ? 1 : 0.5); c.lineWidth = 0.8; for (let i = -2; i <= 2; i++) { const an = i * 0.5, x = Math.cos(an) * e.r * 0.93, y = Math.sin(an) * e.r * 0.93; c.beginPath(); for (let j = 0; j <= 6; j++) { const h = j * 1.0472; c[j ? 'lineTo' : 'moveTo'](x + Math.cos(h) * 5 * 0.5, y + Math.sin(h) * 5); } c.stroke(); }
+    c.restore(); orb(c, e.x + e.f * e.r * 0.8, e.y, e.r * 0.9, col, a * (e.hit ? 0.3 : 0.14));
   } else if (e.type === 'arrows') {
     c.save(); c.strokeStyle = 'rgba(20,18,16,.8)'; c.lineWidth = 1; c.beginPath();
     for (const [dx, dl] of e.set) { const q = clamp(k * 1.25 - dl); if (q <= 0 || q >= 1) continue; const x = lerp(e.x, e.tx, q) + dx, y = lerp(e.y, e.ty, q) - Math.sin(q * Math.PI) * e.h, an = Math.atan2((e.ty - e.y) / (e.tx - e.x) - Math.cos(q * Math.PI) * e.h * Math.PI / (e.tx - e.x), 1) * Math.sign(e.tx - e.x); c.moveTo(x, y); c.lineTo(x - Math.cos(an) * 7 * Math.sign(e.tx - e.x), y - Math.sin(an) * 7 * Math.sign(e.tx - e.x)); }
