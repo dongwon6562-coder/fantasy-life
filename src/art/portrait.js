@@ -11,6 +11,7 @@ import { lifeOf, drawLifeMarks } from './portraitLife.js';
 import { hairStyleOf, drawHair, beardOf, drawBeard } from './portraitHair.js';
 import { paintDefs, paintOver, hairWrap, clothWrap, faceShadow } from './portraitPaint.js';
 import { gearOf, drawGear } from './portraitGear.js';
+import { raceMarks, eyeGlow, ageMarks, grayTemples, keyLight, faceForm, clothFolds } from './portraitRace.js';
 
 /* ---------- 종족별 빛깔 ---------- */
 const HUMAN = {
@@ -144,7 +145,7 @@ export function portrait(game, p, opt = {}) {
   const bust = !!opt.bust;
   const H = bust ? 128 : 100;
   const era = eraBits(game);
-  const ageKey = age < 20 ? Math.floor(age) : Math.floor(age / 3);
+  const ageKey = Math.floor(age); // 46단계: 어른도 해마다 다시 그린다 (해마다 늙어 가는 게 보이게)
   const ck = `${detail ? 'D' : 'S'}|${mood}|${keyOf(p)}|${raceOf(p)}|${p.beast ?? ''}|${ageKey}|${life.key}|${p.alive}|${opt.ring ?? ''}|${p.fatherId}|${p.motherId}|${bust ? 'B' : ''}${era}`;
   let body = cache.get(ck);
   if (!body) {
@@ -235,8 +236,8 @@ function drawFace(game, p, age, stage, scars, ring, mood, detail, life, bust = f
   const male = p.sex === 'm';
   const M = MOODS[mood] ?? {};
   const kid = stage === 'baby' ? 1 : stage === 'child' ? lerp(0.8, 0.42, clamp((age - 3) / 10)) : stage === 'teen' ? lerp(0.32, 0.06, clamp((age - 13) / 5)) : 0;
-  const old = clamp((age - 38) / 42);
-  const mature = clamp((age - 24) / 16);      // 서른 즈음부터 자리 잡는 얼굴
+  const old = clamp((age - 35) / 44); // 46단계: 38→35, 주름이 조금 일찍 천천히
+  const mature = clamp((age - 20) / 16);      // 서른 즈음부터 자리 잡는 얼굴
   const ancient = clamp((age - 66) / 22);     // 일흔을 넘긴 얼굴
   const worn = clamp(old + life.weather * 0.16 + life.hard * 0.12); // 주름은 나이만이 아니라 볕과 고생으로도 깊어진다
   const dwarf = race === 'dwarf', elf = race === 'elf', beast = race === 'beast';
@@ -256,7 +257,7 @@ function drawFace(game, p, age, stage, scars, ring, mood, detail, life, bust = f
   const blush = race === 'demon' ? '#8a5a7a' : '#c0604c';
   let hair = R.hair[Math.min(g.hair, R.hair.length - 1)];
   if (kid > 0.4) hair = tint(hair, 0.08);
-  const gray = clamp((age - 42) / 30 + (r() - 0.5) * 0.3);
+  const gray = clamp((age - 40) / 30 + (r() - 0.5) * 0.3);
   if (gray > 0 && race !== 'elf') hair = mixHex(hair, '#cfc9be', gray * 0.92);
   const hairDark = shade(hair, 0.5), hairLight = tint(hair, 0.3);
   const eyeCol = R.eyes[Math.min(g.eyes, R.eyes.length - 1)];
@@ -265,8 +266,10 @@ function drawFace(game, p, age, stage, scars, ring, mood, detail, life, bust = f
   const cx = 50;
   let hw = 15.0 + g.wide * 3.2 + (male ? 0.5 : -0.5) + kid * 1.1;
   let hh = 23.0 + g.long * 3.1 * (1 - kid * 0.5) + (male ? 0.6 : 0) - kid * 4.2;
+  const settle = clamp((age - 16) / 16) * (1 - kid); // 46단계: 앳된 얼굴이 서른 즈음까지 길고 단단해진다
+  hh += settle * 0.9; hw -= settle * 0.35;
   if (dwarf) { hw += 2.4; hh -= 1.4; }
-  if (elf) { hw -= 1; hh += 0.7; }
+  if (elf) { hw -= 1.6; hh += 1.4; } // 46단계: 엘프 얼굴을 더 길고 좁게
   const form = FORMS[Math.min(5, Math.floor((g.form ?? 0) * 6))], eyeK = EYE_KINDS[Math.min(4, Math.floor((g.eyeKind ?? 0) * 5))];
   const fk = 1 - kid * 0.7; // 아이 얼굴은 생김새 갈래가 덜 드러난다
   if (form === 'long') { hh += 1.5 * fk; hw -= 0.6 * fk; }
@@ -358,7 +361,7 @@ function drawFace(game, p, age, stage, scars, ring, mood, detail, life, bust = f
   P.push(CW(garb.behind), hat.back, HW(hairS.back));
   if (beast && p.beast !== 'hawk') P.push(beastEars(p.beast, { cx, cy, hw, hh, top }, hair, hairDark, skin, uid, 'back'));
   if (race === 'demon' || race === 'half_demon') P.push(horns(race, { cx, cy, hw, hh, top }, hashStr('horn' + key) / 4294967296, 'back'));
-  P.push(CW(garb.torso));
+  P.push(detail && stage !== 'baby' ? `<g id="${uid}xT">${CW(garb.torso)}</g>` + clothFolds(uid, { cx, sw, sy, baseY, H, male, key }) : CW(garb.torso));
 
   /* ----- 목 ----- */
   const nT = chin - hh * 0.3;
@@ -527,6 +530,8 @@ function drawFace(game, p, age, stage, scars, ring, mood, detail, life, bust = f
   if (detail && stage !== 'baby' && race !== 'demon') {
     P.push(`<g filter="url(#${uid}xb)"><ellipse cx="${f(cx - 1)}" cy="${f(top + hh * 0.48)}" rx="${f(hw * 0.8)}" ry="${f(hh * 0.3)}" fill="#e9c98a" opacity="0.1"/><ellipse cx="${cx}" cy="${f(eyeY + hh * 0.3)}" rx="${f(hw * 0.86)}" ry="${f(hh * 0.26)}" fill="#c4584a" opacity="${f(0.09 + life.weather * 0.06)}"/><ellipse cx="${cx}" cy="${f(my + (chin - my) * 0.3)}" rx="${f(hw * 0.62)}" ry="${f((chin - my) * 0.85)}" fill="#4f6078" opacity="${f(male && kid < 0.2 ? 0.13 : 0.06)}"/></g>`);
   }
+  const rm = { race, beast: p.beast, cx, cy, hw, hh, top, chin, eyeY, eyeGap, ew, browY, noseBot, my, mw, nw, skin, hair, hairDark, uid, detail, kid, key, age, stage, male, eyeCol, gray, covered: hat.hidesHair };
+  P.push(ageMarks(rm), raceMarks(rm), faceForm(uid, { cx, top, hw, hh, chin }, sh2, detail));
   P.push(faceShadow(uid, { cx, top, hw, hh, cy, eyeY, eyeGap, ew, browY, noseBot, my, chin, nw, mw }, skin, warmDark, (1 - kid * 0.45) * (detail ? 1.25 : 1), detail));
   P.push('</g>');
   P.push(HW(beard.under));
@@ -618,7 +623,7 @@ function drawFace(game, p, age, stage, scars, ring, mood, detail, life, bust = f
     if (detail && !kid) P.push(`<path d="M${f(cx - 0.9)} ${f(noseBot + 1.4)} L${f(cx - 1.1)} ${f(my - 1.9)} M${f(cx + 0.9)} ${f(noseBot + 1.4)} L${f(cx + 1.1)} ${f(my - 1.9)}" stroke="${sh1}" stroke-width="0.4" opacity="0.5" stroke-linecap="round"/>`);
   }
 
-  if (race === 'demon' && stage !== 'baby') for (const s of [-1, 1]) P.push(`<ellipse cx="${f(cx + s * eyeGap)}" cy="${f(eyeY)}" rx="${f(ew * 1.5)}" ry="${f(ew * 0.95)}" fill="${eyeCol}" opacity="0.13"/>`);
+  P.push(eyeGlow(rm)); // 46단계: 마족·반마족은 빛나는 눈, 엘프·짐승 눈은 맑은 빛
   if (beast && p.beast !== 'hawk' && stage !== 'baby') { // 수인의 코: 짙은 코끝과 입으로 내려오는 선
     const nc = mixHex(skin, '#2a1814', 0.78), bw = nw * (p.beast === 'lion' || p.beast === 'bear' ? 0.95 : 0.8);
     P.push(`<path d="M${f(cx - bw)} ${f(noseBot - 1.9)} Q${cx} ${f(noseBot - 3)} ${f(cx + bw)} ${f(noseBot - 1.9)} Q${f(cx + bw * 0.7)} ${f(noseBot + 0.5)} ${cx} ${f(noseBot + 1)} Q${f(cx - bw * 0.7)} ${f(noseBot + 0.5)} ${f(cx - bw)} ${f(noseBot - 1.9)}Z" fill="${nc}" opacity="0.9"/><path d="M${f(cx - bw * 0.5)} ${f(noseBot - 2)} q${f(bw * 0.5)} -0.6 ${f(bw)} 0" fill="none" stroke="${hi}" stroke-width="0.4" opacity="0.5"/>`);
@@ -661,11 +666,12 @@ function drawFace(game, p, age, stage, scars, ring, mood, detail, life, bust = f
   P.push(marks.skin, marks.chest, gearArt.chest, gearArt.face);
 
   /* ----- 앞머리·쓰개·뿔·짐승 귀 ----- */
-  P.push(HW(hairS.front), hat.front, ...earBuf, marks.over);
+  P.push(HW(hairS.front), grayTemples(rm), hat.front, ...earBuf, marks.over);
   if (beast && p.beast !== 'hawk') P.push(beastEars(p.beast, { cx, cy, hw, hh, top }, hair, hairDark, skin, uid, 'front'));
   if (race === 'demon' || race === 'half_demon') P.push(horns(race, { cx, cy, hw, hh, top }, hashStr('horn' + key) / 4294967296, 'front'));
   P.push('</g></g></g>');
   P.push(paintOver(uid, H));
+  if (detail) P.push(keyLight(uid, H));
   P.push('</g>');
   // 테두리 (반신 초상은 모서리를 둥글린 세로 틀)
   P.push(frame(`fill="none" stroke="#0e0a07" stroke-width="2.4" opacity="0.55"`) + frame(`fill="none" stroke="${ring ?? '#8a6d38'}" stroke-width="${ring ? 2.4 : 1.5}"`) + (detail ? frame(`fill="none" stroke="${ring ?? '#8a6d38'}" stroke-width="0.35" opacity="0.6"`, 1.8) : ''));
