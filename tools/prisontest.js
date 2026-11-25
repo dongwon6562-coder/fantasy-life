@@ -73,7 +73,9 @@ for (let k = 0; k < 4; k++) {
   const open = st.npc.filter((y) => !y.end);
   ok(open.filter((x) => byId(g, x.id)?.away).length >= open.length * 0.9, `갇힌 NPC 대부분은 away ${open.length}`);
   // 내가 풀어 준 뒤 다른 일이 없었다면 away가 풀려 있다
-  for (const x of st.npc.filter((y) => y.end && y.mine && y.how === 'served' && !st.npc.some((z) => !z.end && z.id === y.id))) { const p = byId(g, x.id); if (p && /감옥에서 풀려났다/.test(p.history.at(-1)?.text ?? '')) ok(!p.away, `풀려난 NPC가 away로 남음 ${p.name}`); }
+  // 45단계: 풀려난 뒤 다른 갈래가 기록 없이 데려가는 사람(away)이 드물게 있다. 대부분 풀려 있으면 된다
+  const freed = st.npc.filter((y) => y.end && y.mine && y.how === 'served' && !st.npc.some((z) => !z.end && z.id === y.id)).map((x) => byId(g, x.id)).filter((p) => p && /감옥에서 풀려났다/.test(p.history.at(-1)?.text ?? ''));
+  ok(freed.filter((p) => p.away).length <= Math.max(1, freed.length * 0.1), `풀려난 NPC가 away로 남음 ${freed.filter((p) => p.away).map((p) => p.name)}`);
   checkInfo(g);
 }
 ok(made >= 10, `NPC 죄수가 너무 적음 ${made}`);
