@@ -1,4 +1,5 @@
 // 대륙 지도의 버튼과 덧붙는 설명: 길 떠나기, 다른 나라(src/realms)의 법·신앙·나와의 관계, 국경 넘기.
+import { crownBox } from './crowns.js';
 import { MAP_ACTIONS, MAP_INFO } from '../art/map.js';
 import { L, traveling, isAdult, showScene } from '../adventure/core.js';
 import { PLACES, travelMonths, fareOf } from '../places.js';
@@ -65,10 +66,13 @@ MAP_INFO.push((g, place) => {
     ['신분', r.status],
     ['물가', r.priceWord],
   ];
+  const crown = id === 'leonia' ? '' : crownBox(g, id);
+  if (crown) rows.shift(); // 다스리는 이는 왕가 칸이 더 자세히 말한다
   if (!r.citizen) rows.push(['귀화', r.naturalizeBlock ? `${r.naturalize} (${r.naturalizeBlock})` : r.naturalize]);
   return `<div class="realm-box">
     <div class="realm-top"><strong>${esc(r.name)}</strong><span class="standing ${STANDING_CLS[r.standing] ?? ''}">${esc(r.standing)}${r.bannedMonths ? ` · ${Math.ceil(r.bannedMonths / 12)}해 더` : ''}${r.here ? ' · 지금 여기' : ''}</span></div>
     <dl>${rows.map(([k, v]) => `<div><dt>${esc(k)}</dt><dd>${esc(v)}</dd></div>`).join('')}</dl>
+    ${crown}
     ${note ? `<p class="border">${esc(note)}</p>` : ''}
   </div>`;
 });
