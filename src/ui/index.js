@@ -620,7 +620,7 @@ function renderEvent() {
     return `<div class="overlay${ovFresh ? ' fresh' : ''}${bt ? ' bt-ov' : ''}"><div class="event${rv}${bt ? ' battle after' : ''}" role="dialog" aria-modal="true" aria-labelledby="ev-title">
       ${head}
       <div class="ev-body">
-        <span class="eyebrow">용사력 ${game.date.year}년 ${monthInfo(game).name} · ${bt ? (ui.bt?.kind === 'duel' ? (game.duel ? '합의 끝' : '결투의 끝') : '싸움의 끝') : '그 뒤'}</span>
+        <span class="eyebrow">용사력 ${game.date.year}년 ${monthInfo(game).name} · ${bt ? (ui.bt?.kind === 'duel' ? (game.duel ? '합의 끝' : '결투의 끝') : afterLabel(game, ui.bt) === '다음 고비' ? '고비의 끝' : ui.bt?.kind === 'war' ? '전투의 끝' : '싸움의 끝') : '그 뒤'}</span>
         <h2 id="ev-title">${esc(ui.outcome.title)}</h2>
         ${bt}
         ${(() => { const r = splitResult(String(ui.outcome.text ?? '')); const t = revealSpans(r.scene); rvBase = t.n * t.step; return `<p class="outcome">${t.html}</p>${r.gains ? `<p class="gains ln" style="--ln:${t.n};--st:${t.step}s">${esc(r.gains)}</p>` : ''}`; })()}
@@ -635,7 +635,7 @@ function renderEvent() {
   return `<div class="overlay${ovFresh ? ' fresh' : ''}${st ? ' bt-ov' : ''}${st?.crux ? ' crux' : ''}"><div class="event${rv}${st ? ' battle' : ''}${st?.crux ? ' crux' : ''}" role="dialog" aria-modal="true" aria-labelledby="ev-title">
     ${head}
     <div class="ev-body">
-      <span class="eyebrow">용사력 ${game.date.year}년 ${monthInfo(game).name} · ${st ? (st.kind === 'duel' ? '결투' : '싸움') : '사건'}</span>
+      <span class="eyebrow">용사력 ${game.date.year}년 ${monthInfo(game).name} · ${st ? (st.kind === 'duel' ? '결투' : st.kind === 'war' ? '전투' : '싸움') : '사건'}</span>
       <h2 id="ev-title">${esc(e.title)}</h2>
       ${st ? battleHead(game) : ''}
       ${bBody == null ? `<p class="ev-text">${t.html}</p>` : bBody}

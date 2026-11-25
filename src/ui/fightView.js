@@ -7,8 +7,8 @@
 // 갈래가 duelView/skirmishView를 내주면 그걸 먼저 쓰고, 없으면 g.duel·장면을 직접 읽는다.
 import { esc } from './util.js';
 import { icon } from '../art/icons.js';
-import { describeFoes } from '../adventure/combat.js';
-import { companionsFor } from '../adventure/fight.js';
+import { skirmishView } from '../adventure/fight.js';
+import { battleView } from '../war/battle.js';
 import { duelView } from '../duel/index.js';
 
 const safe = (fn, d = null) => { try { return fn() ?? d; } catch (e) { console.error(e); return d; } };
@@ -65,17 +65,10 @@ function duelState(g) {
 }
 function fightState(g) {
   const e = g?.pendingEvent, s = g?.life?.scene;
-  if (!e || e.id !== 'life_scene' || s?.kind !== 'fight' || !s.enc) return null;
-  const text = String(e.text ?? '');
-  const threat = /가늠해 보니,?\s*([^\n]+)$/.exec(text)?.[1] ?? '';
-  const intro = text.replace(/\s*적:[^.]*\.(\s*[^.]*곁에 있다\.)?\s*가늠해 보니[^\n]*$/, '').trim();
-  const comps = safe(() => companionsFor(g).map((c) => c.name), []);
-  return {
-    kind: 'fight', title: e.title, intro, threat,
-    us: { name: g.player?.name ?? '나', with: comps },
-    them: { name: safe(() => describeFoes(s.enc), '적') },
-    moves: e.choices.map((label, i) => ({ id: i, label })),
-  };
+  if (!e || e.id !== 'life_scene' || !s) return null;
+  const v = safe(() => skirmishView(g)) ?? safe(() => battleView(g));
+  if (!v) return null;
+  return { ...v, us: { ...v.us, name: v.us?.name || g.player?.name || '나' }, title: e.title, text: String(e.text ?? ''), moves: (v.options ?? []).map((o) => ({ ...o })) };
 }
 export function battleState(g) { return duelState(g) ?? fightState(g); }
 
@@ -87,7 +80,7 @@ export function battleSnap(g, choice) {
     const d = g.duel;
     return { kind: 'duel', title: d.title, round: st.round, me: { ...st.me }, foe: { ...st.foe }, mom: st.mom, move: st.moves[choice]?.id, history: [...(d.history ?? []), st.moves[choice]?.id].filter(Boolean), lethal: !!d.lethal, place: st.place };
   }
-  return { kind: 'fight', title: st.title, them: st.them, label: st.moves[choice]?.label };
+  return { kind: st.kind, title: st.title, us: { ...st.us }, them: { ...st.them }, label: st.moves[choice]?.label, stage: st.stage };
 }
 
 /* ---------- 조각 ---------- */
@@ -117,9 +110,22 @@ function hud(st, pre) {
       ${st.last ? st.last : ''}
     </div>`;
   }
-  return `<div class="bt-hud fight">
-    <div class="bt-vs"><div class="bt-side me"><div class="bt-name"><b>${esc(st.us.name)}</b><em>${st.us.with.length ? `${esc(st.us.with.join(', '))} 곁에` : '혼자'}</em></div></div><span class="bt-x" aria-hidden="true">${icon('sword', 18)}</span><div class="bt-side foe"><div class="bt-name"><b>${esc(st.them.name)}</b></div></div></div>
-    ${st.threat ? `<p class="bt-threat">${esc(st.threat)}</p>` : ''}
+  const war = st.kind === 'war';
+  const usSide = war ? { name: st.us.name || '아군', hp: st.us.troops, hp0: st.us.troops0, word: [st.us.troops != null ? `${Math.max(0, st.us.troops)}명` : null, st.us.word].filter(Boolean).join(' · ') }
+    : { name: st.us.name ?? '나', hp: st.us.hp, hp0: st.us.hp0, word: st.us.word };
+  const themSide = war ? { name: st.them.name, hp: st.them.troops, hp0: st.them.troops0, word: [st.them.troops != null ? `${Math.max(0, st.them.troops)}명` : null, st.them.word].filter(Boolean).join(' · ') }
+    : { name: st.them.name, hp: st.them.hp, hp0: st.them.hp0, word: [st.them.count0 > 1 ? `${st.them.count}/${st.them.count0} 남음` : null, String(st.them.word ?? '').length <= 14 ? st.them.word : null].filter(Boolean).join(' · ') };
+  const longWord = !war && String(st.them.word ?? '').length > 14 ? st.them.word : null;
+  const preUs = pre?.us ? (war ? { hp: pre.us.troops, hp0: pre.us.troops0 } : { hp: pre.us.hp, hp0: pre.us.hp0 }) : null;
+  const preThem = pre?.them ? (war ? { hp: pre.them.troops, hp0: pre.them.troops0 } : { hp: pre.them.hp, hp0: pre.them.hp0 }) : null;
+  const pips = st.stages ? `<span class="bt-steps">${Array.from({ length: st.stages }, (_, i) => `<i class="${i + 1 < st.stage ? 'done' : i + 1 === st.stage ? 'now' : ''}"></i>`).join('')}</span>` : '';
+  const top = [war ? st.stageName : st.terrainName, st.stages ? `${st.stage}/${st.stages} 고비` : null].filter(Boolean);
+  return `<div class="bt-hud fight${war ? ' war' : ''}">
+    <div class="bt-round"><span>${top.map(esc).join(' · ')}</span>${st.crux ? `<b>${war ? '승부처' : '갈림길'}</b>` : pips}</div>
+    <div class="bt-vs">${bar(usSide, 'me', preUs)}<span class="bt-x" aria-hidden="true">${icon(war ? 'banner' : 'sword', 18)}</span>${bar(themSide, 'foe', preThem)}</div>
+    ${((al) => al.length ? `<p class="bt-allies">곁에: ${al.map(esc).join(', ')}</p>` : '')((st.allies ?? []).filter((a) => a && a !== st.us?.name))}
+    ${!pre && (longWord || st.them.howWord || (war && st.them.champ)) ? `<p class="bt-threat">${[longWord, st.them.howWord ? `적은 ${st.them.howWord}` : null, war && st.them.champ ? `적장 ${st.them.champ}` : null].filter(Boolean).map(esc).join(' · ')}</p>` : ''}
+    ${pre && st.lastLine ? `<p class="bt-threat">${esc(st.lastLine)}</p>` : ''}
   </div>`;
 }
 
@@ -133,7 +139,7 @@ export function battleHead(g) {
 export function battleBody(g) {
   const st = safe(() => battleState(g));
   if (!st) return null;
-  if (st.kind === 'fight') return st.intro ? `<p class="ev-text bt-intro">${esc(st.intro)}</p>` : '';
+  if (st.kind !== 'duel') return st.text ? st.text.split('\n\n').map((x) => `<p class="ev-text bt-intro">${esc(x)}</p>`).join('') : '';
   return `${st.intro ? st.intro.split('\n\n').map((x) => `<p class="ev-text bt-intro">${esc(x)}</p>`).join('') : ''}
     ${st.cheer ? `<p class="bt-cheer">${esc(st.cheer)}</p>` : ''}
     ${st.foe.line ? `<p class="bt-line">${esc(st.foe.line)}</p>` : ''}
@@ -153,7 +159,7 @@ export function battleOpts(g) {
   }
   return `<div class="opts bt-opts">${st.moves.map((m, i) => {
     const [, ic, hint] = tacticMeta(m.label);
-    return `<button class="opt bt-card" data-choice="${i}" style="--i:${i}">${icon(m.icon ?? ic, 26)}<span class="bt-cn"><b>${esc(m.label)}</b></span>${hint || m.hint ? `<span class="bt-hint">${esc(m.hint ?? hint)}</span>` : ''}</button>`;
+    return `<button class="opt bt-card${/avoid|retreat|flee/.test(String(m.id)) ? ' mv-yield' : ''}" data-choice="${i}" style="--i:${i}">${icon(m.icon ?? ic, 26)}<span class="bt-cn"><b>${esc(m.label)}</b></span>${hint || m.hint ? `<span class="bt-hint">${esc(m.hint ?? hint)}</span>` : ''}</button>`;
   }).join('')}</div>`;
 }
 
@@ -202,14 +208,22 @@ export function battleAfter(g, pre, text) {
       ${L.habit || L.trait ? `<p class="note">알아낸 것: ${[L.trait, L.habit ? `버릇 ${L.habit}` : null].filter(Boolean).map(esc).join(' · ')}</p>` : ''}
     </div>`;
   }
-  if (pre.kind === 'fight') {
-    const t = String(text ?? '');
-    const end = /달아났|물러났|물러섰|몸을 빼|도망/.test(t) && !/(적|놈들|무리).{0,12}(달아났|흩어졌|도망)/.test(t) ? 'flee' : /쓰러뜨렸|이겼|무찔렀|흩어졌|해치웠|베어 넘겼|끝장냈|물리쳤|목을 갈랐|무릎을 꿇었/.test(t) ? 'win' : /쓰러졌|졌다|패했|정신을 잃|끌려갔|빼앗겼/.test(t) ? 'lose' : null;
-    if (!end) return '';
-    const [w, tone] = END_WORD[end];
-    return `<div class="bt-sum ${tone}"><div class="bt-sum-top"><b class="${tone}">${w}</b><span>${esc(pre.them?.name ?? '')}</span></div>${pre.label ? `<p class="note">고른 길: ${esc(pre.label)}</p>` : ''}</div>`;
+  if (pre.kind === 'skirmish' || pre.kind === 'war') {
+    const cur = safe(() => fightState(g));
+    if (cur && cur.kind === pre.kind) return hud({ ...cur, lastLine: cur.last }, pre);
+    const L = g.lastFight;
+    if (!L || L.kind !== pre.kind) return '';
+    const tone = /win|overwhelm/.test(L.result) ? 'up' : L.result === 'lose' ? 'down' : 'warn';
+    return `<div class="bt-sum ${tone}">
+      <div class="bt-sum-top"><b class="${tone}">${esc(L.word ?? '')}</b><span>${esc(L.foe ?? pre.them?.name ?? '')}</span></div>
+      ${L.stages?.length ? `<ol class="bt-stages">${L.stages.map((x) => `<li>${esc(x)}</li>`).join('')}</ol>` : ''}
+      ${L.lost ? `<p class="note">쓰러진 사람: 아군 ${L.lost.ours}명 · 적 ${L.lost.theirs}명</p>` : ''}
+      ${L.kills ? `<p class="note">내가 쓰러뜨린 적 ${L.kills}</p>` : ''}
+      ${L.loot ? `<p class="note">얻은 것: ${esc(L.loot)}</p>` : ''}
+      ${L.wounds?.length ? `<p class="note">상처: ${L.wounds.map(esc).join(', ')}</p>` : ''}
+    </div>`;
   }
   return '';
 }
 /** 결과 창의 버튼 글 */
-export const afterLabel = (g, pre) => (pre?.kind === 'duel' && g.duel && g.pendingEvent?.id === 'duel_round' ? '다음 합' : '계속');
+export const afterLabel = (g, pre) => (pre?.kind === 'duel' && g.duel && g.pendingEvent?.id === 'duel_round' ? '다음 합' : (pre?.kind === 'skirmish' || pre?.kind === 'war') && safe(() => fightState(g))?.kind === pre.kind ? '다음 고비' : '계속');
