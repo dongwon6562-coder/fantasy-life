@@ -15,6 +15,7 @@ import { playerVitality } from '../adventure/combat.js';
 import { schoolOf, rankOf, SCHOOLS, formMul, formFor, bladeSpell } from './schools.js';
 import { J } from '../narrative/text.js';
 import { ENDS, registerDuelEnd, queueDuel } from './registry.js';
+import { TRAITS, traitFor, HABITS, HABIT_IDS, habitMove, VENUES, venueFor, beatLine, cheerLine, sayLine, PARTS, partFor, CRIT, CRIT_TELLS, END_WORDS } from './show.js';
 export { registerDuelEnd, queueDuel };
 
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
@@ -29,7 +30,13 @@ export const MOVES = {
   magic: { name: '주문', label: '주문을 쏜다', dmg: 0 },
   aura: { name: '검기', label: '검에 마력을 싣는다 (검기)', dmg: 30 },
   yield: { name: '항복', label: '검을 내린다 (항복)', dmg: 0 },
+  // 결정적 순간에만 (46단계)
+  finish: { name: '결정타', label: '끝낸다 (온 힘으로 벤다)', dmg: 0 },
+  disarm: { name: '칼 떨구기', label: '칼을 쳐서 떨군다 (살려 둔다)', dmg: 0 },
+  dodge: { name: '몸 던지기', label: '몸을 던져 피한다', dmg: 0 },
+  block: { name: '받아내기', label: '칼로 정면에서 받아낸다', dmg: 0 },
 };
+export const MAX_ROUND = 12;
 const BEATS = {
   heavy: ['guard', 'feint', 'wait'],
   quick: ['heavy', 'feint', 'magic', 'aura', 'wait'],
@@ -89,12 +96,19 @@ export function startDuel(g, rng, opts) {
   if (!STYLES[foe.style]) foe.style = 'steady';
   const hp = playerVitality(g);
   const fhp = 80 + foe.skill * 0.35;
+  foe.trait = traitFor(rng, foe);
+  if (!HABITS[foe.habit]) foe.habit = pick(rng, HABIT_IDS);
+  const venue = venueFor(opts.kind, opts);
   g.duel = {
     kind: opts.kind ?? 'spar', title: opts.title ?? '결투', lethal: !!opts.lethal, ctx: opts.ctx ?? {}, magicDuel: opts.mode === 'magic',
     foe, hp, hp0: hp, fhp, fhp0: fhp, round: 0, mom: 0, fmom: 0, history: [],
     sharp: 0, read: 0, mana: Math.min(5, circleOf(g)) + (circleOf(g) > 0 ? (g.sword?.blade ?? 0) : 0), secretUsed: false, fmana: foe.circle ?? 0, log: [],
     next: null, tell: null,
+    venue, last: null, crit: null, crits: 0, wounds: { me: [], foe: [] }, habitKnown: false, seen: [], said: [], beat: '', say: '', cheer: '',
   };
+  const d = g.duel;
+  d.beat = pick(rng, VENUES[venue].open);
+  d.say = sayLine(rng, d, 'open');
   planFoe(g, rng);
   g.pendingEvent = duelEvent(g, opts.intro);
   return g.pendingEvent;
@@ -104,7 +118,24 @@ export function startDuel(g, rng, opts) {
 function planFoe(g, rng) {
   const d = g.duel;
   const st = STYLES[d.foe.style];
+  const tr = TRAITS[d.foe.trait] ?? {};
   const w = { ...st.w };
+  for (const [k, v] of Object.entries(tr.w ?? {})) w[k] = (w[k] ?? 1) * v;
+  // 결정적 순간: 기세가 한쪽으로 크게 기울면, 다음 합은 둘 중 하나를 고르는 순간이 된다 (한 결투에 두 번까지, 마법 겨루기는 없음)
+  d.crit = null;
+  if (!d.magicDuel && d.round >= 2) {
+    if (!(d.critSides ?? []).includes('me') && d.mom - d.fmom >= 4 && d.fhp < d.fhp0 * 0.5) { d.crit = { side: 'me' }; d.crits += 1; (d.critSides ??= []).push('me'); d.next = null; d.tell = CRIT.me.text(d); d.tellTrue = true; return; }
+    if (!(d.critSides ?? []).includes('foe') && d.fmom - d.mom >= 4 && d.hp > d.hp0 * 0.3) {
+      (d.critSides ??= []).push('foe');
+      const right = rng.chance(0.5) ? 'dodge' : 'block';
+      const rel = clamp(0.4 + (g.player.stats.sen - d.foe.skill * 0.4) / 80 + (d.habitKnown ? 0.15 : 0), 0.2, 0.9);
+      const seen = rng.chance(rel) ? right : rng.chance(0.5) ? (right === 'dodge' ? 'block' : 'dodge') : null;
+      d.crit = { side: 'foe', right }; d.crits += 1; d.next = 'heavy';
+      d.critTell = seen ? CRIT_TELLS[seen] : '어느 쪽으로 올지 읽을 수 없다.';
+      d.tell = CRIT.foe.text(d); d.tellTrue = seen ? seen === right : null; return;
+    }
+  }
+  d.habitUsed = false;
   if (d.fmana > 0) w.magic = 2.2;
   if (d.foe.aura) w.aura = 1.2;
   // 실력 있는 상대는 내 버릇을 읽는다: 최근 내가 자주 쓴 수를 이기는 수를 고른다
@@ -113,12 +144,15 @@ function planFoe(g, rng) {
     const count = {};
     for (const m of recent) count[m] = (count[m] ?? 0) + 1;
     const [fav, n] = Object.entries(count).sort((a, b) => b[1] - a[1])[0];
-    const adapt = clamp(0.3 + d.foe.skill / 150, 0.3, 0.8) * (n >= 3 ? 1.2 : n >= 2 ? 1 : 0.5) * (SCHOOLS[schoolOf(g)]?.adapt ?? 1);
+    const adapt = clamp(0.3 + d.foe.skill / 150 + (tr.adapt ?? 0), 0.3, 0.85) * (n >= 3 ? 1.2 : n >= 2 ? 1 : 0.5) * (SCHOOLS[schoolOf(g)]?.adapt ?? 1);
     if (fav !== 'wait' && rng.chance(adapt)) {
       const counters = Object.keys(BEATS).filter((m) => BEATS[m].includes(fav) && (w[m] ?? 0) > 0);
       if (counters.length) { d.next = pick(rng, counters); return tellFor(g, rng); }
     }
   }
+  // 버릇: 그 때가 오면 상대는 자주 같은 수를 낸다 (내 버릇을 읽어 받아치는 것이 먼저)
+  const hm = habitMove(d);
+  if (hm && hm !== 'wait' && (w[hm] ?? 0) > 0 && rng.chance(0.5)) { d.next = hm; d.habitUsed = true; return tellFor(g, rng); }
   if (d.fhp < d.fhp0 * 0.3) { w.guard = (w.guard ?? 1) * 1.6; } // 몰리면 몸을 사린다
   if (d.fmom >= 2) { w.heavy = (w.heavy ?? 1) * 1.5; }        // 기세를 타면 몰아친다
   d.next = rng.weighted(Object.keys(w), (k) => w[k]);
@@ -127,9 +161,11 @@ function planFoe(g, rng) {
 function tellFor(g, rng) {
   const d = g.duel;
   const sen = g.player.stats.sen;
-  let rel = 0.32 + (sen - d.foe.skill * 0.4) / 70 + d.read * 0.25 + (rankOf(g) >= 2 ? 0.1 : 0);
+  let rel = 0.32 + (sen - d.foe.skill * 0.4) / 70 + d.read * 0.25 + (rankOf(g) >= 2 ? 0.1 : 0) + (d.habitKnown ? 0.1 : 0);
   rel = clamp(rel, 0.15, 0.95);
   d.read = 0;
+  // 알아챈 버릇이 나오면 또렷하다
+  if (d.habitKnown && d.habitUsed) { d.tell = `버릇이 나온다. ${HABITS[d.foe.habit].name}. ${pick(rng, (d.magicDuel ? MAGIC_TELLS : TELLS)[d.next] ?? UNREADABLE)}`; d.tellTrue = true; return; }
   if (!rng.chance(rel)) {
     // 못 읽었다: 아무것도 안 보이거나, 잘못 읽는다
     if (rng.chance(0.5)) { d.tell = pick(rng, UNREADABLE); d.tellTrue = null; return; }
@@ -137,7 +173,7 @@ function tellFor(g, rng) {
     d.tell = pick(rng, (d.magicDuel ? MAGIC_TELLS : TELLS)[wrong]); d.tellTrue = false; return;
   }
   // 교활한 상대는 거짓 낌새를 흘린다
-  if (rng.chance(STYLES[d.foe.style].trick) && d.next !== 'feint') {
+  if (rng.chance(STYLES[d.foe.style].trick + (TRAITS[d.foe.trait]?.trick ?? 0)) && d.next !== 'feint') {
     const fake = pick(rng, ['heavy', 'quick', 'guard'].filter((m) => m !== d.next));
     d.tell = pick(rng, (d.magicDuel ? MAGIC_TELLS : TELLS)[fake]); d.tellTrue = false; return;
   }
@@ -150,6 +186,7 @@ const momWord = (m) => (m >= 2 ? ' 기세는 내 쪽이다.' : m <= -2 ? ' 기�
 
 export function availableMoves(g) {
   const d = g.duel;
+  if (d.crit) return [...CRIT[d.crit.side].moves];
   const out = ['heavy', 'quick', 'guard', 'feint', 'wait'];
   if (d.mana > 0 && !d.magicDuel) out.push('magic');
   // 검기: 검성 이상에 마력이 있거나, 검기를 몸에 붙인 사람은 의지만으로도 (드물다)
@@ -176,10 +213,12 @@ function duelEvent(g, intro) {
   const head = intro ? intro + '\n\n' : '';
   const last = d.log.length ? d.log[d.log.length - 1] + '\n\n' : '';
   const status = `나는 ${hpWord(d.hp, d.hp0)}. ${josa(d.foe.name, '은', '는')} ${hpWord(d.fhp, d.fhp0)}.${momWord(d.mom - d.fmom)}`;
+  const scene = [d.cheer, d.say, d.beat].filter(Boolean).join(' ');
+  d.view = viewOf(g);
   return {
     id: 'duel_round',
-    title: `${d.title} · ${d.round + 1}합`,
-    text: `${head}${last}${status}\n\n${d.tell}`,
+    title: d.crit ? `${d.title} · 결정적 순간` : `${d.title} · ${d.round + 1}합`,
+    text: `${head}${last}${scene ? scene + '\n\n' : ''}${status}\n\n${d.tell}`,
     choices: moves.map((m) => moveLabel(g, m)),
     choiceIdx: moves.map((m) => MOVE_IDS.indexOf(m)),
   };
@@ -192,7 +231,7 @@ const MAGIC_LABELS = {
   feint: '가짜 영창으로 속인다 (허초)',
   wait: '마력을 고르며 간을 본다',
 };
-const MOVE_IDS = ['heavy', 'quick', 'guard', 'feint', 'wait', 'magic', 'aura', 'yield'];
+export const MOVE_IDS = ['heavy', 'quick', 'guard', 'feint', 'wait', 'magic', 'aura', 'yield', 'finish', 'disarm', 'dodge', 'block'];
 
 // ---------- 한 합 ----------
 function exchange(g, rng, mine) {
@@ -203,17 +242,19 @@ function exchange(g, rng, mine) {
   const sc = d.magicDuel ? null : schoolOf(g);
   const my = duelSkill(g, d.magicDuel), fs = d.foe.skill;
   const ratio = clamp(Math.pow((my + 10) / (fs + 10), 0.8), 0.35, 2.6);
+  const late = 1 + Math.max(0, d.round - 5) * 0.05; // 합이 길어지면 둘 다 지쳐 한 번 맞으면 크다
+  const hp1 = d.hp, fhp1 = d.fhp, mom1 = d.mom - d.fmom;
   const dealt = (m, mult = 1) => {
     let base = MOVES[m].dmg;
     if (m === 'magic') base = 12 + circleOf(g) * 9 + (d.magicDuel ? 0 : (g.sword?.blade ?? 0) * 6);
     if (m === 'aura') base += Math.max(0, (g.sword?.aura ?? 0) - 1) * 6;
     if (sc) base *= (SCHOOLS[sc]?.sig?.[m] ?? 1) * formMul(g, m);
-    return base * ratio * (1 + 0.1 * d.mom) * (1 + d.sharp) * mult * rng.float(0.8, 1.2);
+    return base * ratio * (1 + 0.1 * d.mom) * (1 + d.sharp) * mult * late * (1 - 0.06 * d.wounds.me.length) * rng.float(0.8, 1.2);
   };
   const taken = (m, mult = 1) => {
     let base = MOVES[m].dmg;
     if (m === 'magic') base = 12 + (d.foe.circle ?? 0) * 9;
-    return base / ratio * (1 + 0.1 * d.fmom) * mult * rng.float(0.8, 1.2);
+    return base / ratio * (1 + 0.1 * d.fmom) * mult * late * (1 - 0.06 * d.wounds.foe.length) * rng.float(0.8, 1.2);
   };
   d.sharp = 0;
   if (mine === 'magic') d.mana -= 1;
@@ -256,6 +297,65 @@ function exchange(g, rng, mine) {
   }
   if (d.magicDuel && (beats(mine, theirs) || beats(theirs, mine))) line = magicLine(rng, mine, theirs, F, beats(mine, theirs));
   if (d.tellTrue === false && theirs !== mine) line += ' 아까의 낌새는 미끼였다.';
+  // 간을 보면 상대의 버릇이 보인다
+  if (mine === 'wait' && !d.habitKnown && rng.chance(0.45 + g.player.stats.sen / 250)) { d.habitKnown = true; line += ` 버릇 하나가 눈에 들어왔다. ${HABITS[d.foe.habit].name}.`; }
+  line += afterHit(g, rng, mine, theirs, hp1 - d.hp, fhp1 - d.fhp, mom1);
+  d.log.push(line);
+}
+
+// 한 합의 뒤끝: 부위 상처, 지난 합 기록, 관중과 대사, 합 사이 장면
+function afterHit(g, rng, mine, theirs, dm, df, mom1) {
+  const d = g.duel;
+  let extra = '', part = null, partWho = null;
+  if (dm > d.hp0 * 0.14 && d.wounds.me.length < 3) {
+    part = partFor(rng, theirs); partWho = 'me';
+    if (!d.wounds.me.includes(part)) { d.wounds.me.push(part); extra += ` ${PARTS[part].me}`; }
+  } else if (df > d.fhp0 * 0.14 && d.wounds.foe.length < 3) {
+    part = partFor(rng, mine); partWho = 'foe';
+    if (!d.wounds.foe.includes(part)) { d.wounds.foe.push(part); extra += ` ${PARTS[part].foe(d.foe.name)}`; }
+  }
+  const result = mine === 'wait' ? 'read' : df > dm * 1.5 ? 'win' : dm > df * 1.5 ? 'lose' : df > 0 && dm > 0 ? 'trade' : 'even';
+  d.last = { mine, theirs, result, dm: Math.round(dm), df: Math.round(df), part, partWho };
+  const swing = d.mom - d.fmom;
+  d.cheer = (Math.sign(swing) !== Math.sign(mom1) && swing !== 0) || df > d.fhp0 * 0.18 || dm > d.hp0 * 0.18 ? cheerLine(rng, d) : '';
+  d.say = result === 'win' && d.said.length < 3 && rng.chance(0.5) ? sayLine(rng, d, 'hit') : d.fmom - d.mom >= 2 && rng.chance(0.4) ? sayLine(rng, d, 'ahead') : '';
+  d.beat = rng.chance(0.7) ? beatLine(rng, d) : '';
+  return extra;
+}
+
+// 결정적 순간을 고른 합
+function critExchange(g, rng, m) {
+  const d = g.duel, F = d.foe.name;
+  const my = duelSkill(g, false), fs = d.foe.skill;
+  const ratio = clamp(Math.pow((my + 10) / (fs + 10), 0.8), 0.35, 2.6);
+  const side = d.crit.side, right = d.crit.right;
+  d.crit = null; d.round += 1; d.history.push(m);
+  const hp1 = d.hp, fhp1 = d.fhp, mom1 = d.mom - d.fmom;
+  let line;
+  if (m === 'finish') {
+    if (rng.chance(clamp(0.45 + (ratio - 1) * 0.6 + d.mom * 0.05, 0.15, 0.92))) {
+      d.fhp -= (30 + d.fhp0 * 0.35) * ratio * rng.float(0.9, 1.15); d.mom = 3;
+      line = `숨을 멈추고 온몸을 실었다. 칼이 ${F}의 막기를 부수고 들어갔다.`;
+    } else {
+      d.hp -= 10 / ratio * rng.float(0.8, 1.2); d.mom = Math.max(0, d.mom - 2); d.fmom = Math.max(0, d.fmom);
+      line = `온 힘을 실은 일격이 허공을 갈랐다. ${J(F, '이/가')} 마지막 힘으로 몸을 비틀어 빠져나갔다.`;
+    }
+  } else if (m === 'disarm') {
+    if (rng.chance(clamp(0.3 + (ratio - 1) * 0.6 + g.player.stats.sen / 300, 0.1, 0.85))) {
+      d.forced = 'disarm';
+      line = `칼등으로 ${F}의 손목을 쳤다.`;
+    } else {
+      d.hp -= 9 / ratio * rng.float(0.8, 1.2); d.mom = Math.max(-3, d.mom - 2);
+      line = `손목을 노렸지만 ${J(F, '이/가')} 칼을 놓지 않았다. 되돌아온 칼끝이 나를 스쳤다.`;
+    }
+  } else if (m === right && rng.chance(clamp(0.7 + (ratio - 1) * 0.4, 0.35, 0.95))) {
+    d.fhp -= 16 * ratio * rng.float(0.9, 1.2); d.fmom = 0; d.mom = Math.min(3, d.mom + 1);
+    line = m === 'dodge' ? `몸을 옆으로 던졌다. ${F}의 칼이 땅을 찍었고, 그 틈에 옆구리를 베었다.` : `두 손으로 칼을 받쳐 정면에서 받아냈다. 팔이 울렸지만 버텼다. 밀려난 ${F}에게 칼끝을 되돌려 주었다.`;
+  } else {
+    d.hp -= 24 / ratio * rng.float(0.9, 1.2); d.fmom = 2; d.mom = Math.max(-3, d.mom - 1);
+    line = m === 'dodge' ? `피하려 몸을 던졌지만 ${F}의 칼은 이미 그쪽에 와 있었다.` : `칼을 세워 받았지만 무게가 달랐다. 받친 칼째로 밀려 넘어졌다.`;
+  }
+  line += afterHit(g, rng, side === 'me' ? 'heavy' : m, side === 'me' ? 'quick' : 'heavy', hp1 - d.hp, fhp1 - d.fhp, mom1);
   d.log.push(line);
 }
 
@@ -318,12 +418,17 @@ function loseLine(rng, mine, theirs, F) {
 }
 
 // ---------- 끝 ----------
-function finished(g) {
+function finished(g, rng) {
   const d = g.duel;
   const floor = d.lethal ? 0 : 0.25; // 목검·시험은 한 쪽이 결정타를 맞으면 끝
-  if (d.hp <= d.hp0 * floor) return 'lose';
-  if (d.fhp <= d.fhp0 * floor) return 'win';
-  if (d.round >= 12) return d.hp / d.hp0 >= d.fhp / d.fhp0 ? 'win' : 'lose';
+  if (d.forced) { d.endKind = d.forced; return 'win'; }
+  if (d.hp <= d.hp0 * floor) { d.endKind = d.lethal ? 'lose_fall' : d.wounds.me.some((w) => w === 'arm' || w === 'shoulder') && rng.chance(0.5) ? 'lose_disarm' : 'lose'; return 'lose'; }
+  if (d.fhp <= d.fhp0 * floor) { d.endKind = d.lethal ? 'fall' : d.last?.mine === 'guard' && rng.chance(0.4) ? 'disarm' : 'kneel'; return 'win'; }
+  // 자존심 없는 상대는 크게 밀리면 스스로 물러선다
+  if (!d.lethal && d.foe.trait !== 'proud' && d.fhp < d.fhp0 * 0.35 && d.mom - d.fmom >= 2 && rng.chance(0.2)) { d.endKind = 'retreat'; return 'win'; }
+  // 합이 길어지면 판가름: 여덟 합이 넘고 차이가 뚜렷하면, 열두 합이면 무조건
+  const gap = d.hp / d.hp0 - d.fhp / d.fhp0;
+  if ((d.round >= 8 && Math.abs(gap) >= 0.3) || d.round >= MAX_ROUND) { const w = gap >= 0; d.endKind = w ? 'judged' : 'lose_judged'; return w ? 'win' : 'lose'; }
   return null;
 }
 
@@ -339,16 +444,51 @@ function endDuel(g, rng, result) {
   p.skills.sword = Math.min(100, p.skills.sword + 0.3 * gain * (1 - p.skills.sword / 120));
   p.fatigue = Math.min(100, p.fatigue + 12);
   const hurt = d.hp < d.hp0 * 0.45;
-  if (hurt && !won && rng.chance(d.lethal ? 0.9 : 0.35)) p.injuries.push({ name: d.lethal ? `${d.foe.name}의 칼에 깊이 베인 상처` : '결투에서 얻은 멍과 찰과상', months: d.lethal ? 4 : 1 });
+  const wp = d.wounds.me[d.wounds.me.length - 1];
+  if (hurt && !won && rng.chance(d.lethal ? 0.9 : 0.35)) p.injuries.push({ name: d.lethal ? (wp ? `${d.foe.name}의 칼에 베인 ${PARTS[wp].name}` : `${d.foe.name}의 칼에 깊이 베인 상처`) : '결투에서 얻은 멍과 찰과상', months: d.lethal ? 4 : 1 });
+  if (d.lethal && d.wounds.me.includes('face')) me(g).history.push({ y: g.date.year, m: g.date.month, text: `${J(d.foe.name, '과/와')}의 결투에서 얼굴에 흉터가 남았다.` });
   const fn = ENDS[d.kind];
   const extra = fn ? fn(g, rng, won, d, result) : '';
+  const kind = result === 'yield' ? 'yield' : d.endKind ?? (won ? 'kneel' : 'lose');
   const head = result === 'yield'
     ? `검을 내렸다. ${josa(d.foe.name, '이', '가')} 고개를 끄덕였다.`
-    : won ? `${d.log[d.log.length - 1]} ${josa(d.foe.name, '이', '가')} 무릎을 꿇었다.` : `${d.log[d.log.length - 1]} 더는 검을 들 수 없었다.`;
+    : `${d.log[d.log.length - 1]} ${(END_WORDS[kind] ?? END_WORDS[won ? 'kneel' : 'lose'])(d.foe.name)}`;
+  // 끝 요약 카드와 그림이 읽는다 (다음 결투가 시작될 때까지 남는다)
+  g.lastDuel = {
+    foe: d.foe.name, title: d.title, rounds: d.round, hp: Math.max(0, Math.round(d.hp)), hp0: Math.round(d.hp0), fhp: Math.max(0, Math.round(d.fhp)), fhp0: Math.round(d.fhp0),
+    end: result, endKind: kind, won, venue: VENUES[d.venue]?.name ?? '', trait: TRAITS[d.foe.trait]?.name ?? '', habit: d.habitKnown ? HABITS[d.foe.habit]?.name ?? null : null,
+    wounds: d.wounds.me.map((w) => PARTS[w].name), foeWounds: d.wounds.foe.map((w) => PARTS[w].name), history: [...d.history], y: g.date.year, m: g.date.month,
+  };
   const text = [head, extra].filter(Boolean).join(' ');
   g.chronicle.push({ y: g.date.year, m: g.date.month, text: `${d.title}: ${J(d.foe.name, '과/와')} 겨뤄 ${won ? '이겼다' : '졌다'}.`, rel: 100 });
   me(g).history.push({ y: g.date.year, m: g.date.month, text: `${d.title}. ${J(d.foe.name, '과/와')} 겨뤄 ${won ? '이겼다' : '졌다'}.` });
   return text;
+}
+
+// ---------- 화면과 그림이 읽는 모양 ----------
+const MOVE_HINT = {
+  heavy: '막기와 허초를 부순다. 속공에 진다', quick: '강공과 허초를 끊는다. 막기에 진다', guard: '속공을 흘리고 크게 받아친다', feint: '막기를 속인다. 가장 크게 벤다',
+  wait: '공격하지 않고 낌새와 버릇을 읽는다', magic: '막기와 허초, 강공을 이긴다. 속공에 끊긴다', aura: '속공 말고는 다 이긴다', yield: '결투를 그만둔다',
+  finish: '성공하면 끝난다. 빗나가면 기세를 잃는다', disarm: '칼만 떨군다. 이기면 상대를 살린다', dodge: '높이 내려치는 칼이면 산다', block: '낮게 파고드는 칼이면 산다',
+};
+function viewOf(g) {
+  const d = g.duel;
+  const moves = availableMoves(g);
+  return {
+    round: d.round + 1, maxRound: MAX_ROUND, place: VENUES[d.venue]?.name ?? null, venue: d.venue, crowd: VENUES[d.venue]?.crowd ?? 0,
+    me: { name: g.player.name, hp: Math.max(0, Math.round(d.hp)), hp0: Math.round(d.hp0), word: hpWord(d.hp, d.hp0), wounds: d.wounds.me.map((w) => PARTS[w].name) },
+    foe: { name: d.foe.name, hp: Math.max(0, Math.round(d.fhp)), hp0: Math.round(d.fhp0), word: hpWord(d.fhp, d.fhp0), style: STYLES[d.foe.style]?.name ?? null, trait: TRAITS[d.foe.trait]?.name ?? null,
+      habit: d.habitKnown ? HABITS[d.foe.habit]?.name ?? null : null, line: d.say || null, wounds: d.wounds.foe.map((w) => PARTS[w].name), school: d.foe.school ?? null },
+    mom: clamp(d.mom - d.fmom, -3, 3), intro: d.round === 0 ? d.beat || null : null, beat: d.round > 0 ? d.beat || null : null, cheer: d.cheer || null,
+    last: d.log.length ? d.log[d.log.length - 1] : null, lastMoves: d.last, tell: d.tell,
+    moves: moves.map((m) => ({ id: m, label: moveLabel(g, m), hint: MOVE_HINT[m] ?? null })),
+    crux: !!d.crit, cruxSide: d.crit?.side ?? null, magic: !!d.magicDuel,
+  };
+}
+/** 결투 화면용 (결투 중이 아니면 null) */
+export function duelView(g) {
+  if (!g?.duel) return null;
+  return g.duel.view ?? viewOf(g);
 }
 
 // 사건 목록에 결투 자리를 만든다 (조건은 늘 거짓, 결투 중에만 직접 세운다)
@@ -360,8 +500,10 @@ EVENTS.push({
     run: (g, rng) => {
       if (!g.duel) return '';
       if (m === 'yield') return endDuel(g, rng, 'yield');
-      exchange(g, rng, m);
-      const r = finished(g);
+      if (g.duel.crit) critExchange(g, rng, CRIT[g.duel.crit.side].moves.includes(m) ? m : CRIT[g.duel.crit.side].moves[0]);
+      else if (['finish', 'disarm', 'dodge', 'block'].includes(m)) exchange(g, rng, 'heavy');
+      else exchange(g, rng, m);
+      const r = finished(g, rng);
       if (r) return endDuel(g, rng, r);
       planFoe(g, rng);
       g.pendingEvent = duelEvent(g);

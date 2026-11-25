@@ -6,4 +6,5 @@ import './events.js';
 import './hall.js';
 import './craft.js';
 export { swordInfo, swordLine } from './info.js';
+export { duelView, MOVE_IDS, MAX_ROUND } from './duel.js';
 export { SCHOOLS, SCHOOL_IDS, swordState, hallState, schoolFits, mastersHere } from './schools.js';
