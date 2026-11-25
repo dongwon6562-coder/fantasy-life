@@ -1,6 +1,7 @@
 // 46단계: 종족이 한눈에 갈리게, 나이가 해마다 조금씩 보이게, 빛이 한 방향에서 오게.
 // portrait.js drawFace가 얼굴 clip 안(raceMarks·ageMarks), 눈 뒤(eyeGlow), 앞머리 뒤(grayTemples), 맨 끝(keyLight)에 부른다.
 import { f, mixHex, clamp, rngFrom, hashStr } from './portraitKit.js';
+import { shoulderLight } from './portraitLight.js';
 
 const blur = (uid, k = 'xb') => ` filter="url(#${uid}${k})"`;
 
@@ -65,7 +66,7 @@ export function eyeGlow(o) {
   const core = mixHex(eyeCol, '#fff2c8', 0.45);
   let s = '';
   for (const sd of [-1, 1]) {
-    s += `<ellipse cx="${f(cx + sd * eyeGap)}" cy="${f(eyeY)}" rx="${f(ew * 1.35)}" ry="${f(ew * 0.75)}" fill="${eyeCol}" opacity="${f(0.42 * k)}"${detail ? blur(uid, 'xb') : ''}/>`;
+    s += `<ellipse cx="${f(cx + sd * eyeGap)}" cy="${f(eyeY)}" rx="${f(ew * 1.35)}" ry="${f(ew * 0.75)}" fill="${eyeCol}" opacity="${f(0.55 * k)}"${detail ? blur(uid, 'xb') : ''}/>`;
     if (race === 'demon' || race === 'half_demon') s += `<circle cx="${f(cx + sd * eyeGap)}" cy="${f(eyeY - ew * 0.05)}" r="${f(ew * 0.3)}" fill="${core}" opacity="${f(0.5 * k)}"${detail ? blur(uid, 'xs') : ''}/>`;
   }
   return s;
@@ -121,7 +122,7 @@ export function grayTemples(o) {
 // 맨 끝: 왼쪽 위에서 들어오는 따뜻한 빛과 오른쪽 아래의 차가운 그늘 (큰 초상만, 섞기 모드로 색을 살린다)
 export function keyLight(uid, H) {
   // 섞기 모드(mix-blend-mode)는 폰에서 합성 층을 따로 만들어 무거워서, 보통 투명도 그러데이션 두 장으로 같은 느낌을 낸다
-  return `<defs><radialGradient id="${uid}xL" cx="26%" cy="20%" r="55%"><stop offset="0" stop-color="#ffd59a" stop-opacity="0.2"/><stop offset="1" stop-color="#ffd59a" stop-opacity="0"/></radialGradient>`
+  return `<defs><radialGradient id="${uid}xL" cx="26%" cy="20%" r="55%"><stop offset="0" stop-color="#ffd59a" stop-opacity="0.26"/><stop offset="1" stop-color="#ffd59a" stop-opacity="0"/></radialGradient>`
     + `<radialGradient id="${uid}xN" cx="30%" cy="28%" r="85%"><stop offset="0.55" stop-color="#141a2c" stop-opacity="0"/><stop offset="1" stop-color="#141a2c" stop-opacity="0.42"/></radialGradient></defs>`
     + `<rect x="0" y="0" width="100" height="${H}" fill="url(#${uid}xL)"/><rect x="0" y="0" width="100" height="${H}" fill="url(#${uid}xN)"/>`;
 }
@@ -129,7 +130,7 @@ export function keyLight(uid, H) {
 // 얼굴 clip 안: 얼굴이 둥근 덩어리로 보이게 가장자리를 가라앉힌다 (빛 쪽 왼쪽 위가 가운데)
 export function faceForm(uid, m, dark, detail) {
   const { cx, top, hw, hh } = m;
-  return `<defs><radialGradient id="${uid}xF" cx="44%" cy="44%" r="62%"><stop offset="0.55" stop-color="${dark}" stop-opacity="0"/><stop offset="0.85" stop-color="${dark}" stop-opacity="${detail ? 0.28 : 0.2}"/><stop offset="1" stop-color="${dark}" stop-opacity="${detail ? 0.55 : 0.4}"/></radialGradient></defs>`
+  return `<defs><radialGradient id="${uid}xF" cx="44%" cy="44%" r="62%"><stop offset="0.55" stop-color="${dark}" stop-opacity="0"/><stop offset="0.85" stop-color="${dark}" stop-opacity="${detail ? 0.34 : 0.24}"/><stop offset="1" stop-color="${dark}" stop-opacity="${detail ? 0.66 : 0.46}"/></radialGradient></defs>`
     + `<rect x="${f(cx - hw - 1)}" y="${f(top - 1)}" width="${f(hw * 2 + 2)}" height="${f(hh * 2 + 2)}" fill="url(#${uid}xF)"/>`;
 }
 
@@ -151,12 +152,13 @@ export function clothFolds(uid, m) {
     dark += `M${f(ax)} ${f(sy + 8)} Q${f(ax - sd * 2)} ${f(sy + 22)} ${f(ax - sd * 1)} ${f(bot)} `;
   }
   // clipPath의 use는 도형 하나만 가리킬 수 있어 묶음(g)을 못 쓴다: 몸통 알파를 흰색으로 바꾼 mask를 쓴다
+  const lit = shoulderLight({ uid, cx, sw, sy, baseY, nw: m.nw ?? sw * 0.2 });
   return `<defs><filter id="${uid}xW" x="0" y="0" width="100" height="${H}" filterUnits="userSpaceOnUse"><feFlood flood-color="#fff"/><feComposite in2="SourceAlpha" operator="in"/></filter><mask id="${uid}xU" maskUnits="userSpaceOnUse" x="0" y="0" width="100" height="${H}"><use href="#${uid}xT" filter="url(#${uid}xW)"/></mask>`
-    + `<linearGradient id="${uid}xV" x1="0" y1="0" x2="1" y2="0.3"><stop offset="0" stop-color="#ffe9c4" stop-opacity="0.16"/><stop offset="0.45" stop-color="#ffe9c4" stop-opacity="0"/><stop offset="0.62" stop-color="#0a0706" stop-opacity="0"/><stop offset="1" stop-color="#0a0706" stop-opacity="0.45"/></linearGradient></defs>`
+    + `<linearGradient id="${uid}xV" x1="0" y1="0" x2="1" y2="0.3"><stop offset="0" stop-color="#ffe9c4" stop-opacity="0.22"/><stop offset="0.45" stop-color="#ffe9c4" stop-opacity="0"/><stop offset="0.62" stop-color="#0a0706" stop-opacity="0"/><stop offset="1" stop-color="#0a0706" stop-opacity="0.58"/></linearGradient></defs>`
     + `<g mask="url(#${uid}xU)">`
     + `<rect x="0" y="${f(sy - 8)}" width="100" height="${f(bot - sy + 8)}" fill="url(#${uid}xV)"/>`
-    + `<path d="${dark}" fill="none" stroke="#0a0706" stroke-width="${male ? 2.4 : 2}" stroke-linecap="round" opacity="0.32" filter="url(#${uid}xb)"/>`
-    + `<path d="${light}" fill="none" stroke="#fff0d4" stroke-width="0.9" stroke-linecap="round" opacity="0.1" transform="translate(-1.1 -0.8)" filter="url(#${uid}xs)"/>`
-    + `<rect x="0" y="${f(bot - 22)}" width="100" height="22" fill="#0a0706" opacity="0.18" filter="url(#${uid}xb)"/>`
-    + `</g>`;
+    + `<path d="${dark}" fill="none" stroke="#0a0706" stroke-width="${male ? 2.6 : 2.2}" stroke-linecap="round" opacity="0.5" filter="url(#${uid}xb)"/>`
+    + `<path d="${light}" fill="none" stroke="#fff0d4" stroke-width="1" stroke-linecap="round" opacity="0.22" transform="translate(-1.1 -0.8)" filter="url(#${uid}xs)"/>`
+    + `<rect x="0" y="${f(bot - 22)}" width="100" height="22" fill="#0a0706" opacity="0.24" filter="url(#${uid}xb)"/>`
+    + lit + `</g>`;
 }

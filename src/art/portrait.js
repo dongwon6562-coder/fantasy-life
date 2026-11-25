@@ -12,6 +12,7 @@ import { hairStyleOf, drawHair, beardOf, drawBeard } from './portraitHair.js';
 import { paintDefs, paintOver, hairWrap, clothWrap, faceShadow } from './portraitPaint.js';
 import { gearOf, drawGear } from './portraitGear.js';
 import { raceMarks, eyeGlow, ageMarks, grayTemples, keyLight, faceForm, clothFolds } from './portraitRace.js';
+import { backGlow, faceModel, eyeBall, eyeBallDefs, eyeSpark, raceEdge } from './portraitLight.js';
 
 /* ---------- 종족별 빛깔 ---------- */
 const HUMAN = {
@@ -338,7 +339,7 @@ function drawFace(game, p, age, stage, scars, ring, mood, detail, life, bust = f
     <radialGradient id="${uid}i" cx="50%" cy="62%" r="60%"><stop offset="0" stop-color="${tint(eyeCol, 0.3)}"/><stop offset="0.7" stop-color="${eyeCol}"/><stop offset="1" stop-color="${shade(eyeCol, 0.6)}"/></radialGradient>
     <clipPath id="${uid}h"><path d="${head}"/></clipPath>
     <clipPath id="${uid}c">${frame('')}</clipPath>
-    ${hairS.defs}${garb.defs ?? ''}${paintDefs(uid, detail, H)}
+    ${hairS.defs}${garb.defs ?? ''}${paintDefs(uid, detail, H)}${eyeBallDefs(uid)}
   </defs>`);
   P.push(frame(`fill="url(#${uid}b)"`));
   // 29단계: 빛이 들어오는 쪽(왼쪽 위)에 은은한 빛 번짐, 큰 초상은 붓 얼룩 결까지
@@ -346,6 +347,7 @@ function drawFace(game, p, age, stage, scars, ring, mood, detail, life, bust = f
   P.push(`<ellipse cx="34" cy="30" rx="34" ry="30" fill="${tint(bgHue, 0.5)}" opacity="0.22"${detail ? ` filter="url(#${uid}xw)"` : ''}/>`);
   if (detail) P.push(`<rect x="2" y="2" width="96" height="${H - 4}" fill="${tint(bgHue, 0.25)}" filter="url(#${uid}xm)" opacity="0.5"/>`);
   if (detail) P.push(`<path d="M6 30 Q30 8 60 6 M4 52 Q10 30 30 16 M70 96 Q92 80 96 54" fill="none" stroke="${tint(bgHue, 0.3)}" stroke-width="5" opacity="0.07" stroke-linecap="round"/>`);
+  P.push(backGlow({ uid, cx, top, hh, H, bgHue, detail })); // 46단계 둘째: 머리 뒤 빛 번짐과 가라앉은 귀퉁이
   // 38단계: 넉넉한 집·높은 사람 뒤에는 주름진 휘장 (큰 초상만). 빛 쪽은 밝고 주름 골은 깊다
   if (detail && (life.tier >= 3 || HIGH.has(life.job)) && stage !== 'baby') {
     const dc = ['#5a1e22', '#1f3a2e', '#22304e', '#4a3a1a'][Math.floor(hashStr('drape' + key) / 4294967296 * 4)];
@@ -354,14 +356,15 @@ function drawFace(game, p, age, stage, scars, ring, mood, detail, life, bust = f
     P.push(`<g filter="url(#${uid}xs)"><path d="M54 0 Q60 ${f(H * 0.3)} 57 ${f(H * 0.55)} Q55 ${f(H * 0.8)} 60 ${H} L100 ${H} L100 0Z" fill="${dc}" opacity="0.75"/>${folds}</g>`);
   }
   // 조금 올려 앉혀 어깨가 보이게. 둥근 틀은 얼굴을 1.2배 크게 (휴대폰에서 이목구비가 읽히게)
-  P.push(`<g${bust ? '' : ` transform="translate(50 47.5) scale(1.2) translate(-50 -45)"`}><g${detail ? ` filter="url(#${uid}xg)"` : ''}><g transform="translate(0 ${f(2.5 - kid * 1.5)})">`);
+  // 46단계 둘째: 반신 초상도 1.1배 가까이 (폰에서 얼굴이 더 크게)
+  P.push(`<g transform="${bust ? 'translate(50 26) scale(1.1) translate(-50 -26)' : 'translate(50 47.5) scale(1.2) translate(-50 -45)'}"><g${detail ? ` filter="url(#${uid}xg)"` : ''}><g transform="translate(0 ${f(2.5 - kid * 1.5)})">`);
 
   /* ----- 뒤쪽 겹 ----- */
   const HW = (x) => (detail ? hairWrap(uid, x) : x), CW = (x) => (detail ? clothWrap(uid, x) : x);
   P.push(CW(garb.behind), hat.back, HW(hairS.back));
   if (beast && p.beast !== 'hawk') P.push(beastEars(p.beast, { cx, cy, hw, hh, top }, hair, hairDark, skin, uid, 'back'));
   if (race === 'demon' || race === 'half_demon') P.push(horns(race, { cx, cy, hw, hh, top }, hashStr('horn' + key) / 4294967296, 'back'));
-  P.push(detail && stage !== 'baby' ? `<g id="${uid}xT">${CW(garb.torso)}</g>` + clothFolds(uid, { cx, sw, sy, baseY, H, male, key }) : CW(garb.torso));
+  P.push(detail && stage !== 'baby' ? `<g id="${uid}xT">${CW(garb.torso)}</g>` + clothFolds(uid, { cx, sw, sy, baseY, H, male, key, nw: neckW }) : CW(garb.torso));
 
   /* ----- 목 ----- */
   const nT = chin - hh * 0.3;
@@ -532,7 +535,8 @@ function drawFace(game, p, age, stage, scars, ring, mood, detail, life, bust = f
   }
   const rm = { race, beast: p.beast, cx, cy, hw, hh, top, chin, eyeY, eyeGap, ew, browY, noseBot, my, mw, nw, skin, hair, hairDark, uid, detail, kid, key, age, stage, male, eyeCol, gray, covered: hat.hidesHair };
   P.push(ageMarks(rm), raceMarks(rm), faceForm(uid, { cx, top, hw, hh, chin }, sh2, detail));
-  P.push(faceShadow(uid, { cx, top, hw, hh, cy, eyeY, eyeGap, ew, browY, noseBot, my, chin, nw, mw }, skin, warmDark, (1 - kid * 0.45) * (detail ? 1.25 : 1), detail));
+  P.push(faceShadow(uid, { cx, top, hw, hh, cy, eyeY, eyeGap, ew, browY, noseBot, my, chin, nw, mw }, skin, warmDark, (1 - kid * 0.45) * (detail ? 1.45 : 1.15), detail));
+  P.push(faceModel(rm)); // 46단계 둘째: 광대 아래·코 옆면·턱 아래를 깊게, 빛 받는 면을 밝게
   P.push('</g>');
   P.push(HW(beard.under));
 
@@ -562,9 +566,10 @@ function drawFace(game, p, age, stage, scars, ring, mood, detail, life, bust = f
       <circle cx="${f(icx)}" cy="${f(icy)}" r="${f(ir)}" fill="none" stroke="${shade(eyeCol, 0.7)}" stroke-width="0.4"/>
       ${ancient > 0.15 ? `<circle cx="${f(icx)}" cy="${f(icy)}" r="${f(ir * 0.86)}" fill="none" stroke="#cfcabd" stroke-width="${f(ir * 0.22)}" opacity="${f(ancient * 0.5)}"/>` : ''}
       ${slit ? `<ellipse cx="${f(icx)}" cy="${f(icy)}" rx="${f(ir * 0.2)}" ry="${f(ir * 0.72)}" fill="#0c0806"/>` : `<circle cx="${f(icx)}" cy="${f(icy)}" r="${f(ir * 0.43)}" fill="#0c0806"/>`}
+      ${eyeBall({ uid, ex, eyeY, ew, icx, icy, ir, eyeCol, detail, shape })}
       <path d="M${f(ix)} ${f(iy)} ${up} L${f(ox)} ${f(oy + openU * 0.5)} Q${f(ex)} ${f(eyeY - openU * 0.5)} ${f(ix)} ${f(iy + openU * 0.4)}Z" fill="#1a0f0a" opacity="${detail ? 0.5 : 0.32}"/>
       ${detail ? `<path d="${Array.from({ length: 14 }, (_, k) => { const t = (k / 14) * Math.PI * 2; return `M${f(icx + Math.cos(t) * ir * 0.5)} ${f(icy + Math.sin(t) * ir * 0.5)}L${f(icx + Math.cos(t + 0.12) * ir * 0.93)} ${f(icy + Math.sin(t + 0.12) * ir * 0.93)}`; }).join('')}" stroke="${tint(eyeCol, 0.45)}" stroke-width="${f(ir * 0.07)}" opacity="0.4"/><path d="M${f(icx - ir * 0.62)} ${f(icy + ir * 0.35)} A${f(ir * 0.72)} ${f(ir * 0.72)} 0 0 0 ${f(icx + ir * 0.62)} ${f(icy + ir * 0.35)}" fill="none" stroke="${tint(eyeCol, 0.5)}" stroke-width="${f(ir * 0.16)}" opacity="0.35"/>` : ''}
-      <ellipse cx="${f(icx - ir * 0.36)}" cy="${f(icy - ir * 0.36)}" rx="${f(ir * (detail ? 0.28 : 0.24))}" ry="${f(ir * (detail ? 0.21 : 0.18))}" transform="rotate(-25 ${f(icx - ir * 0.36)} ${f(icy - ir * 0.36)})" fill="#fffaf0" opacity="0.92"/>
+      ${eyeSpark(icx, icy, ir, detail)}
       ${detail ? `<circle cx="${f(icx + ir * 0.34)}" cy="${f(icy + ir * 0.4)}" r="${f(ir * 0.12)}" fill="#fff" opacity="0.28"/>` : ''}
     </g>`);
     // 눈꺼풀 주름과 눈두덩
@@ -669,6 +674,7 @@ function drawFace(game, p, age, stage, scars, ring, mood, detail, life, bust = f
   P.push(HW(hairS.front), grayTemples(rm), hat.front, ...earBuf, marks.over);
   if (beast && p.beast !== 'hawk') P.push(beastEars(p.beast, { cx, cy, hw, hh, top }, hair, hairDark, skin, uid, 'front'));
   if (race === 'demon' || race === 'half_demon') P.push(horns(race, { cx, cy, hw, hh, top }, hashStr('horn' + key) / 4294967296, 'front'));
+  P.push(raceEdge({ ...rm, earAt: hat.coversEars && !pointy ? [] : earAt, hair }));
   P.push('</g></g></g>');
   P.push(paintOver(uid, H));
   if (detail) P.push(keyLight(uid, H));
