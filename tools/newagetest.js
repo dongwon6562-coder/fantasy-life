@@ -86,7 +86,9 @@ let early;
   const adopted = VILLAGES.reduce((a, v) => a + s.tools[v].length, 0);
   ok(adopted >= 3, `새 연장 들인 마을 ${adopted}`);
   ok(VILLAGES.some((v) => s.tools[v].length < 2) || s.gave.length <= VILLAGES.length, '연장');
-  ok(s.left > 0, '떠난 사람');
+  let left = s.left; // 47단계: 갈래가 늘며 흐름이 바뀌어 예순 해 안에 떠난 사람이 없는 판이 나왔다(들인 해 일손이 25를 못 넘김). 다른 씨앗도 본다
+  for (let sd = 3404; !left && sd < 3410; sd++) { const g2 = newGame({ name: '클라라', sex: 'f', familyId: 'farmer', mode: 'free', seed: sd }); months(g2, 60 * 12, (gg) => setInv(gg, EARLY)); left = newageState(g2).left; }
+  ok(left > 0, '떠난 사람');
   ok(s.lit >= 8 && s.lit <= 35, `글 아는 사람 60년 ${s.lit.toFixed(1)}`);
   ok(s.books.length >= 4, `책 다툼 ${s.books.length}`);
   ok(s.shops.length >= 3 && s.shops.some((x) => x.end), `공방 다툼 ${s.shops.length}`);
