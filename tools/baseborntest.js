@@ -85,10 +85,11 @@ let selfLives = 0;
 for (let k = 0; k < 6; k++) {
   const fam = k % 2 ? 'merchant_bastard' : 'count_bastard';
   // 41단계: 하늘 소식이 주사위를 밀어 포르텔 서출 둘이 열일곱·스무 살에 갑작스러운 병과 칼 상처로 죽고 아우가 대를 잇는 판이 나왔다.
+  // 46단계(추격 고비): 교전 주사위가 바뀌어 4020 판에서 아버지 자리 장면이 안 나와 씨앗을 4030으로 옮겼다.
   // 서출 장면을 재는 동안은 다친 데를 낫게 두고, 그래도 본인이 죽어 대가 넘어가면 다른 씨앗으로 다시 산다 (재려는 건 서출 본인의 삶)
   let g;
   for (let t = 0; t < 4; t++) {
-    g = newGame({ name: '한스', sex: k < 2 || k >= 4 ? 'm' : 'f', familyId: fam, mode: 'free', seed: 4020 + k + t * 977 });
+    g = newGame({ name: '한스', sex: k < 2 || k >= 4 ? 'm' : 'f', familyId: fam, mode: 'free', seed: 4030 + k + t * 977 });
     ok(bbState(g).self || true, 'self');
     me(g).ageMonths = 14 * 12 + 6;
     const pid0 = g.player.id;

@@ -225,6 +225,11 @@ const STAGE_NAME = ['전열', '결정적 순간', '해 지기 전'];
 const moraleWord = (m) => (m >= 70 ? '사기가 높다' : m >= 55 ? '버틸 만하다' : m >= 40 ? '흔들린다' : '무너지기 직전이다');
 function warOptions(g, w) {
   const E = ARMIES[w.b.key];
+  // 추격: 적이 무너져 달아날 때. 맨 끝 '놓아준다'가 예전과 같은 끝.
+  if (w.step === 'chase') return [
+    { id: 'chase', label: '기병을 풀어 끝까지 쫓는다', hint: E.beast ? '더 많이 베지만 매복이 있을 수 있다' : '포로와 전리품이 늘지만 매복이 있을 수 있다', icon: 'horse' },
+    { id: 'let', label: '놓아주고 진을 거둔다', hint: '이긴 것으로 족하다', icon: 'shield' },
+  ];
   if (w.step === 2 && w.moment === 'champ') return [
     { id: 'knights', label: '날랜 기사들에게 맡긴다', hint: '지휘와 병사의 질에 달렸다', icon: 'banner' },
     { id: 'arrows', label: '궁수들에게 적장을 쏘게 한다', hint: '맞으면 크다', icon: 'eye' },
@@ -247,7 +252,7 @@ function warOptions(g, w) {
 function warView(g, w) {
   const b = w.b, E = ARMIES[b.key];
   return {
-    kind: 'war', stage: w.step, stages: 3, stageName: STAGE_NAME[w.step - 1], plan: b.plan, moment: w.step === 2 ? w.moment : null,
+    kind: 'war', stage: w.step === 'chase' ? 3 : w.step, stages: 3, stageName: w.step === 'chase' ? '추격' : STAGE_NAME[w.step - 1], chase: w.step === 'chase', plan: b.plan, moment: w.step === 2 ? w.moment : null,
     us: { name: w.side?.name ?? '아군', troops: Math.max(0, b.ours), troops0: b.ours0, morale: Math.round(b.mOur), word: moraleWord(b.mOur) },
     them: { name: E.name, key: b.key, troops: Math.max(0, b.theirs), troops0: b.theirs0, morale: Math.round(b.mThem), word: moraleWord(b.mThem), champ: E.champName, beast: !!E.beast },
     allies: w.side?.name ? [w.side.name] : [], options: warOptions(g, w), crux: w.step === 2, last: w.stages?.at(-1) ?? null,
@@ -270,17 +275,26 @@ function beginWarBeats(g, rng, s, plan) {
   return text;
 }
 function endWar(g, rng, w, from) {
-  const b = w.b, r = battleResult(b);
+  const b = w.b;
+  // 이겼는데 적이 남아 달아나면 한 번 더 고른다: 쫓을지 놓아줄지
+  if (!w.chased && b.outcome === 'win' && b.theirs > 0) {
+    const text = b.log.slice(from).join(' ');
+    b.shown = b.log.length;
+    showWar(g, { ...w, step: 'chase', choices: undefined });
+    return text;
+  }
+  const r = battleResult(b);
   const text = battleAfter(g, rng, w.fs, { ...r, log: r.log.slice(from) }, ourArmy(g));
   g.lastFight = { kind: 'war', title: w.fs.title ?? '전투', result: r.outcome, word: { win: '이겼다', lose: '졌다', draw: '승부가 나지 않았다' }[r.outcome], stages: w.stages, wounds: g.player.injuries.slice(w.inj0 ?? 0).map((x) => x.name), lost: { ours: r.lostOur, theirs: r.lostThem }, moments: r.moments, y: g.date.year, m: g.date.month, foe: ARMIES[b.key].name };
   return text;
 }
 defineScene('battle_beat', {
   keep: true,
-  need: (g, s) => !!s.b && !s.b.done,
-  title: (g, s) => `${s.fs.title ?? '전투'}: ${s.step === 2 ? (s.moment === 'champ' ? '적장이 나왔다' : '한쪽 줄이 흔들린다') : '해 지기 전'}`,
+  need: (g, s) => !!s.b && (s.step === 'chase' ? !s.chased : !s.b.done),
+  title: (g, s) => `${s.fs.title ?? '전투'}: ${s.step === 'chase' ? '달아나는 적' : s.step === 2 ? (s.moment === 'champ' ? '적장이 나왔다' : '한쪽 줄이 흔들린다') : '해 지기 전'}`,
   text: (g, s) => {
     const b = s.b, E = ARMIES[b.key];
+    if (s.step === 'chase') return `${J(E.name, '이/가')} 무너져 달아난다. 남은 ${Math.max(0, b.theirs)}명이 ${E.beast ? '숲과 골짜기로 흩어진다' : '깃발을 버리고 흩어진다'}. 아군은 ${Math.max(0, b.ours)}명, 지쳤지만 기세가 올랐다.`;
     const head = s.step === 2
       ? (s.moment === 'champ' ? `적진 한가운데서 ${J(E.champName, '이/가')} 말을 몰고 나왔다. 우리 병사들이 그쪽을 본다.` : '왼쪽 날개가 밀리기 시작했다. 깃발 몇 개가 뒤로 기운다.')
       : '해가 기울었다. 오늘 안에 승부를 내려면 지금 마지막 수를 써야 한다.';
@@ -290,6 +304,7 @@ defineScene('battle_beat', {
   resolve(g, rng, s, key) {
     const b = s.b, from = b.shown ?? 0, o0 = b.ours, t0 = b.theirs;
     const label = warOptions(g, s).find((o) => o.id === key)?.label ?? key;
+    if (s.step === 'chase') return resolveWarChase(g, rng, s, key, from);
     if (s.step === 2) {
       battlePhase(g, rng, b, 1, { moment: (g2, r2, b2) => (s.moment === 'champ' ? champMoment(g2, r2, b2, key) : lineMoment(g2, r2, b2, key)) });
       s.stages = [...(s.stages ?? []), `${label}: ${lossLine(b, o0, t0)}`];
@@ -316,6 +331,32 @@ defineScene('battle_beat', {
     return endWar(g, rng, s, from);
   },
 });
+function resolveWarChase(g, rng, s, key, from) {
+  const b = s.b, E = ARMIES[b.key], d = g.domain;
+  s.chased = true;
+  const extra = [];
+  if (key === 'chase') {
+    if (check(rng, b.lead + b.qOur / 4 + 5, 32)) {
+      const caught = Math.max(1, Math.round(b.theirs * rng.float(0.2, 0.4)));
+      b.theirs -= caught; b.moments.push('chase_win');
+      b.log.push(E.beast ? `기병이 흩어지는 무리를 끝까지 몰았다. ${caught}마리를 더 쓰러뜨렸다.` : `기병이 달아나는 자들을 끝까지 몰았다. ${caught}명을 더 베거나 사로잡았다. 포로들이 줄줄이 끌려왔다.`);
+      s.stages = [...(s.stages ?? []), `끝까지 쫓았다: 적 ${caught}명 더`];
+      if (d && s.fs.reward?.treasury) { const add = Math.round(s.fs.reward.treasury * 0.3); d.treasury += add; extra.push(`버리고 간 짐과 ${E.beast ? '부산물' : '포로 몸값'}으로 은화 ${add}닢이 더 들어왔다.`); }
+      L(g).renown += 1;
+    } else {
+      const lost = Math.max(1, Math.round(b.ours * rng.float(0.03, 0.06)));
+      b.ours -= lost; b.moments.push('chase_lose');
+      b.log.push(`쫓던 기병이 골짜기에서 매복을 만났다. ${lost}명을 잃고 겨우 돌아왔다.`);
+      if (rng.chance(0.35)) { addWound(g, rng, { unit: E.foe, count: 1 }, rng.int(1, 2)); b.log.push('앞장서 달리던 나도 날아온 것에 맞았다.'); }
+      s.stages = [...(s.stages ?? []), `쫓다가 매복: 아군 ${lost}명`];
+    }
+  } else {
+    b.log.push(pick(rng, ['달아나는 등은 쫓지 않았다. 다친 병사부터 거두게 했다.', '나팔을 불어 기병을 불러들였다. 이긴 것으로 족하다.']));
+    s.stages = [...(s.stages ?? []), '놓아주었다'];
+  }
+  const text = endWar(g, rng, s, from);
+  return extra.length ? `${text} ${extra.join(' ')}` : text;
+}
 // 지금 떠 있는 전투 장면의 모양 (첫 단계는 작전 고르기)
 export function battleView(g) {
   const s = L(g).scene;

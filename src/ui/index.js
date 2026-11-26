@@ -106,6 +106,7 @@ import { renderDemonland, renderDemonkindBlock } from './demonkind.js';
 import { renderDelveMap, renderDelveBlock } from './delve.js';
 import { renderArtificeBlock } from './artifice.js';
 import { renderAccordMap } from './accord.js';
+import { battleState, battleSnap, battleHead, battleBody, battleOpts, battleAfter, afterLabel } from './fightView.js';
 import { renderLandsMap } from './lands.js';
 import { renderCrownsMap, renderCrownsBlock } from './crowns.js';
 import { renderOrderBlock, renderOrders } from './order.js';
@@ -615,27 +616,32 @@ function renderEvent() {
   ui.evSeen = key;
   let rvBase = 0;
   if (ui.outcome) {
-    return `<div class="overlay${ovFresh ? ' fresh' : ''}"><div class="event${rv}" role="dialog" aria-modal="true" aria-labelledby="ev-title">
+    const bt = (() => { try { return battleAfter(game, ui.bt, ui.outcome.text); } catch (err) { console.error(err); return ''; } })();
+    return `<div class="overlay${ovFresh ? ' fresh' : ''}${bt ? ' bt-ov' : ''}"><div class="event${rv}${bt ? ' battle after' : ''}" role="dialog" aria-modal="true" aria-labelledby="ev-title">
       ${head}
       <div class="ev-body">
-        <span class="eyebrow">용사력 ${game.date.year}년 ${monthInfo(game).name} · 그 뒤</span>
+        <span class="eyebrow">용사력 ${game.date.year}년 ${monthInfo(game).name} · ${bt ? (ui.bt?.kind === 'duel' ? (game.duel ? '합의 끝' : '결투의 끝') : afterLabel(game, ui.bt) === '다음 고비' ? '고비의 끝' : ui.bt?.kind === 'war' ? '전투의 끝' : '싸움의 끝') : '그 뒤'}</span>
         <h2 id="ev-title">${esc(ui.outcome.title)}</h2>
+        ${bt}
         ${(() => { const r = splitResult(String(ui.outcome.text ?? '')); const t = revealSpans(r.scene); rvBase = t.n * t.step; return `<p class="outcome">${t.html}</p>${r.gains ? `<p class="gains ln" style="--ln:${t.n};--st:${t.step}s">${esc(r.gains)}</p>` : ''}`; })()}
-        <div class="opts" style="--base:${rvBase.toFixed(2)}s"><button class="primary" id="ev-close">계속</button></div>
+        <div class="opts" style="--base:${rvBase.toFixed(2)}s"><button class="primary" id="ev-close">${bt ? afterLabel(game, ui.bt) : '계속'}</button></div>
       </div>
     </div></div>`;
   }
-  const t = revealSpans(e.text);
+  const st = (() => { try { return battleState(game); } catch (err) { console.error(err); return null; } })();
+  const bBody = st ? battleBody(game) : null, bOpts = st ? battleOpts(game) : null;
+  const t = revealSpans(bBody == null ? e.text : '');
   rvBase = t.n * t.step;
-  return `<div class="overlay${ovFresh ? ' fresh' : ''}"><div class="event${rv}" role="dialog" aria-modal="true" aria-labelledby="ev-title">
+  return `<div class="overlay${ovFresh ? ' fresh' : ''}${st ? ' bt-ov' : ''}${st?.crux ? ' crux' : ''}"><div class="event${rv}${st ? ' battle' : ''}${st?.crux ? ' crux' : ''}" role="dialog" aria-modal="true" aria-labelledby="ev-title">
     ${head}
     <div class="ev-body">
-      <span class="eyebrow">용사력 ${game.date.year}년 ${monthInfo(game).name} · 사건</span>
+      <span class="eyebrow">용사력 ${game.date.year}년 ${monthInfo(game).name} · ${st ? (st.kind === 'duel' ? '결투' : st.kind === 'war' ? '전투' : '싸움') : '사건'}</span>
       <h2 id="ev-title">${esc(e.title)}</h2>
-      <p class="ev-text">${t.html}</p>
+      ${st ? battleHead(game) : ''}
+      ${bBody == null ? `<p class="ev-text">${t.html}</p>` : bBody}
       ${heirReview()}
       ${divider('diamond')}
-      <div class="opts" style="--base:${rvBase.toFixed(2)}s">${e.choices.map((c, i) => `<button class="opt" data-choice="${i}" style="--i:${i}"><span class="n">${i + 1}</span><span>${esc(c)}</span></button>`).join('')}</div>
+      ${bOpts ? bOpts.replace('class="opts', `style="--base:${rvBase.toFixed(2)}s" class="opts`) : `<div class="opts" style="--base:${rvBase.toFixed(2)}s">${e.choices.map((c, i) => `<button class="opt" data-choice="${i}" style="--i:${i}"><span class="n">${i + 1}</span><span>${esc(c)}</span></button>`).join('')}</div>`}
     </div>
   </div></div>`;
 }
@@ -921,6 +927,7 @@ function bindGame() {
   if (tt) tt.onclick = () => { closeBook(); closeWays(); game = null; if (unmountMap) { unmountMap(); unmountMap = null; } document.querySelectorAll('.month-card').forEach((x) => x.remove()); start(); };
   $$('[data-choice]').forEach((b) => b.onclick = () => {
     const title = game.pendingEvent.title;
+    try { ui.bt = battleSnap(game, +b.dataset.choice); } catch (err) { console.error(err); ui.bt = null; }
     const text = resolveEvent(game, rngOf(game), +b.dataset.choice);
     ui.outcome = { title, text };
     renderGame();
@@ -928,7 +935,7 @@ function bindGame() {
   });
   const ec = $('#ev-close');
   if (ec) ec.onclick = () => {
-    ui.outcome = null;
+    ui.outcome = null; ui.bt = null;
     // 창이 스르르 걷힌 뒤 다음 화면 (움직임을 줄였으면 바로)
     const ov = $('.overlay');
     if (ov && smoothOn() && !game.pendingEvent) { ov.classList.add('out'); ec.disabled = true; setTimeout(() => { if (game) renderGame(); }, 200); }

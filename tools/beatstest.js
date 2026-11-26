@@ -85,7 +85,7 @@ const drive = (g, s, first, pickFn, seed = 1) => {
     const sc = L(g).scene;
     check(sc && ['fight_beat', 'battle_beat'].includes(sc.kind), `다음 고비 장면 ${sc?.kind}`);
     viewOK(view(g), `${sc?.kind} ${sc?.beat ?? sc?.step}`);
-    check(sc.view && sc.view.stage === (sc.beat ?? sc.step), '장면 데이터에 고비 정보(view)');
+    check(sc.view && sc.view.stage === ((sc.beat ?? sc.step) === 'chase' ? 3 : (sc.beat ?? sc.step)) && sc.view.stageName, '장면 데이터에 고비 정보(view)');
     check(!BAD.test(g.pendingEvent.text) && !BAD.test(g.pendingEvent.title), `고비 글: ${g.pendingEvent.title} / ${g.pendingEvent.text}`);
     const keys = sc.choices.map((c) => c.key);
     const i = pickFn(keys, k);
@@ -136,7 +136,7 @@ const ENCS = [{ unit: 'wolf', count: 4, leader: 'dire_wolf' }, { unit: 'bandit',
     g.player.injuries = []; g.player.fatigue = 0; stay(g, 'harfen');
     drive(g, fightScene(g, enc), 'charge', (keys) => (pick === 'first' ? 0 : pick === 'second' ? 1 : keys.length - 1), ENCS.indexOf(enc) + 3);
     const f = g.lastFight;
-    check(f && f.kind === 'skirmish' && ['win', 'overwhelm', 'flee', 'lose'].includes(f.result) && Array.isArray(f.stages) && f.stages.length >= 1 && f.stages.length <= 3 && Array.isArray(f.wounds), `끝 요약 ${JSON.stringify(f)}`);
+    check(f && f.kind === 'skirmish' && ['win', 'overwhelm', 'flee', 'lose'].includes(f.result) && Array.isArray(f.stages) && f.stages.length >= 1 && f.stages.length <= 4 && Array.isArray(f.wounds), `끝 요약 ${JSON.stringify(f)}`);
     textOK(f?.stages ?? [], '고비 요약');
   }
   // 지형마다 다른 고르기가 붙는다
@@ -203,7 +203,7 @@ const ENCS = [{ unit: 'wolf', count: 4, leader: 'dire_wolf' }, { unit: 'bandit',
     L(g).expedition.troops = 120; g.player.injuries = [];
     drive(g, { kind: 'battle', at: L(g).place, t: 0, title: '시험 전투', intro: '들판에 적이 진을 쳤다.', enemy: { key, troops: 100 }, context: 'test' }, plan, (keys) => Math.min(pick, keys.length - 1), pick + 2);
     const f = g.lastFight;
-    check(f && f.kind === 'war' && ['win', 'lose', 'draw'].includes(f.result) && f.stages.length >= 1 && f.stages.length <= 3 && f.lost, `전쟁 끝 요약 ${JSON.stringify(f)}`);
+    check(f && f.kind === 'war' && ['win', 'lose', 'draw'].includes(f.result) && f.stages.length >= 1 && f.stages.length <= 4 && f.lost, `전쟁 끝 요약 ${JSON.stringify(f)}`);
     for (const m of f?.moments ?? []) moments.add(m);
   }
   check(moments.size >= 5, `결정적 순간이 여러 갈래 (${[...moments]})`);
@@ -245,6 +245,44 @@ const ENCS = [{ unit: 'wolf', count: 4, leader: 'dire_wolf' }, { unit: 'bandit',
   let k = 0, out = '';
   while (back.pendingEvent && k++ < 4) out = resolveEvent(back, makeRng({ s: k }), 0);
   check(back.lastFight && !BAD.test(out), `불러온 뒤 끝까지 (${out})`);
+}
+
+// 6. 적이 무너져 달아나면 쫓을지 놓아줄지 한 번 더 고른다 (교전·전쟁 모두)
+{
+  const g = adult(13, 45);
+  L(g).expedition = { troops: 160, q: 60 };
+  const seen = { fight: 0, war: 0 }, ends = { chase: 0, let: 0 };
+  for (let s = 1; s <= 40; s++) for (const last of [false, true]) {
+    g.player.injuries = []; g.player.fatigue = 0; L(g).expedition.troops = 160;
+    const pickFn = (keys) => (keys.includes('chase') ? (last ? keys.length - 1 : keys.indexOf('chase')) : keys.length - 1);
+    const runs = [
+      ['fight', fightScene(g, ENCS[s % ENCS.length]), 'charge'],
+      ['war', { kind: 'battle', at: L(g).place, t: 0, title: '시험 전투', intro: '적이다.', enemy: { key: 'bandits', troops: 60 }, context: 'test', reward: { treasury: 50 } }, 'charge'],
+    ];
+    for (const [kind, sc, first] of runs) {
+      let chased = false;
+      g.pendingEvent = null; L(g).scene = null; L(g).queue = []; g.lastFight = null;
+      showScene(g, sc, { force: true });
+      resolveEvent(g, makeRng({ s: s * 101 }), Math.max(0, L(g).scene.choices.findIndex((c) => c.key === first)));
+      let k = 0;
+      while (g.pendingEvent && k++ < 6) {
+        const keys = L(g).scene.choices.map((c) => c.key);
+        if (keys.includes('chase')) {
+          chased = true; seen[kind]++;
+          const v = kind === 'fight' ? skirmishView(g) : battleView(g);
+          viewOK(v, `${kind} 추격`);
+          check(v.stageName === '추격' && v.chase && v.options.at(-1).id === 'let', `${kind} 추격 단계 이름 ${v.stageName}`);
+          check(!BAD.test(g.pendingEvent.text) && !BAD.test(g.pendingEvent.title), `추격 글: ${g.pendingEvent.title} / ${g.pendingEvent.text}`);
+        }
+        const out = resolveEvent(g, makeRng({ s: s * 37 + k }), Math.max(0, pickFn(keys)));
+        check(typeof out === 'string' && !BAD.test(out), `추격 결과 글: ${out}`);
+      }
+      check(!g.pendingEvent && g.lastFight, `${kind} 끝까지 (${L(g).scene?.kind})`);
+      if (chased) { ends[last ? 'let' : 'chase']++; check(g.lastFight.result === 'win' || g.lastFight.result === 'overwhelm', `쫓은 뒤에도 이긴 싸움 ${g.lastFight.result}`); }
+    }
+  }
+  if (process.env.SHOW) console.log('추격', seen, ends);
+  check(seen.fight >= 3 && seen.war >= 3, `추격 고비가 뜬다 (${JSON.stringify(seen)})`);
 }
 
 console.log(fail ? `실패 ${fail}` : '교전과 전쟁 점검 모두 통과', `${((Date.now() - T0) / 1000).toFixed(1)}초`);

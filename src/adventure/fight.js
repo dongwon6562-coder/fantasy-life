@@ -303,6 +303,10 @@ function allyLine(st, comps, beat) {
 }
 
 function beatOptions(g, b) {
+  if (b.beat === 'chase') return [
+    { id: 'chase', label: '끝까지 쫓는다', hint: '더 잡고 더 얻지만 다칠 수도 있다', icon: 'boot' },
+    { id: 'let', label: '놓아주고 숨을 고른다', hint: '덜 남지만 다치지 않는다', icon: 'rest' },
+  ];
   const st = b.st, T = TERRAINS[b.terrain], lname = leaderName(st.enc), out = [];
   out.push({ id: 'press', label: '그대로 밀어붙인다', hint: '하던 대로', icon: 'sword' });
   out.push({ id: 'terrain', label: T.label, hint: T.hint, icon: T.icon });
@@ -347,6 +351,17 @@ function beatMod(g, rng, b, key, lines) {
   return mod;
 }
 
+// 고비 사이에 무리가 몇 남지 않았고 우두머리도 없거나 기가 꺾였으면 남은 놈들이 흩어져 달아난다(언데드는 끝까지 온다).
+// 그러면 끝내기 전에 쫓을지 놓아줄지 고른다.
+function routs(rng, st) {
+  if (st.done || st.units <= 0 || moveOf(st.enc) === 'undead') return false;
+  if (st.units > Math.max(1, Math.floor(st.count0 / 3)) || (st.leaderAlive && st.morale > 60)) return false;
+  const F = FOES[st.enc.unit], lname = leaderName(st.enc);
+  st.out.outcome = 'win'; st.done = true;
+  if (st.leaderAlive) { st.out.leaderFled = true; st.out.log.push(`남은 ${F.name}들이 뒷걸음질 쳤다. ${J(lname, '이/가')} 먼저 등을 돌렸다.`); }
+  else st.out.log.push(rng.pick([`남은 ${st.units}${F.human ? '명이' : '마리가'} 서로 눈치를 보더니 한꺼번에 달아났다.`, `${F.name} ${st.units}${F.human ? '명이' : '마리가'} 더 버티지 못하고 등을 보였다.`]));
+  return true;
+}
 function makeBeat(g, s, st, comps, beat, terrain, extra) {
   const { choices, ...fs } = s;
   return { kind: 'fight_beat', at: L(g).place, t: g.date.year * 12 + g.date.month, keep: true, fs, st, comps, beat, terrain, mv: moveOf(s.enc), ...extra };
@@ -375,6 +390,7 @@ function beginBeats(g, rng, s, tactic) {
   const terrain = terrainOf(g, s);
   const u0 = st.units;
   if (!st.done) { skirmishRounds(g, rng, st, 2); const fl = felledLine(st, u0); if (fl && !st.done) st.out.log.push(fl); }
+  routs(rng, st);
   const b = makeBeat(g, s, st, comps, 2, terrain, { inj0, stages: [stageLine(st, TACTIC_LABEL[tactic] ?? '맞섰다', 0)] });
   if (st.done) return endBeats(g, rng, b, 0);
   const text = st.out.log.join(' ');
@@ -383,7 +399,15 @@ function beginBeats(g, rng, s, tactic) {
   return text;
 }
 function endBeats(g, rng, b, from) {
-  const st = b.st, r = skirmishEnd(st);
+  const st = b.st;
+  // 적이 일찍 무너져 달아나면 끝내기 전에 한 고비 더: 쫓을지 놓아줄지
+  if (!b.chased && st.out.outcome === 'win' && (st.units > 0 || st.out.leaderFled)) {
+    const text = st.out.log.slice(from).join(' ');
+    st.shown = st.out.log.length;
+    showBeat(g, { ...b, beat: 'chase', choices: undefined });
+    return text;
+  }
+  const r = skirmishEnd(st);
   const res = fightAfter(g, rng, b.fs, { ...r, log: r.log.slice(from) }, b.comps, {});
   const wounds = g.player.injuries.slice(b.inj0 ?? 0).map((w) => w.name);
   g.lastFight = { kind: 'skirmish', title: b.fs.title ?? '싸움', result: r.outcome, word: { win: '이겼다', overwhelm: '압승', flee: '물러났다', lose: '졌다' }[r.outcome], stages: b.stages ?? [], wounds, kills: r.kills, loot: /\((은화|공적)[^)]*\)/.exec(res.text)?.[0]?.slice(1, -1) ?? null, y: g.date.year, m: g.date.month, terrain: b.terrain, foe: describeFoes(st.enc) };
@@ -392,9 +416,10 @@ function endBeats(g, rng, b, from) {
 
 defineScene('fight_beat', {
   keep: true,
-  need: (g, s) => !!s.st && !s.st.done,
-  title: (g, s) => `${s.fs.title ?? '싸움'}: ${ORD[s.beat - 1] ?? '마지막'} 고비`,
+  need: (g, s) => !!s.st && (s.beat === 'chase' || !s.st.done),
+  title: (g, s) => `${s.fs.title ?? '싸움'}: ${s.beat === 'chase' ? '달아나는 적' : `${ORD[s.beat - 1] ?? '마지막'} 고비`}`,
   text: (g, s) => {
+    if (s.beat === 'chase') return chaseText(s);
     const st = s.st, F = FOES[st.enc.unit] ?? FOES[st.enc.leader], T = TERRAINS[s.terrain];
     const mv = s.mv && (s.mv !== 'pack' || st.units >= 3) ? ` ${MOVE_LINE[s.mv](F)}` : '';
     const crux = cruxOf(st) ? ' 지금이 갈림길이다.' : '';
@@ -402,6 +427,7 @@ defineScene('fight_beat', {
   },
   choices: (g, s) => beatOptions(g, s).map((o) => ({ label: o.label, key: o.id })),
   resolve(g, rng, s, key) {
+    if (s.beat === 'chase') return resolveChase(g, rng, s, key);
     const st = s.st, lines = [], k0 = st.out.kills;
     const mod = beatMod(g, rng, s, key, lines);
     st.out.log.push(...lines);
@@ -411,6 +437,7 @@ defineScene('fight_beat', {
     const al = allyLine(st, s.comps, s.beat);
     if (al && !st.done) { st.out.log.push(al); if (s.comps.some((c) => c.role === 'healer')) st.hp = Math.min(st.hp0, st.hp + 4); }
     const label = beatOptions(g, s).find((o) => o.id === key)?.label ?? key;
+    routs(rng, st);
     s.stages = [...(s.stages ?? []), stageLine(st, label, k0)];
     if (st.done) return endBeats(g, rng, s, from);
     const text = st.out.log.slice(from).join(' ');
@@ -420,6 +447,33 @@ defineScene('fight_beat', {
     return text;
   },
 });
+/* 추격: 무너져 달아나는 적을 쫓을지 놓아줄지. 놓아주는 쪽이 예전 그대로이고, 쫓으면 더 얻거나 다친다 */
+function chaseText(s) {
+  const st = s.st, F = FOES[st.enc.unit], lname = leaderName(st.enc);
+  const who = [st.units > 0 && F ? `${F.name} ${st.units}${cntOf(st)}` : null, st.out.leaderFled ? lname : null].filter(Boolean).join('과 ');
+  return `${J(who || '남은 적', '이/가')} 등을 보이고 달아난다. ${F?.human ? '쫓으면 포로와 전리품이 늘겠지만,' : '쫓으면 더 잡겠지만,'} 발이 무겁고 숨이 차다. 나는 ${hpWord(st.hp / st.hp0)}.`;
+}
+function resolveChase(g, rng, s, key) {
+  const st = s.st, F = FOES[st.enc.unit], lname = leaderName(st.enc), lines = [], k0 = st.out.kills;
+  s.chased = true;
+  if (key === 'chase') {
+    const odds = Math.max(0.2, Math.min(0.85, 0.45 + (g.player.stats.agi - 25) / 80 + (st.hp / st.hp0 - 0.5) * 0.4));
+    if (rng.chance(odds)) {
+      const caught = st.units > 0 ? Math.max(1, Math.ceil(st.units * rng.float(0.3, 0.7))) : 0;
+      if (caught) { st.units -= caught; st.out.kills += caught; lines.push(F.human ? `달아나는 자들 가운데 ${J(`${caught}${cntOf(st)}`, '을/를')} 따라잡았다. 무기를 버리고 무릎을 꿇었다. 포로로 끌고 왔다.` : `달아나는 ${F.name} ${J(`${caught}${cntOf(st)}`, '을/를')} 따라잡아 쓰러뜨렸다.`); }
+      if (st.out.leaderFled && rng.chance(0.5)) { st.out.leaderFled = false; st.out.leaderDown = true; st.out.kills += 1; lines.push(`${lname}의 뒤를 잡았다. 놈은 이번에는 달아나지 못했다.`); }
+      else if (st.out.leaderFled) lines.push(`${J(lname, '은/는')} 끝내 놓쳤다. 숲 저편으로 사라졌다.`);
+      const rw = s.fs.reward ?? {};
+      s.fs = { ...s.fs, reward: { ...rw, ...(rw.money ? { money: Math.round(rw.money * 1.5) } : {}), renown: (rw.renown ?? 0) + 1 } };
+    } else {
+      lines.push(rng.pick(['쫓아가다 덤불 속에서 되잡혔다. 겨우 빠져나왔다.', '발밑이 꺼지며 굴렀다. 달아나던 놈들이 돌아서서 칼을 휘둘렀다.']));
+      addWound(g, rng, st.enc, rng.int(1, 2)); stress(g, 4);
+    }
+  } else lines.push(F?.human ? '등을 보인 자들은 놓아주었다. 쫓을 힘이 아까웠다.' : '달아나는 놈들을 굳이 쫓지 않았다. 숨부터 골랐다.');
+  st.out.log.push(...lines);
+  s.stages = [...(s.stages ?? []), stageLine(st, key === 'chase' ? '끝까지 쫓았다' : '놓아주었다', k0)];
+  return endBeats(g, rng, s, st.shown);
+}
 const cruxOf = (st) => (st.leaderAlive && st.units <= st.count0 / 2) || st.hp / st.hp0 < 0.35;
 
 /* ---------- 화면·그림용 ---------- */
@@ -427,12 +481,12 @@ function viewOf(g, b) {
   const st = b.st, F = FOES[st.enc.unit] ?? null, T = TERRAINS[b.terrain];
   const hpThem = (F ? st.units * F.pow : 0) + Math.max(0, st.leaderAlive ? st.leaderHp : 0), hp0Them = (F ? st.count0 * F.pow : 0) + st.leaderHp0;
   return {
-    kind: 'skirmish', stage: b.beat, stages: 3, terrain: b.terrain, terrainName: T.name,
+    kind: 'skirmish', stage: b.beat === 'chase' ? 3 : b.beat, stages: 3, stageName: b.beat === 'chase' ? '추격' : `${ORD[b.beat - 1]} 고비`, chase: b.beat === 'chase', terrain: b.terrain, terrainName: T.name,
     us: { hp: Math.round(st.hp), hp0: Math.round(st.hp0), word: hpWord(st.hp / st.hp0) },
     them: { name: describeFoes(st.enc), unit: st.enc.unit ?? null, leader: st.enc.leader ?? null, count: st.units, count0: st.count0, leaderAlive: st.leaderAlive, hp: Math.round(hpThem), hp0: Math.round(hp0Them), word: foeWord(st), how: b.mv, howWord: MOVE_WORD[b.mv] ?? null },
     allies: b.comps.map((c) => `${c.name}${ROLES[c.role] ? ` (${ROLES[c.role].name})` : ''}`),
     options: beatOptions(g, b),
-    crux: cruxOf(st),
+    crux: b.beat !== 'chase' && cruxOf(st),
     last: b.stages?.at(-1) ?? null,
   };
 }
@@ -445,7 +499,7 @@ export function skirmishView(g) {
   const comps = companionsFor(g), hp = playerVitality(g), F = FOES[s.enc.unit] ?? null, terrain = terrainOf(g, s), mv = moveOf(s.enc);
   const tot = Math.round(foeTotal(s.enc));
   return {
-    kind: 'skirmish', stage: 1, stages: 3, terrain, terrainName: TERRAINS[terrain].name,
+    kind: 'skirmish', stage: 1, stages: 3, stageName: '첫 고비', chase: false, terrain, terrainName: TERRAINS[terrain].name,
     us: { hp: Math.round(hp), hp0: Math.round(hp), word: hpWord(1) },
     them: { name: describeFoes(s.enc), unit: s.enc.unit ?? null, leader: s.enc.leader ?? null, count: s.enc.count ?? 0, count0: s.enc.count ?? 0, leaderAlive: !!s.enc.leader, hp: tot, hp0: tot, word: threatWord(playerPower(g) + comps.reduce((a, c) => a + c.pow, 0), s.enc), how: mv, howWord: MOVE_WORD[mv] ?? null },
     allies: comps.map((c) => `${c.name}${ROLES[c.role] ? ` (${ROLES[c.role].name})` : ''}`),

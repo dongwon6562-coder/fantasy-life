@@ -2308,3 +2308,127 @@ html.swiping .main { will-change: transform; }
 .ac-st li span { color: var(--muted); font-size: 11.5px; white-space: nowrap; }
 .ac-more { margin: 6px 0; }
 .ac-more > .ac-ties { margin-top: 6px; }
+
+/* ---------- 46단계 전투 화면: 몸 막대·기세·수 카드·결정적 순간·끝 요약 ---------- */
+.bt-hud { margin: 2px 0 12px; padding: 10px 12px 9px; border-radius: 10px; color: #efe2c4; background: var(--grain), linear-gradient(180deg, #2c2219, #1d1711); border: 1px solid #5a4220; box-shadow: inset 0 1px 0 rgba(255, 228, 176, .08), 0 3px 10px rgba(60, 36, 10, .28); }
+.bt-round { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; font-size: 12px; color: #bfa77a; letter-spacing: .06em; margin-bottom: 6px; }
+.bt-round b { color: #f3c96b; font-weight: 700; letter-spacing: .1em; }
+.bt-vs { display: grid; grid-template-columns: minmax(0, 1fr) 22px minmax(0, 1fr); align-items: end; gap: 6px; }
+.bt-x { display: grid; place-items: center; color: #9b8150; padding-bottom: 3px; }
+.bt-side { position: relative; min-width: 0; }
+.bt-side.foe { text-align: right; }
+.bt-name { display: flex; flex-direction: column; gap: 0; margin-bottom: 4px; min-width: 0; }
+.bt-name b { font-size: 14px; color: #f4e7c9; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.bt-name em { font-style: normal; font-size: 11px; color: #a99472; }
+.bt-hp { position: relative; display: block; height: 9px; border-radius: 5px; background: #0f0c09; box-shadow: inset 0 1px 2px rgba(0, 0, 0, .8), 0 0 0 1px rgba(201, 162, 90, .25); overflow: hidden; }
+.bt-hp i, .bt-hp s { position: absolute; top: 0; bottom: 0; left: 0; width: var(--to); border-radius: 5px; }
+.bt-hp i { background: linear-gradient(180deg, #a7c98a, #5d8a48); z-index: 2; }
+.bt-hp.low i { background: linear-gradient(180deg, #e08b6d, #a33a26); }
+.bt-side.foe .bt-hp i, .bt-side.foe .bt-hp s { left: auto; right: 0; }
+.bt-side.foe .bt-hp i { background: linear-gradient(180deg, #d9a35c, #9a5a24); }
+.bt-side.foe .bt-hp.low i { background: linear-gradient(180deg, #e08b6d, #a33a26); }
+.bt-hp s { background: #f3dfa6; width: var(--from); z-index: 1; }
+.bt-dmg { position: absolute; top: -2px; font-size: 13px; font-weight: 700; color: #ff9d7d; text-shadow: 0 1px 0 #000; pointer-events: none; }
+.bt-side.me .bt-dmg { right: 4px; } .bt-side.foe .bt-dmg { left: 4px; }
+.bt-mom { display: flex; flex-direction: column; align-items: center; gap: 3px; margin-top: 8px; }
+.bt-pips { display: flex; gap: 3px; }
+.bt-pips i { width: 16px; height: 5px; border-radius: 3px; background: rgba(201, 162, 90, .16); }
+.bt-pips i.mid { width: 5px; background: rgba(201, 162, 90, .5); }
+.bt-pips i.me { background: #a7c98a; box-shadow: 0 0 6px rgba(167, 201, 138, .5); }
+.bt-pips i.foe { background: #d9905c; box-shadow: 0 0 6px rgba(217, 144, 92, .5); }
+.bt-mom small { font-size: 11px; color: #bfa77a; }
+.event .bt-intro::first-letter { color: inherit; }
+.event .bt-line { margin: 0 0 8px; font-style: italic; color: #5a3a1c; }
+.event .bt-tell { display: flex; gap: 8px; align-items: flex-start; margin: 0 0 4px; padding: 9px 12px; border-radius: 8px; background: rgba(90, 60, 24, .1); border: 1px dashed rgba(111, 81, 34, .45); color: #3a2818; font-size: 15px; line-height: 1.55; }
+.event .bt-tell svg { flex: none; margin-top: 2px; color: #7a5524; }
+.bt-opts { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.event .bt-card { display: grid; grid-template-columns: 28px minmax(0, 1fr); grid-template-rows: auto auto; align-items: center; gap: 2px 8px; text-align: left; padding: 10px 10px 9px; min-height: 76px; }
+.event .bt-card svg { grid-row: 1; color: #6b4a1e; }
+.bt-cn { display: flex; flex-direction: column; min-width: 0; line-height: 1.25; }
+.bt-cn b { font-size: 14.5px; font-weight: 600; word-break: keep-all; }
+.bt-cn small { font-size: 11px; color: #7a6040; }
+.bt-hint { grid-column: 1 / -1; font-size: 11.5px; line-height: 1.4; color: #6b553b; word-break: keep-all; }
+.event .bt-card.mv-yield { grid-column: 1 / -1; min-height: 0; opacity: .85; }
+.event .bt-card.mv-yield .bt-hint { display: none; }
+.bt-opts.two { grid-template-columns: 1fr; }
+.bt-opts.two .bt-card { min-height: 64px; }
+@media (max-width: 340px) { .bt-opts { grid-template-columns: 1fr; } .event .bt-card { min-height: 0; } }
+/* 결정적 순간: 둘레가 어두워지고 창에 금빛 테 */
+.overlay.crux { background: radial-gradient(ellipse at center, rgba(0, 0, 0, .55), rgba(0, 0, 0, .92) 75%); }
+.event.crux { box-shadow: 0 0 0 1px rgba(0, 0, 0, .5), 0 0 0 3px rgba(243, 201, 107, .55), inset 0 0 40px rgba(120, 82, 34, .28), 0 0 60px rgba(243, 201, 107, .25), 0 24px 70px rgba(0, 0, 0, .8); }
+.event.crux .bt-hud { border-color: #b8893a; }
+/* 결과 창 움직임 (움직임을 켰을 때만) */
+html.motion .bt-hp i { animation: bt-drop .7s cubic-bezier(.2, .7, .3, 1) .35s both; }
+html.motion .bt-hp s { animation: bt-ghost .9s ease-in .9s both; }
+html.motion .bt-side.hit { animation: bt-shake .38s ease-out .3s both; }
+html.motion .bt-dmg { animation: bt-pop 1.4s ease-out .35s both; }
+html.motion .event.crux { animation: bt-crux 1.2s ease-out both; }
+@keyframes bt-drop { from { width: var(--from); } to { width: var(--to); } }
+@keyframes bt-ghost { from { width: var(--from); } to { width: var(--to); } }
+@keyframes bt-shake { 0%, 100% { transform: none; } 20% { transform: translateX(-4px); } 45% { transform: translateX(3px); } 70% { transform: translateX(-2px); } }
+@keyframes bt-pop { 0% { opacity: 0; transform: translateY(4px); } 20% { opacity: 1; transform: translateY(-6px); } 80% { opacity: 1; } 100% { opacity: 0; transform: translateY(-12px); } }
+@keyframes bt-crux { from { box-shadow: 0 0 0 1px rgba(0, 0, 0, .5), 0 0 0 0 rgba(243, 201, 107, 0), 0 24px 70px rgba(0, 0, 0, .8); } }
+/* 끝 요약 카드 */
+.bt-sum { margin: 2px 0 12px; padding: 12px 14px; border-radius: 10px; background: rgba(255, 249, 232, .55); border: 1px solid #b99d6c; box-shadow: inset 0 0 0 3px rgba(255, 250, 236, .5); }
+.bt-sum.up { border-color: #6f8a4a; } .bt-sum.down { border-color: #8a2e1e; }
+.bt-sum-top { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; }
+.bt-sum-top b { font-size: 22px; letter-spacing: .06em; }
+.bt-sum-top b.up { color: #3f6e2a; } .bt-sum-top b.down { color: #8a2e1e; } .bt-sum-top b.warn { color: #8a6420; }
+.bt-sum-top span { font-size: 12px; color: #6b553b; }
+.bt-sum .note { margin: 4px 0 0; }
+.bt-used { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 8px; }
+.bt-used span { display: inline-flex; align-items: center; gap: 4px; padding: 3px 9px 3px 6px; border-radius: 999px; border: 1px solid #c7ab76; background: rgba(255, 250, 236, .6); font-size: 12px; color: #4a3420; }
+.bt-used svg { color: #7a5524; }
+.bt-hud.fight .bt-vs { align-items: center; }
+.bt-hud.fight .bt-name { margin: 0; }
+.bt-hud.fight .bt-name b { white-space: normal; word-break: keep-all; }
+.bt-threat { margin: 8px 0 0; padding-top: 7px; border-top: 1px solid rgba(201, 162, 90, .18); font-size: 12.5px; color: #d9c49a !important; text-align: center; line-height: 1.45; }
+
+/* ==========================================================================
+   46단계 마감: 종이·가죽 질감 한 겹, 그림자 깊이, 막대, 글 크기와 여백
+   ========================================================================== */
+/* 카드: 위쪽에 촛불이 비친 듯 옅은 빛, 아래는 조금 더 가라앉게. 그림자는 두 겹(가까운 것+먼 것) */
+.card:not(.mapcard):not(.crisis):not(.now-notes):not(.over), .sheet:not(.side) {
+  background: var(--corners), var(--grain), radial-gradient(ellipse 120% 60% at 50% 0%, rgba(255, 214, 150, .055), transparent 70%), var(--leather);
+}
+.card, .sheet { box-shadow: inset 0 1px 0 rgba(255, 228, 176, .07), inset 0 0 0 1px rgba(201, 162, 90, .08), 0 1px 0 rgba(0, 0, 0, .55), 0 2px 4px rgba(0, 0, 0, .22), 0 12px 28px -8px rgba(0, 0, 0, .5); }
+/* 막대: 홈을 판 듯 들어가고, 채움은 위가 밝은 금속빛 */
+.ws-bar, .wd-bar, .stat .bar { height: 7px; border-radius: 4px; border: 0; background: #0f0c09; box-shadow: inset 0 1px 2px rgba(0, 0, 0, .75), 0 1px 0 rgba(255, 228, 176, .05), 0 0 0 1px rgba(201, 162, 90, .14); }
+.ws-bar i, .wd-bar i, .stat .bar i { border-radius: 4px; background-image: linear-gradient(180deg, rgba(255, 255, 255, .22), rgba(255, 255, 255, 0) 55%, rgba(0, 0, 0, .18)); }
+/* 글: 작은 글을 반 단계 키워 폰에서 덜 빽빽하게 */
+.note { font-size: 13.5px; }
+.block h3 small, .card > h2 small { font-size: 12.5px; }
+.block { gap: 7px; }
+.sheet > .block + .block { margin-top: 4px; }
+/* 바탕체 제목은 조금 더 또렷하게 */
+.card > h2, .block h3 { text-shadow: 0 1px 0 rgba(0, 0, 0, .55); }
+/* 접는 칸(details) 제목줄: 누를 곳이 보이게 놋쇠 화살 */
+.pl-more > summary { list-style: none; cursor: pointer; display: flex; align-items: center; gap: 6px; min-height: 34px; color: var(--muted); }
+.pl-more > summary::-webkit-details-marker { display: none; }
+.pl-more > summary::before { content: ''; width: 6px; height: 6px; border-right: 1.5px solid var(--brass); border-bottom: 1.5px solid var(--brass); transform: rotate(-45deg); transition: transform .15s; flex: none; margin: 0 3px 0 1px; }
+.pl-more[open] > summary::before { transform: rotate(45deg); }
+/* 사건 창: 종이 가장자리가 살짝 타 들어간 듯 */
+.event { box-shadow: 0 0 0 1px rgba(0, 0, 0, .5), inset 0 0 0 1px rgba(255, 246, 220, .25), inset 0 0 60px rgba(120, 72, 24, .32), 0 24px 70px rgba(0, 0, 0, .7); }
+.event .opt { transition: transform .12s, box-shadow .12s, background-color .12s; }
+.event .opt:active { transform: translateY(1px); box-shadow: inset 0 2px 4px rgba(90, 62, 22, .25); }
+.bt-wd { color: #e3967c; }
+.bt-tags { display: flex; flex-wrap: wrap; justify-content: center; gap: 4px; margin-top: 8px; }
+.bt-tags span { font-size: 11px; padding: 1px 8px; border-radius: 999px; border: 1px solid rgba(201, 162, 90, .3); color: #d9c49a; }
+.bt-clash { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); align-items: center; gap: 8px; margin-top: 9px; padding-top: 8px; border-top: 1px solid rgba(201, 162, 90, .18); font-size: 13px; }
+.bt-clash span { display: inline-flex; align-items: center; gap: 4px; color: #efe2c4; }
+.bt-clash span.foe { justify-content: flex-end; }
+.bt-clash svg { color: #c9a25a; }
+.bt-clash b { font-size: 12px; padding: 2px 9px; border-radius: 999px; background: rgba(201, 162, 90, .14); color: #f1e3c3; white-space: nowrap; }
+.bt-clash b.up { background: rgba(143, 176, 122, .25); color: #cfe6bd; } .bt-clash b.down { background: rgba(192, 98, 79, .28); color: #f3c1b2; } .bt-clash b.warn { background: rgba(201, 162, 90, .25); }
+.bt-part { margin: 5px 0 0; text-align: center; font-size: 12px; color: #e3a58c !important; }
+.event .bt-cheer { margin: 0 0 8px; font-size: 13.5px; color: #6b553b; font-style: italic; }
+html.motion .bt-clash { animation: bt-clash-in .45s ease-out .2s both; }
+@keyframes bt-clash-in { from { opacity: 0; transform: scale(.94); } }
+.event .bt-intro ~ .bt-intro::first-letter { font-family: inherit; font-size: inherit; float: none; margin: 0; color: inherit; }
+.event .bt-intro + .bt-intro { margin-top: -4px; }
+.bt-steps { display: inline-flex; gap: 4px; }
+.bt-steps i { width: 14px; height: 4px; border-radius: 2px; background: rgba(201, 162, 90, .2); }
+.bt-steps i.done { background: rgba(201, 162, 90, .6); } .bt-steps i.now { background: #f3c96b; box-shadow: 0 0 6px rgba(243, 201, 107, .5); }
+.bt-allies { margin: 7px 0 0; font-size: 12px; color: #bfa77a !important; }
+.bt-stages { margin: 8px 0 2px; padding-left: 20px; font-size: 13px; line-height: 1.5; color: #3a2818; }
+.bt-stages li { margin: 2px 0; }
