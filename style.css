@@ -2450,3 +2450,8 @@ html.motion .bt-clash { animation: bt-clash-in .45s ease-out .2s both; }
 .rt-next b { color: var(--brass); }
 .sc-book.wrong { border-color: rgba(192, 98, 79, .35); }
 .sc-books .warn { color: #d9a45a; }
+.rt-customs { list-style: none; margin: 4px 0 8px; padding: 0; display: grid; gap: 6px; }
+.rt-customs li { padding: 7px 10px; border-radius: 8px; background: rgba(12, 10, 8, .3); font-size: 13.5px; }
+.rt-customs li b { color: var(--brass); font-size: 12.5px; }
+.rt-customs li p { margin: 2px 0 0; color: var(--muted); line-height: 1.55; }
+.pl-news li.rt-my b { color: var(--brass); }
