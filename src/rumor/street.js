@@ -6,6 +6,7 @@ import { hash } from '../art/sceneKit.js';
 import { INVENTIONS } from '../history/powers.js';
 import { atWar } from '../world.js';
 import { isTown, isPort, realmAt, mi, dist } from './state.js';
+import { DEMON_FEASTS } from '../rites/data.js';
 import { DRAGONS } from '../dragon/state.js';
 
 /* ---------- 날씨: 풍경 그림·환경음과 같은 셈 (art/scene.js conditions) ---------- */
@@ -77,6 +78,7 @@ const FEASTS = {
   },
 };
 FEASTS.wild = FEASTS.leonia;
+FEASTS.demon = DEMON_FEASTS; // 47단계: 마대륙 기념일 (src/rites/data.js와 같은 표)
 const FEAST_REALM = (pl) => { const r = realmAt(pl); return FEASTS[r] ? r : 'leonia'; };
 
 /** 이 고장의 이달 축제 (없으면 null). 형편에 따라 모습이 달라진다. */
