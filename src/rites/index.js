@@ -459,6 +459,8 @@ function monthTick(g) {
   if (g.over || !me(g)) return;
   const now = mi(g), age = playerAge(g);
   if (s.home == null) s.home = here(g);
+  s.since ??= now; // 첫 한 해는 지켜보기만 (저장을 불러온 직후나 갑자기 어른이 된 판에서 축제 일이 몰리지 않게)
+  const settled = now - s.since >= 12;
   const rng = ownRng(g, 7);
   const q = (kind, data, first) => { queueScene(g, kind, data, { first }); s.sceneAt = now; s.tally.scenes += 1; return true; };
   familyTick(g, ownRng(g, 13), q);
@@ -471,7 +473,7 @@ function monthTick(g) {
     const f = fs[0];
     // 나라 축제의 줄은 세상의 소리(feastLine)가 맡는다: 여기선 고장 축제와 내가 만든 놀이만
     for (const x of fs.filter((y) => y.local)) line(g, 'feast', x.mine ? `${x.name}: 올해도 열렸다. 아이들이 벌써 규칙을 다 외운다.` : `${x.name}: ${x.text.split('. ')[0]}.`);
-    if (age >= 8 && now - s.feastAt >= 14 && now - s.sceneAt >= 3 && L(g).queue.length < 2 && rng.chance(0.4)) {
+    if (settled && age >= 8 && now - s.feastAt >= 14 && now - s.sceneAt >= 3 && L(g).queue.length < 2 && rng.chance(0.4)) {
       const sc = feastScene(g, rng, f);
       if (sc) { s.feastAt = now; q(sc[0], sc[1], false); }
     }
@@ -481,7 +483,7 @@ function monthTick(g) {
   if (!s.done.coming && age === co.age && L(g).queue.length < 2) { s.done.coming = now; q('rt_coming', { cult }, false); return; }
   if (age > co.age + 1 && !s.done.coming) s.done.coming = -1;
   // 다음 달 축제 준비: 열기·후원
-  if (age < 18 || L(g).queue.length >= 2) return;
+  if (!settled || age < 18 || L(g).queue.length >= 2) return;
   const nm = (g.date.month % 12) + 1;
   const nf = feastsAt(g, pl, nm).find((x) => x.kind !== 'grim' && !x.mine);
   if (!nf) return;

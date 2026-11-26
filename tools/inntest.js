@@ -100,6 +100,7 @@ const can = (g, id) => !!act(id).available(g);
 const clearQ = (g) => { L(g).queue = []; L(g).scene = null; g.pendingEvent = null; };
 function owner(seed, pl = 'harfen', kind = 'tavern') {
   const g = adult(seed); placeAt(g, pl); heal(g); g.player.money = 5000;
+  if (g.beasts) g.beasts.animals = []; // 매달 셈 점검: 다른 갈래의 돈(짐승 먹이 값)이 섞이지 않게
   if (g.world) g.world.famine = null;
   const r = direct(g, 'inn_open', {}, kind);
   if (r.skipped || r.missing || !myInn(g)) fail('open', pl, kind, JSON.stringify(r));

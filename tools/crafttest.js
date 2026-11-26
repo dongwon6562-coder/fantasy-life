@@ -90,8 +90,8 @@ if (verbose) for (const s of samples) console.log('·', s);
 for (const k of ['harvest', 'craft_order', 'open_shop', 'shop_manage', 'apprentice_pick', 'apprentice_done', 'company_offer']) if (!seen.scenes.has(k)) { problems++; console.log('장면이 한 번도 나오지 않음:', k); }
 for (const t of Object.keys(TRADES)) if (!seen.orders[t]) { problems++; console.log('의뢰가 한 번도 없음:', t); }
 // 걸작은 드물다. 다른 갈래가 늘면 무작위 흐름이 바뀌어 위 판들에서 안 나올 수도 있으니, 그때는 명장 한 사람을 열 해 더 본다
-for (let t = 0; t < 3 && !seen.masterworks.length; t++) {
-  const trade = ['smithing', 'herbs', 'cooking'][t];
+for (let t = 0; t < 6 && !seen.masterworks.length; t++) {
+  const trade = ['smithing', 'herbs', 'cooking'][t % 3];
   const g = newGame({ name: '장인', sex: 'm', familyId: 'farmer', mode: 'free', seed: 12900 + t });
   while (playerAge(g) < 16 && !g.over) month(g);
   if (g.over) continue;
