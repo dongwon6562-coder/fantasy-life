@@ -115,10 +115,17 @@ function soldier(seed, family = 'farmer', place = 'harfen') {
   console.log(`평시 2년 3판: 오른 계급 합 ${ranks}`);
   if (ranks < 2) fail('too slow promotion', ranks); // 판마다 0~2: 세상 사건이 더 자주 끼어든 뒤(헤드 15단계) 흔들림이 크다
   // 십인장 → 백인장: 평민은 임관금, 귀족은 그냥
-  const g = soldier(41100);
-  Object.assign(A(g).service, { rank: 2, merit: MERIT[3], months: 30 });
-  Object.assign(g.player.stats, { int: 50, cha: 50, wil: 50 }); g.player.skills.letters = 30; g.player.money = 120;
-  scene(g, 'army_promote', { to: 3 }, /임관금/, { ensure: (h) => { h.player.money = Math.max(h.player.money, 200); } }); // 장면을 기다리는 사이 다른 일로 돈이 빠질 수 있다
+  // 47단계: 갈래가 늘며 장면을 기다리는 사이 다른 사건으로 탈영하는 판이 나왔다. 그런 판은 건너뛰고 다음 씨앗으로 (세 판까지)
+  let g;
+  for (const seed of [41100, 41101, 41102]) {
+    g = soldier(seed);
+    Object.assign(A(g).service, { rank: 2, merit: MERIT[3], months: 30 });
+    Object.assign(g.player.stats, { int: 50, cha: 50, wil: 50 }); g.player.skills.letters = 30; g.player.money = 120;
+    const p0 = problems;
+    scene(g, 'army_promote', { to: 3 }, /임관금/, { ensure: (h) => { h.player.money = Math.max(h.player.money, 200); } }); // 장면을 기다리는 사이 다른 일로 돈이 빠질 수 있다
+    if (A(g).service || seed === 41102) break;
+    problems = p0; console.log('장면을 기다리다 복무가 끝난 판, 건너뜀', seed);
+  }
   if (A(g).service.rank !== 3 || g.player.money > 150) /* 임관금 65닢(200에서 시작). 그달 녹봉·사건으로 조금 오갈 수 있다 */ fail('commission not bought', A(g).service.rank, g.player.money);
   const n = soldier(41200, 'fallen_knight');
   Object.assign(A(n).service, { rank: 2, merit: MERIT[3], months: 30 });

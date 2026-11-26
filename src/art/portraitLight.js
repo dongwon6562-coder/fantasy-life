@@ -33,6 +33,11 @@ export function faceModel(o) {
     const x = cx + sd * hw * 0.6, y = eyeY + hh * 0.42;
     s += `<ellipse cx="${f(x)}" cy="${f(y)}" rx="${f(hw * 0.28)}" ry="${f(hh * 0.1)}" transform="rotate(${sd * -24} ${f(x)} ${f(y)})" fill="${dkC}" opacity="${f((sd > 0 ? 0.42 : 0.22) * a)}"${xb}/>`;
   }
+  if (!detail) { // 작은 초상(목록용)은 가볍게: 코 옆면과 턱 아래, 이마 빛만
+    s += `<ellipse cx="${f(cx + hw * 0.12)}" cy="${f(chin + 0.6)}" rx="${f(hw * 0.62)}" ry="${f(hh * 0.11)}" fill="${dkC}" opacity="${f(0.4 * a)}"/>`;
+    s += `<ellipse cx="${f(cx - hw * 0.3)}" cy="${f(top + hh * 0.5)}" rx="${f(hw * 0.36)}" ry="${f(hh * 0.16)}" fill="${liC}" opacity="${f(0.25 * L)}"/>`;
+    return s;
+  }
   // 관자놀이와 오른쪽 이마 가장자리
   s += `<ellipse cx="${f(cx + hw * 0.88)}" cy="${f(browY - hh * 0.05)}" rx="${f(hw * 0.22)}" ry="${f(hh * 0.3)}" fill="${dkC}" opacity="${f(0.4 * a)}"${xb}/>`;
   // 코 오른쪽 옆면 (콧등에서 콧방울로 이어지는 그늘 판)
@@ -58,6 +63,7 @@ export function eyeBall(o) {
   // 홍채 테(짙은 고리)와 동공 둘레의 밝은 띠
   s += `<circle cx="${f(icx)}" cy="${f(icy)}" r="${f(ir * 0.93)}" fill="none" stroke="${mixHex(eyeCol, '#050302', 0.7)}" stroke-width="${f(ir * 0.17)}" opacity="0.85"/>`;
   if (detail) s += `<circle cx="${f(icx)}" cy="${f(icy)}" r="${f(ir * 0.56)}" fill="none" stroke="${mixHex(eyeCol, '#fff0c8', 0.45)}" stroke-width="${f(ir * 0.12)}" opacity="0.55"/>`;
+  if (!detail) return s;
   // 빛 반대쪽 아래 홍채가 빛을 받아 밝아진다
   s += `<ellipse cx="${f(icx + ir * 0.22)}" cy="${f(icy + ir * 0.45)}" rx="${f(ir * 0.48)}" ry="${f(ir * 0.28)}" fill="${mixHex(eyeCol, '#fff6dc', 0.4)}" opacity="0.5"${B(uid, 'xt', detail)}/>`;
   void ex; void eyeY; void ew;

@@ -156,9 +156,10 @@ ok((scenes.pe_young ?? 0) + (scenes.pe_parting ?? 0) >= 1, `어린 시절 장면
   for (let k = 0; k < 40 * 12; k++) quiet(g);
   const s = peersState(g);
   const old = s.list.map((c) => c.name);
+  const gen0 = s.gen, past0 = s.past.length; // 마흔 해 사이에 저절로 대가 바뀐 판도 있다
   runHooks('heir', g, rngOf(g), { ...me(g) });
-  ok(s.gen === 1 && s.list.length === 5 && s.past.length === 1 && s.list.every((c) => c.gen === 1), `새 동세대 ${s.gen} ${s.list.length}`);
-  ok(s.elders.length <= 1 && (s.elders[0]?.list ?? []).every((c) => old.includes(c.name) && c.alive), '선대의 동세대');
+  ok(s.gen === gen0 + 1 && s.list.length === 5 && s.past.length === Math.min(8, past0 + 1) && s.list.every((c) => c.gen === s.gen), `새 동세대 ${s.gen} ${s.list.length}`);
+  ok(s.elders.length <= 2 && (s.elders.at(-1)?.list ?? []).every((c) => old.includes(c.name) && c.alive), '선대의 동세대');
   for (let k = 0; k < 24; k++) quiet(g);
   checkInfo(g);
   // 옛 저장: 서른 넘은 머리에 동세대가 없으면 지난 해들을 몰아 굴린다
