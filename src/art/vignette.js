@@ -370,7 +370,7 @@ export function plate45(key, words = '') {
 }
 // 47단계: 축제와 인생 의례(rt_·rites_), 학자의 길(sc_·scholar_)
 const RT_ART = {};
-const SC_ART = {};
+const SC_ART = { sc_read: 'scholar:library', sc_job: 'scholar:shelf', sc_copy: 'scholar:copy', sc_survey: 'survey:field', sc_write: 'scholar:write', sc_plan: 'scholar:write', sc_draft: 'scholar:write', sc_finish: 'scholar:copy', sc_translate: 'scholar:write', sc_censor: 'scholar:censor', sc_school: 'scholar:lecture', sc_debate: 'scholar:debate', sc_lecture: 'scholar:lecture', sc_secretcopy: 'scholar:copy', sc_elder: 'scholar:write' };
 const RT_WORDS = [[/사고|다쳤|무너|불이 번|엎어|망쳤|싸움이 났|mishap|fire|accident/, 'rites:mishap'], [/겨루|씨름|활쏘기|경주|시합|줄다리|contest|race|game/, 'rites:contest'], [/달력|절기|날을 받|길일|calendar|season/, 'rites:calendar'], [/성년|관례|돌잔치|이름 짓|축복|세례|의식|예식|rite|naming|coming|bless/, 'rites:rite'], [/잔치를 열|대접|손님|차렸|host|guest/, 'rites:host'], [/축제|잔치|춤|feast|fest|dance/, 'rites:feast']];
 const SC_WORDS = [[/금서|불태|검열|압수|태워|censor|burn|ban/, 'scholar:censor'], [/논쟁|토론|반박|맞붙|debate|dispute/, 'scholar:debate'], [/강의|가르|제자|학생|lecture|teach/, 'scholar:lecture'], [/베끼|필사|사본|copy|scribe/, 'scholar:copy'], [/장서|책을 모|서가|모은 책|shelf|collect/, 'scholar:shelf'], [/도서관|서고|library/, 'scholar:library'], [/쓰|짓|원고|저술|write|book|treatise/, 'scholar:write']];
 const byWords = (table, ...texts) => { for (const t of texts) for (const [re, art] of table) if (re.test(t)) return art; return null; };
