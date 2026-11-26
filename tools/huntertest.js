@@ -179,8 +179,8 @@ const many = (n, f) => { let k = 0; for (let i = 0; i < n; i++) if (f(i)) k++; r
   if (win < 14) fail('skilled big hunt', win);
   const weak = setMonth(dog(fresh(111, 'fur', 'hunter', 0)), 10); weak.player.stats.agi = 0;
   let hurt = 0, dead = 0;
-  for (let i = 0; i < 20; i++) { const x = clone(weak); x.rngState.s = 700 + i; direct(x, 'hunter_big', { kind: 'bison' }, 'dogs'); if (x.player.injuries.length) hurt++; if (!x.beasts.animals.some((a) => a.kind === 'dog')) dead++; }
-  if (hurt < 10 || dead < 1) fail('weak big hunt', hurt, dead);
+  for (let i = 0; i < 40; i++) { const x = clone(weak); x.rngState.s = 700 + i; const d0 = x.beasts.animals.filter((a) => a.kind === 'dog').length; direct(x, 'hunter_big', { kind: 'bison' }, 'dogs'); if (x.player.injuries.length) hurt++; if (x.beasts.animals.filter((a) => a.kind === 'dog').length < d0) dead++; }
+  if (hurt < 20 || dead < 1) fail('weak big hunt', hurt, dead); // 47단계: 마흔 번을 보고, 원래 기르던 개가 있는 판도 있어 개 수가 줄었는지로 센다
   const wolf = clone(base); wolf.rngState.s = 5; const r = direct(wolf, 'hunter_big', { kind: 'wolf' }, 'bow'); if (r.missing) fail('wolf bow');
   if (!direct(clone(base), 'hunter_big', { kind: 'stag' }, 'leave').out) fail('leave');
   if (H(base).bigs.length) fail('bigs before');
