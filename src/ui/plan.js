@@ -140,6 +140,7 @@ const GROUPS = [
   ['stars', '별 보기', /^st_/],
   ['magejob', '마법으로 먹고살기', /^mj_/],
   ['artifice', '마도구 공방', /^af_/],
+  ['scholar', '서고와 책', /^sc_/],
   ['cloister', '수도원', /^cloister_/],
   ['hunter', '사냥', /^hunter_/],
   ['outlaw', '현상금 사냥', /^out_hunt$/],
