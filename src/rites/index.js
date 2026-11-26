@@ -187,7 +187,7 @@ defineScene('rt_fire', {
     S(g).tally.feasts += 1;
     if (key === 'in') {
       if (check(rng, statOf(g, 'agi') + statOf(g, 'wil'), 18)) { deed(g, 'brave', 5, `${s.feast} 불 속에서 사람을 끌어냈다.`); chron(g, `${placeName(s.place)} ${s.feast}에 불이 났을 때 불 속에서 사람을 끌어냈다.`, 30); note(g, `${s.feast} 불 속에서 사람을 끌어냈다.`); return '연기 속에서 기침하는 아이 하나를 안고 나왔다. 머리카락 끝이 그슬렸다. 그 아이 어머니가 내 발치에 엎드렸다. 그해 축제는 그 일로 기억되었다.'; }
-      tired(g, 25); stress(g, 8); return '불 속에 뛰어들었다가 연기에 쓰러졌다. 사람들이 나를 끌어냈다. 팔에 덴 자국이 남았다. 안에 있던 사람은 다른 문으로 나왔다고 했다.';
+      tired(g, 15); stress(g, 6); return '불 속에 뛰어들었다가 연기에 쓰러졌다. 사람들이 나를 끌어냈다. 팔에 덴 자국이 남았다. 안에 있던 사람은 다른 문으로 나왔다고 했다.';
     }
     if (key === 'line') { if (check(rng, statOf(g, 'cha') + statOf(g, 'int'), 18)) { deed(g, 'kind', 3, `${s.feast} 불을 끄는 데 앞장섰다.`); return '"우물에서 여기까지 한 줄로!" 소리치자 사람들이 줄을 섰다. 물동이가 손에서 손으로 넘어갔다. 불은 처마 하나만 태우고 꺼졌다.'; } tired(g, 10); return '줄을 세우려 했지만 다들 우왕좌왕했다. 불은 결국 저절로 잦아들었다. 그 집은 반이 탔다.'; }
     stress(g, 3); return '아이들 손을 잡고 광장 끝으로 물러섰다. 불은 어른들이 껐다. 아이들은 그날 밤 내 옷자락을 놓지 않았다.';
@@ -473,7 +473,7 @@ function monthTick(g) {
     const f = fs[0];
     // 나라 축제의 줄은 세상의 소리(feastLine)가 맡는다: 여기선 고장 축제와 내가 만든 놀이만
     for (const x of fs.filter((y) => y.local)) line(g, 'feast', x.mine ? `${x.name}: 올해도 열렸다. 아이들이 벌써 규칙을 다 외운다.` : `${x.name}: ${x.text.split('. ')[0]}.`);
-    if (settled && age >= 8 && now - s.feastAt >= 14 && now - s.sceneAt >= 3 && L(g).queue.length < 2 && rng.chance(0.4)) {
+    if (settled && age >= 8 && now - s.feastAt >= 20 && now - s.sceneAt >= 3 && L(g).queue.length === 0 && !L(g).scene && !g.pendingEvent && rng.chance(0.35)) {
       const sc = feastScene(g, rng, f);
       if (sc) { s.feastAt = now; q(sc[0], sc[1], false); }
     }
@@ -483,7 +483,7 @@ function monthTick(g) {
   if (!s.done.coming && age === co.age && L(g).queue.length < 2) { s.done.coming = now; q('rt_coming', { cult }, false); return; }
   if (age > co.age + 1 && !s.done.coming) s.done.coming = -1;
   // 다음 달 축제 준비: 열기·후원
-  if (!settled || age < 18 || L(g).queue.length >= 2) return;
+  if (!settled || age < 18 || L(g).queue.length > 0 || g.pendingEvent) return;
   const nm = (g.date.month % 12) + 1;
   const nf = feastsAt(g, pl, nm).find((x) => x.kind !== 'grim' && !x.mine);
   if (!nf) return;
