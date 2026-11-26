@@ -57,6 +57,20 @@ const HAND = {
   kalten: { size: 'village', feature: 'keep', wall: true, houses: 16 },
   wolfwood: { size: 'hamlet', houses: 14 },
   iela: { size: 'capital', zoom: 1.3 },
+  // 47단계: 지도 자리로는 어긋나던 고장들
+  silver: { coast: false }, // 숲속 관문. 바다가 보이면 안 된다
+  border: { culture: 'free', biome: 'forest', coast: false, houses: 22 }, // 엘프도 수인도 아닌 사람들의 숲 언저리 마을
+  wolf: { coast: false, biome: 'plain', houses: 10 }, // 반은 빈 터인 늑대 부족 야영지
+  stone: { size: 'hamlet', houses: 10 }, // 비석 아래 돌집 몇 채
+  // 지도에 없는 곳: 소금바위섬, 구렁목, 개척지 여섯(처음엔 오두막 몇 채)
+  saltrock: { size: 'hamlet', biome: 'coast', coast: true, culture: 'leonia', houses: 12, wall: false },
+  gorge: { size: 'town', biome: 'mountain', culture: 'march', feature: 'keep', wall: true, houses: 34 },
+  fr_wolf: { size: 'hamlet', biome: 'mountain', culture: 'march', wall: false, houses: 8 },
+  fr_moor: { size: 'hamlet', biome: 'dry', culture: 'leonia', wall: false, houses: 8 },
+  fr_wood: { size: 'hamlet', biome: 'forest', culture: 'leonia', wall: false, houses: 10 },
+  fr_fen: { size: 'hamlet', biome: 'swamp', culture: 'leonia', wall: false, river: true, houses: 8 },
+  fr_ash: { size: 'hamlet', biome: 'cold', culture: 'march', feature: 'ruins', wall: false, houses: 8 },
+  fr_grass: { size: 'hamlet', biome: 'plain', culture: 'empire', wall: false, houses: 10 },
 };
 const COAST = new Set(['klein', 'portel', 'stein', 'kars', 'maren', 'salt', 'wall', 'cape', 'nocturna', 'post', 'barracks', 'silver', 'light', 'crow', 'saltmare', 'pearl', 'slaveisle', 'coral', 'kraken', 'noah', 'libera']);
 
