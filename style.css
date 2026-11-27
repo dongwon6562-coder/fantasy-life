@@ -2455,3 +2455,15 @@ html.motion .bt-clash { animation: bt-clash-in .45s ease-out .2s both; }
 .rt-customs li b { color: var(--brass); font-size: 12.5px; }
 .rt-customs li p { margin: 2px 0 0; color: var(--muted); line-height: 1.55; }
 .pl-news li.rt-my b { color: var(--brass); }
+
+/* ---------- 48단계: 접힌 할 일 묶음 엿보기 ---------- */
+.ag-peek { display: none; margin-left: 6px; gap: 3px; align-items: center; color: var(--muted); opacity: .75; min-width: 0; overflow: hidden; }
+.ag-peek svg { flex: 0 0 auto; }
+.ag-peek.one { font-size: var(--fs-xs); white-space: nowrap; text-overflow: ellipsis; max-width: 40vw; }
+details.act-group:not([open]) > summary .ag-peek { display: inline-flex; }
+details.act-group > summary h4, details.act-group > summary > .note, details.act-group > summary::after { white-space: nowrap; flex: 0 0 auto; }
+details.act-group:not([open]) > summary .ag-peek { flex: 1 1 0; min-width: 0; }
+.ag-peek.one { display: none; overflow: hidden; text-overflow: ellipsis; max-width: none; }
+details.act-group:not([open]) > summary .ag-peek.one { display: block; }
+details.act-group { grid-template-columns: minmax(0, 1fr); min-width: 0; }
+details.act-group > summary { min-width: 0; }

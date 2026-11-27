@@ -29,12 +29,13 @@ function feastRow(f, cls = '') {
   return `<li class="rt-feast ${cls}"><i aria-hidden="true">${k.sign}</i><div><b>${esc(f.name)}</b><small>${[f.kindWord ?? k.word, f.where, f.m ? `${f.m}월` : '', left(f.in)].filter(Boolean).map(esc).join(' · ')}</small>${f.text ? `<p class="note">${esc(f.text)}</p>` : ''}</div></li>`;
 }
 
+// 이번 달 카드엔 축제 설명을 다시 쓰지 않는다 (오늘의 장면 글에 이미 나온다, 48단계)
 export function festNowView(s) {
   if (!s || (!s.now?.length && !s.next)) return '';
   const now = s.now ?? [];
   return `<section class="card rt-now">
     <h2>${now.length ? '이번 달 축제' : '다가오는 축제'}${s.place ? ` <small>${esc(s.place)}</small>` : ''}</h2>
-    ${now.length ? `<ul class="rt-feasts">${now.map((f) => feastRow(f, 'on')).join('')}</ul>` : ''}
+    ${now.length ? `<ul class="rt-feasts">${now.map((f) => feastRow({ ...f, text: null }, 'on')).join('')}</ul>` : ''}
     ${s.next ? `<p class="note rt-next">다음 축제: <b>${esc(s.next.name)}</b>${s.next.where ? ` · ${esc(s.next.where)}` : ''}${s.next.in != null ? ` · ${left(s.next.in)}` : ''}</p>` : ''}
   </section>`;
 }

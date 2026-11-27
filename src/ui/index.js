@@ -457,8 +457,8 @@ function renderSheet() {
     ${renderResearchBlock(game)}
     <div class="block">
       <h3>몸과 마음</h3>
-      ${bar('피로', p.fatigue, 100, p.fatigue > 70 ? 'warn' : '')}
-      ${bar('스트레스', p.stress, 100, p.stress > 70 ? 'warn' : '')}
+      ${(me(game)?.ageMonths ?? 99) < 36 ? '<p class="note">아직 아기다. 먹고 자고 우는 것이 하루의 전부다.</p>' : `${bar('피로', p.fatigue, 100, p.fatigue > 70 ? 'warn' : '')}
+      ${bar('스트레스', p.stress, 100, p.stress > 70 ? 'warn' : '')}`}
       ${(p.injuries.length || p.scars?.length) ? `<p class="note">${p.injuries.map((i) => `<span class="chip hurt">${esc(i.name)} (${i.months}달)</span>`).join(' ')} ${scarChips(p.scars)}</p>` : ''}
     </div>
   </aside>`;
@@ -679,7 +679,7 @@ function heroStrip() {
   return `<button class="hero-me" id="hero-me" aria-label="나 보기">
     <span class="hm-face">${portrait(game, meP, { size: 56, scars: p.scars ?? [], ring: '#c9a25a', title: p.name })}${medallion({ size: 66 })}</span>
     <span class="hm-txt"><b>${esc(p.name)}</b><span>${playerAge(game)}살${job ? ` · ${esc(job)}` : ''}</span></span>
-    <span class="hm-meters">${meter('피로', p.fatigue, p.fatigue > 70)}${meter('마음', 100 - p.stress, p.stress > 70)}${hurt ? `<span class="hm-hurt">다침 ${hurt}</span>` : ''}</span>
+    ${(meP?.ageMonths ?? 99) < 36 && !hurt ? '' : `<span class="hm-meters">${meter('피로', p.fatigue, p.fatigue > 70)}${meter('마음', 100 - p.stress, p.stress > 70)}${hurt ? `<span class="hm-hurt">다침 ${hurt}</span>` : ''}</span>`}
   </button>`;
 }
 
