@@ -252,6 +252,12 @@ HOOKS.afterMonth.push((g, rng) => {
     if (v.engaged?.id === sp.id) v.engaged = null;
     if (v.widowed) v.widowed = null; // 새 사람을 맞았다
   }
+  // 한집 살림: 내가 어느 고장에 집(내 집·셋방·부모님 집)을 두고 살면 배우자도 거기 산다.
+  // 여관에 묵는 나들이 동안은 집에 남는다 (48단계 도우미2: 피난·이사 뒤에도 배우자가 옛 고장에 남아 '눈앞에' 나오던 것)
+  if (sp && sp.alive && !sp.away && !traveling(g) && !isJailed(g) && ['own', 'rent', 'family'].includes(L(g).home)) {
+    const here = L(g).place ?? 'ern';
+    if ((sp.place ?? 'ern') !== here) sp.place = here;
+  }
   // 배우자의 기분
   const s = v.spouse;
   if (s && sp) {
@@ -306,7 +312,9 @@ HOOKS.afterMonth.push((g, rng) => {
   // 사별 뒤
   if (v.widowed && !v.widowed.vow) {
     const since = mi(g) - v.widowed.at;
-    if (since >= 18 && rng.chance(0.03)) return fire('love_after', { seed: rng.int(1, 1e9) });
+    // 한 번 물은 뒤로는 적어도 한 해, 마음을 열었으면 세 해는 다시 묻지 않는다 (48단계 도우미2: 같은 '다시 봄'이 반년 만에 또 오던 것)
+    const quiet = v.widowed.askAt == null ? 0 : mi(g) - v.widowed.askAt < (v.widowed.opened ? 36 : 12);
+    if (since >= 18 && !quiet && rng.chance(0.03)) return fire('love_after', { seed: rng.int(1, 1e9) });
     return;
   }
   if (age < 15) return;
@@ -619,9 +627,15 @@ defineScene('love_after', {
   resolve(g, rng, s, key) {
     const w = V(g).widowed;
     if (key === 'vow') { w.vow = true; stress(g, -5); note(g, `평생 ${J(w.name, '을/를')} 기억하며 혼자 살기로 했다.`); return `${w.name}의 반지를 다시 끼었다. 이제 빼지 않을 것이다. 이상하게 마음이 놓였다.`; }
-    if (key === 'not') { w.at = mi(g) - 6; return '아직은 아니라고 했다. 이웃들은 고개를 끄덕였다. 기다려 주는 것도 정이다.'; }
-    const c = living(g).filter((p) => eligible(g, p) && (has(p, 'kind') || has(p, 'generous') || has(p, 'content')) && (p.place ?? 'ern') === L(g).place)[0]
-      ?? living(g).filter((p) => eligible(g, p))[0];
+    w.askAt = mi(g);
+    if (key === 'not') { return '아직은 아니라고 했다. 이웃들은 고개를 끄덕였다. 기다려 주는 것도 정이다.'; }
+    w.opened = true;
+    // 같은 고장의 다정한 사람부터, 대개는 다른 성별에서
+    const near = (p) => (p.place ?? 'ern') === (L(g).place ?? 'ern');
+    const warm = (p) => has(p, 'kind') || has(p, 'generous') || has(p, 'content');
+    const pool = living(g).filter((p) => eligible(g, p) && near(p));
+    const other = (p) => p.sex !== me(g).sex;
+    const c = pool.find((p) => warm(p) && other(p)) ?? pool.find(other) ?? pool.find(warm) ?? living(g).filter((p) => eligible(g, p) && other(p))[0];
     stress(g, -8);
     if (!c) return '마음을 열기로 했다. 아직 누가 그 자리에 올지는 모르지만, 문을 조금 열어 두었다.';
     rel(c); c.known = true; c.affection = Math.max(c.affection, 25); c.romance = Math.max(c.romance, 25);

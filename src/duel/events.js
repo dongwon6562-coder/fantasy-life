@@ -15,7 +15,8 @@ const renown = (g, n) => { if (g.life) g.life.renown = (g.life.renown ?? 0) + n;
 EVENTS.push(
   {
     id: 'duel_rival_challenge', cooldown: 30,
-    cond: (g) => age(g) >= 13 && !!flag(g, 'rival') && byId(g, flag(g, 'rival'))?.alive && skill(g, 'sword') >= 12,
+    // 앙숙이 같은 고장에 살 때만 (48단계 도우미2: 다른 고장 앙숙이 눈앞에서 목검을 던지던 것)
+    cond: (g) => age(g) >= 13 && !!flag(g, 'rival') && byId(g, flag(g, 'rival'))?.alive && (byId(g, flag(g, 'rival')).place ?? 'ern') === here(g) && !byId(g, flag(g, 'rival')).away && skill(g, 'sword') >= 12,
     chance: () => 0.05, weight: 55,
     prepare: (g) => ({ id: flag(g, 'rival') }),
     title: '앙숙의 도전',
