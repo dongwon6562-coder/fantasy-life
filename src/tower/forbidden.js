@@ -82,7 +82,7 @@ function learn(g, rng, k) {
   T.forbidden[k] = lv + 1;
   T.taint = clamp(T.taint + 6 + lv * 3, 0, 100);
   gainSkill(g, 'magic', 2, 'int');
-  tlog(g, `${FORBIDDEN[k].name}: ${FORBIDDEN[k].lv[lv]}을(를) 익혔다.`);
+  tlog(g, `${FORBIDDEN[k].name}: ${J(FORBIDDEN[k].lv[lv], '을/를')} 익혔다.`);
   note(g, `금지된 ${J(FORBIDDEN[k].name, '을/를')} 익혔다.`);
   const TXT = {
     necro: ['무덤가 흙을 한 줌 쥐고 술식을 읊었다. 귓가에서 누군가 아주 오래된 말로 속삭였다. 죽은 자의 목소리였다.', '오래된 뼈 무더기 위에 피 한 방울을 떨어뜨렸다. 손가락뼈 하나가 까딱 움직였다. 숨을 쉴 수 없었다.', '해골 셋이 원 밖에 무릎을 꿇었다. 내가 일어나라고 하면 일어나고, 걸으라고 하면 걷는다.'],

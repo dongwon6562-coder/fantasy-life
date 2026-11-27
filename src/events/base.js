@@ -1,6 +1,8 @@
 // 1단계 사건들 (아기~성인식). 2단계에서 묶음으로 옮겼다.
+import { J } from '../narrative/text.js';
 import { playerAge, playerAgeMonths, gainStat, gainSkill } from '../game.js';
 import { ageYears } from '../npc.js';
+import { activeAt, regionOf } from '../nature/state.js';
 import { EVENTS, flag, setFlag, fam, father, mother, check, injure, living } from './core.js';
 
 const knownChildFriend = (g) => living(g).find((p) => p.known && !p.isPlayer && p.affection >= 15
@@ -48,21 +50,24 @@ EVENTS.push(
       ? '흉년이라 수확제는 조촐했다. 그래도 사람들은 광장에 모였다. 사제가 성광의 이름으로 다음 해를 빌었다.'
       : '밀단이 광장 가득 쌓이고, 여관에서 맥주통이 굴러 나왔다. 피리 소리에 맞춰 사람들이 춤을 춘다.',
     choices: [
-      { label: '춤을 춘다', run: (g, rng) => { const c = gainStat(g, 'cha', 1.0); g.player.stress = Math.max(0, g.player.stress - 20); const p = living(g).find((x) => !x.isPlayer && Math.abs(ageYears(x) - playerAge(g)) <= 2 && !g.player.familyIds.includes(x.id)); if (p) { p.known = true; p.affection += 8; return `${p.name}와(과) 손을 잡고 춤을 췄다. (매력 +${c.toFixed(1)})`; } return `밤늦게까지 춤을 췄다. (매력 +${c.toFixed(1)})`; } },
-      { label: '힘겨루기에 나간다', run: (g, rng) => { if (playerAge(g) < 10) return '"꼬마는 내년에 와라." 어른들이 웃으며 돌려보냈다.'; if (check(rng, g.player.stats.str, 25)) { g.player.money += 3; return '또래를 전부 넘어뜨리고 상으로 은화 3닢을 받았다. 사람들이 이름을 기억하기 시작했다.'; } gainStat(g, 'wil', 0.5); return '첫 판에 나가떨어졌다. 흙투성이가 된 채 다음 해를 다짐했다.'; } },
+      { label: '춤을 춘다', run: (g, rng) => { const c = gainStat(g, 'cha', 1.0); g.player.stress = Math.max(0, g.player.stress - 20); const p = living(g).find((x) => !x.isPlayer && Math.abs(ageYears(x) - playerAge(g)) <= 2 && !g.player.familyIds.includes(x.id)); if (p) { p.known = true; p.affection += 8; return `${J(p.name, '과/와')} 손을 잡고 춤을 췄다. (매력 +${c.toFixed(1)})`; } return `밤늦게까지 춤을 췄다. (매력 +${c.toFixed(1)})`; } },
+      { label: '힘겨루기에 나간다', show: (g) => playerAge(g) >= 8, run: (g, rng) => { if (playerAge(g) < 10) return '"꼬마는 내년에 와라." 어른들이 웃으며 돌려보냈다.'; if (check(rng, g.player.stats.str, 25)) { g.player.money += 3; return '또래를 전부 넘어뜨리고 상으로 은화 3닢을 받았다. 사람들이 이름을 기억하기 시작했다.'; } gainStat(g, 'wil', 0.5); return '첫 판에 나가떨어졌다. 흙투성이가 된 채 다음 해를 다짐했다.'; } },
       { label: '구경만 한다', run: (g) => { gainStat(g, 'sen', 0.5); return '사람들을 구경했다. 누가 누구를 좋아하는지, 누가 누구와 사이가 나쁜지 보였다.'; } },
     ],
   },
   {
     id: 'harsh_winter', cooldown: 11,
-    cond: (g) => g.date.month === 1,
-    chance: () => 0.3,
+    // 48단계: 혹한 '재앙'은 nature가 고장마다 정한다. 이건 해마다 오는 '매서운 추위'이고, 추운 고장일수록 잦다.
+    // 아기에게는 뜨지 않고(고를 게 없다), 그 고장에 혹한 재앙이 와 있으면 nature 쪽 장면에 맡긴다.
+    cond: (g) => g.date.month === 1 && playerAge(g) >= 6 && !g.life?.travel && !(g.nature && activeAt(g, g.life?.place ?? 'ern').some((d) => d.kind === 'winter')),
+    chance: (g) => ({ north: 0.3, mountain: 0.3, east: 0.15, forest: 0.15, river: 0.12, holy: 0.1 })[regionOf(g.life?.place ?? 'ern')] ?? 0.05,
     weight: 50,
-    title: '혹한',
-    text: () => '북쪽에서 내려온 바람이 마을을 얼렸다. 우물이 얼고, 장작이 빠르게 줄어든다.',
+    title: '매서운 추위',
+    text: (g) => `북쪽에서 내려온 바람이 ${['ern', 'gruental'].includes(g.life?.place ?? 'ern') ? '마을' : '고장'}을 얼렸다. 우물이 얼고, 장작이 빠르게 줄어든다.`,
     choices: [
-      { label: '장작을 해 온다', run: (g) => { if (playerAge(g) < 8) return '도끼를 들기엔 아직 어렸다. 대신 불씨를 지켰다.'; g.player.fatigue += 20; gainStat(g, 'str', 0.8); gainStat(g, 'wil', 0.5); return '눈 덮인 숲에서 장작을 끌고 왔다. 손가락이 얼어붙는 줄 알았다.'; } },
-      { label: '집 안에 웅크린다', run: (g) => { g.player.familyMoney = Math.max(0, g.player.familyMoney - 5); return '장작을 사느라 집안 돈이 줄었다.'; } },
+      { label: '장작을 해 온다', show: (g) => playerAge(g) >= 12, run: (g) => { g.player.fatigue += 20; gainStat(g, 'str', 0.8); gainStat(g, 'wil', 0.5); return '눈 덮인 숲에서 장작을 끌고 왔다. 손가락이 얼어붙는 줄 알았다.'; } },
+      { label: '어른들을 도와 장작을 나른다', show: (g) => playerAge(g) < 12, run: (g) => { g.player.fatigue += 8; gainStat(g, 'str', 0.3); gainStat(g, 'wil', 0.3); return '팔에 안을 수 있을 만큼씩 장작을 날랐다. 아궁이 앞에서 언 손을 녹이며 어른들이 고맙다고 했다.'; } },
+      { label: '집 안에 웅크린다', run: (g) => { if (playerAge(g) < 16) g.player.familyMoney = Math.max(0, g.player.familyMoney - 5); else g.player.money = Math.max(0, g.player.money - 5); return playerAge(g) < 16 ? '이불을 뒤집어쓰고 아궁이 곁에 붙어 지냈다. 장작을 사느라 집안 돈이 줄었다.' : '장작을 사느라 돈이 줄었다.'; } },
     ],
   },
   {
@@ -87,7 +92,7 @@ EVENTS.push(
     text: () => '한밤중 닭이 미친 듯이 운다. 창문 너머로 키 작은 녹색 형체 둘이 닭장을 뜯고 있다. 고블린이다.',
     choices: [
       { label: '몽둥이를 들고 나간다', run: (g, rng) => { const power = g.player.skills.sword + g.player.stats.str / 2; if (check(rng, power, 35)) { gainSkill(g, 'sword', 1.5, 'str'); gainStat(g, 'wil', 1.0); return '정신없이 휘둘렀다. 고블린 하나가 쓰러지고, 나머지는 숲으로 달아났다. 다음 날 온 마을이 이 이야기를 했다.'; } injure(g, '고블린의 칼에 베인 옆구리', 4); g.player.stress += 25; return '고블린의 녹슨 칼이 옆구리를 스쳤다. 아버지가 뛰어나오지 않았다면 위험했다.'; } },
-      { label: '집안 어른을 깨운다', run: (g) => { const f = father(g); return f?.alive ? `${f.name}이(가) 쇠스랑을 들고 나가 고블린을 쫓아냈다. 닭 두 마리를 잃었다.` : '어른이 없었다. 닭장은 텅 비었다.'; } },
+      { label: '집안 어른을 깨운다', run: (g) => { const f = father(g); return f?.alive ? `${J(f.name, '이/가')} 쇠스랑을 들고 나가 고블린을 쫓아냈다. 닭 두 마리를 잃었다.` : '어른이 없었다. 닭장은 텅 비었다.'; } },
       { label: '이불 속에 숨는다', run: (g) => { g.player.stress += 15; g.player.familyMoney = Math.max(0, g.player.familyMoney - 4); return '아침에 보니 닭장은 텅 비어 있었다.'; } },
     ],
   },
@@ -108,7 +113,7 @@ EVENTS.push(
     cond: (g) => fam(g) === 'fallen_knight' && playerAge(g) >= 6 && father(g)?.alive,
     weight: 95,
     title: '녹슨 장검',
-    text: (g) => `${father(g).name}이(가) 벽에 걸린 장검을 내렸다. 날은 녹슬었지만 손잡이의 문장은 아직 선명했다. "우리 가문의 검이다. 언젠가 네 것이 된다."`,
+    text: (g) => `${J(father(g).name, '이/가')} 벽에 걸린 장검을 내렸다. 날은 녹슬었지만 손잡이의 문장은 아직 선명했다. "우리 가문의 검이다. 언젠가 네 것이 된다."`,
     choices: [
       { label: '검을 받아 든다', run: (g) => { gainStat(g, 'wil', 1.0); father(g).affection += 8; return '너무 무거워서 두 손으로도 겨우 들었다. 아버지는 처음으로 크게 웃었다. 내일부터 검을 가르치겠다고 했다.'; } },
       { label: '"저는 기사가 되기 싫어요"', run: (g) => { father(g).affection -= 5; gainStat(g, 'int', 0.5); return '아버지는 한동안 말이 없었다. "그래도 검은 배워 둬라. 세상은 험하다."'; } },
@@ -119,7 +124,7 @@ EVENTS.push(
     cond: (g) => fam(g) === 'merchant' && playerAge(g) >= 8 && father(g)?.alive,
     weight: 90,
     title: '하르펜 가는 길',
-    text: (g) => `${father(g).name}이(가) 짐마차를 꾸리며 물었다. "이번엔 하르펜 시장까지 같이 가 보겠니?"`,
+    text: (g) => `${J(father(g).name, '이/가')} 짐마차를 꾸리며 물었다. "이번엔 하르펜 시장까지 같이 가 보겠니?"`,
     choices: [
       { label: '따라간다', run: (g) => { gainSkill(g, 'trade', 2.0, 'cha'); gainStat(g, 'sen', 0.8); gainStat(g, 'int', 0.5); setFlag(g, 'seen_harfen'); return '처음 본 도시는 시끄럽고 거대했다. 성벽, 모험가 길드의 깃발, 갑옷 입은 사람들. 아버지는 상인들과 값을 깎으며 눈을 찡긋했다.'; } },
       { label: '집에 남는다', run: (g) => '집에 남아 어머니와 가게를 지켰다.' },
@@ -143,7 +148,7 @@ EVENTS.push(
     chance: () => 0.035,
     weight: 55,
     title: '폐탑에 가 보자',
-    text: (g) => `${knownChildFriend(g).name}이(가) 속삭였다. "숲 너머 무너진 탑 알지? 밤에 불빛이 보인대. 같이 가 볼래?"`,
+    text: (g) => `${J(knownChildFriend(g).name, '이/가')} 속삭였다. "숲 너머 무너진 탑 알지? 밤에 불빛이 보인대. 같이 가 볼래?"`,
     choices: [
       { label: '간다', run: (g, rng) => { const f = knownChildFriend(g); if (f) f.affection += 10; if (check(rng, g.player.stats.wil + g.player.stats.sen / 2, 25)) { g.player.money += 2; gainStat(g, 'wil', 0.8); return '무너진 계단 아래에서 오래된 은화 두 닢과 이상한 문양이 새겨진 돌을 찾았다. 불빛의 정체는 끝내 알 수 없었다.'; } g.player.stress += 20; return '탑 안에서 무언가 움직였다. 둘은 비명을 지르며 도망쳤다. 그날 밤 잠을 이루지 못했다.'; } },
       { label: '거절한다', run: (g) => { const f = knownChildFriend(g); if (f) f.affection -= 4; return '"겁쟁이." 친구는 혼자 가지도 못하면서 투덜댔다.'; } },
@@ -178,7 +183,7 @@ EVENTS.push(
     cond: (g) => playerAge(g) >= 15,
     weight: 100,
     title: '성인식',
-    text: (g) => `열다섯 번째 봄, 예배당 앞에서 성인식이 열렸다. 촌장이 이름을 부르자 ${g.player.name}은(는) 앞으로 나섰다. 이제 누구의 아이가 아니라, 자기 이름으로 사는 사람이다.`,
+    text: (g) => `열다섯 번째 봄, 예배당 앞에서 성인식이 열렸다. 촌장이 이름을 부르자 ${J(g.player.name, '은/는')} 앞으로 나섰다. 이제 누구의 아이가 아니라, 자기 이름으로 사는 사람이다.`,
     choices: [{ label: '앞으로 나선다', run: (g) => { gainStat(g, 'wil', 1.0); setFlag(g, 'adult'); return '이제부터는 무엇을 하며 살지 스스로 정해야 한다. 마을에 남을 수도, 떠날 수도 있다.'; } }],
   },
 );

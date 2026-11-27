@@ -35,7 +35,7 @@ EVENTS.push({
   title: '사절을 찾는 궁정',
   text: (g, c) => {
     const w = warOf(g, c.a, c.b);
-    return `${full(c.a)} 궁정의 시종장이 나를 따로 불렀다. ${w ? `${short(c.b)}와(과)의 전쟁이 ${Math.max(1, Math.round((mi(g) - w.since) / 12))}년째다. 강화를 떠볼 사람이 필요하다.` : `${short(c.b)}와(과)의 사이가 ${relOf(g, c.a, c.b) < -50 ? '칼끝에 서 있다' : '틀어지고 있다'}. 궁정 사람이 아닌 얼굴이 가야 말이 통할 때가 있다.`} "${ruler(g, c.a)}의 친서를 들고 ${full(c.b)}에 다녀오겠소?"`;
+    return `${full(c.a)} 궁정의 시종장이 나를 따로 불렀다. ${w ? `${J(short(c.b), '과/와')}의 전쟁이 ${Math.max(1, Math.round((mi(g) - w.since) / 12))}년째다. 강화를 떠볼 사람이 필요하다.` : `${J(short(c.b), '과/와')}의 사이가 ${relOf(g, c.a, c.b) < -50 ? '칼끝에 서 있다' : '틀어지고 있다'}. 궁정 사람이 아닌 얼굴이 가야 말이 통할 때가 있다.`} "${ruler(g, c.a)}의 친서를 들고 ${full(c.b)}에 다녀오겠소?"`;
   },
   choices: [
     {
@@ -55,7 +55,7 @@ EVENTS.push({
         const w = warOf(g, c.a, c.b);
         if (w && !w.world && w.weary >= 6) {
           const lead = w.score >= 0 ? w.a : w.b;
-          peace(g, rng, say(g), record(g), w, lead, foeIn(w, lead), `${g.player.name}이(가) 오간 끝에`);
+          peace(g, rng, say(g), record(g), w, lead, foeIn(w, lead), `${J(g.player.name, '이/가')} 오간 끝에`);
           chron(g, `${g.player.name}, ${J(short(c.a), '과/와')} ${short(c.b)} 사이의 강화를 이끌어 내다.`);
           return `밤마다 두 궁정의 문서를 고쳐 쓰고, 낮에는 장군들의 고함을 들었다. 마침내 양쪽이 같은 종이에 인장을 찍었다. 은화 20닢과, 두 나라의 기억이 남았다.`;
         }
@@ -78,7 +78,7 @@ EVENTS.push({
         return `일부러 말을 비틀고, 친서의 한 줄을 빼먹었다. ${short(c.b)}의 대신이 탁자 아래로 주머니를 건넸다. 은화 45닢. 두 나라 사이는 더 나빠졌다. 아무도 내 탓인 줄 모른다. 아직은.`;
       },
     },
-    { label: '정중히 사양한다', run: (g, rng, c) => `"그런 일은 궁정 사람이 할 일이지요." 시종장은 아쉬운 얼굴로 물러났다. ${short(c.a)}와(과) ${short(c.b)}의 일은 나 없이 흘러갈 것이다.` },
+    { label: '정중히 사양한다', run: (g, rng, c) => `"그런 일은 궁정 사람이 할 일이지요." 시종장은 아쉬운 얼굴로 물러났다. ${J(short(c.a), '과/와')} ${short(c.b)}의 일은 나 없이 흘러갈 것이다.` },
   ],
 });
 
@@ -122,7 +122,7 @@ EVENTS.push({
         return `등잔 하나로 장부를 베꼈다. 손이 떨려 두 번 다시 썼다. 새벽에 연락책이 은화 ${pay}닢을 건넸다. 며칠 뒤 ${short(c.a)} 쪽에 무슨 일이 생겼다는 소문이 돌았다.`;
       },
     },
-    { label: '손을 뗀다', run: (g, rng, c) => { PS(g).me.spyFor = null; stress(g, -3); return `쪽지를 태우고 연락책이 올 길로 가지 않았다. ${short(c.b)}은(는) 다른 손을 찾을 것이다. 그들이 나를 그냥 놔둔다면.`; } },
+    { label: '손을 뗀다', run: (g, rng, c) => { PS(g).me.spyFor = null; stress(g, -3); return `쪽지를 태우고 연락책이 올 길로 가지 않았다. ${J(short(c.b), '은/는')} 다른 손을 찾을 것이다. 그들이 나를 그냥 놔둔다면.`; } },
   ],
 });
 

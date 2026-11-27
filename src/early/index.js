@@ -1,5 +1,6 @@
 // 세 살에서 여덟 살 사이의 작은 날들 (헤드). 처음 한 시간 동안 이 나이에 넉 달 중 세 달이 아무 일 없이 지나가서,
 // 집과 마을과 계절 속의 작은 장면을 채운다. 큰 갈림길이 아니라, 어떤 아이로 자랄지 조금씩 기울이는 일들이다.
+import { J } from '../narrative/text.js';
 import './toddler.js';
 import { gainStat, gainSkill } from '../game.js';
 import { EVENTS, flag, setFlag, stress, tire, like, check, nm, age, fam, father, mother, alive, siblings, peers, findJob, season, inVillage, onRoad, byId, spendFamily } from '../events/core.js';
@@ -19,7 +20,7 @@ EVENTS.push(
     text: () => '밤에 깨어 보니 벽에 길쭉한 그림자가 서 있다. 바람이 불 때마다 손을 뻗는 것처럼 흔들린다. 숨을 죽였다.',
     choices: [
       { label: '이불을 머리끝까지 덮는다', run: (g) => { stress(g, 4); return '이불 속은 덥고 답답했다. 그래도 나오지 않았다. 아침에 보니 창밖 배나무 가지였다.'; } },
-      { label: '어른을 부른다', run: (g) => { const p = parent(g); like(p, 4); stress(g, -3); return p ? `${p.name}이(가) 등잔을 들고 와 창을 열어 보였다. "봐라, 나뭇가지다." 그 손을 붙잡고 다시 잠들었다.` : '아무도 오지 않았다. 혼자 울다 잠들었다.'; } },
+      { label: '어른을 부른다', run: (g) => { const p = parent(g); like(p, 4); stress(g, -3); return p ? `${J(p.name, '이/가')} 등잔을 들고 와 창을 열어 보였다. "봐라, 나뭇가지다." 그 손을 붙잡고 다시 잠들었다.` : '아무도 오지 않았다. 혼자 울다 잠들었다.'; } },
       { label: '살금살금 다가가 본다', run: (g) => { gainStat(g, 'wil', 0.5); setFlag(g, 'early_brave'); return '한 걸음, 또 한 걸음. 손을 뻗자 그림자가 손등 위로 올라왔다. 아무렇지도 않았다. 이상하게 가슴이 뛰었다.'; } },
     ],
   },
@@ -42,7 +43,7 @@ EVENTS.push(
     text: () => '늘 들고 다니던 나무 인형이 없다. 아버지가 장작을 패다 남은 토막으로 깎아 준 것이다. 집 안 어디에도 없다.',
     choices: [
       { label: '울면서 온 집을 뒤진다', run: (g, rng) => { if (rng.chance(0.6)) { stress(g, -2); return '아궁이 옆 재 속에서 찾았다. 한쪽 팔이 그을려 있었다. 그래서 더 좋아졌다.'; } stress(g, 6); return '끝내 찾지 못했다. 며칠 동안 빈손이 허전했다.'; } },
-      { label: '새로 만들어 달라고 조른다', run: (g) => { const p = parent(g); like(p, 2); return p ? `${p.name}이(가) 한숨을 쉬더니 칼을 들었다. 새 인형은 전 것보다 못생겼다. 그래도 받았다.` : '만들어 줄 사람이 없었다. 돌멩이에 얼굴을 그려 대신했다.'; } },
+      { label: '새로 만들어 달라고 조른다', run: (g) => { const p = parent(g); like(p, 2); return p ? `${J(p.name, '이/가')} 한숨을 쉬더니 칼을 들었다. 새 인형은 전 것보다 못생겼다. 그래도 받았다.` : '만들어 줄 사람이 없었다. 돌멩이에 얼굴을 그려 대신했다.'; } },
       { label: '없으면 없는 대로 지낸다', run: (g) => { gainStat(g, 'wil', 0.4); return '처음 며칠은 손이 허전했다. 그다음엔 막대기를 칼 삼아 휘두르고 다녔다.'; } },
     ],
   },
@@ -53,7 +54,7 @@ EVENTS.push(
     title: '첫눈',
     text: () => '아침에 문을 여니 마을이 하얗다. 지붕도, 우물도, 밭도. 발을 디디자 뽀드득 소리가 났다.',
     choices: [
-      { label: '아이들과 눈싸움을 한다', run: (g, rng) => { const p = rng.pick(peers(g, 3).length ? peers(g, 3) : [null]); like(p, 5); tire(g, 10); gainStat(g, 'str', 0.3); return p ? `${p.name}이(가) 던진 눈뭉치가 목덜미로 들어갔다. 소리를 지르며 쫓아갔다. 해가 질 때까지 손이 빨갛게 얼었다.` : '혼자 눈뭉치를 굴려 담 위에 올렸다. 저녁에 보니 누가 돌로 눈을 박아 놓았다.'; } },
+      { label: '아이들과 눈싸움을 한다', run: (g, rng) => { const p = rng.pick(peers(g, 3).length ? peers(g, 3) : [null]); like(p, 5); tire(g, 10); gainStat(g, 'str', 0.3); return p ? `${J(p.name, '이/가')} 던진 눈뭉치가 목덜미로 들어갔다. 소리를 지르며 쫓아갔다. 해가 질 때까지 손이 빨갛게 얼었다.` : '혼자 눈뭉치를 굴려 담 위에 올렸다. 저녁에 보니 누가 돌로 눈을 박아 놓았다.'; } },
       { label: '발자국을 따라가 본다', run: (g) => { gainStat(g, 'sen', 0.5); return '작은 발자국이 담 밑을 지나 숲 쪽으로 이어졌다. 여우인지 고양이인지 몰랐다. 숲 어귀에서 멈췄다. 더 가면 안 된다는 건 알았다.'; } },
       { label: '창가에서 내다보기만 한다', run: (g) => { stress(g, -4); return '화로 옆에 앉아 눈이 내리는 것을 보았다. 소리 없이 쌓였다. 세상이 아주 조용해졌다.'; } },
     ],
@@ -89,7 +90,7 @@ EVENTS.push(
     chance: () => 0.08, weight: W,
     prepare: (g) => ({ id: youngSib(g).id }),
     title: '동생 보기',
-    text: (g, c) => { const s = byId(g, c.id); return `"잠깐만 ${nm(s, '동생')}을(를) 보고 있어라." 어른들이 밭에 나갔다. 동생은 기어다니며 무엇이든 입에 넣으려 한다.`; },
+    text: (g, c) => { const s = byId(g, c.id); return `"잠깐만 ${J(nm(s, '동생'), '을/를')} 보고 있어라." 어른들이 밭에 나갔다. 동생은 기어다니며 무엇이든 입에 넣으려 한다.`; },
     choices: [
       { label: '눈을 떼지 않는다', run: (g, rng, c) => { const s = byId(g, c.id); like(s, 8); gainStat(g, 'wil', 0.3); tire(g, 8); return '반나절 내내 따라다녔다. 돌멩이 셋, 지푸라기 한 줌, 벌레 한 마리를 입에서 빼냈다. 어른들이 돌아왔을 때 둘 다 잠들어 있었다.'; } },
       { label: '놀러 나가고 싶어 몸이 들썩인다', run: (g, rng, c) => { const s = byId(g, c.id); if (rng.chance(0.4)) { stress(g, 6); return '잠깐 문밖을 내다본 사이 동생이 문지방에서 굴렀다. 우는 소리에 이웃이 달려왔다. 그날 일은 오래 기억에 남았다.'; } like(s, 2); return '창밖에서 아이들 소리가 들렸다. 동생을 업고 나가 구경만 했다. 업은 등이 따뜻했다.'; } },
@@ -124,9 +125,9 @@ EVENTS.push(
     cond: kid(3, 7),
     chance: () => 0.04, weight: W,
     title: '열',
-    text: (g) => `사흘째 열이 내리지 않는다. 천장이 빙빙 돌고, 꿈과 생시가 섞인다. ${nm(parent(g), '누군가')}이(가) 젖은 수건을 이마에 얹어 준다.`,
+    text: (g) => `사흘째 열이 내리지 않는다. 천장이 빙빙 돌고, 꿈과 생시가 섞인다. ${J(nm(parent(g), '누군가'), '이/가')} 젖은 수건을 이마에 얹어 준다.`,
     choices: [
-      { label: '약초사를 부른다', run: (g, rng) => { const h = findJob(g, 'herbalist'); spendFamily(g, 3); tire(g, -10); return h ? `${h.name}이(가) 쓴 탕약을 달여 왔다. 토할 것 같았다. 다음 날 아침 열이 내렸다. 집안 돈 은화 세 닢이 들었다.` : '약초사는 이웃 마을에 가 있었다. 결국 이레 만에 저절로 나았다.'; } },
+      { label: '약초사를 부른다', run: (g, rng) => { const h = findJob(g, 'herbalist'); spendFamily(g, 3); tire(g, -10); return h ? `${J(h.name, '이/가')} 쓴 탕약을 달여 왔다. 토할 것 같았다. 다음 날 아침 열이 내렸다. 집안 돈 은화 세 닢이 들었다.` : '약초사는 이웃 마을에 가 있었다. 결국 이레 만에 저절로 나았다.'; } },
       { label: '참고 견딘다', run: (g, rng) => { gainStat(g, 'wil', 0.5); if (rng.chance(0.15)) { gainStat(g, 'str', -0.5); return '열흘 만에 일어났다. 한동안 다리에 힘이 없었다.'; } return '닷새째 밤, 땀을 흠뻑 흘리고 깨어났다. 배가 고팠다. 살았다는 뜻이었다.'; } },
     ],
   },
@@ -149,9 +150,9 @@ EVENTS.push(
     chance: () => 0.05, weight: W,
     prepare: (g, rng) => ({ id: rng.pick(peers(g, 3)).id }),
     title: '놀림',
-    text: (g, c) => { const p = byId(g, c.id); const why = fam(g) === 'fallen_knight' ? '"기사님 댁 거지!"' : fam(g) === 'merchant' ? '"구두쇠 집 애!"' : '"흙투성이 농사꾼!"'; return `${nm(p)}이(가) 아이들 앞에서 손가락질한다. ${why} 몇이 따라 웃는다.`; },
+    text: (g, c) => { const p = byId(g, c.id); const why = fam(g) === 'fallen_knight' ? '"기사님 댁 거지!"' : fam(g) === 'merchant' ? '"구두쇠 집 애!"' : '"흙투성이 농사꾼!"'; return `${J(nm(p), '이/가')} 아이들 앞에서 손가락질한다. ${why} 몇이 따라 웃는다.`; },
     choices: [
-      { label: '달려들어 싸운다', run: (g, rng, c) => { const p = byId(g, c.id); if (check(rng, g.player.stats.str, 15)) { like(p, -6); gainStat(g, 'str', 0.3); return `${nm(p)}을(를) 넘어뜨렸다. 아무도 더 웃지 않았다. 집에 와서는 찢어진 옷 때문에 혼났다.`; } like(p, -4); stress(g, 6); return '먼저 달려들었지만 먼저 넘어진 것도 나였다. 코피가 났다. 웃음소리가 더 커졌다.'; } },
+      { label: '달려들어 싸운다', run: (g, rng, c) => { const p = byId(g, c.id); if (check(rng, g.player.stats.str, 15)) { like(p, -6); gainStat(g, 'str', 0.3); return `${J(nm(p), '을/를')} 넘어뜨렸다. 아무도 더 웃지 않았다. 집에 와서는 찢어진 옷 때문에 혼났다.`; } like(p, -4); stress(g, 6); return '먼저 달려들었지만 먼저 넘어진 것도 나였다. 코피가 났다. 웃음소리가 더 커졌다.'; } },
       { label: '말로 받아친다', run: (g, rng, c) => { const p = byId(g, c.id); if (check(rng, g.player.stats.cha + g.player.stats.int / 2, 25)) { gainStat(g, 'cha', 0.5); like(p, 2); return '한마디 했을 뿐인데 아이들이 이번엔 그 애를 보고 웃었다. 그 애도 결국 따라 웃었다.'; } stress(g, 4); return '말이 꼬였다. 아이들이 내 말투까지 흉내 냈다.'; } },
       { label: '못 들은 척 지나간다', run: (g) => { gainStat(g, 'wil', 0.4); stress(g, 3); return '등 뒤에서 웃음소리가 따라왔다. 돌아보지 않았다. 집에 와서 한참 동안 담벼락만 보고 앉아 있었다.'; } },
     ],
@@ -165,7 +166,7 @@ EVENTS.push(
     choices: [
       { label: '별을 하나하나 세어 본다', run: (g) => { gainStat(g, 'int', 0.3); gainStat(g, 'wil', 0.2); return '백까지 세다가 어디까지 셌는지 잊었다. 다시 셌다. 세 번째에 잠들었다.'; } },
       { label: '저 너머에 뭐가 있는지 상상한다', run: (g) => { gainStat(g, 'sen', 0.4); setFlag(g, 'early_dreamer'); return '저 별 하나하나가 먼 나라의 등불일지도 모른다고 생각했다. 언젠가 가 보리라 마음먹었다. 어디로든.'; } },
-      { label: '어른에게 별 이름을 묻는다', run: (g) => { const p = parent(g); like(p, 3); gainStat(g, 'int', 0.3); return p ? `${p.name}이(가) 손가락으로 짚었다. "저건 길잡이별이다. 길을 잃으면 저걸 보고 남쪽을 찾아라." 그 말을 오래 기억했다.` : '물어볼 사람이 없었다. 별에 내 마음대로 이름을 붙였다.'; } },
+      { label: '어른에게 별 이름을 묻는다', run: (g) => { const p = parent(g); like(p, 3); gainStat(g, 'int', 0.3); return p ? `${J(p.name, '이/가')} 손가락으로 짚었다. "저건 길잡이별이다. 길을 잃으면 저걸 보고 남쪽을 찾아라." 그 말을 오래 기억했다.` : '물어볼 사람이 없었다. 별에 내 마음대로 이름을 붙였다.'; } },
     ],
   },
   {
@@ -175,9 +176,9 @@ EVENTS.push(
     title: '깨진 그릇',
     text: () => '선반 위를 뒤지다 할머니가 시집올 때 가져왔다는 그릇을 떨어뜨렸다. 두 동강이 났다. 아무도 보지 못했다.',
     choices: [
-      { label: '바로 털어놓는다', run: (g) => { const p = parent(g); like(p, 5); gainStat(g, 'wil', 0.4); setFlag(g, 'early_honest'); return p ? `${p.name}은(는) 한참 말없이 조각을 쥐고 있었다. "다치진 않았느냐." 그 말이 혼나는 것보다 아팠다.` : '털어놓을 사람이 없었다. 조각을 천에 싸서 간직했다.'; } },
+      { label: '바로 털어놓는다', run: (g) => { const p = parent(g); like(p, 5); gainStat(g, 'wil', 0.4); setFlag(g, 'early_honest'); return p ? `${J(p.name, '은/는')} 한참 말없이 조각을 쥐고 있었다. "다치진 않았느냐." 그 말이 혼나는 것보다 아팠다.` : '털어놓을 사람이 없었다. 조각을 천에 싸서 간직했다.'; } },
       { label: '숨긴다', run: (g, rng) => { if (rng.chance(0.5)) { stress(g, 5); return '조각을 헛간 뒤에 묻었다. 아무도 묻지 않았다. 그게 몇 해 동안 마음에 걸렸다.'; } like(parent(g), -4); stress(g, 4); return '이틀 만에 들켰다. 깨뜨린 것보다 숨긴 것 때문에 더 혼났다.'; } },
-      { label: '동생 탓을 한다', run: (g) => { const s = siblings(g)[0]; if (!s) { stress(g, 3); return '탓할 사람이 없었다. 결국 고양이 탓을 했다. 아무도 믿지 않았다.'; } like(s, -8); setFlag(g, 'early_blamed_sib'); return `${s.name}이(가) 대신 혼났다. 우는 얼굴을 똑바로 볼 수 없었다.`; } },
+      { label: '동생 탓을 한다', run: (g) => { const s = siblings(g)[0]; if (!s) { stress(g, 3); return '탓할 사람이 없었다. 결국 고양이 탓을 했다. 아무도 믿지 않았다.'; } like(s, -8); setFlag(g, 'early_blamed_sib'); return `${J(s.name, '이/가')} 대신 혼났다. 우는 얼굴을 똑바로 볼 수 없었다.`; } },
     ],
   },
   {
@@ -188,7 +189,7 @@ EVENTS.push(
     text: () => '추수가 끝난 밤, 광장에 모닥불이 오른다. 어른들은 맥주를 돌리고, 피리 소리에 맞춰 춤을 춘다. 아이들은 사이사이를 뛰어다닌다.',
     choices: [
       { label: '어른들 춤에 끼어든다', run: (g) => { gainStat(g, 'cha', 0.4); stress(g, -6); return '아무 박자에나 발을 굴렀다. 어른들이 손뼉을 쳐 주었다. 얼굴이 모닥불처럼 달아올랐다.'; } },
-      { label: '아이들과 불 주위를 뛰어다닌다', run: (g, rng) => { const p = rng.pick(peers(g, 3).length ? peers(g, 3) : [null]); like(p, 6); tire(g, 8); return p ? `${p.name}과(와) 손을 잡고 불 둘레를 열 바퀴 돌았다. 어지러워 함께 주저앉아 웃었다.` : '혼자 불 둘레를 돌다 지쳐 쓰러졌다. 누군가 담요를 덮어 주었다.'; } },
+      { label: '아이들과 불 주위를 뛰어다닌다', run: (g, rng) => { const p = rng.pick(peers(g, 3).length ? peers(g, 3) : [null]); like(p, 6); tire(g, 8); return p ? `${J(p.name, '과/와')} 손을 잡고 불 둘레를 열 바퀴 돌았다. 어지러워 함께 주저앉아 웃었다.` : '혼자 불 둘레를 돌다 지쳐 쓰러졌다. 누군가 담요를 덮어 주었다.'; } },
       { label: '구석에서 지켜본다', run: (g) => { gainStat(g, 'sen', 0.4); return '불빛에 비친 얼굴들을 하나하나 보았다. 웃는 얼굴, 취한 얼굴, 혼자 우는 얼굴. 어른들도 저렇게 운다는 걸 처음 알았다.'; } },
     ],
   },

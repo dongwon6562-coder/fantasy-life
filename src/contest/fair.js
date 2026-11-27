@@ -199,7 +199,7 @@ HOOKS.afterMonth.push((g, rng) => {
   const c = C(g);
   for (const k of Object.keys(c.entered)) if (Number(k.split(':')[2]) < g.date.year) delete c.entered[k];
   const id = fairHere(g);
-  if (id && fairOpen(g) && Array.isArray(g.news) && g.news.length < 6) g.news.push({ text: `이 달 ${placeName(here(g))}에서 ${J(FAIRS[id].name, '이/가')} 열린다.`, rel: 60 });
+  if (id && fairOpen(g) && Array.isArray(g.news) && g.news.length < 6) g.news.push({ text: FAIRS[id].months[0] === g.date.month ? `이 달 ${placeName(here(g))}에서 ${J(FAIRS[id].name, '이/가')} 열린다.` : `${placeName(here(g))}의 ${J(FAIRS[id].name, '이/가')} 이 달까지 이어진다. 아직 나가 볼 수 있다.`, rel: 60 });
   const open = c.fixed.filter((x) => !x.exposed && mi(g) - (x.at ?? 0) < 60);
   if (!open.length) return;
   for (const x of open) {

@@ -117,7 +117,7 @@ HOOKS.newGame.push((g) => {
   for (const id of g.player.familyIds.slice(2)) { const s = byId(g, id); if (s) setRace(s, childRace(fr, mr, rng), rng, { rename: race !== 'half_elf', beast }); }
   setRace(meP, race, rng, { beast });
   applyRace(g, rng, { birth: true });
-  g.news = [{ text: `${fullName(father)}와(과) ${mother.name}의 집에 ${raceName(race)} 아이가 태어났다. 이름은 ${g.player.name}.`, rel: 100 }];
+  g.news = [{ text: `${J(fullName(father), '과/와')} ${mother.name}의 집에 ${raceName(race)} 아이가 태어났다. 이름은 ${g.player.name}.`, rel: 100 }];
 });
 
 // 대를 이으면 그 아이의 종족을 입는다

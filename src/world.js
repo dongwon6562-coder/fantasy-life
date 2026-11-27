@@ -1,6 +1,7 @@
 // 세계 흐름: 레오니아 왕국의 정세, 발하르트와의 전쟁, 북부 전선, 마물, 물가, 기술 시대.
 // 플레이어가 무엇을 하든 매달 굴러간다. 정해진 역사는 없고, 판마다 다른 결말이 난다.
 // 상태는 game.realm 하나에 모두 들어 있다. 사건(events/)이 이 값을 읽고, 가끔 바꾼다.
+import { J } from './narrative/text.js';
 import { HOOKS } from './hooks.js';
 import { TECH, ERA_KEYS } from './techtree/nodes.js';
 
@@ -114,6 +115,7 @@ function tick(g, rng) {
     if (r.king.health < 25 && rng.chance(0.04)) say(`왕도에서 온 소식: ${r.king.name}께서 또 쓰러지셨다고 한다. 궁정 의사들이 밤을 새웠다는 말이 돈다.`);
     if (r.king.health <= 0 || (r.king.health < 15 && rng.chance(0.06))) {
       r.king.alive = false;
+      r.king.diedAt = g.date.year * 12 + g.date.month;
       r.ruler = 'regency';
       const gap = r.rudolf.support - 50;
       say(`조종이 울렸다. 국왕 ${r.king.name}께서 승하하셨다. 사람들이 일손을 놓고 왕도 쪽을 향해 고개를 숙였다.`, true);
@@ -150,7 +152,7 @@ function tick(g, rng) {
       say(rng.pick([
         '내전 소식: 강 건너 영지에서 두 왕자의 군대가 맞붙었다. 수백이 죽었다고 한다.',
         '내전 소식: 왕도 성문이 사흘 동안 닫혔다. 성 밖 빈민가가 불탔다는 말이 있다.',
-        `내전 소식: ${lordName(g)}이(가) 병사를 모으고 있다. 어느 편에 설지는 아직 밝히지 않았다.`,
+        `내전 소식: ${J(lordName(g), '이/가')} 병사를 모으고 있다. 어느 편에 설지는 아직 밝히지 않았다.`,
         '내전 소식: 패잔병들이 무리를 지어 남쪽 길에서 마을을 털고 있다고 한다.',
         '내전 소식: 기사단 일부가 에릭 왕자 쪽으로 넘어갔다.',
         '내전 소식: 성광교가 루돌프 왕자의 대관식을 집전하겠다고 선언했다.',
@@ -173,7 +175,7 @@ function tick(g, rng) {
       const old = lordName(g);
       r.lord = newLord(rng, r.lord.house, r.lord.generation + 1);
       r.lord.age = rng.int(20, 35);
-      say(`${old}이(가) 세상을 떠났다. 아들 ${r.lord.name}이(가) 작위를 이었다. 새 영주는 ${{ fair: '공정한', greedy: '탐욕스러운', harsh: '가혹한', weak: '유약한' }[r.lord.temper] ?? '알 수 없는'} 사람이라는 평이다.`, true);
+      say(`${J(old, '이/가')} 세상을 떠났다. 아들 ${J(r.lord.name, '이/가')} 작위를 이었다. 새 영주는 ${{ fair: '공정한', greedy: '탐욕스러운', harsh: '가혹한', weak: '유약한' }[r.lord.temper] ?? '알 수 없는'} 사람이라는 평이다.`, true);
       record(`영주 교체: ${lordName(g)}`);
     }
   }
@@ -305,9 +307,10 @@ function tick(g, rng) {
   const before = r.bread;
   r.bread = clamp(r.bread + (target - r.bread) * 0.2 + rng.normal(0, 0.02), 0.6, 3);
   r.bread = Math.round(r.bread * 100) / 100;
-  if (r.bread >= 1.3 && before < 1.3) say(`빵값이 뛰었다. 평년의 ${Math.round(r.bread * 10) / 10}배다. 빵집 앞에서 언성이 높아진다.`);
-  if (r.bread >= 1.8 && before < 1.8) say('밀값이 미쳤다. 가난한 집들은 귀리죽으로 버틴다. 굶어 죽는 사람이 나올 거라는 말이 돈다.', true);
-  if (r.bread < 1.15 && before >= 1.15) say('물가가 겨우 가라앉았다. 장터에 다시 웃음소리가 들린다.');
+  // 48단계: 문턱 언저리에서 오르내릴 때마다 '뛰었다'·'가라앉았다'가 번갈아 뜨지 않게, 한 번 뛰면 가라앉을 때까지 한 번만 말한다
+  if (r.bread >= 1.3 && before < 1.3 && !r.breadHigh) { r.breadHigh = true; say(`빵값이 뛰었다. 평년의 ${Math.round(r.bread * 10) / 10}배다. 빵집 앞에서 언성이 높아진다.`); }
+  if (r.bread >= 1.8 && before < 1.8 && r.breadHigh !== 'mad') { r.breadHigh = 'mad'; say('밀값이 미쳤다. 가난한 집들은 귀리죽으로 버틴다. 굶어 죽는 사람이 나올 거라는 말이 돈다.', true); }
+  if (r.bread < 1.15 && before >= 1.15 && r.breadHigh) { r.breadHigh = false; say('물가가 겨우 가라앉았다. 장터에 다시 웃음소리가 들린다.'); }
 
   // ---------- 기술 ----------
   // 34단계: 기술 값은 기술 나무(src/techtree/)가 정한다. 선행 기술·연구할 사람·재료·수요가 갖춰져야 자란다 (history powers 틱에서 techGrow).
@@ -343,6 +346,7 @@ function crown(g, rng, who, say, record) {
   const r = g.realm;
   r.ruler = who;
   r.succession = 'settled';
+  r.crownedAt = g.date.year * 12 + g.date.month;
   const loser = who === 'rudolf' ? r.erik : r.rudolf;
   if (loser.alive && rng.chance(0.5)) loser.alive = false;
   const name = rulerName(g);

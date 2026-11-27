@@ -173,7 +173,7 @@ for (const o of KINDRED) {
 {
   let slow = 0, slowLines = 0, valid = 0;
   for (const id of ['elf_elder', 'dwarf_trader', 'half_elf_border', 'elf_minstrel', 'dwarf_heir']) {
-    const g = newGame({ name: '실렌', sex: 'f', familyId: id, mode: 'free', seed: 4500 });
+    const g = newGame({ name: '실렌', sex: 'f', familyId: id, mode: 'free', seed: 4501 }); // 48단계 도우미3: 사건 길이 바뀌어 4500에선 벗 줄이 두 번만 나와 씨앗을 옮김
     me(g).ageMonths = 50 * 12;
     const rng = rngOf(g);
     const pid = g.player.id;

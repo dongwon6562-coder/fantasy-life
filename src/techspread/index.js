@@ -7,6 +7,7 @@ import { J } from '../narrative/text.js';
 import { SP, PLACE_IDS, livable, reachedAt, placeName, mi } from './state.js';
 import './world.js';
 import './life.js';
+import { firstMonths } from '../rumor/seldom.js';
 
 export { reachedAt, reachList, PLACE_IDS, CHANNEL, BACK_CAP } from './state.js';
 export { spreadMonth } from './world.js';
@@ -18,7 +19,8 @@ export function spreadLine(g) {
   const pl = g.life.place, S = g.spread, inv = g.history?.inventions ?? [], i = PLACE_IDS.indexOf(pl);
   // 막 들어온 것
   const fresh = inv.map((id) => TECH[id]).filter((t) => t && (S.reach[t.id] ?? []).some(([p, y]) => p === i && g.date.year - y <= 1 && (S.reach[t.id][0][0] !== i))).sort((a, b) => b.at - a.at)[0];
-  if (fresh) return `${J(fresh.name, '이/가')} 이 고장에 막 들어왔다. 구경꾼들이 둘러서서 처음 보는 것을 만져 본다. 늙은이들은 팔짱을 끼고 서 있다.`;
+  // 48단계: '막 들어왔다'는 이 고장에서 처음 본 뒤 석 달만
+  if (fresh && firstMonths(g, `spread:${fresh.id}`, 3)) return `${J(fresh.name, '이/가')} 이 고장에 막 들어왔다. 구경꾼들이 둘러서서 처음 보는 것을 만져 본다. 늙은이들은 팔짱을 끼고 서 있다.`;
   // 막힌 것
   const b = S.block[pl];
   if (b && b[1] > mi(g) && TECH[b[0]]) return `성당 문에 "${TECH[b[0]].name} 들이지 말 것"이라는 벽보가 붙어 있다. 그것을 들고 왔던 장사꾼이 짐을 다시 싼다.`;

@@ -277,8 +277,9 @@ function agent(seed, { place = 'leocast', org = 'crown', trained = 40, trust = 5
 
 // 9) 여러 삶 (짧게)
 let joined = 0, lives = 0;
-for (let run = 0; run < 6; run++) {
-  const pl = ['leocast', 'harfen', 'verden', 'ern', 'leocast', 'harfen'][run];
+// 48단계 도우미3: 사건 길이 바뀌면 여섯 판 모두 조직에 못 드는 일이 있어 여덟 판으로
+for (let run = 0; run < 8; run++) {
+  const pl = ['leocast', 'harfen', 'verden', 'ern', 'leocast', 'harfen', 'verden', 'leocast'][run];
   const g = adult(1000 + run, { age: 20 + (run % 3) * 8, place: pl });
   g.player.stats.int = 40;
   const start = L(g).gen ?? 1;

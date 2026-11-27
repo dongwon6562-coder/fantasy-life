@@ -5,6 +5,7 @@ import { J } from '../narrative/text.js';
 import { SCHOOLS, RANKS, RANK_NEED, swordState, hallState, schoolOf, rankOf, schoolName, formById, BLADE_WORDS, AURA_WORDS, bladeSpell } from './schools.js';
 import { mi, placeName, famousName } from './hall.js';
 import { famousHere, nextForm } from './craft.js';
+import { seldom } from '../rumor/seldom.js';
 
 /** 화면용 묶음: school {id,name,desc}, rank, skill, ranks [{name,need}], forms [{name,desc,learned,secret,need}], aura {v,word},
  *  master {name,alive}, rivals [{name,won}], blade, hall, famous, other(다른 유파 초식) */
@@ -36,7 +37,7 @@ export function swordLine(g) {
   const s = swordState(g), t = mi(g), own = hallState(g).own;
   if (own && !own.closed && own.place === L(g).place && t % 3 === 0) return own.mine ? `도장 마루에서 문하생 ${own.pupils}명의 기합 소리가 새어 나온다.` : `골목 끝 ${own.name} 도장에서 목검 부딪는 소리가 난다. 간판 글씨는 집안 어른이 쓴 것이다.`;
   const f = famousHere(g)[0];
-  if (f && t % 4 === 1) return `여관에서 ${J(famousName(f), '이/가')} 이 고장에 머문다는 말이 돈다. ${SCHOOLS[f.school].weapon ?? '칼'} 한 자루로 이름난 사람이다.`;
+  if (f && t % 4 === 1 && seldom(g, `sword:famous:${f.id ?? f.name}`, 24)) return `여관에서 ${J(famousName(f), '이/가')} 이 고장에 머문다는 말이 돈다. ${SCHOOLS[f.school].weapon ?? '칼'} 한 자루로 이름난 사람이다.`;
   if (s.aura >= 2 && t % 5 === 2) return '새벽에 칼을 뽑자 칼날이 낮게 울었다. 이제는 놀라지 않는다.';
   if (s.blade >= 1 && t % 5 === 3) return '칼자루를 쥔 손바닥에 마력이 저릿하게 고인다.';
   const nf = rankOf(g) >= 0 ? nextForm(g) : null;

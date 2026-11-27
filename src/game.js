@@ -1,4 +1,5 @@
 // 게임 상태와 한 달 진행.
+import { J } from './narrative/text.js';
 import { makeRng } from './rng.js';
 import { FAMILIES, START_YEAR, STATS, SKILLS, MONTHS, JOBS } from './data.js';
 import {
@@ -90,7 +91,7 @@ export function newGame({ name, sex, familyId, mode, seed, birth }) {
   };
   runHooks('newGame', game, rng);
   game.nextId = getNextId();
-  game.news = [{ text: `${fullName(father)}와(과) ${mother.name}의 집에 아이가 태어났다. 이름은 ${name}.`, rel: 100 }];
+  game.news = [{ text: `${J(fullName(father), '과/와')} ${mother.name}의 집에 아이가 태어났다. 이름은 ${name}.`, rel: 100 }];
   game.chronicle.push({ y: game.date.year, m: game.date.month, text: `${name}, ${fam.name}에서 태어나다.`, rel: 100 });
   me.history.push({ y: game.date.year, m: game.date.month, text: `${fam.name}에서 태어났다.` });
   return game;
@@ -196,7 +197,7 @@ export function endMonth(game, choices) {
     inj.months -= 1;
     p.fatigue += 4;
     if (inj.months <= 0 && /물린|베인/.test(inj.name)) {
-      me(game).history.push({ y: game.date.year, m: game.date.month, text: `${inj.name}이(가) 아물었지만 흉터가 남았다.` });
+      me(game).history.push({ y: game.date.year, m: game.date.month, text: `${J(inj.name, '이/가')} 아물었지만 흉터가 남았다.` });
       (p.scars ??= []).push(inj.name);
     }
   }

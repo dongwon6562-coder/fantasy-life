@@ -1,5 +1,6 @@
 // 열다섯 이후: 집을 떠날지, 늙어 가는 부모, 빚, 결투, 마법사 등록, 길 위의 일들, 나이 듦.
 // (직업·이사·소속은 다른 갈래가 맡는다. 여기 사건은 어디에 살든 일어날 수 있는 일 위주)
+import { J } from '../narrative/text.js';
 import { gainStat, gainSkill, circleOf, purse } from '../game.js';
 import { realm, nudge } from '../world.js';
 import { kill } from '../npc.js';
@@ -33,9 +34,9 @@ EVENTS.push(
     chance: () => 0.04, weight: 50,
     prepare: (g) => ({ id: parents(g).find((p) => ageYears(p) >= 55).id }),
     title: '작아진 등',
-    text: (g, c) => { const p = byId(g, c.id); return `${p.name}이(가) 우물에서 물동이를 들다 허리를 짚고 주저앉았다. 언제 저렇게 작아졌을까. 머리는 하얗게 셌고, 손은 마른 나뭇가지 같다.`; },
+    text: (g, c) => { const p = byId(g, c.id); return `${J(p.name, '이/가')} 우물에서 물동이를 들다 허리를 짚고 주저앉았다. 언제 저렇게 작아졌을까. 머리는 하얗게 셌고, 손은 마른 나뭇가지 같다.`; },
     choices: [
-      { label: '집안일을 도맡는다', run: (g, rng, c) => { const p = byId(g, c.id); like(p, 12); tire(g, 10); p.health = Math.min(100, (p.health ?? 70) + 10); return `"쓸데없는 걱정이다." ${p.name}은(는) 투덜댔지만, 그날 밤 처음으로 일찍 잠자리에 들었다.`; } },
+      { label: '집안일을 도맡는다', run: (g, rng, c) => { const p = byId(g, c.id); like(p, 12); tire(g, 10); p.health = Math.min(100, (p.health ?? 70) + 10); return `"쓸데없는 걱정이다." ${J(p.name, '은/는')} 투덜댔지만, 그날 밤 처음으로 일찍 잠자리에 들었다.`; } },
       { label: '약초사에게 약을 지어 온다', show: (g) => money(g) >= 3, run: (g, rng, c) => { spend(g, 3); const p = byId(g, c.id); like(p, 8); p.health = Math.min(100, (p.health ?? 70) + 15); return '쓴 약을 달였다. 효과는 모르겠지만, 마시는 얼굴이 조금 펴졌다.'; } },
       { label: '"쉬세요."라는 말만 한다', run: (g, rng, c) => { like(byId(g, c.id), 2); return '말은 쉬웠다. 다음 날도 그 사람은 새벽같이 일어났다.'; } },
     ],
@@ -84,8 +85,8 @@ EVENTS.push(
     title: '돌아온 얼굴',
     text: (g, c) => { const p = byId(g, c.id); return `마을 어귀에 낯익은 얼굴이 섰다. ${p.name}이다. 몇 년 전 떠났던. 얼굴엔 흉터가, 눈엔 피로가 들어앉았다. "...오랜만이야."`; },
     choices: [
-      { label: '끌어안는다', run: (g, rng, c) => { const p = byId(g, c.id); p.away = false; like(p, 15); note(g, p, '오랜 객지 생활 끝에 고향으로 돌아왔다.'); return `${p.name}은(는) 그날 밤 여관에서 바깥세상 이야기를 했다. 돈은 벌지 못했고, 동료 둘을 잃었다고. "그래도 후회는 안 해. 봤으니까. 세상이 얼마나 넓은지."`; } },
-      { label: '무슨 일이 있었는지 묻는다', run: (g, rng, c) => { const p = byId(g, c.id); p.away = false; like(p, 8); gainStat(g, 'int', 0.5); note(g, p, '오랜 객지 생활 끝에 고향으로 돌아왔다.'); return `"왕도는 썩었어. 성 밖은 검은 장갑 거고, 성 안은 귀족들 거야. 우리 같은 사람 자리는 없더라." ${p.name}은(는) 쓴웃음을 지었다.`; } },
+      { label: '끌어안는다', run: (g, rng, c) => { const p = byId(g, c.id); p.away = false; like(p, 15); note(g, p, '오랜 객지 생활 끝에 고향으로 돌아왔다.'); return `${J(p.name, '은/는')} 그날 밤 여관에서 바깥세상 이야기를 했다. 돈은 벌지 못했고, 동료 둘을 잃었다고. "그래도 후회는 안 해. 봤으니까. 세상이 얼마나 넓은지."`; } },
+      { label: '무슨 일이 있었는지 묻는다', run: (g, rng, c) => { const p = byId(g, c.id); p.away = false; like(p, 8); gainStat(g, 'int', 0.5); note(g, p, '오랜 객지 생활 끝에 고향으로 돌아왔다.'); return `"왕도는 썩었어. 성 밖은 검은 장갑 거고, 성 안은 귀족들 거야. 우리 같은 사람 자리는 없더라." ${J(p.name, '은/는')} 쓴웃음을 지었다.`; } },
     ],
   },
   {
@@ -129,10 +130,10 @@ EVENTS.push(
     chance: () => 0.012, weight: 55,
     prepare: (g, rng) => { const c = peers(g, 60).filter((p) => p.job === 'herbalist' || p.traits.includes('reserved')); return { id: rng.pick(c).id }; },
     title: '증인',
-    text: (g, c) => `이단심문소가 ${nm(byId(g, c.id))}을(를) 금기 마법 혐의로 붙잡았다. 증인이 필요하다고 한다. 심문관이 내게 묻는다. "이 자가 밤에 이상한 짓을 하는 걸 본 적 있나? 솔직히 말하면 성광께서 보상하실 것이다."`,
+    text: (g, c) => `이단심문소가 ${J(nm(byId(g, c.id)), '을/를')} 금기 마법 혐의로 붙잡았다. 증인이 필요하다고 한다. 심문관이 내게 묻는다. "이 자가 밤에 이상한 짓을 하는 걸 본 적 있나? 솔직히 말하면 성광께서 보상하실 것이다."`,
     choices: [
-      { label: '"본 적 없습니다."', run: (g, rng, c) => { const p = byId(g, c.id); like(p, 20); if (rng.chance(0.7)) { note(g, p, '이단 혐의를 받았으나 증거 부족으로 풀려났다.'); return `증거 부족으로 ${p.name}은(는) 풀려났다. 심문관은 나를 한참 바라보다 떠났다.`; } kill(g, p, '이단 처형'); stress(g, 25); return `다른 증인이 있었다. ${p.name}은(는) 화형대에 올랐다. 끝까지 아무 말도 하지 않았다.`; } },
-      { label: '거짓 증언을 한다', run: (g, rng, c) => { const p = byId(g, c.id); g.player.money += 10; setFlag(g, 'false_witness'); kill(g, p, '이단 처형'); stress(g, 20); return `은화 열 닢이 주어졌다. ${p.name}은(는) 화형대에서 나를 보았다. 그 눈을 잊을 수 없을 것이다.`; } },
+      { label: '"본 적 없습니다."', run: (g, rng, c) => { const p = byId(g, c.id); like(p, 20); if (rng.chance(0.7)) { note(g, p, '이단 혐의를 받았으나 증거 부족으로 풀려났다.'); return `증거 부족으로 ${J(p.name, '은/는')} 풀려났다. 심문관은 나를 한참 바라보다 떠났다.`; } kill(g, p, '이단 처형'); stress(g, 25); return `다른 증인이 있었다. ${J(p.name, '은/는')} 화형대에 올랐다. 끝까지 아무 말도 하지 않았다.`; } },
+      { label: '거짓 증언을 한다', run: (g, rng, c) => { const p = byId(g, c.id); g.player.money += 10; setFlag(g, 'false_witness'); kill(g, p, '이단 처형'); stress(g, 20); return `은화 열 닢이 주어졌다. ${J(p.name, '은/는')} 화형대에서 나를 보았다. 그 눈을 잊을 수 없을 것이다.`; } },
     ],
   },
   {

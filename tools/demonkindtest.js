@@ -221,7 +221,7 @@ function quiet(g) {
     me(g).ageMonths = 20 * 12; Object.assign(demonkindState(g), { named: true, rank: 3 });
     quiet(g);
     g.pendingEvent = null; L(g).queue = []; L(g).scene = null;
-    L(g).place = 'portel';
+    L(g).place = 'portel'; g.realms.cur = 'free'; // 48단계 도우미3: 국경 검문 장면에서 '돌아선다'를 골라 마대륙으로 되돌아가는 판이 있어, 검문은 지난 것으로 둔다
     for (let m = 0; m < 3 && !g.over; m++) quiet(g);
     if (demonkindState(g).crossed) cross++;
     kindredState(g).revealed = true;

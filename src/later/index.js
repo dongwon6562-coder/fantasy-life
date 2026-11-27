@@ -1,5 +1,6 @@
 // 중년과 노년의 사건 (헤드). 지금까지 마흔 넘어서만 나오는 사건이 거의 없어서, 한 삶의 뒤쪽이 비어 있었다.
 // 나이는 몸 나이(bodyAgeOf)로 본다. 엘프는 수백 살이어도 몸이 젊으면 이 사건들을 아직 겪지 않는다.
+import { J } from '../narrative/text.js';
 import { gainStat, gainSkill } from '../game.js';
 import { bodyAgeOf } from '../npc.js';
 import { EVENTS, flag, setFlag, money, spend, stress, tire, like, note, injure, check, nm, byId, me, living, here, onRoad } from '../events/core.js';
@@ -46,11 +47,11 @@ EVENTS.push(
     chance: () => 0.06, weight: 55,
     prepare: (g, rng) => ({ id: rng.pick(grownKids(g).filter((k) => (k.place ?? 'ern') === here(g) && !k.spouseId)).id }),
     title: '떠나겠다는 아이',
-    text: (g, c) => { const k = byId(g, c.id); return `${k.name}이(가) 저녁상을 물리고 앉았다. "더 큰 데로 가 보고 싶어요. 여기서는 내가 뭘 할 수 있는지 모르겠어요." 오래 생각한 얼굴이다.`; },
+    text: (g, c) => { const k = byId(g, c.id); return `${J(k.name, '이/가')} 저녁상을 물리고 앉았다. "더 큰 데로 가 보고 싶어요. 여기서는 내가 뭘 할 수 있는지 모르겠어요." 오래 생각한 얼굴이다.`; },
     choices: [
-      { label: '보내 준다, 노자를 쥐여 주며', run: (g, rng, c) => { const k = byId(g, c.id); spend(g, Math.min(money(g), 15)); like(k, 15); note(g, k, '부모의 축복을 받고 고향을 떠났다.'); k.place = rng.pick(['harfen', 'leocast', 'verden']); return `은화를 쥐여 주었다. ${k.name}은(는) 아침 안개 속으로 걸어갔다. 한 번도 돌아보지 않았다. 그게 오히려 다행이었다.`; } },
-      { label: '붙잡는다', run: (g, rng, c) => { const k = byId(g, c.id); if (check(rng, g.player.stats.cha + k.affection, 70)) { like(k, 3); return `"한 해만 더 있어 다오." ${k.name}은(는) 한참 말이 없다가 고개를 끄덕였다.`; } like(k, -12); k.place = 'harfen'; stress(g, 10); return `${k.name}은(는) 대답하지 않았다. 사흘 뒤, 빈 침상만 남아 있었다.`; } },
-      { label: '"네 일은 네가 정해라."', run: (g, rng, c) => { const k = byId(g, c.id); like(k, 8); gainStat(g, 'wil', 0.4); return `${k.name}이(가) 놀란 얼굴로 쳐다보았다. 허락을 구하러 온 게 아니었다는 걸 알고 있었다. 그래도 그 말을 듣고 싶었던 것 같다.`; } },
+      { label: '보내 준다, 노자를 쥐여 주며', run: (g, rng, c) => { const k = byId(g, c.id); spend(g, Math.min(money(g), 15)); like(k, 15); note(g, k, '부모의 축복을 받고 고향을 떠났다.'); k.place = rng.pick(['harfen', 'leocast', 'verden']); return `은화를 쥐여 주었다. ${J(k.name, '은/는')} 아침 안개 속으로 걸어갔다. 한 번도 돌아보지 않았다. 그게 오히려 다행이었다.`; } },
+      { label: '붙잡는다', run: (g, rng, c) => { const k = byId(g, c.id); if (check(rng, g.player.stats.cha + k.affection, 70)) { like(k, 3); return `"한 해만 더 있어 다오." ${J(k.name, '은/는')} 한참 말이 없다가 고개를 끄덕였다.`; } like(k, -12); k.place = 'harfen'; stress(g, 10); return `${J(k.name, '은/는')} 대답하지 않았다. 사흘 뒤, 빈 침상만 남아 있었다.`; } },
+      { label: '"네 일은 네가 정해라."', run: (g, rng, c) => { const k = byId(g, c.id); like(k, 8); gainStat(g, 'wil', 0.4); return `${J(k.name, '이/가')} 놀란 얼굴로 쳐다보았다. 허락을 구하러 온 게 아니었다는 걸 알고 있었다. 그래도 그 말을 듣고 싶었던 것 같다.`; } },
     ],
   },
   {
@@ -59,10 +60,10 @@ EVENTS.push(
     chance: () => 0.25, weight: 70,
     prepare: (g) => { const x = grandkids(g).find((y) => y.ageMonths < 24); return { id: x.id }; },
     title: '손주',
-    text: (g, c) => { const x = byId(g, c.id); return `품에 안긴 ${x.name}이(가) 수염을, 아니면 머리칼을 움켜쥐고 놓지 않는다. 손가락이 이렇게 작았던가. 내 아이들이 이만할 때는 먹고사느라 제대로 본 적이 없었다.`; },
+    text: (g, c) => { const x = byId(g, c.id); return `품에 안긴 ${J(x.name, '이/가')} 수염을, 아니면 머리칼을 움켜쥐고 놓지 않는다. 손가락이 이렇게 작았던가. 내 아이들이 이만할 때는 먹고사느라 제대로 본 적이 없었다.`; },
     choices: [
       { label: '오래 안고 있는다', run: (g, rng, c) => { stress(g, -15); like(byId(g, c.id), 10); return '해가 질 때까지 안고 있었다. 팔이 저렸지만 내려놓고 싶지 않았다.'; } },
-      { label: '집안 이야기를 들려준다', run: (g, rng, c) => { const x = byId(g, c.id); like(x, 8); setFlag(g, 'told_family_story', true); gainStat(g, 'cha', 0.3); return `알아듣지도 못할 아이에게 우리 집안 이야기를 했다. 할아버지의 할아버지가 어디서 왔는지부터. ${x.name}은(는) 중간에 잠들었다.`; } },
+      { label: '집안 이야기를 들려준다', run: (g, rng, c) => { const x = byId(g, c.id); like(x, 8); setFlag(g, 'told_family_story', true); gainStat(g, 'cha', 0.3); return `알아듣지도 못할 아이에게 우리 집안 이야기를 했다. 할아버지의 할아버지가 어디서 왔는지부터. ${J(x.name, '은/는')} 중간에 잠들었다.`; } },
     ],
   },
   {
@@ -71,11 +72,11 @@ EVENTS.push(
     chance: () => 0.04, weight: 55,
     prepare: (g, rng) => ({ id: rng.pick(oldFriends(g).filter((p) => p.ageMonths >= 55 * 12)).id }),
     title: '오랜 벗',
-    text: (g, c) => { const p = byId(g, c.id); return `${p.name}이(가) 몸져누웠다는 소식이 왔다. 찾아가니 앙상한 손이 이불 밖으로 나와 있었다. "왔냐." 목소리만은 그대로였다.`; },
+    text: (g, c) => { const p = byId(g, c.id); return `${J(p.name, '이/가')} 몸져누웠다는 소식이 왔다. 찾아가니 앙상한 손이 이불 밖으로 나와 있었다. "왔냐." 목소리만은 그대로였다.`; },
     choices: [
-      { label: '옛날 이야기를 한다', run: (g, rng, c) => { const p = byId(g, c.id); like(p, 10); stress(g, -4); note(g, p, '죽기 전 오랜 벗과 옛 이야기를 나눴다.'); return `젊을 때 저지른 일들을 하나씩 꺼냈다. ${p.name}은(는) 웃다가 기침을 했고, 기침을 하다 또 웃었다. 그것이 마지막 웃음이었는지는 나중에야 알았다.`; } },
-      { label: '못다 한 말을 한다', run: (g, rng, c) => { const p = byId(g, c.id); like(p, 15); gainStat(g, 'wil', 0.5); return `오래 묵혀 둔 말을 했다. ${p.name}은(는) 눈을 감고 들었다. "알고 있었다." 그게 대답이었다.`; } },
-      { label: '약값을 대 준다', show: (g) => money(g) >= 20, run: (g, rng, c) => { const p = byId(g, c.id); spend(g, 20); like(p, 12); if (rng.chance(0.4)) return `왕도에서 온 약은 비쌌다. ${p.name}은(는) 그해 겨울을 넘겼다. 봄볕 아래 둘이 앉아 있을 수 있었다.`; return `약은 비쌌고, 듣지 않았다. ${p.name}의 가족이 고개를 숙여 고마워했다. 그래도 아깝지 않았다.`; } },
+      { label: '옛날 이야기를 한다', run: (g, rng, c) => { const p = byId(g, c.id); like(p, 10); stress(g, -4); note(g, p, '죽기 전 오랜 벗과 옛 이야기를 나눴다.'); return `젊을 때 저지른 일들을 하나씩 꺼냈다. ${J(p.name, '은/는')} 웃다가 기침을 했고, 기침을 하다 또 웃었다. 그것이 마지막 웃음이었는지는 나중에야 알았다.`; } },
+      { label: '못다 한 말을 한다', run: (g, rng, c) => { const p = byId(g, c.id); like(p, 15); gainStat(g, 'wil', 0.5); return `오래 묵혀 둔 말을 했다. ${J(p.name, '은/는')} 눈을 감고 들었다. "알고 있었다." 그게 대답이었다.`; } },
+      { label: '약값을 대 준다', show: (g) => money(g) >= 20, run: (g, rng, c) => { const p = byId(g, c.id); spend(g, 20); like(p, 12); if (rng.chance(0.4)) return `왕도에서 온 약은 비쌌다. ${J(p.name, '은/는')} 그해 겨울을 넘겼다. 봄볕 아래 둘이 앉아 있을 수 있었다.`; return `약은 비쌌고, 듣지 않았다. ${p.name}의 가족이 고개를 숙여 고마워했다. 그래도 아깝지 않았다.`; } },
     ],
   },
   {
@@ -96,11 +97,11 @@ EVENTS.push(
     cond: (g) => free(g) && bage(g) >= 45 && !!spouse(g),
     chance: () => 0.05, weight: 50,
     title: '저녁 툇마루',
-    text: (g) => `${spouse(g).name}과(와) 나란히 앉아 해 지는 것을 보았다. 젊을 때는 이렇게 가만히 앉아 있던 적이 없었다. "우리 꽤 오래 살았네." ${spouse(g).name}이(가) 말했다.`,
+    text: (g) => `${J(spouse(g).name, '과/와')} 나란히 앉아 해 지는 것을 보았다. 젊을 때는 이렇게 가만히 앉아 있던 적이 없었다. "우리 꽤 오래 살았네." ${J(spouse(g).name, '이/가')} 말했다.`,
     choices: [
       { label: '손을 잡는다', run: (g) => { like(spouse(g), 10); stress(g, -10); return '주름진 손이 따뜻했다. 아무 말도 하지 않았다. 할 필요가 없었다.'; } },
       { label: '싸웠던 날들을 꺼낸다', run: (g) => { like(spouse(g), 5); stress(g, -6); return '그때는 왜 그렇게 화가 났는지 둘 다 기억나지 않았다. 한참을 웃었다.'; } },
-      { label: '"고마웠다."', run: (g) => { like(spouse(g), 14); gainStat(g, 'cha', 0.3); return `처음 하는 말이었다. ${spouse(g)?.name ?? '그 사람'}은(는) 대답 대신 어깨에 머리를 기댔다.`; } },
+      { label: '"고마웠다."', run: (g) => { like(spouse(g), 14); gainStat(g, 'cha', 0.3); return `처음 하는 말이었다. ${J(spouse(g)?.name ?? '그 사람', '은/는')} 대답 대신 어깨에 머리를 기댔다.`; } },
     ],
   },
   {
