@@ -32,7 +32,7 @@ EVENTS.push({
   cond: (g) => !!g.research?.claim,
   prepare: (g) => { const id = RS(g).claim; const c = topCompany(g); return { id, company: c?.name ?? '하르펜의 큰 상단', price: 60 + idx(id) * 20 }; },
   title: '세상에 없던 것',
-  text: (g, c) => `책상 위에서 ${INV_NAME[c.id] ?? '그것'}이(가) 돌아가고 있었다. 아직 세상 누구도 가지지 못한 것이다. 소문은 벌써 새어 나갔다. ${c.company}의 사람이 문 앞에서 기다리고 있었다. 이것에 누구의 이름을 붙일지는 지금 정해야 한다.`,
+  text: (g, c) => `책상 위에서 ${J(INV_NAME[c.id] ?? '그것', '이/가')} 돌아가고 있었다. 아직 세상 누구도 가지지 못한 것이다. 소문은 벌써 새어 나갔다. ${c.company}의 사람이 문 앞에서 기다리고 있었다. 이것에 누구의 이름을 붙일지는 지금 정해야 한다.`,
   choices: [
     {
       label: '내 이름으로 내놓는다',
@@ -50,7 +50,7 @@ EVENTS.push({
         if (!inventNow(g, c.id, c.company)) return '그새 누군가 먼저 내놓았다. 상단 사람은 모자를 들어 보이고 돌아갔다.';
         const co = H(g)?.companies?.find((x) => x.name === c.company); if (co) co.fortune = Math.min(100, co.fortune + 12);
         g.player.money += c.price; RS(g).sold.push(c.id); RS(g).fame += 3;
-        return `${c.company}이(가) 은화 ${c.price}닢을 세어 놓았다. 다음 달 소식지에는 ${INV_NAME[c.id]}이(가) ${c.company}의 발명이라고 실렸다. 내 이름은 어디에도 없었다. 그래도 주머니는 무거웠다.`;
+        return `${J(c.company, '이/가')} 은화 ${c.price}닢을 세어 놓았다. 다음 달 소식지에는 ${J(INV_NAME[c.id], '이/가')} ${c.company}의 발명이라고 실렸다. 내 이름은 어디에도 없었다. 그래도 주머니는 무거웠다.`;
       },
     },
     {
@@ -87,7 +87,7 @@ EVENTS.push({
         inventNow(g, c.id, c.rival.name); creditRival(g, c.rival);
         setFlag(g, 'research_robbed');
         stress(g, 25);
-        return `석 달 뒤 소식지에 ${INV_NAME[c.id]}이(가) 실렸다. ${c.rival.name}의 이름으로. 그림 속 굴대의 각도, 술식의 순서, 내가 지운 자리까지 내 노트와 같았다. ${p?.months ? `${p.months}달` : '여러 달'}의 밤이 남의 이름이 되었다.`;
+        return `석 달 뒤 소식지에 ${J(INV_NAME[c.id], '이/가')} 실렸다. ${c.rival.name}의 이름으로. 그림 속 굴대의 각도, 술식의 순서, 내가 지운 자리까지 내 노트와 같았다. ${p?.months ? `${p.months}달` : '여러 달'}의 밤이 남의 이름이 되었다.`;
       },
     },
   ],
@@ -118,7 +118,7 @@ EVENTS.push({
   chance: () => 0.4,
   prepare: (g, rng) => ({ rival: rivalOf(g, rng), id: RS(g).project.id }),
   title: '팔려 온 노트',
-  text: (g, c) => `선술집 구석에서 낯선 젊은이가 꾸러미를 내밀었다. "${c.rival.name} 밑에서 삼 년을 일했소. 품삯도 못 받고 쫓겨났지. 그 사람이 ${INV_NAME[c.id]}을(를) 어디까지 했는지 여기 다 있소. 은화 스물다섯 닢."`,
+  text: (g, c) => `선술집 구석에서 낯선 젊은이가 꾸러미를 내밀었다. "${c.rival.name} 밑에서 삼 년을 일했소. 품삯도 못 받고 쫓겨났지. 그 사람이 ${J(INV_NAME[c.id], '을/를')} 어디까지 했는지 여기 다 있소. 은화 스물다섯 닢."`,
   choices: [
     {
       label: '산다',
@@ -151,8 +151,8 @@ EVENTS.push({
   prepare: (g, rng) => { const made = RS(g).made; return { id: rng.pick(made), war: rng.chance(0.35) }; },
   title: '물건을 사러 온 사람',
   text: (g, c) => (c.war
-    ? `영주의 집사가 찾아왔다. ${DESIGNS[c.id]?.name ?? '내 물건'}을(를) 백 개 만들어 달라고 했다. 성채와 군영에 쓴다고. 무엇에 쓸지는 묻지 말라는 눈치였다.`
-    : `상인 하나가 ${DESIGNS[c.id]?.name ?? '내 물건'}을(를) 보고 눈을 반짝였다. "이걸 우리 공방에서 만들게 해 주시오. 하나 팔릴 때마다 몫을 드리지."`),
+    ? `영주의 집사가 찾아왔다. ${J(DESIGNS[c.id]?.name ?? '내 물건', '을/를')} 백 개 만들어 달라고 했다. 성채와 군영에 쓴다고. 무엇에 쓸지는 묻지 말라는 눈치였다.`
+    : `상인 하나가 ${J(DESIGNS[c.id]?.name ?? '내 물건', '을/를')} 보고 눈을 반짝였다. "이걸 우리 공방에서 만들게 해 주시오. 하나 팔릴 때마다 몫을 드리지."`),
   choices: [
     { label: '받아들인다', run: (g, rng, c) => { if (c.war) { g.player.money += 70; setFlag(g, 'research_war'); return '은화 일흔 닢. 석 달 뒤 내 물건이 성벽 위에 줄지어 놓인 것을 보았다. 쓰임새가 내가 생각한 것과 달랐다.'; } RS(g).royalty += 1; return '계약서에 이름을 적었다. 다음 달부터 몫이 들어오기 시작했다. 내가 만든 것이 내가 모르는 집들에 놓인다.'; } },
     { label: '거절한다', run: () => '정중히 돌려보냈다. 내 손으로 만든 것은 아직 내 손에 두고 싶었다.' },

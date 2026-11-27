@@ -6,6 +6,7 @@ import { J } from '../narrative/text.js';
 import { B, Q, mi, here, placeName, skill, trade, rankOf, skillRank, standing, mineHere, shopHere, qualWord, RANKS, MARKS, KINDS, kindName, GUILD_TOWNS } from './core.js';
 import './life.js';
 import './world.js';
+import { seldom } from '../rumor/seldom.js';
 
 export { B as builderState, KINDS as BUILD_KINDS, MARKS as BUILDER_MARKS };
 export { kindsHere, offersFor, examReady, finishJob, fallOf, addBuilt } from './life.js';
@@ -60,7 +61,7 @@ export function builderLine(g) {
   if (fell && t % 4 === 1) return `${Q(fell.name, '이/가')} 서 있던 자리에 깨진 돌과 부러진 들보가 아직 치워지지 않았다.`;
   if (shopHere(g) && t % 2 === 0) return SHOP_LINE[t % SHOP_LINE.length](`'${s.shop.name}'`);
   const w = standing(s.world).filter((b) => b.place === pl);
-  if (w.length && t % 5 === 2) { const b = w[t % w.length]; return `${J(b.name, '은/는')} ${b.y}년에 ${J(b.by, '이/가')} 지었다고 한다.`; }
+  if (w.length && t % 5 === 2) { const b = w[t % w.length]; if (seldom(g, `built:${b.name}`, 36)) return `${J(b.name, '은/는')} ${b.y}년에 ${J(b.by, '이/가')} 지었다고 한다.`; }
   if (trade(g) && GUILD_TOWNS.includes(pl) && !s.mark && skillRank(g) >= 2 && t % 6 === 3) return '조합 회관 앞을 지날 때마다 장인들의 표식이 새겨진 문설주를 올려다본다.';
   return null;
 }

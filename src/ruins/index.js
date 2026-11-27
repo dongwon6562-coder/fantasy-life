@@ -8,6 +8,7 @@ import { J } from '../narrative/text.js';
 import { PLACES } from '../places.js';
 import { RU, RUINS, RUIN_IDS, ARTS, ART_IDS, LIBRARIES, here, piecesOf, piecesAll, knowsArt, placeName, civName } from './state.js';
 import { needsMet, ruinsMonth } from './life.js';
+import { seldom } from '../rumor/seldom.js';
 
 export { RUINS, RUIN_IDS, ARTS, ART_IDS, LIBRARIES, ruinAt, piecesOf, knowsArt } from './state.js';
 export { learn, restorable, needsMet, ruinsMonth } from './life.js';
@@ -39,9 +40,9 @@ export function ruinsLine(g) {
   if (!g?.ruins || !g.date) return null;
   const R = g.ruins;
   const aw = RUIN_IDS.find((id) => R.sites[id]?.woke === 'awake' && near(g, RUINS[id].from));
-  if (aw) return `${RUINS[aw].name} 쪽 하늘이 밤마다 이상하다. ${J(RUINS[aw].wake.name, '이/가')} 깨어난 뒤로 그쪽 길을 가는 사람이 없다.`;
+  if (aw && seldom(g, `ruin:aw:${aw}`, 12)) return `${RUINS[aw].name} 쪽 하늘이 밤마다 이상하다. ${J(RUINS[aw].wake.name, '이/가')} 깨어난 뒤로 그쪽 길을 가는 사람이 없다.`;
   const id = RUIN_IDS.find((x) => RUINS[x].from === here(g) && R.sites[x]?.known >= 1);
-  if (id) {
+  if (id && seldom(g, `ruin:${id}`, 24)) { // 48단계: 같은 유적 줄은 두 해에 한 번
     const x = R.sites[id];
     if (x.woke === 'stir') return `${RUINS[id].name} 들머리에서 밤마다 긁는 소리가 올라온다고 고장 사람들이 수군거린다.`;
     if (x.woke === 'sealed') return `${RUINS[id].name} 들머리에 마탑의 봉인 표식이 붙었다. 회색 로브 둘이 번갈아 지킨다.`;

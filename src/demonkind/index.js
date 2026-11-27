@@ -509,7 +509,8 @@ function monthTick(g) {
   const k = kindredState(g);
   const busy = traveling(g) || isJailed(g) || DK_SCENES.some((x) => sceneQueued(g, x));
   const wasRealm = s.lastRealm;
-  if (!traveling(g)) s.lastRealm = realm;
+  // 48단계: 다른 마족 장면이 걸려 있던 달에 경계를 넘으면 '처음 넘는 날'을 영영 놓쳤다. 바쁜 달에는 지난 땅을 그대로 둔다
+  if (!busy) s.lastRealm = realm;
   if (inLand) populate(g, place);
 
   if (!busy && !traveling(g)) {

@@ -14,6 +14,10 @@ import { registerJob, WORK } from '../jobs.js';
 import { fac } from '../factions.js';
 import { setRealmLaw, setExileOption, crimeState, notoriety, addNotoriety, isJailed, jail, reportCrime, sentenceAt, craftOf } from '../crime.js';
 import { remember } from '../relations.js';
+import { rulerName } from '../world.js';
+import { rulerLine } from '../politics/state.js';
+// 48단계: 관청 글의 통치자는 지금 살아 있는 사람 (예전엔 처음 정해 둔 이름이 왕이 죽은 뒤에도 남았다)
+const rulerNow = (g, realm, r) => (realm === 'leonia' ? (g.realm ? (rulerName(g) === '섭정 회의' ? '섭정 회의' : `국왕 ${rulerName(g)}`) : r.ruler) : g.politics ? rulerLine(g, realm) || r.ruler : r.ruler);
 import { REALMS, NAMES, REALM_PLACES, LEONIA_LINKS, EXTRA_LINKS, REALM_PEOPLE, FOREIGN, REALM_IDS } from './data.js';
 import { opener } from '../narrative/openers.js';
 
@@ -401,7 +405,7 @@ defineScene('realm_office', {
     const why = naturalizeBlock(g, realm);
     const accent = accentOf(g);
     return [
-      `${r.name}. 다스리는 이는 ${r.ruler}. ${r.status}`,
+      `${r.name}. 다스리는 이는 ${rulerNow(g, realm, r)}. ${r.status}`,
       `귀화: ${r.naturalize.how}${why ? ` 아직은 안 된다. ${why}.` : ' 지금 신청할 수 있다.'}`,
       R.asylum === realm ? '이 나라는 나를 망명자로 받아 주었다.' : '',
       accent ? `서기가 내 ${J(accent, '을/를')} 듣고 눈썹을 올렸다.` : '',

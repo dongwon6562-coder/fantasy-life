@@ -83,7 +83,7 @@ const drive = (g, pickFn) => { let n = 0; while (g.pendingEvent && n++ < 60) { c
   console.log('익힌 주문:', g.magic.known.join(','));
   ok(learned >= 5, '2서클까지의 주문을 익혀야 한다');
   ok(!g.magic.known.some((id) => ['firering', 'lightning', 'firestorm'].includes(id)), '서클보다 높은 주문은 못 익힌다');
-  const m0 = P.money; month(g, ['spell_work']); drive(g, () => 0);
+  const m0 = P.money; month(g, ['spell_work']); drive(g, (pe) => pe.choices.length - 1); // 48단계 도우미3: 같은 달 뜬 다른 사건(저주받은 물건 사기 등)에서 돈을 쓰지 않게 맨 끝(무난한) 선택
   ok(P.money > m0 - 1, '마법 일로 돈을 번다');
   g.life.place = 'harfen';
   ok(!!act(g, 'circle_exam'), '하르펜에서 승급 시험');

@@ -233,7 +233,7 @@ function drawFace(game, p, age, stage, scars, ring, mood, detail, life, bust = f
   const g = genesOf(game, p);
   const key = keyOf(p);
   const r = rngFrom(hashStr('s' + key));
-  const uid = 'p' + hashStr(key + race + Math.floor(age) + mood + (detail ? 'D' : 'S') + life.key + (bust ? 'B' : '') + era).toString(36);
+  const uid = 'p' + hashStr(key + race + Math.floor(age) + mood + (detail ? 'D' : 'S') + life.key + (bust ? 'B' : '') + era).toString(36) + '_'; // 48단계: 해시 끝 'nu'에 'll' 꼬리가 붙어 'null'로 읽히던 일(portraittest 거짓 경보)을 막는 칸막이
   const male = p.sex === 'm';
   const M = MOODS[mood] ?? {};
   const kid = stage === 'baby' ? 1 : stage === 'child' ? lerp(0.8, 0.42, clamp((age - 3) / 10)) : stage === 'teen' ? lerp(0.32, 0.06, clamp((age - 13) / 5)) : 0;

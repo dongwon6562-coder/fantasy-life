@@ -1,5 +1,6 @@
 // 세계 흐름과 맞물린 사건: 전쟁, 내전, 국상과 대관식, 물가, 영주, 마물, 기술, 교단, 뒷세계.
 // world.js의 game.realm을 읽고, 몇몇 선택은 정세를 조금 움직인다.
+import { J } from '../narrative/text.js';
 import { gainStat, gainSkill, circleOf } from '../game.js';
 import { realm, lordName, rulerName, eraOf, nudge, priceIndex } from '../world.js';
 import {
@@ -7,6 +8,7 @@ import {
   spendFamily, stress, tire, like, note, injure, check, nm, byId, living, ageYears, isFamily, siblings,
 } from './core.js';
 import { makePerson, kill } from '../npc.js';
+import { PLACES } from '../places.js';
 
 const R = (g) => realm(g) ?? {};
 const war = (g) => !!R(g).balhart?.war;
@@ -77,10 +79,11 @@ EVENTS.push(
   },
   {
     id: 'king_mourning', once: true,
-    cond: (g) => age(g) >= 5 && R(g).king && !R(g).king.alive,
+    // 48단계: 국상은 승하한 뒤 두 달 안에만 (예전엔 다섯 살이 되는 해에 몇 해 늦게도 떴다)
+    cond: (g) => age(g) >= 5 && R(g).king && !R(g).king.alive && g.date.year * 12 + g.date.month - (R(g).king.diedAt ?? -999) <= 2,
     weight: 75,
     title: '국상',
-    text: (g) => `예배당 종이 사흘째 울린다. ${R(g).king.name}의 국상 기간이다. 혼례와 축제가 금지되고, 사람들은 팔에 검은 천을 맸다. 여관에선 다음 왕이 누가 될지를 두고 목소리를 낮춰 내기를 건다.`,
+    text: (g) => `${g.date.year * 12 + g.date.month === R(g).king.diedAt ? '예배당 종이 사흘째 울린다' : '예배당 종이 아침저녁으로 울린다'}. ${R(g).king.name}의 국상 기간이다. 혼례와 축제가 금지되고, 사람들은 팔에 검은 천을 맸다. 여관에선 다음 왕이 누가 될지를 두고 목소리를 낮춰 내기를 건다.`,
     choices: [
       { label: '사제와 함께 추도 미사에 간다', run: (g) => { const p = findJob(g, 'priest'); like(p, 3); gainStat(g, 'wil', 0.3); return '사제는 왕의 치세를 짧게 기렸다. 그리고 덧붙였다. "왕은 죽어도 왕국은 남는다." 목소리가 떨렸다.'; } },
       { label: '여관에서 소문을 듣는다', run: (g) => { gainStat(g, 'sen', 0.5); setFlag(g, 'heard_poison_rumor'); return '술 취한 행상이 속삭였다. "병이 아니래. 독이래. 몇 년에 걸친." 여관 주인이 그의 입을 막았다.'; } },
@@ -88,7 +91,7 @@ EVENTS.push(
   },
   {
     id: 'coronation', once: true,
-    cond: (g) => age(g) >= 5 && R(g).succession === 'settled' && R(g).ruler !== 'oswald',
+    cond: (g) => age(g) >= 5 && R(g).succession === 'settled' && R(g).ruler !== 'oswald' && g.date.year * 12 + g.date.month - (R(g).crownedAt ?? -999) <= 4,
     weight: 70,
     title: '새 왕의 사면령',
     text: (g) => `왕도에서 전령이 와 광장에 포고문을 붙였다. "${rulerName(g)} 폐하의 즉위를 경축하여, 가벼운 죄인을 사면하고 올해 인두세를 반으로 줄인다." 사람들이 포고문 앞에 모였다.`,
@@ -154,7 +157,7 @@ EVENTS.push(
     chance: () => 0.04, weight: 45,
     prepare: (g, rng) => { const n = living(g).filter((p) => !p.isPlayer && !isFamily(g, p) && ageYears(p) >= 18); return { id: n.length ? rng.pick(n).id : null }; },
     title: '광장의 태형',
-    text: (g, c) => `영주의 기사가 ${nm(byId(g, c.id), '마을 사람 하나')}을(를) 광장 기둥에 묶었다. 영주의 숲에서 토끼를 잡았다는 죄다. 태형 스무 대. 마을 사람들은 모두 나와 보라는 명령이다.`,
+    text: (g, c) => `영주의 기사가 ${J(nm(byId(g, c.id), '마을 사람 하나'), '을/를')} 광장 기둥에 묶었다. 영주의 숲에서 토끼를 잡았다는 죄다. 태형 스무 대. 마을 사람들은 모두 나와 보라는 명령이다.`,
     choices: [
       { label: '끝까지 지켜본다', run: (g, rng, c) => { gainStat(g, 'wil', 0.8); stress(g, 15); const n = byId(g, c.id); if (n) note(g, n, '영주의 숲에서 사냥한 죄로 광장에서 태형을 맞았다.'); return '열 대째에 비명이 멎었다. 스무 대가 끝나자 기사는 아무 일 없다는 듯 떠났다. 그날 저녁 마을은 아무도 말하지 않았다.'; } },
       { label: '"이미 정신을 잃었습니다!"', run: (g, rng, c) => { const n = byId(g, c.id); like(n, 20); if (check(rng, stat(g, 'cha') + stat(g, 'wil'), 40)) { gainStat(g, 'wil', 1.0); setFlag(g, 'defied_lord'); return '기사가 고개를 돌렸다. 한참 나를 노려보더니 손을 들었다. "나머지는 다음에." 그 눈빛을 기억할 것이다.'; } injure(g, '태형 다섯 대', 2); setFlag(g, 'defied_lord'); return '"그럼 네가 나머지를 맞아라." 다섯 대를 대신 맞았다. 등이 불타는 것 같았다. 마을 사람들이 나를 업어 갔다.'; } },
@@ -168,9 +171,9 @@ EVENTS.push(
     chance: (g) => 0.02 + (R(g).monsters - 50) * 0.002, weight: 75,
     prepare: (g, rng) => ({ kind: rng.pick(['고블린 무리', '오크 척후대', '굶주린 늑대 떼', '거대한 독거미']) }),
     title: '마물의 밤',
-    text: (g, c) => `경종이 울렸다. ${c.kind}이(가) 울타리를 넘어 들어오고 있다. 경비병 하나로는 어림없다. 어른들이 무기가 될 만한 것을 집어 든다.`,
+    text: (g, c) => `경종이 울렸다. ${J(c.kind, '이/가')} 울타리를 넘어 들어오고 있다. 경비병 하나로는 어림없다. 어른들이 무기가 될 만한 것을 집어 든다.`,
     choices: [
-      { label: '무기를 들고 앞으로 나간다', run: (g, rng, c) => { const power = skill(g, 'sword') + stat(g, 'str') / 2 + (circleOf(g) * 12); if (check(rng, power, 50)) { gainSkill(g, 'sword', 3.0, 'str'); gainStat(g, 'wil', 1.5); setFlag(g, 'monster_slayer', (flag(g, 'monster_slayer') ?? 0) + 1); return `${c.kind}의 우두머리가 내 앞에서 쓰러졌다. 손이 떨려 무기를 놓치지 못했다. 다음 날 아침, 사람들이 나를 보는 눈이 달라져 있었다.`; } injure(g, `${c.kind.replace(/ .*/, '')}에게 물린 어깨`, 4); stress(g, 25); const v = rng.pick(living(g).filter((p) => !p.isPlayer && !isFamily(g, p) && ageYears(p) >= 18)); if (v && rng.chance(0.5)) { kill(g, v, '마물 습격'); return `어깨를 물려 쓰러졌다. 새벽이 되어서야 마물들이 물러갔다. ${v.name}은(는) 아침을 보지 못했다.`; } return '어깨를 물려 쓰러졌다. 새벽이 되어서야 마물들이 물러갔다.'; } },
+      { label: '무기를 들고 앞으로 나간다', run: (g, rng, c) => { const power = skill(g, 'sword') + stat(g, 'str') / 2 + (circleOf(g) * 12); if (check(rng, power, 50)) { gainSkill(g, 'sword', 3.0, 'str'); gainStat(g, 'wil', 1.5); setFlag(g, 'monster_slayer', (flag(g, 'monster_slayer') ?? 0) + 1); return `${c.kind}의 우두머리가 내 앞에서 쓰러졌다. 손이 떨려 무기를 놓치지 못했다. 다음 날 아침, 사람들이 나를 보는 눈이 달라져 있었다.`; } injure(g, `${c.kind.replace(/ .*/, '')}에게 물린 어깨`, 4); stress(g, 25); const v = rng.pick(living(g).filter((p) => !p.isPlayer && !isFamily(g, p) && ageYears(p) >= 18)); if (v && rng.chance(0.5)) { kill(g, v, '마물 습격'); return `어깨를 물려 쓰러졌다. 새벽이 되어서야 마물들이 물러갔다. ${J(v.name, '은/는')} 아침을 보지 못했다.`; } return '어깨를 물려 쓰러졌다. 새벽이 되어서야 마물들이 물러갔다.'; } },
       { label: '아이들과 노인을 예배당으로 피신시킨다', run: (g) => { gainStat(g, 'cha', 0.8); gainStat(g, 'wil', 0.5); for (const p of peers(g, 60).slice(0, 4)) like(p, 4); return '울부짖는 아이들을 이끌고 예배당 문을 걸어 잠갔다. 밤새 문 두드리는 소리를 들었다. 아침에 문을 열었을 때, 안의 사람은 모두 살아 있었다.'; } },
       { label: '집 문을 걸어 잠근다', run: (g) => { stress(g, 15); spendFamily(g, 4); return '밤새 비명이 들렸다. 아침에 헛간의 양 세 마리가 사라져 있었다.'; } },
     ],
@@ -247,7 +250,7 @@ EVENTS.push(
     choices: [
       { label: '"그분은 약초만 다룹니다."', run: (g, rng) => { const m = findJob(g, 'hedge_mage'); like(m, 15); if (check(rng, stat(g, 'cha') + stat(g, 'wil'), 35)) { gainStat(g, 'wil', 0.8); return '심문관이 내 눈을 오래 들여다보았다. "아이의 눈은 거짓을 못 하지." 그들은 떠났다. 그날 밤 마법사가 문 앞에 작은 꾸러미를 두고 갔다.'; } setFlag(g, 'inquisition_marked'); return '심문관이 내 이름을 받아 적었다. 마법사는 무사했지만, 내 이름은 어딘가의 장부에 남았다.'; } },
       { label: '본 것을 말한다', run: (g) => { const m = findJob(g, 'hedge_mage'); if (m) m.affection -= 30; setFlag(g, 'informed_inquisition'); note(g, m, '이단심문관에게 끌려가 심문을 받았다.'); return '마법사는 사흘 동안 끌려갔다가 돌아왔다. 손가락 둘이 없었다. 그는 다시는 내게 말을 걸지 않았다.'; } },
-      { label: '마법사에게 몰래 알린다', run: (g) => { const m = findJob(g, 'hedge_mage'); like(m, 25); if (m) m.away = true; note(g, m, '이단심문관을 피해 한밤중에 마을을 떠났다.'); setFlag(g, 'warned_mage'); return `${nm(m, '떠돌이 마법사')}은(는) 그날 밤 오두막을 비웠다. 떠나기 전 내 손에 무언가를 쥐여 주었다. 술식이 새겨진 작은 뼈 조각. "언젠가 쓸 데가 있을 거다."`; } },
+      { label: '마법사에게 몰래 알린다', run: (g) => { const m = findJob(g, 'hedge_mage'); like(m, 25); if (m) m.away = true; note(g, m, '이단심문관을 피해 한밤중에 마을을 떠났다.'); setFlag(g, 'warned_mage'); return `${J(nm(m, '떠돌이 마법사'), '은/는')} 그날 밤 오두막을 비웠다. 떠나기 전 내 손에 무언가를 쥐여 주었다. 술식이 새겨진 작은 뼈 조각. "언젠가 쓸 데가 있을 거다."`; } },
     ],
   },
   {
@@ -271,7 +274,7 @@ EVENTS.push(
     choices: [
       { label: '받는다', run: (g, rng) => { if (rng.chance(0.8)) { g.player.money += 5; setFlag(g, 'black_glove', (flag(g, 'black_glove') ?? 0) + 1); nudge(g, 'blackGlove', 0.3); return '꾸러미는 묵직했고 쇳소리가 났다. 대장간 주인은 아무것도 묻지 않았다. 은화 다섯. 쉬웠다. 너무 쉬웠다.'; } injure(g, '경비대에 끌려가 맞은 상처', 2); stress(g, 25); setFlag(g, 'criminal_record'); return '남문에서 경비대가 꾸러미를 뒤졌다. 안에서 밀수 마석이 쏟아졌다. 사흘을 유치장에서 보냈다. 사내는 물론 찾을 수 없었다.'; } },
       { label: '거절한다', run: (g) => { gainStat(g, 'wil', 0.3); return '"똑똑하군. 아니면 겁쟁이거나." 사내는 웃으며 다른 아이를 불렀다.'; } },
-      { label: '경비대에 신고한다', run: (g) => { const gd = findJob(g, 'guard'); like(gd, 5); setFlag(g, 'black_glove_grudge'); return `${nm(gd, '경비병')}은(는) 한숨을 쉬었다. "그놈들은 건드리면 안 된다, 꼬마. 하르펜 경비대장도 그놈들 돈을 받아." 신고는 아무 일도 일으키지 않았다. 다만 그 골목의 사내가 나를 기억하게 됐다.`; } },
+      { label: '경비대에 신고한다', run: (g) => { const gd = findJob(g, 'guard'); like(gd, 5); setFlag(g, 'black_glove_grudge'); return `${J(nm(gd, '경비병'), '은/는')} 한숨을 쉬었다. "그놈들은 건드리면 안 된다, 꼬마. 하르펜 경비대장도 그놈들 돈을 받아." 신고는 아무 일도 일으키지 않았다. 다만 그 골목의 사내가 나를 기억하게 됐다.`; } },
     ],
   },
   {
@@ -332,3 +335,9 @@ EVENTS.push(
     ],
   },
 );
+
+// 48단계: 레오니아 왕실·영주·내전 사건은 레오니아 땅에 살 때만. 예전엔 엘프 은잎 마을의 여덟 살에게도
+// '오스발트 3세의 국상'과 예배당 종소리가 떴다. (먼 나라의 국상은 소식으로만 닿는다)
+const LEONIA_ONLY = ['war_levy_horse', 'civil_banner', 'civil_looters', 'king_mourning', 'coronation', 'lord_procession', 'lord_public_flogging', 'balhart_spy'];
+const inLeonia = (g) => { const pl = g.life?.place ?? 'ern'; return !g.life?.travel && (PLACES[pl]?.realm ?? (pl === 'estella' ? 'wild' : 'leonia')) === 'leonia'; };
+for (const e of EVENTS) if (LEONIA_ONLY.includes(e.id) && !e.leoniaOnly) { const c = e.cond; e.cond = (g, ...a) => inLeonia(g) && c(g, ...a); e.leoniaOnly = true; }

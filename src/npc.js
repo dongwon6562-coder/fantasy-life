@@ -1,5 +1,6 @@
 // 마을 NPC 생성과 한 달 시뮬레이션.
 // 플레이어가 보든 말든 NPC는 매달 늙고, 일하고, 사랑하고, 아이를 낳고, 떠나고, 죽는다.
+import { J } from './narrative/text.js';
 import {
   MALE_NAMES, FEMALE_NAMES, LAST_NAMES, JOBS, ADULT_JOB_CHOICES, TRAITS,
 } from './data.js';
@@ -175,7 +176,7 @@ export function simulateMonth(game, rng) {
       if (Math.floor(before / 25) < Math.floor(p.skill / 25) && p.skill >= 50) {
         const t = `${JOBS[p.job].name}로서 솜씨가 늘어 마을에서 인정받기 시작했다.`;
         note(p, t);
-        ev(`${fullName(p)}의 ${JOBS[p.job].name} 솜씨가 좋아졌다는 말이 돈다.`, [p.id], 1);
+        events.push({ text: `${fullName(p)}의 ${JOBS[p.job].name} 솜씨가 좋아졌다는 말이 돈다.`, who: [p.id], weight: 1, small: true });
       }
     }
 
@@ -189,7 +190,7 @@ export function simulateMonth(game, rng) {
       p.job = job;
       p.skill = rng.int(3, 15);
       note(p, `성인이 되어 ${JOBS[job].name}의 길을 걷기 시작했다.`);
-      ev(`${fullName(p)}이(가) 성인이 되어 ${JOBS[job].name} 일을 시작했다.`, [p.id], 2);
+      ev(`${J(fullName(p), '이/가')} 성인이 되어 ${JOBS[job].name} 일을 시작했다.`, [p.id], 2);
     }
 
     // 건강과 죽음 (몸 나이로)
@@ -212,14 +213,14 @@ export function simulateMonth(game, rng) {
     if (p.job === 'adventurer' && age >= 18 && rng.chance(0.006)) {
       p.away = true;
       note(p, '더 큰 의뢰를 찾아 하르펜으로 떠났다.');
-      ev(`${fullName(p)}이(가) 더 큰 의뢰를 찾아 마을을 떠났다.`, [p.id], 3);
+      ev(`${J(fullName(p), '이/가')} 더 큰 의뢰를 찾아 마을을 떠났다.`, [p.id], 3);
       continue;
     }
     // 젊은이 일부는 도시로 떠난다
     if (p.job !== 'child' && age >= 16 && age <= 25 && !p.spouseId && (has(p, 'ambitious') ? rng.chance(0.004) : rng.chance(0.0008))) {
       p.away = true;
       note(p, '도시에서 일을 찾겠다며 마을을 떠났다.');
-      ev(`${fullName(p)}이(가) 도시에서 일을 찾겠다며 마을을 떠났다.`, [p.id], 3);
+      ev(`${J(fullName(p), '이/가')} 도시에서 일을 찾겠다며 마을을 떠났다.`, [p.id], 3);
       continue;
     }
   }
@@ -236,9 +237,9 @@ export function simulateMonth(game, rng) {
     const b = rng.pick(valid);
     a.spouseId = b.id; b.spouseId = a.id;
     b.lastName = a.lastName;
-    note(a, `${b.name}와(과) 혼인했다.`);
-    note(b, `${a.name}와(과) 혼인했다.`);
-    ev(`${fullName(a)}와(과) ${b.name}이(가) 성광교 예배당에서 혼인했다.`, [a.id, b.id], 3);
+    note(a, `${J(b.name, '과/와')} 혼인했다.`);
+    note(b, `${J(a.name, '과/와')} 혼인했다.`);
+    ev(`${J(fullName(a), '과/와')} ${J(b.name, '이/가')} 성광교 예배당에서 혼인했다.`, [a.id, b.id], 3);
   }
 
   // 출산
@@ -259,8 +260,8 @@ export function simulateMonth(game, rng) {
     else baby.name = freshName(baby.name, baby.sex, taken);
     game.people.push(baby);
     w.childIds.push(baby.id); h.childIds.push(baby.id);
-    note(w, `${baby.sex === 'm' ? '아들' : '딸'} ${baby.name}을(를) 낳았다.`);
-    note(h, `${baby.sex === 'm' ? '아들' : '딸'} ${baby.name}이(가) 태어났다.`);
+    note(w, `${baby.sex === 'm' ? '아들' : '딸'} ${J(baby.name, '을/를')} 낳았다.`);
+    note(h, `${baby.sex === 'm' ? '아들' : '딸'} ${J(baby.name, '이/가')} 태어났다.`);
     note(baby, '태어났다.');
     ev(`${fullName(h)}의 집에 ${baby.sex === 'm' ? '아들' : '딸'}이 태어났다. 이름은 ${baby.name}.`, [w.id, h.id, baby.id], 2);
   }
@@ -280,18 +281,18 @@ export function simulateMonth(game, rng) {
 
 function deathText(p) {
   const c = p.deathCause;
-  if (c === '노환') return `${fullName(p)}이(가) 노환으로 세상을 떠났다. 향년 ${ageYears(p)}세.`;
-  if (c?.includes('마물')) return `${fullName(p)}이(가) 의뢰 중 마물에게 목숨을 잃었다는 소식이 왔다.`;
-  return `${fullName(p)}이(가) ${c}(으)로 세상을 떠났다. ${ageYears(p)}세였다.`;
+  if (c === '노환') return `${J(fullName(p), '이/가')} 노환으로 세상을 떠났다. 향년 ${ageYears(p)}세.`;
+  if (c?.includes('마물')) return `${J(fullName(p), '이/가')} 의뢰 중 마물에게 목숨을 잃었다는 소식이 왔다.`;
+  return `${J(fullName(p), '이/가')} ${J(c, '으로/로')} 세상을 떠났다. ${ageYears(p)}세였다.`;
 }
 
 export function kill(game, p, cause) {
   p.alive = false;
   p.deathCause = cause;
-  p.history.push({ y: game.date.year, m: game.date.month, text: `${cause}(으)로 세상을 떠났다.` });
+  p.history.push({ y: game.date.year, m: game.date.month, text: `${J(cause, '으로/로')} 세상을 떠났다.` });
   const s = byId(game, p.spouseId);
   if (s) {
-    s.history.push({ y: game.date.year, m: game.date.month, text: `배우자 ${p.name}을(를) 잃었다.` });
+    s.history.push({ y: game.date.year, m: game.date.month, text: `배우자 ${J(p.name, '을/를')} 잃었다.` });
     s.spouseId = null;
   }
 }

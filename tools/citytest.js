@@ -210,6 +210,8 @@ const adv = (g, n = 1) => { for (let i = 0; i < n; i++) { g.date.month = (g.date
   const v = clone(globalThis.MILL); placeAt(v, 'ern'); let moved = 0;
   // 처음 마을에 있던 사람 가운데 떠난 사람을 센다 (새로 태어난 아이로 머릿수가 메워져도 떠난 건 떠난 것)
   const start = v.people.filter((x) => x.alive && (x.place ?? 'ern') === 'ern').map((x) => x.id);
+  // 48단계 도우미3: 판에 따라 마을에 떠날 만한 나이(16~40)의 직조공·날품팔이가 하나뿐이라 여섯 해 동안 아무도 안 떠났다. 젊은 농부 셋을 직조공으로 둔다
+  v.people.filter((x) => x.alive && !x.isPlayer && (x.place ?? 'ern') === 'ern' && x.job === 'farmer' && x.ageMonths >= 18 * 12 && x.ageMonths < 35 * 12).slice(0, 3).forEach((x) => { x.job = 'weaver'; });
   const v0 = start.length; adv(v, 12 * 6);
   const villagers = () => start.filter((id) => { const x = v.people.find((y) => y.id === id); return x && (!x.alive || (x.place ?? 'ern') === 'ern'); }).length;
   moved = v0 - villagers();

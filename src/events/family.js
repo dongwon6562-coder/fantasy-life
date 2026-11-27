@@ -1,4 +1,5 @@
 // 집안마다 다른 사건: 자작농, 몰락한 기사 가문, 상인 집안.
+import { J } from '../narrative/text.js';
 import { gainStat, gainSkill } from '../game.js';
 import { realm, lordName } from '../world.js';
 import { startDuel } from '../duel/duel.js';
@@ -16,7 +17,7 @@ EVENTS.push(
     cond: (g) => fam(g) === 'farmer' && age(g) >= 9 && g.date.month >= 3 && g.date.month <= 4,
     weight: 70, chance: () => 0.5,
     title: '첫 쟁기질',
-    text: (g) => `${nm(dad(g), '어른')}이(가) 쟁기 손잡이를 넘겨주었다. "소가 끄는 대로 가지 마라. 네가 소를 끄는 거다."`,
+    text: (g) => `${J(nm(dad(g), '어른'), '이/가')} 쟁기 손잡이를 넘겨주었다. "소가 끄는 대로 가지 마라. 네가 소를 끄는 거다."`,
     choices: [
       { label: '이를 악물고 끝까지 간다', run: (g) => { gainSkill(g, 'farming', 3.0, 'str'); gainStat(g, 'str', 0.8); tire(g, 15); like(dad(g), 6); return '고랑은 뱀처럼 휘었지만 끝까지 갔다. 저녁에 아버지가 말없이 어깨를 두드렸다.'; } },
       { label: '소를 달래 가며 천천히 간다', run: (g) => { gainSkill(g, 'farming', 2.5, 'sen'); gainStat(g, 'sen', 0.6); return '소의 숨소리에 맞춰 걸었다. 고랑이 곧았다. 아버지가 눈썹을 올렸다. "누구한테 배웠냐."'; } },
@@ -30,7 +31,7 @@ EVENTS.push(
     text: () => '밀 이삭 끝이 검게 썩어 들어간다. 밭 한구석에서 시작된 것이 바람을 타고 번지고 있다.',
     choices: [
       { label: '썩은 곳을 베어 태운다', run: (g) => { tire(g, 15); gainSkill(g, 'farming', 1.5, 'int'); spendFamily(g, 3); return '밭의 오분의 일을 불태웠다. 아버지는 이를 악물었지만, 나머지는 살았다.'; } },
-      { label: '약초사에게 묻는다', show: (g) => !!findJob(g, 'herbalist'), run: (g) => { const h = findJob(g, 'herbalist'); like(h, 4); gainSkill(g, 'herbs', 1.5, 'int'); spendFamily(g, 2); return `${h.name}이(가) 쓴 쑥과 재를 섞어 뿌리라고 했다. 효과가 있었는지는 모르지만, 번지는 건 멈췄다.`; } },
+      { label: '약초사에게 묻는다', show: (g) => !!findJob(g, 'herbalist'), run: (g) => { const h = findJob(g, 'herbalist'); like(h, 4); gainSkill(g, 'herbs', 1.5, 'int'); spendFamily(g, 2); return `${J(h.name, '이/가')} 쓴 쑥과 재를 섞어 뿌리라고 했다. 효과가 있었는지는 모르지만, 번지는 건 멈췄다.`; } },
       { label: '성수를 뿌리며 기도한다', run: (g) => { spendFamily(g, 8); return '사제가 성수를 뿌렸다. 병은 계속 번졌고, 가을 수확은 절반이었다.'; } },
     ],
   },
@@ -40,10 +41,10 @@ EVENTS.push(
     chance: () => 0.03, weight: 45,
     prepare: (g, rng) => { const n = peers(g, 40).filter((p) => p.job === 'farmer' && p.id !== father(g)?.id); return { id: n.length ? rng.pick(n).id : null }; },
     title: '경계석',
-    text: (g, c) => `밤사이 밭 경계석이 한 걸음 우리 쪽으로 옮겨져 있다. 옆 밭의 ${nm(byId(g, c.id), '이웃')}은(는) 처음부터 거기 있었다고 우긴다. ${dad(g).name}의 얼굴이 시뻘게졌다.`,
+    text: (g, c) => `밤사이 밭 경계석이 한 걸음 우리 쪽으로 옮겨져 있다. 옆 밭의 ${J(nm(byId(g, c.id), '이웃'), '은/는')} 처음부터 거기 있었다고 우긴다. ${dad(g).name}의 얼굴이 시뻘게졌다.`,
     choices: [
       { label: '아버지 편에서 따진다', run: (g, rng, c) => { const n = byId(g, c.id); if (n) n.affection -= 10; like(dad(g), 5); gainStat(g, 'wil', 0.5); return '말다툼이 고함이 되고, 고함이 주먹다짐 직전까지 갔다. 경계석은 제자리로 돌아왔지만, 두 집은 그 뒤로 인사도 하지 않는다.'; } },
-      { label: '촌장에게 판정을 맡기자고 한다', run: (g, rng, c) => { const e = findJob(g, 'elder'); like(e, 5); gainStat(g, 'int', 0.6); return `${nm(e, '촌장')}이(가) 오래된 토지 대장을 꺼냈다. 경계석은 반걸음씩 양보한 자리에 다시 박혔다. 양쪽 다 불만이었지만, 싸움은 끝났다.`; } },
+      { label: '촌장에게 판정을 맡기자고 한다', run: (g, rng, c) => { const e = findJob(g, 'elder'); like(e, 5); gainStat(g, 'int', 0.6); return `${J(nm(e, '촌장'), '이/가')} 오래된 토지 대장을 꺼냈다. 경계석은 반걸음씩 양보한 자리에 다시 박혔다. 양쪽 다 불만이었지만, 싸움은 끝났다.`; } },
       { label: '밤에 몰래 원래대로 옮긴다', run: (g, rng, c) => { gainStat(g, 'str', 0.5); if (check(rng, stat(g, 'agi') + stat(g, 'sen'), 25)) return '달 없는 밤에 경계석을 옮겼다. 아침에 이웃은 아무 말도 하지 못했다. 서로 알면서 모르는 척했다.'; const n = byId(g, c.id); if (n) n.affection -= 15; stress(g, 10); return '돌을 굴리다 이웃에게 들켰다. 마을 전체가 알게 되었다.'; } },
     ],
   },
@@ -66,7 +67,7 @@ EVENTS.push(
     cond: (g) => fam(g) === 'fallen_knight' && age(g) >= 8 && !!dad(g) && flag(g, 'ev_knight_sword'),
     weight: 75, chance: () => 0.25,
     title: '유수류의 첫 자세',
-    text: (g) => `새벽 마당. ${dad(g).name}이(가) 목검을 쥐여 주었다. "우리 가문은 대대로 유수류다. 먼저 베지 않는다. 흘리고, 받는다. 오늘은 서는 법만 배운다."`,
+    text: (g) => `새벽 마당. ${J(dad(g).name, '이/가')} 목검을 쥐여 주었다. "우리 가문은 대대로 유수류다. 먼저 베지 않는다. 흘리고, 받는다. 오늘은 서는 법만 배운다."`,
     choices: [
       { label: '해가 뜰 때까지 버틴다', run: (g) => { gainSkill(g, 'sword', 3.0, 'wil'); gainStat(g, 'wil', 1.0); tire(g, 15); setFlag(g, 'school', 'yusu'); return '다리가 떨리고 팔이 끊어질 것 같았다. 해가 뜨자 아버지가 목검을 거두었다. "내일도 한다."'; } },
       { label: '"베는 법을 배우고 싶어요."', run: (g) => { gainSkill(g, 'sword', 2.0, 'str'); like(dad(g), -3); setFlag(g, 'school', 'yusu'); return '"베는 건 누구나 한다. 살아남는 게 어렵지." 아버지는 그 말만 하고 다시 자세를 잡게 했다.'; } },
@@ -113,7 +114,7 @@ EVENTS.push(
     cond: (g) => fam(g) === 'merchant' && age(g) >= 7,
     chance: () => 0.15, weight: 55,
     title: '흥정',
-    text: (g) => `가게를 보던 중 손님이 들어왔다. ${nm(alive(mother(g)) ? mother(g) : dad(g), '어른')}은(는) 창고에 있다. 손님이 소금 한 자루를 들고 반값을 부른다.`,
+    text: (g) => `가게를 보던 중 손님이 들어왔다. ${J(nm(alive(mother(g)) ? mother(g) : dad(g), '어른'), '은/는')} 창고에 있다. 손님이 소금 한 자루를 들고 반값을 부른다.`,
     choices: [
       { label: '정가를 고집한다', run: (g) => { gainSkill(g, 'trade', 1.5, 'wil'); return '손님은 투덜대며 나갔다가 다시 들어왔다. 결국 정가에 샀다. 어머니가 웃었다. "물건이 좋으면 손님은 돌아온다."'; } },
       { label: '덤을 얹어 준다', run: (g) => { gainSkill(g, 'trade', 2.0, 'cha'); gainStat(g, 'cha', 0.4); return '값은 조금 깎아 주고 마른 무화과 한 줌을 얹었다. 손님은 다음 장날 친구 둘을 데려왔다.'; } },
@@ -127,7 +128,7 @@ EVENTS.push(
     title: '가벼운 은화',
     text: () => '오늘 받은 은화 가운데 하나가 이상하게 가볍다. 깨물어 보니 속이 납이다. 위조 은화다. 은화 한 닢이면 평민 하루 품삯이다.',
     choices: [
-      { label: '경비대에 신고한다', run: (g) => { const gd = findJob(g, 'guard'); like(gd, 6); gainStat(g, 'wil', 0.4); return `${nm(gd, '경비병')}이(가) 은화를 받아 갔다. 한 달 뒤, 하르펜에서 위조 조직이 잡혔다는 소식이 들렸다. 그 은화가 실마리였다고 한다.`; } },
+      { label: '경비대에 신고한다', run: (g) => { const gd = findJob(g, 'guard'); like(gd, 6); gainStat(g, 'wil', 0.4); return `${J(nm(gd, '경비병'), '이/가')} 은화를 받아 갔다. 한 달 뒤, 하르펜에서 위조 조직이 잡혔다는 소식이 들렸다. 그 은화가 실마리였다고 한다.`; } },
       { label: '다른 손님에게 거슬러 준다', run: (g) => { setFlag(g, 'passed_fake', true); gainSkill(g, 'trade', 0.8, 'cha'); return '아무렇지 않은 얼굴로 거스름돈에 섞었다. 손님은 몰랐다. 장사는 원래 이런 거라고, 스스로에게 말했다.'; } },
       { label: '그냥 손해로 친다', run: (g) => { spendFamily(g, 1); return '은화를 녹여 버렸다. 아버지는 "수업료다"라고 했다.'; } },
     ],

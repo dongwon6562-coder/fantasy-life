@@ -446,7 +446,7 @@ defineScene('faith_convert', {
     f.convertedAt = mi(g);
     if (key === 'solar') f.suspicion = Math.max(0, f.suspicion - 30);
     syncFlag(g);
-    note(g, `${godName(prev)}을(를) 떠나 ${J(godName(key), '으로/로')} 개종했다.`);
+    note(g, `${J(godName(prev), '을/를')} 떠나 ${J(godName(key), '으로/로')} 개종했다.`);
     chron(g, `${g.player.name}, ${J(godName(key), '으로/로')} 개종하다.`, 50);
     // 독실한 가족은 서운해한다
     const hurt = [];
@@ -729,7 +729,7 @@ ACTIONS.push({
     if (g.player.manaAwakened) g.player.mana = (g.player.mana ?? 0) + 1.5 + g.player.manaPotential * 2;
     const w = gainStat(g, 'wil', 0.4);
     let rank = '';
-    if (d.rank < 2 && d.rites >= [6, 18][d.rank]) { d.rank += 1; rank = ` 오늘부터 나는 ${DAWN_RANKS[d.rank]}다.`; note(g, `검은 새벽의 ${DAWN_RANKS[d.rank]}이(가) 되었다.`); }
+    if (d.rank < 2 && d.rites >= [6, 18][d.rank]) { d.rank += 1; rank = ` 오늘부터 나는 ${DAWN_RANKS[d.rank]}다.`; note(g, `검은 새벽의 ${J(DAWN_RANKS[d.rank], '이/가')} 되었다.`); }
     return `${rng.pick(['촛불 아홉 개 사이에서 검은 해의 기도문을 외웠다. 땅 밑에서 무언가가 대답하는 것 같았다.', '두건 쓴 사람들이 손목을 그어 피를 한 그릇에 모았다. 내 피도 섞였다. 따뜻했다.', '사도가 마신이 깨어나는 날의 이야기를 했다. 왕들이 무릎을 꿇고, 교황의 금관이 진창에 구른다.'])}${rank}${gains([up('의지', w), g.player.manaAwakened ? '마력 +' : null])}`;
   },
 });

@@ -1,4 +1,5 @@
 // 게임 상태와 한 달 진행.
+import { J } from './narrative/text.js';
 import { fixParents } from './narrative/parents.js';
 import { makeRng } from './rng.js';
 import { FAMILIES, START_YEAR, STATS, SKILLS, MONTHS, JOBS } from './data.js';
@@ -91,7 +92,7 @@ export function newGame({ name, sex, familyId, mode, seed, birth }) {
   };
   runHooks('newGame', game, rng);
   game.nextId = getNextId();
-  game.news = [{ text: `${fullName(father)}와(과) ${mother.name}의 집에 아이가 태어났다. 이름은 ${name}.`, rel: 100 }];
+  game.news = [{ text: `${J(fullName(father), '과/와')} ${mother.name}의 집에 아이가 태어났다. 이름은 ${name}.`, rel: 100 }];
   game.chronicle.push({ y: game.date.year, m: game.date.month, text: `${name}, ${fam.name}에서 태어나다.`, rel: 100 });
   me.history.push({ y: game.date.year, m: game.date.month, text: `${fam.name}에서 태어났다.` });
   return game;
@@ -197,7 +198,7 @@ export function endMonth(game, choices) {
     inj.months -= 1;
     p.fatigue += 4;
     if (inj.months <= 0 && /물린|베인/.test(inj.name)) {
-      me(game).history.push({ y: game.date.year, m: game.date.month, text: `${inj.name}이(가) 아물었지만 흉터가 남았다.` });
+      me(game).history.push({ y: game.date.year, m: game.date.month, text: `${J(inj.name, '이/가')} 아물었지만 흉터가 남았다.` });
       (p.scars ??= []).push(inj.name);
     }
   }
@@ -247,9 +248,10 @@ export function endMonth(game, choices) {
   // 이번 달 소식 고르기: 관계 × 사건 크기
   const scored = sim.map((e) => {
     const rel = Math.max(...e.who.map((id) => relevance(game, byId(game, id))));
-    return { text: e.text, rel, score: rel * e.weight };
+    return { text: e.text, rel, score: rel * e.weight, small: !!e.small };
   });
-  for (const e of scored) game.chronicle.push({ y: game.date.year, m: game.date.month, text: e.text, rel: e.rel });
+  // 48단계: 'OO의 솜씨가 좋아졌다는 말이 돈다' 같은 작은 소문(무게 1)은 아는 사람 것만 연대기에 남긴다 (한 달에 몇 줄씩 쌓여 큰 일을 덮었다)
+  for (const e of scored) if (!e.small || e.rel >= 40) game.chronicle.push({ y: game.date.year, m: game.date.month, text: e.text, rel: e.rel });
   scored.sort((a, b) => b.score - a.score);
   const news = scored.filter((e) => e.rel >= 40 || e.score >= 16).slice(0, 4);
   // 소문으로 모르는 사람 이야기도 하나쯤

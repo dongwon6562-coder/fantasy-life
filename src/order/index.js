@@ -9,6 +9,7 @@ import { J } from '../narrative/text.js';
 import { OS, orderOf, inOrder, level, rankName, myOrderName, brothers, atSeat, here, mi, ownRng, ORDERS, ORDER_IDS, NEW_ORDERS } from './core.js';
 import { orderMonth } from './life.js';
 import { orderYear, orderWorldMonth } from './world.js';
+import { seldom } from '../rumor/seldom.js';
 
 export { OS as orderState } from './core.js';
 export { startHeresy } from './world.js';
@@ -74,7 +75,7 @@ export function orderLine(g) {
     const o = orderOf(g, id);
     if (o.fallen) return `무너진 ${ORDERS[id].hall}의 빈 망루에 까마귀가 앉아 있다.`;
     if (o.heresy) return `${ORDERS[id].hall} 앞에 이단심문소 경비병들이 서 있다.`;
-    return `${ORDERS[id].hall} 위로 ${ORDERS[id].banner}이 펄럭인다.`;
+    return seldom(g, `order:${id}`, 36) ? `${ORDERS[id].hall} 위로 ${ORDERS[id].banner}이 펄럭인다.` : null; // 48단계: 깃발 줄은 세 해에 한 번
   }
   return null;
 }

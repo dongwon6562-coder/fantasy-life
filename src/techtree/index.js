@@ -6,6 +6,7 @@ import { makeRng } from '../rng.js';
 import { PLACES } from '../places.js';
 import { TECHS, TECH, FIELDS, ERA_KEYS } from './nodes.js';
 import { TT, isDone, isOpen, openTechs, costOf, techValue, speedOf, FOREIGN, seedTree, migrateTree } from './grow.js';
+import { seldom } from '../rumor/seldom.js';
 
 export { TECHS, TECH, TECH_IDS, FIELDS, ERA_KEYS, HAND } from './nodes.js';
 export { techGrow, techValue, openTechs, isOpen, costOf, FOREIGN, AFTER_TECH, ERA_TECH } from './grow.js';
@@ -50,7 +51,7 @@ export function techLine(g) {
   const pl = g.life?.place ?? null;
   const T = g.techtree;
   const t = openTechs(g).find((x) => x.where === pl && (T.prog[x.id]?.[0] ?? 0) / costOf(x) >= 0.6);
-  if (!t) return null;
+  if (!t || !seldom(g, `tech:${t.id}`, 24)) return null; // 48단계: 같은 연구 소문은 두 해에 한 번
   if (T.abroad[t.id]) return `${FOREIGN[T.abroad[t.id][0]].name}에서 들여온 ${t.name} 이야기를 공방 사람들이 입에 달고 산다. 흉내 낸 물건이 곧 나온다고 한다.`;
   return `${HINT[t.field]}. 이 고장 어딘가에서 곧 무언가 새것이 나올 것 같다.`;
 }

@@ -49,11 +49,12 @@ ACTIONS.push({
   name: '짐승을 들인다',
   icon: 'coin',
   desc: '장터에서 개나 말, 매를 산다. 큰 고장에서는 군마를, 밀매 시장에서는 마수 새끼를 판다. 먹이 값이 달마다 든다.',
-  available: (g) => ownAge(g) && free(g) && !!SHOPS[here(g)] && alive(g).length < MAX_ANIMALS && !sceneQueued(g, 'beast_buy'),
+  // 48단계: 아이(10~14살)는 개 한 마리까지만. 예전엔 해마다 서너 번 장터에 가서 개를 몇 마리씩 들였다
+  available: (g) => ownAge(g) && free(g) && !!SHOPS[here(g)] && alive(g).length < (isAdult(g) ? MAX_ANIMALS : 1) && !sceneQueued(g, 'beast_buy'),
   run(g, rng) { queueScene(g, 'beast_buy'); return opener(g, 'beast_buy', rng); },
 });
 defineScene('beast_buy', {
-  need: (g) => free(g) && !!SHOPS[here(g)] && alive(g).length < MAX_ANIMALS,
+  need: (g) => free(g) && !!SHOPS[here(g)] && alive(g).length < (isAdult(g) ? MAX_ANIMALS : 1),
   title: (g) => `${PLACES[here(g)]?.name ?? ''}의 짐승 장터`,
   text: (g) => SHOPS[here(g)].map((k) => `${KINDS[k].name}${KINDS[k].beast ? ' 새끼' : ''}: ${KINDS[k].desc}`).join(' '),
   choices: (g) => {
@@ -367,7 +368,7 @@ export const BEAST_EVENTS = {
   },
   familiar_vision: {
     when: (g) => !!familiarOf(g),
-    pick: (g) => familiarOf(g),
+    pick: (g) => familiarOf(g) ?? undefined, // 48단계: 사역마를 잃으면 null이 와서 장면 글이 깨졌다 (undefined면 장면을 버림)
     text: (g, a) => `밤에 ${J(a.name, '이/가')} 내 꿈속으로 들어왔다. ${a.formId === 'raven' ? '먼 산 너머 불타는 마을이 보였다.' : a.formId === 'fox' ? '길모퉁이 어둠 속에서 칼을 쥔 사람들이 기다리고 있었다.' : a.formId === 'owl' ? '오래된 책장의 글자가 하나씩 떠올라 날아다녔다.' : '웃고 있는 누군가의 얼굴 뒤에 다른 얼굴이 겹쳐 보였다.'}`,
     choices: () => [{ label: '꿈을 받아 적는다', key: 'write' }, { label: '꿈을 떨쳐 낸다', key: 'shake' }],
     run(g, rng, a, key) {
@@ -379,7 +380,7 @@ export const BEAST_EVENTS = {
   },
   familiar_witch: {
     when: (g) => !!familiarOf(g) && !['serenia'].includes(here(g)),
-    pick: (g) => familiarOf(g),
+    pick: (g) => familiarOf(g) ?? undefined, // 48단계: 사역마를 잃으면 null이 와서 장면 글이 깨졌다 (undefined면 장면을 버림)
     text: (g, a) => `장터에서 성광교 사제가 내 어깨의 ${J(a.form ?? '사역마', '을/를')} 가리켰다. "저것은 짐승이 아니다. 마녀의 영혼이 붙은 것이다!" 사람들이 물러섰다.`,
     choices: () => [{ label: '마탑의 허가로 맞선다', key: 'argue' }, { label: '사역마를 품에 숨기고 자리를 뜬다', key: 'hide' }, { label: '사제에게 은화를 쥐여 준다 (은화 5닢)', key: 'bribe' }],
     run(g, rng, a, key) {

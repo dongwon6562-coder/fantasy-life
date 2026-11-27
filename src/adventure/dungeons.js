@@ -188,7 +188,7 @@ ACTIONS.push({
   id: 'gear',
   name: '장비 맞추기',
   desc: '대장간과 무구점에서 무기와 갑옷을 산다.',
-  available: (g) => !traveling(g) && g.player.money >= 10 && L(g).place !== 'ern' && !sceneQueued(g, 'gear'),
+  available: (g) => !traveling(g) && playerAge(g) >= 14 && g.player.money >= 10 && L(g).place !== 'ern' && !sceneQueued(g, 'gear'),
   run(g, rng) { queueScene(g, 'gear'); return opener(g, 'gear', rng); },
 });
 defineScene('gear', {

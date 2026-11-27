@@ -4,6 +4,7 @@
 // - 실제 서클(circleOf)보다 높게는 응시할 수 없다. 공인은 한 단계씩.
 // - 시험은 세 관문: 이론(문답) → 마력 제어 → 실전(시험관과의 마법 겨루기, 결투 모드).
 // - 공인받으면 마법 일의 품삯과 이름값이 오르고, 3서클 이상은 마법사 등록법을 채운다.
+import { J } from '../narrative/text.js';
 import { ACTIONS } from '../actions.js';
 import { playerAge, circleOf, gainSkill, gainStat } from '../game.js';
 import { EVENTS, josa } from '../events/core.js';
@@ -62,7 +63,7 @@ EVENTS.push({
     const n = g.magic.exam.target;
     const q = QUESTIONS[c.qi];
     const hint = g.player.skills.letters >= 30 || g.player.stats.int >= 45 ? ' 책에서 읽은 기억이 어렴풋이 떠오른다.' : '';
-    return `${g.magic.exam.place === 'leocast' ? '왕궁 서쪽 탑의 둥근 방' : '하르펜 협회 지부의 좁은 시험실'}. ${examiner(g)}이(가) 깃펜을 들고 앉아 있다. "${n}서클 승급 시험을 시작한다. 첫째 관문, 이론."\n\n"${q.q}"${hint}`;
+    return `${g.magic.exam.place === 'leocast' ? '왕궁 서쪽 탑의 둥근 방' : '하르펜 협회 지부의 좁은 시험실'}. ${J(examiner(g), '이/가')} 깃펜을 들고 앉아 있다. "${n}서클 승급 시험을 시작한다. 첫째 관문, 이론."\n\n"${q.q}"${hint}`;
   },
   choices: [0, 1, 2].map((i) => ({
     label: (g, c) => QUESTIONS[c.qi].a[c.order[i]],

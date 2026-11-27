@@ -152,6 +152,8 @@ function atWar(seed) {
 /* 2) 계약과 싸움 */
 {
   const g = captain(202000);
+  // 48단계 도우미3: 씨앗에 따라 시작부터 발하르트 전쟁이 나 있는 판이 있어(사건 길이 바뀌면 달라짐) 평화를 직접 맞춘다
+  PS(g).wars = []; if (g.realm?.balhart) g.realm.balhart.war = false;
   const peace = makeOffers(g);
   if (peace.some((o) => o.kind === 'war') || !peace.some((o) => o.kind === 'guard')) fail('peace offers', JSON.stringify(peace));
   const w = atWar(202010);

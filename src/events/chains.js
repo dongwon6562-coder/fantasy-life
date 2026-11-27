@@ -1,5 +1,6 @@
 // 사건 줄기: 몇 달에 걸쳐 이어지는 이야기. 첫 사건의 선택이 다음 사건을 부르고, 결말이 갈린다.
 // 이어지는 단계는 weight 90 이상이라 때가 되면 반드시 찾아온다.
+import { J } from '../narrative/text.js';
 import { gainStat, gainSkill, circleOf } from '../game.js';
 import { realm, nudge } from '../world.js';
 import { kill } from '../npc.js';
@@ -34,7 +35,7 @@ EVENTS.push(
     id: 'chain_illness_turn', weight: 94, cooldown: 0,
     cond: (g) => chainAt(g, 'illness', 1),
     title: '깊어지는 병',
-    text: (g) => `${nm(byId(g, C(g, 'illness').id))}이(가) 자리에서 일어나지 못한다. 밤마다 기침 소리가 벽을 타고 들린다. 하르펜 의원에게 보이려면 은화 스무 닢이 든다고 한다.`,
+    text: (g) => `${J(nm(byId(g, C(g, 'illness').id)), '이/가')} 자리에서 일어나지 못한다. 밤마다 기침 소리가 벽을 타고 들린다. 하르펜 의원에게 보이려면 은화 스무 닢이 든다고 한다.`,
     choices: [
       { label: '하르펜 의원에게 데려간다', show: (g) => g.player.familyMoney + money(g) >= 20, run: (g) => { const need = 20; const fromMe = Math.min(money(g), need); spend(g, fromMe); spendFamily(g, need - fromMe); nextStep(g, 'illness', 2, 2, { care: C(g, 'illness').care + 2 }); tire(g, 10); return '수레에 눕혀 하르펜까지 이틀을 걸었다. 의원은 마석 가루를 섞은 비싼 약을 지어 주었다. "봄까지 버티면 삽니다."'; } },
       { label: '밤새 곁을 지킨다', run: (g) => { tire(g, 25); stress(g, 15); nextStep(g, 'illness', 2, 2, { care: C(g, 'illness').care + 1 }); like(byId(g, C(g, 'illness').id), 15); return '뜨거운 수건을 갈고, 묽은 수프를 떠먹였다. 새벽이면 잠깐 눈을 붙였다. 앓는 사람이 내 손을 쥐고 놓지 않았다.'; } },
@@ -46,9 +47,9 @@ EVENTS.push(
     cond: (g) => chainAt(g, 'illness', 2),
     prepare: (g, rng) => { const d = C(g, 'illness'); const p = byId(g, d.id); const odds = 0.2 + d.care * 0.18 + ((p?.health ?? 70) - 70) * 0.005 - (g.world.famine ? 0.1 : 0); return { survive: rng.chance(Math.min(0.92, odds)) }; },
     title: '봄',
-    text: (g, c) => { const p = byId(g, C(g, 'illness').id); return c.survive ? `얼음이 녹던 아침, ${nm(p)}이(가) 혼자 일어나 창문을 열었다. 얼굴은 반쪽이 되었지만 눈빛이 돌아왔다. "배고프구나."` : `${nm(p)}의 숨이 점점 얕아진다. 가족이 침대 곁에 모였다. 사제가 마지막 기도를 준비하고 있다. 마른 손이 나를 찾는다.`; },
+    text: (g, c) => { const p = byId(g, C(g, 'illness').id); return c.survive ? `얼음이 녹던 아침, ${J(nm(p), '이/가')} 혼자 일어나 창문을 열었다. 얼굴은 반쪽이 되었지만 눈빛이 돌아왔다. "배고프구나."` : `${nm(p)}의 숨이 점점 얕아진다. 가족이 침대 곁에 모였다. 사제가 마지막 기도를 준비하고 있다. 마른 손이 나를 찾는다.`; },
     choices: [
-      { label: '손을 잡는다', run: (g, rng, c) => { const p = byId(g, C(g, 'illness').id); endChain(g, 'illness', c.survive ? 'recovered' : 'died'); if (!p) { stress(g, 10); return '봄이 왔다. 앓던 사람의 자리는 이미 비어 있었다.'; } if (c.survive) { like(p, 15); p.health = Math.max(40, (p.health ?? 60) - 15); note(g, p, '폐병을 앓았으나 이겨 냈다.'); stress(g, -20); return '그날 저녁 식탁엔 오랜만에 고기 수프가 올랐다. 다들 말없이 먹었다. 말하면 울 것 같아서.'; } kill(g, p, '폐병'); stress(g, 40); gainStat(g, 'wil', 1.5); return `"...잘 커라." 그것이 마지막 말이었다. 창밖에서 봄비가 내리기 시작했다. ${p.name}은(는) 예배당 뒤 언덕에 묻혔다.`; } },
+      { label: '손을 잡는다', run: (g, rng, c) => { const p = byId(g, C(g, 'illness').id); endChain(g, 'illness', c.survive ? 'recovered' : 'died'); if (!p) { stress(g, 10); return '봄이 왔다. 앓던 사람의 자리는 이미 비어 있었다.'; } if (c.survive) { like(p, 15); p.health = Math.max(40, (p.health ?? 60) - 15); note(g, p, '폐병을 앓았으나 이겨 냈다.'); stress(g, -20); return '그날 저녁 식탁엔 오랜만에 고기 수프가 올랐다. 다들 말없이 먹었다. 말하면 울 것 같아서.'; } kill(g, p, '폐병'); stress(g, 40); gainStat(g, 'wil', 1.5); return `"...잘 커라." 그것이 마지막 말이었다. 창밖에서 봄비가 내리기 시작했다. ${J(p.name, '은/는')} 예배당 뒤 언덕에 묻혔다.`; } },
     ],
   },
 
@@ -62,9 +63,9 @@ EVENTS.push(
     title: '징집 영장',
     text: (g) => `${realm(g) ? '영주' : '왕국'}의 기사가 문 앞에서 두루마리를 펼쳤다. "${father(g).name}, 국왕 폐하의 이름으로 징집한다. 사흘 뒤 하르펜 광장으로 출두하라." 어머니가 문틀을 붙잡았다.`,
     choices: [
-      { label: '아버지를 보낸다', run: (g) => { const f = father(g); f.away = true; note(g, f, '발하르트 전쟁에 징집되어 전선으로 떠났다.'); startChain(g, 'fatherwar', 1, 4, {}); like(f, 10); return `떠나는 날 아침, ${f.name}은(는) 내 머리에 손을 얹었다. "집을 부탁한다." 행렬이 언덕 너머로 사라질 때까지 아무도 집에 들어가지 않았다.`; } },
+      { label: '아버지를 보낸다', run: (g) => { const f = father(g); f.away = true; note(g, f, '발하르트 전쟁에 징집되어 전선으로 떠났다.'); startChain(g, 'fatherwar', 1, 4, {}); like(f, 10); return `떠나는 날 아침, ${J(f.name, '은/는')} 내 머리에 손을 얹었다. "집을 부탁한다." 행렬이 언덕 너머로 사라질 때까지 아무도 집에 들어가지 않았다.`; } },
       { label: '대납금을 내고 빼낸다', show: (g) => g.player.familyMoney >= 35, run: (g) => { spendFamily(g, 35); endChain(g, 'fatherwar', 'bought'); stress(g, 5); return '집안 돈 대부분을 털어 대납금을 냈다. 대신 가난한 집 청년 하나가 그 자리로 갔다. 그 청년의 어머니가 우리 집 앞을 지날 때마다 고개를 돌렸다.'; } },
-      { label: '숲으로 숨으라고 한다', run: (g, rng) => { const f = father(g); if (check(rng, stat(g, 'int') + stat(g, 'sen'), 40)) { endChain(g, 'fatherwar', 'hid'); setFlag(g, 'draft_dodger'); return `${f.name}은(는) 석 달 동안 사냥꾼 오두막에 숨어 지냈다. 밤마다 음식을 날랐다. 들키지 않았다. 아버지는 그 일을 평생 부끄러워했다.`; } f.away = true; spendFamily(g, 10); note(g, f, '징집을 피해 숨었다가 붙잡혀 최전선으로 끌려갔다.'); startChain(g, 'fatherwar', 1, 3, { punished: true }); stress(g, 20); return '이틀 만에 기사들이 오두막을 찾아냈다. 아버지는 묶인 채 끌려갔다. 벌금까지 물었다. 탈영 시도자는 최전선으로 보낸다고 했다.'; } },
+      { label: '숲으로 숨으라고 한다', run: (g, rng) => { const f = father(g); if (check(rng, stat(g, 'int') + stat(g, 'sen'), 40)) { endChain(g, 'fatherwar', 'hid'); setFlag(g, 'draft_dodger'); return `${J(f.name, '은/는')} 석 달 동안 사냥꾼 오두막에 숨어 지냈다. 밤마다 음식을 날랐다. 들키지 않았다. 아버지는 그 일을 평생 부끄러워했다.`; } f.away = true; spendFamily(g, 10); note(g, f, '징집을 피해 숨었다가 붙잡혀 최전선으로 끌려갔다.'); startChain(g, 'fatherwar', 1, 3, { punished: true }); stress(g, 20); return '이틀 만에 기사들이 오두막을 찾아냈다. 아버지는 묶인 채 끌려갔다. 벌금까지 물었다. 탈영 시도자는 최전선으로 보낸다고 했다.'; } },
     ],
   },
   {
@@ -136,7 +137,7 @@ EVENTS.push(
     chance: () => 0.01, weight: 70,
     prepare: (g, rng) => ({ id: rng.pick(peers(g, 5).filter((p) => ageYears(p) < 14)).id }),
     title: '돌아오지 않은 아이',
-    text: (g, c) => `${byId(g, c.id).name}이(가) 사흘째 돌아오지 않는다. 마지막으로 본 건 마을 어귀 갈림길이었다. 이웃 마을에서도 아이 둘이 사라졌다는 소식이 왔다. 사람들이 횃불을 든다.`,
+    text: (g, c) => `${J(byId(g, c.id).name, '이/가')} 사흘째 돌아오지 않는다. 마지막으로 본 건 마을 어귀 갈림길이었다. 이웃 마을에서도 아이 둘이 사라졌다는 소식이 왔다. 사람들이 횃불을 든다.`,
     choices: [
       { label: '수색대에 끼어든다', run: (g, rng, c) => { startChain(g, 'missing', 1, 1, { id: c.id, joined: true }); tire(g, 15); return '숲과 강둑을 밤새 뒤졌다. 아무것도 없었다. 그런데 돌아오는 길, 갈림길 진흙에 깊은 바퀴 자국이 보였다. 짐을 무겁게 실은 마차였다.'; } },
       { label: '그 아이의 친구들에게 묻고 다닌다', run: (g, rng, c) => { startChain(g, 'missing', 1, 1, { id: c.id, joined: true, asked: true }); gainStat(g, 'sen', 0.6); return '아이들 하나가 털어놓았다. 사라지기 전날, 단 사탕을 나눠 주던 친절한 행상 아저씨가 있었다고. 동쪽 말투였다고.'; } },
@@ -163,7 +164,7 @@ EVENTS.push(
     title: '새벽의 숲',
     text: (g, c) => { const d = C(g, 'missing'); const p = byId(g, d.id); if (d.plan === 'sneak') return c.ok ? `칼로 마차 덮개 끈을 끊었다. 안에 아이 여섯이 묶여 있었다. ${nm(p)}도 있었다. 손짓으로 조용히 하라고 했다.` : '마차에 손을 대는 순간 개가 짖었다. 보초가 벌떡 일어났다.'; if (d.plan === 'adults') return c.ok ? '마을 남자들이 함성을 지르며 빈터로 쏟아져 들어갔다. 노예상들은 마차를 버리고 달아났다.' : '마을 남자들이 빈터에 닿았을 때 노예상들은 이미 짐을 꾸려 떠난 뒤였다. 꺼진 모닥불만 남았다.'; return c.ok ? '사흘 뒤, 하르펜 경비대가 동쪽 가도에서 노예상을 붙잡았다는 소식이 왔다.' : '하르펜 경비대는 이틀 늦게 왔다. 바퀴 자국은 동쪽 가도에서 끊겨 있었다.'; },
     choices: [
-      { label: '...', run: (g, rng, c) => { const d = C(g, 'missing'); const p = byId(g, d.id); endChain(g, 'missing', c.ok ? 'rescued' : 'lost'); if (c.ok) { if (p) { like(p, 30); note(g, p, '노예상에게 붙잡혔다가 구출되었다.'); } if (d.plan === 'sneak') { gainStat(g, 'agi', 1.2); gainStat(g, 'wil', 1.2); setFlag(g, 'rescued_children'); return '아이들을 하나씩 덤불로 빼냈다. 새벽녘, 마을 어귀에서 부모들이 무너지듯 아이들을 끌어안았다. 그날 이후 마을 사람들은 내 이름을 다르게 불렀다.'; } return `${nm(p, '아이')}이(가) 부모 품으로 돌아왔다. 아이는 한동안 밤마다 울며 깼다. 그래도 돌아왔다.`; } if (p) { p.away = true; note(g, p, '노예상에게 끌려가 행방을 알 수 없게 되었다.'); } if (d.plan === 'sneak') { injure(g, '노예상의 칼에 베인 등', 4); stress(g, 30); return '보초의 칼이 등을 그었다. 숲으로 굴러 겨우 도망쳤다. 마차는 동쪽으로 사라졌다. 아이들도 함께.'; } stress(g, 20); return `${nm(p, '아이')}은(는) 돌아오지 않았다. 그 집 어머니는 매일 동쪽 길 끝에 나가 섰다. 자유도시 어딘가의 암시장. 그 이름을 마음에 새겼다.`; } },
+      { label: '...', run: (g, rng, c) => { const d = C(g, 'missing'); const p = byId(g, d.id); endChain(g, 'missing', c.ok ? 'rescued' : 'lost'); if (c.ok) { if (p) { like(p, 30); note(g, p, '노예상에게 붙잡혔다가 구출되었다.'); } if (d.plan === 'sneak') { gainStat(g, 'agi', 1.2); gainStat(g, 'wil', 1.2); setFlag(g, 'rescued_children'); return '아이들을 하나씩 덤불로 빼냈다. 새벽녘, 마을 어귀에서 부모들이 무너지듯 아이들을 끌어안았다. 그날 이후 마을 사람들은 내 이름을 다르게 불렀다.'; } return `${J(nm(p, '아이'), '이/가')} 부모 품으로 돌아왔다. 아이는 한동안 밤마다 울며 깼다. 그래도 돌아왔다.`; } if (p) { p.away = true; note(g, p, '노예상에게 끌려가 행방을 알 수 없게 되었다.'); } if (d.plan === 'sneak') { injure(g, '노예상의 칼에 베인 등', 4); stress(g, 30); return '보초의 칼이 등을 그었다. 숲으로 굴러 겨우 도망쳤다. 마차는 동쪽으로 사라졌다. 아이들도 함께.'; } stress(g, 20); return `${J(nm(p, '아이'), '은/는')} 돌아오지 않았다. 그 집 어머니는 매일 동쪽 길 끝에 나가 섰다. 자유도시 어딘가의 암시장. 그 이름을 마음에 새겼다.`; } },
     ],
   },
 
@@ -239,10 +240,10 @@ EVENTS.push(
     chance: () => 0.02, weight: 60,
     prepare: (g) => ({ id: bestFriend(g).id }),
     title: '이사',
-    text: (g, c) => `${byId(g, c.id).name}이(가) 눈이 퉁퉁 부은 채 찾아왔다. "우리 집... 빚 때문에 왕도로 간대. 외삼촌네 일을 거들어야 한대." 다음 달이면 떠난다.`,
+    text: (g, c) => `${J(byId(g, c.id).name, '이/가')} 눈이 퉁퉁 부은 채 찾아왔다. "우리 집... 빚 때문에 왕도로 간대. 외삼촌네 일을 거들어야 한대." 다음 달이면 떠난다.`,
     choices: [
-      { label: '모아 둔 돈을 내민다', show: (g) => money(g) >= 8, run: (g, rng, c) => { spend(g, 8); const p = byId(g, c.id); like(p, 25); if (rng.chance(0.5)) { endChain(g, 'friend', 'stayed'); note(g, p, `${g.player.name}의 도움으로 집안이 마을에 남을 수 있었다.`); return `턱없이 모자란 돈이었다. 그런데 그 집 아버지가 그 동전을 보고 울었다. 마을 사람들이 조금씩 보탰고, 빚을 넘겼다. ${p.name}은(는) 떠나지 않았다.`; } p.away = true; note(g, p, '빚 때문에 가족과 왕도로 떠났다.'); startChain(g, 'friend', 1, 8, { id: c.id }); return `돈은 모자랐다. ${p.name}은(는) 떠나는 날 동전을 돌려주려 했지만, 받지 않았다. "왕도에서 써."`; } },
-      { label: '작별 선물을 만든다', run: (g, rng, c) => { const p = byId(g, c.id); like(p, 15); p.away = true; note(g, p, '빚 때문에 가족과 왕도로 떠났다.'); startChain(g, 'friend', 1, 8, { id: c.id }); gainStat(g, 'agi', 0.3); return `나무를 깎아 작은 새를 만들었다. ${p.name}은(는) 그걸 목에 걸고 마차에 올랐다. 마차가 언덕을 넘을 때까지 손을 흔들었다.`; } },
+      { label: '모아 둔 돈을 내민다', show: (g) => money(g) >= 8, run: (g, rng, c) => { spend(g, 8); const p = byId(g, c.id); like(p, 25); if (rng.chance(0.5)) { endChain(g, 'friend', 'stayed'); note(g, p, `${g.player.name}의 도움으로 집안이 마을에 남을 수 있었다.`); return `턱없이 모자란 돈이었다. 그런데 그 집 아버지가 그 동전을 보고 울었다. 마을 사람들이 조금씩 보탰고, 빚을 넘겼다. ${J(p.name, '은/는')} 떠나지 않았다.`; } p.away = true; note(g, p, '빚 때문에 가족과 왕도로 떠났다.'); startChain(g, 'friend', 1, 8, { id: c.id }); return `돈은 모자랐다. ${J(p.name, '은/는')} 떠나는 날 동전을 돌려주려 했지만, 받지 않았다. "왕도에서 써."`; } },
+      { label: '작별 선물을 만든다', run: (g, rng, c) => { const p = byId(g, c.id); like(p, 15); p.away = true; note(g, p, '빚 때문에 가족과 왕도로 떠났다.'); startChain(g, 'friend', 1, 8, { id: c.id }); gainStat(g, 'agi', 0.3); return `나무를 깎아 작은 새를 만들었다. ${J(p.name, '은/는')} 그걸 목에 걸고 마차에 올랐다. 마차가 언덕을 넘을 때까지 손을 흔들었다.`; } },
       { label: '"가지 마."', run: (g, rng, c) => { const p = byId(g, c.id); like(p, 5); p.away = true; note(g, p, '빚 때문에 가족과 왕도로 떠났다.'); startChain(g, 'friend', 1, 8, { id: c.id }); stress(g, 15); return '소용없는 말이란 걸 둘 다 알았다. 떠나는 날, 일부러 배웅하러 가지 않았다. 그게 오래 후회로 남았다.'; } },
     ],
   },

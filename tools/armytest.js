@@ -77,7 +77,7 @@ function scene(g, kind, data, re, opt = {}) {
     if (!L(g).queue.some((x) => x.kind === kind) && L(g).scene?.kind !== kind) queueScene(g, kind, data, { first: true });
     month(g, opt.want ?? ['rest'], (k, labels) => { if (k !== kind) return opt.other?.(k, labels) ?? -1; done = true; const i2 = idxOf(labels, re); chose = i2 >= 0 ? labels[i2] : null; return i2; });
   }
-  if (!done && !g.over) fail('scene never shown', kind, JSON.stringify(data), L(g).place, !!A(g).service, playerAge(g), JSON.stringify(L(g).queue.map((q) => q.kind)));
+  if (!done && !g.over && !(opt.retryChild && playerAge(g) < 18)) fail('scene never shown', kind, JSON.stringify(data), L(g).place, !!A(g).service, playerAge(g), JSON.stringify(L(g).queue.map((q) => q.kind)));
   if (done && !chose && !g.over) fail('choice not found', kind, re);
   return done;
 }
@@ -85,10 +85,15 @@ const peace = (g) => { g.realm.balhart.war = false; g.realm.north.war = false; i
 const war = (g) => { g.realm.balhart.war = true; g.realm.balhart.warMonths = 0; };
 const heal = (g) => { g.player.injuries = []; g.player.fatigue = 0; g.player.stress = 10; };
 function soldier(seed, family = 'farmer', place = 'harfen') {
-  const g = adult(seed, family);
-  placeAt(g, place);
-  peace(g);
-  if (!A(g).service) scene(g, 'army_enlist', {}, /서명한다/);
+  let g;
+  // 48단계 도우미3: 입대 장면을 기다리는 사이 죽어 어린 자식이 대를 잇는 판이 있다. 그러면 다음 씨앗으로 다시 (어른만 입대한다)
+  for (let k = 0; k < 4; k++) {
+    g = adult(seed + k * 7919, family);
+    placeAt(g, place);
+    peace(g);
+    if (!A(g).service) scene(g, 'army_enlist', {}, /서명한다/, { retryChild: true });
+    if (A(g).service || playerAge(g) >= 18) break;
+  }
   if (!A(g).service) fail('enlist failed', seed, playerAge(g), L(g).place, L(g).fac?.knights?.member, isJailed(g), L(g).travel);
   return g;
 }

@@ -1,7 +1,7 @@
 // 장삿길의 일들 (장면 trade_event, 다섯 달에 한 번까지): 가짜 저울, 통째로 사겠다는 상단, 상인 길드, 흉년의 밀,
 // 밀수꾼의 상자, 귀족의 외상, 군납, 짐을 빼돌린 호위, 다친 짐꾼, 시세 소문.
 import { HOOKS } from '../hooks.js';
-import { gainSkill } from '../game.js';
+import { gainSkill, playerAge } from '../game.js';
 import { L, defineScene, queueScene, sceneQueued, note, gains, up, stress, check } from '../adventure/core.js';
 import { PLACES } from '../places.js';
 import { reportCrime } from '../crime.js';
@@ -171,7 +171,8 @@ defineScene('trade_event', {
 HOOKS.afterMonth.push((g, rng) => {
   if (g.over) return;
   const t = T(g);
-  if (t.cool > 0 || !free(g) || sceneQueued(g, 'trade_event')) return;
+  // 48단계: 어린 상속자에게 앞 사람의 짐수레 장삿길 장면이 뜨지 않게
+  if (t.cool > 0 || !free(g) || playerAge(g) < 14 || sceneQueued(g, 'trade_event')) return;
   const trader = cargoQty(g) > 0 || t.caravan.wagons > 0 || t.volume >= 20;
   if (!rng.chance(trader ? 0.06 : 0)) return;
   const pl = rng.pick(Object.keys(LOCAL).filter((p) => p !== here(g)));

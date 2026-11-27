@@ -302,7 +302,7 @@ export function peace(g, rng, say, record, w, lead, lag, by = null) {
   // 무너진 쪽이 아주 약하면 신하의 예를 바친다
   const crushed = P.stab[lag] < 8 && strength(g, lead) > strength(g, lag) * 1.6 && !overlordOf(g, lag) && NATURE[lag].kind !== 'ageless' && rng.chance(0.35);
   if (crushed) addPact(g, lead, lag, 'vassal');
-  const terms = crushed ? `${J(full(lag), '은/는')} ${full(lead)}에 신하의 예를 바치기로 했다.` : took.length ? `${took.join(', ')}은(는) ${full(lead)}의 땅으로 남는다.` : '어느 쪽도 땅을 얻지 못했다. 무덤만 늘었다.';
+  const terms = crushed ? `${J(full(lag), '은/는')} ${full(lead)}에 신하의 예를 바치기로 했다.` : took.length ? `${J(took.join(', '), '은/는')} ${full(lead)}의 땅으로 남는다.` : '어느 쪽도 땅을 얻지 못했다. 무덤만 늘었다.';
   tell(g, say, record, `${J(short(w.a), '과/와')} ${short(w.b)} 사이에 강화가 맺어졌다${by ? ` (${by})` : ''}. ${terms} 열 해 동안 칼을 거두기로 했다.`, true);
 }
 

@@ -53,7 +53,7 @@ ACTIONS.push({
     // 거느린 병사가 있으면 큰 싸움에 불려 간다
     const side0 = ourArmy(g);
     if (side0.troops > 0 && rng.chance(0.3)) {
-      queueBattle(g, { context: 'pol_merc', title: `${short(side)}와(과) ${short(foe)}의 전장`, intro: `${ARMY_NAME[side]} 지휘관이 우리 병사들에게 한쪽 날개를 맡겼다.`, enemy: { key: `realm_${foe}`, troops: rng.int(60, 160) }, side, foe, big: true, reward: { renown: 4 } });
+      queueBattle(g, { context: 'pol_merc', title: `${J(short(side), '과/와')} ${short(foe)}의 전장`, intro: `${ARMY_NAME[side]} 지휘관이 우리 병사들에게 한쪽 날개를 맡겼다.`, enemy: { key: `realm_${foe}`, troops: rng.int(60, 160) }, side, foe, big: true, reward: { renown: 4 } });
       return `${ARMY_NAME[side]}의 진영에 닿았다. 지휘관이 우리 병사들을 보고 고개를 끄덕였다. 큰 싸움이 다가온다.`;
     }
     const pow = playerPower(g);

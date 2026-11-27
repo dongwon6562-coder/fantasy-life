@@ -218,14 +218,15 @@ HOOKS.afterMonth.push((g) => {
     if (p.ateAt < now - 1 && g.player.money < 2) p.hunger += 1; else p.hunger = Math.max(0, p.hunger - 1);
     if (p.hunger >= 2) { stress(g, 4); tired(g, 6); }
     if (p.hunger >= 3 && rng.chance(0.25)) { g.player.injuries.push({ name: '굶주려 여윈 몸', months: 2 }); p.hunger = 1; note(g, '며칠을 굶었다. 거울 속 얼굴이 낯설다.'); }
-    if (free(g) && now - p.slumAt >= 3 && rng.chance(isSlum(here(g)) ? 0.3 : 0.15) && !sceneQueued(g, 'poor_slum')) {
+    if (free(g) && playerAge(g) >= 10 && now - p.slumAt >= 3 && rng.chance(isSlum(here(g)) ? 0.3 : 0.15) && !sceneQueued(g, 'poor_slum')) {
       p.slumAt = now;
       const evs = ['share', 'kid', 'sick', ...(winter(g) ? ['winter', 'winter'] : []), ...(gangHere(g) ? ['gang'] : [])];
       const ev = slumPick(p, rng, evs);
       if (ev) queueScene(g, 'poor_slum', { ev });
     }
   } else p.hunger = 0;
-  if (broke(g) && free(g) && now - p.chanceAt >= 8 && p.lowMonths >= 2 && rng.chance(0.08) && !sceneQueued(g, 'poor_chance')) {
+  // 48단계: 젖먹이 상속자가 앞 사람의 길바닥 살림을 이어받아도 거지 장면은 열 살부터
+  if (broke(g) && free(g) && playerAge(g) >= 10 && now - p.chanceAt >= 8 && p.lowMonths >= 2 && rng.chance(0.08) && !sceneQueued(g, 'poor_chance')) {
     p.chanceAt = now;
     queueScene(g, 'poor_chance', { ev: rng.pick(['porter', 'scribe', 'old']) });
   }
