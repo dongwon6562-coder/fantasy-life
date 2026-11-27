@@ -254,7 +254,7 @@ defineScene('court_patron', {
     for (const o of houses(g)) if (o.id !== h.id && o.side && h.side && o.side !== h.side) addFoe(g, o.id, 8);
     if (h.side && sideOpen(g) && !c.side) c.side = h.side;
     note(g, `${houseName(h)}의 사람이 되었다.`);
-    return `${h.head} ${h.title}이 내 손을 잡고 흔들었다. "${h.name}의 사람은 ${h.name}가 지킨다." 그 말은 반대로도 읽힌다. ${h.name}가 무너지면 나도 함께 무너진다.`;
+    return `${h.head} ${h.title}이 내 손을 잡고 흔들었다. "${h.name}의 사람은 ${J(h.name, '이/가')} 지킨다." 그 말은 반대로도 읽힌다. ${h.name}가 무너지면 나도 함께 무너진다.`;
   },
 });
 function pickSide(g, k) {

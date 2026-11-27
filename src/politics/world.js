@@ -96,6 +96,8 @@ export function succeed(g, rng, say, record, id, why) {
     P.rulers[id] = { title: sex === 'f' ? '여왕' : '왕', sex, name: n.name, house: null, born: g.date.year - rng.int(200, 400), since: g.date.year, heir: true, legend: null, no: 0 };
     text = `${full(id)}의 ${J(oldLine, '이/가')} ${why}. 숲이 석 달 동안 울었다. 새 ${J(P.rulers[id].title, '은/는')} ${n.name}.`;
   }
+  // 48단계: 드워프 왕이 스물셋에 즉위해 사람 나이로 늙던 것. 드워프는 세 배 반으로 산다(deathChance도 나이를 3.5로 나눈다).
+  if (id === 'dwarf' && P.rulers[id]?.born != null) P.rulers[id].born = g.date.year - Math.round((g.date.year - P.rulers[id].born) * 3.5);
   syncRulerText(g);
   P.changed = { realm: id, at: mi(g) };
   tell(g, say, record, text, kind !== 'council');
@@ -113,7 +115,7 @@ function rulers(g, rng, say, record) {
       if (!legendAlive(g, r.legend)) succeed(g, rng, say, record, id, '세상을 떠났다');
       continue;
     }
-    if (rng.chance(deathChance(g, id))) { succeed(g, rng, say, record, id, rng.pick(['세상을 떠났다', '병상에서 일어나지 못했다', '잠든 채 숨을 거두었다'])); continue; }
+    if (rng.chance(deathChance(g, id))) { succeed(g, rng, say, record, id, rng.pick(['세상을 떠났다', '병상에서 일어나지 못했다', '잠든 채 숨을 거두었다', '오랜 병 끝에 숨을 거두었다', '겨울을 넘기지 못했다', '사냥터에서 쓰러져 다시 일어나지 못했다'])); continue; }
     // 안정이 바닥이면 반란: 가문이 무너진다
     if (NATURE[id].kind === 'dynasty' && (P.stab[id] ?? 60) < 12 && rng.chance(0.03)) {
       r.heir = false; P.stab[id] = 5;

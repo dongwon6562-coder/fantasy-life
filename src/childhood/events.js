@@ -9,6 +9,9 @@ import {
 import { remember } from '../relations.js';
 import { relevance } from '../npc.js';
 import { J } from '../narrative/text.js';
+import { me } from '../game.js';
+import { PLACES } from '../places.js';
+import { L } from '../adventure/core.js';
 import { CH, bestie, monthIdx, KNOWN, knownOf } from './state.js';
 
 const B = (g) => CH(g).bestie;
@@ -218,7 +221,7 @@ EVENTS.push(
     cond: (g) => (CH(g).counts.study ?? 0) >= 16 && g.player.skills.letters >= 28 && age(g) >= 11 && age(g) <= 14 && CH(g).school.stage === 2 && !!findJob(g, 'priest'),
     weight: 81,
     title: '사제의 추천서',
-    text: (g) => `${nm(findJob(g, 'priest'), '사제')}가 수업이 끝난 뒤 남으라고 했다. 봉랍을 찍은 편지 한 통을 책상 위에 올려놓는다. "하르펜 성당 학교에 보내는 추천서다. 네 나이에 이만큼 읽는 아이는 이 마을에 없었다. 다만 학비는 집에서 대야 한다."`,
+    text: (g) => `${J(nm(findJob(g, 'priest'), '사제'), '이/가')} 수업이 끝난 뒤 남으라고 했다. 봉랍을 찍은 편지 한 통을 책상 위에 올려놓는다. "하르펜 성당 학교에 보내는 추천서다. 네 나이에 이만큼 읽는 아이는 이 마을에 없었다. 다만 학비는 집에서 대야 한다."`,
     choices: [
       { label: '받아 든다', run: (g) => { const s = CH(g).school; s.stage = 3; s.letter = 'taken'; setFlag(g, 'child_recommend'); spendFamily(g, 8); const p = findJob(g, 'priest'); like(p, 10); remember(g, p, '추천서를 써 주었다', 2, { tag: 'pupil' }); gainSkill(g, 'letters', 3, 'int'); chron(g, `${g.player.name}, 사제에게서 하르펜 성당 학교 추천서를 받다.`); return '집안 돈이 줄었다. 어머니는 아무 말 없이 은화를 세어 주었다. 편지는 가장 좋은 옷 안주머니에 넣었다. 언젠가 이 편지가 문을 열어 줄 것이다.'; } },
       { label: '집안 형편을 생각해 사양한다', run: (g) => { const s = CH(g).school; s.stage = 3; s.letter = 'declined'; like(father(g), 6); like(mother(g), 6); gainStat(g, 'wil', 0.8); const p = findJob(g, 'priest'); like(p, 2); return '"집에 손이 필요해요." 사제는 한참 보다가 편지를 서랍에 넣었다. "버리지는 않으마. 마음이 바뀌면 와라." 그 서랍은 오래도록 잠기지 않았다.'; } },
@@ -346,6 +349,25 @@ HOOKS.afterNpc.push((g) => {
   const p = cand.sort((a, b) => relevance(g, b) - relevance(g, a))[0];
   if (p) c.pendingDeath = p.id;
 });
+// 고장 나라(PLACES.realm). rites를 불러오면 모듈 순서가 바뀌어 흐름이 흔들려서 places만 쓴다.
+const PLACE_REALM = (pl) => PLACES[pl]?.realm || 'leonia';
+// 48단계: 엘프 아이의 첫 장례도 '예배당 뒤 묘지'였다. 고장 풍습(src/rites/의 문화)에 따라 장례 자리를 바꾼다.
+const burialOf = (g) => { const c = PLACE_REALM(L(g)?.place ?? me(g)?.place ?? 'ern'); const r = me(g)?.race; return ['elf', 'dwarf', 'beast', 'demon'].includes(r) ? r : c; };
+const BURIAL = {
+  default: '예배당 뒤 묘지에 구덩이가 파였다. 흙냄새가 났다. 어른들이 차례로 흙을 한 줌씩 던졌다.',
+  sea: '바다가 내려다보이는 언덕 묘지에 구덩이가 파였다. 소금기 섞인 바람이 불었다. 어른들이 차례로 흙을 한 줌씩 던졌다.',
+  elf: '세계수 뿌리 곁에 얕은 자리가 파였다. 젖은 잎 냄새가 났다. 엘프들이 차례로 씨앗을 한 알씩 떨어뜨렸다.',
+  dwarf: '산 아래 돌방 문이 열렸다. 서늘한 돌 냄새가 났다. 어른들이 차례로 돌을 하나씩 쌓아 문을 막았다.',
+  beast: '초원 언덕에 돌무지를 쌓았다. 바람에서 풀 냄새가 났다. 어른들이 차례로 돌을 하나씩 얹고 길게 울었다.',
+  demon: '재의 자리에 장작이 쌓였다. 매운 연기가 눈을 찔렀다. 어른들이 차례로 불씨를 하나씩 던졌다.',
+};
+for (const k of ['leonia', 'holy', 'valhart', 'free', 'march', 'serenia']) BURIAL[k] = BURIAL.default;
+const BURIAL_ASK = {
+  elf: ['장로', '장로는 숲으로 돌아간다고 했다. 씨앗이 되어 백 년쯤 뒤에 다시 잎을 낸다고. 그 백 년을 기다릴 수 있을지는 묻지 못했다.'],
+  dwarf: ['장로', '장로는 돌이 된다고 했다. 산의 뼈가 되어 우리 발밑을 받친다고. 그날부터 갱도 바닥을 밟을 때 조금 조심스러워졌다.'],
+  beast: ['주술사', '주술사는 바람이 된다고 했다. 사냥할 때 등을 미는 바람이 그거라고. 그날부터 바람이 불면 자꾸 뒤를 돌아보게 되었다.'],
+  demon: ['어른', '어른은 아무 데도 가지 않는다고 했다. 이름이 남으면 남고, 잊히면 그걸로 끝이라고. 그 이름을 오래 외웠다.'],
+};
 EVENTS.push({
   id: 'ch_first_death', once: true,
   cond: (g) => CH(g).pendingDeath != null && !CH(g).firstDeath,
@@ -355,12 +377,12 @@ EVENTS.push({
   text: (g, c) => {
     const p = byId(g, c.id);
     const who = isFamily(g, p) ? (p.id === g.player.familyIds[0] ? '아버지' : p.id === g.player.familyIds[1] ? '어머니' : p.sex === 'm' ? '형제' : '자매') : p.id === CH(g).friend ? '소꿉친구' : '이웃';
-    return `${who} ${J(p.name, '이/가')} 죽었다. 예배당 뒤 묘지에 구덩이가 파였다. 흙냄새가 났다. 어른들이 차례로 흙을 한 줌씩 던졌다. 내 차례가 왔다. 지금까지 죽음은 이야기 속에만 있었다.`;
+    return `${who} ${J(p.name, '이/가')} 죽었다. ${BURIAL[burialOf(g)] ?? BURIAL.default} 내 차례가 왔다. 지금까지 죽음은 이야기 속에만 있었다.`;
   },
   choices: [
     { label: '소리 내어 운다', run: (g, rng, c) => firstDeath(g, c, 'tears', '목이 쉴 때까지 울었다. 누군가 등을 쓸어 주었다. 울고 나니 이상하게 배가 고팠다. 그게 부끄러워 또 울었다.', 'cha') },
     { label: '이를 악물고 울지 않는다', run: (g, rng, c) => firstDeath(g, c, 'stone', '눈물이 나지 않았다. 흙을 던지는 손이 떨렸을 뿐이다. 그날 밤 이불 속에서야 무언가가 무너졌다. 아무도 몰랐다.', 'wil') },
-    { label: '사제에게 묻는다. "죽으면 어디로 가요?"', run: (g, rng, c) => firstDeath(g, c, 'question', `사제는 성광의 품이라고 했다. ${findJob(g, 'hedge_mage') ? `떠돌이 마법사 ${findJob(g, 'hedge_mage').name}` : '떠돌이 마법사'}는 마력이 흩어져 땅으로 돌아간다고 했다. 할머니들은 별이 된다고 했다. 아무도 같은 말을 하지 않았다. 그때부터 어른들의 대답을 의심하게 되었다.`, 'int') },
+    { label: (g) => `${BURIAL_ASK[burialOf(g)]?.[0] ?? '사제'}에게 묻는다. "죽으면 어디로 가요?"`, run: (g, rng, c) => BURIAL_ASK[burialOf(g)] ? firstDeath(g, c, 'question', BURIAL_ASK[burialOf(g)][1], 'int') : firstDeath(g, c, 'question', `사제는 성광의 품이라고 했다. ${findJob(g, 'hedge_mage') ? `떠돌이 마법사 ${findJob(g, 'hedge_mage').name}` : '떠돌이 마법사'}는 마력이 흩어져 땅으로 돌아간다고 했다. 할머니들은 별이 된다고 했다. 아무도 같은 말을 하지 않았다. 그때부터 어른들의 대답을 의심하게 되었다.`, 'int') },
   ],
 });
 function firstDeath(g, c, grief, text, statId) {

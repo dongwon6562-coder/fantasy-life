@@ -381,7 +381,7 @@ const hasBatchimSib = (w) => { const ch = String(w).charCodeAt(String(w).length 
 const sibP = (g, s) => { const p = byId(g, s.sib); return p && p.alive ? p : null; };
 const need = (g, s) => !!sibP(g, s);
 defineScene('sib_blame', {
-  title: () => '깨진 항아리',
+  title: () => '꿀 항아리',
   need,
   text: (g, s) => { const p = sibP(g, s); const c = ctx(g, p); return `어머니가 아끼던 꿀 항아리가 부엌 바닥에 깨져 있다. 깬 것은 ${c.ws}${hasBatchimSib(c.ws) ? '이다' : '다'}. 나는 봤다. 어머니의 발소리가 다가온다. ${J(p.name, '이/가')} 하얗게 질린 얼굴로 나를 본다.`; },
   choices: (g, s) => [{ label: '내가 깼다고 한다', key: 'take' }, { label: '사실대로 말한다', key: 'truth' }, { label: '둘 다 모른다고 잡아뗀다', key: 'deny' }],

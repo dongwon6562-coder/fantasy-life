@@ -3,6 +3,7 @@
 import {
   MALE_NAMES, FEMALE_NAMES, LAST_NAMES, JOBS, ADULT_JOB_CHOICES, TRAITS,
 } from './data.js';
+import { RACE_NAMES } from './races/data.js';
 
 let nextId = 1;
 export function setNextId(n) { nextId = n; }
@@ -250,7 +251,12 @@ export function simulateMonth(game, rng) {
     if (lastChild && lastChild.ageMonths < 18) continue;
     if (!rng.chance((kids >= 4 ? 0.004 : 0.018) * fertilityFn(h, w))) continue;
     const baby = makePerson(rng, { lastName: h.lastName, fatherId: h.id, motherId: w.id });
-    baby.name = freshName(baby.name, baby.sex, namesAt(game.people, w.place ?? 'ern'));
+    // 48단계: 엘프·드워프 부부의 아이가 '레온'·'헤드비히' 같은 사람 이름을 받던 것. 둘이 같은 종족이면 그 종족 이름으로.
+    const race = h.race && h.race === w.race && h.race !== 'human' ? h.race : null;
+    const pool = race && RACE_NAMES[race] ? RACE_NAMES[race][baby.sex] ?? RACE_NAMES[race].m : null;
+    const taken = namesAt(game.people, w.place ?? 'ern');
+    if (pool?.length) { baby.name = pool[(baby.id * 7) % pool.length]; for (let k = 1; k < pool.length && taken.has(baby.name); k++) baby.name = pool[(baby.id * 7 + k * 3) % pool.length]; }
+    else baby.name = freshName(baby.name, baby.sex, taken);
     game.people.push(baby);
     w.childIds.push(baby.id); h.childIds.push(baby.id);
     note(w, `${baby.sex === 'm' ? '아들' : '딸'} ${baby.name}을(를) 낳았다.`);

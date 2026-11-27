@@ -16,6 +16,8 @@ import { HOOKS } from '../hooks.js';
 import { me, playerAge, gainStat } from '../game.js';
 import { byId, ageYears, living, makePerson } from '../npc.js';
 import { JOBS, MALE_NAMES, FEMALE_NAMES, LAST_NAMES, TRAITS } from '../data.js';
+import { RACE_NAMES, BEASTS } from '../races/data.js';
+import { localRaceAt } from '../races/local.js';
 import { PLACES } from '../places.js';
 import { L, defineScene, queueScene, sceneQueued, traveling, note, chron, stress, spend, canSpend, check } from '../adventure/core.js';
 import { rel, remember } from '../relations.js';
@@ -184,9 +186,10 @@ function makeTick(g, rng) {
   // 낯선 고장이나 새 일터: 거기서 처음 보는 또래와 벗이 된다 (사람은 벗이 되기로 했을 때 만든다)
   if (!rng.chance(0.7)) return false;
   const sex = rng.chance(me(g).sex === 'm' ? 0.75 : 0.35) ? 'm' : 'f';
-  const tmp = { name: rng.pick(sex === 'm' ? MALE_NAMES : FEMALE_NAMES), lastName: rng.pick(LAST_NAMES), traits: [rng.pick(TRAITS).id] };
+  const lr = localRaceAt(here(g)), RN = lr ? RACE_NAMES[lr] : null; // 48단계: 다른 종족 땅에선 그 종족 사람으로
+  const tmp = { name: rng.pick(RN ? (sex === 'm' ? RN.m : RN.f ?? RN.m) : sex === 'm' ? MALE_NAMES : FEMALE_NAMES), lastName: rng.pick(RN && Array.isArray(RN.last) ? RN.last : LAST_NAMES), traits: [rng.pick(TRAITS).id] };
   const job = where === 'war' ? 'guard' : where === 'school' ? 'apprentice' : where === 'work' ? (L(g).job?.id && JOBS[L(g).job.id] ? L(g).job.id : 'laborer') : rng.pick(['laborer', 'smith', 'carpenter', 'merchant', 'hunter', 'cook', 'weaver', 'miller']);
-  const fresh = { sex, name: tmp.name, lastName: tmp.lastName, traits: tmp.traits, age: clamp(age + rng.int(-6, 6), 16, 90), job };
+  const fresh = { sex, name: tmp.name, lastName: tmp.lastName, traits: tmp.traits, age: clamp(age + rng.int(-6, 6), 16, 90), job, race: RN ? lr : null };
   queueScene(g, 'fr_meet', { pid: null, name: fresh.name, where, fresh, v });
   return true;
 }
@@ -234,7 +237,7 @@ defineScene('fr_meet', {
     if (!p && s.fresh && key === 'open') {
       const c = s.fresh;
       p = makePerson(ownRng(g, 7), { sex: c.sex, ageMonths: c.age * 12 + 3, job: c.job, traits: c.traits });
-      p.name = c.name; p.lastName = c.lastName; p.place = here(g); p.known = true; p.affection = 30;
+      p.name = c.name; p.lastName = c.lastName; p.place = here(g); p.known = true; p.affection = 30; if (c.race) { p.race = c.race; if (c.race === 'beast') p.beast = Object.keys(BEASTS)[p.id % Object.keys(BEASTS).length]; }
       g.people.push(p);
     }
     if (key !== 'open') S(g).newAt = mi(g) + 18; // 선을 그었으면 한동안 새 벗 자리가 안 난다(한 삶에 스무 번 뜨던 것)

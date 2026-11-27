@@ -93,7 +93,7 @@ const STORIES = {
     steps: [
       {
         title: '연병장 뒤',
-        text: (g, p) => `사관학교 연병장 뒤편에서 귀족 출신 생도 넷이 한 생도를 둘러싸고 있다. 회색 늑대 귀를 단 수인 생도, ${p.name}다. 하겐 마을, 100년 전 해방된 노예들의 후손. "황제 폐하께서 출신을 안 따진다고 개까지 받으실 줄은 몰랐지." 주먹이 날아갔다.`,
+        text: (g, p) => `사관학교 연병장 뒤편에서 귀족 출신 생도 넷이 한 생도를 둘러싸고 있다. 회색 늑대 귀를 단 수인 생도, ${J(p.name, '이다/다')}. 하겐 마을, 100년 전 해방된 노예들의 후손. "황제 폐하께서 출신을 안 따진다고 개까지 받으실 줄은 몰랐지." 주먹이 날아갔다.`,
         choices: [{ label: '끼어든다', key: 'help' }, { label: '교관에게 알린다', key: 'report' }, { label: '지나친다', key: 'pass' }],
         resolve(g, rng, p, key) {
           if (key === 'help') {
@@ -118,7 +118,7 @@ const STORIES = {
           if (key === 'join' && WORK.imperial_soldier) {
             takeJob(g, 'imperial_soldier', { months: 6 });
             chron(g, `${g.player.name}, 수인 백인대장 ${p.name}의 대대에 들어가다.`);
-            return end(`제국군 군복을 받았다. ${p.name}는 첫날부터 나를 다른 병사와 똑같이 굴렸다. 그게 그의 방식의 고마움이었다.`);
+            return end(`제국군 군복을 받았다. ${J(p.name, '은/는')} 첫날부터 나를 다른 병사와 똑같이 굴렸다. 그게 그의 방식의 고마움이었다.`);
           }
           p.affection += 10;
           return end('술잔을 부딪쳤다. 그는 언젠가 기사가 될 것이다. 그날 그 연병장을 지날 때마다 나를 떠올리겠다고 했다.');
@@ -366,7 +366,7 @@ const STORIES = {
         choices: [{ label: '가룸 편에 선다', key: 'garum' }, { label: '사자 편에 선다', key: 'lion' }, { label: '누구 편도 들지 않는다', key: 'none' }],
         resolve(g, rng, p, key) {
           const lionWins = rng.chance(key === 'lion' ? 0.45 : 0.3);
-          if (lionWins) { chron(g, `수인 부족 연합의 대족장이 바뀌다. 사자 부족의 ${p.name}가 가룸을 꺾다.`); p.title = '대족장'; }
+          if (lionWins) { chron(g, `수인 부족 연합의 대족장이 바뀌다. 사자 부족의 ${J(p.name, '이/가')} 가룸을 꺾다.`); p.title = '대족장'; }
           else { chron(g, `대족장 가룸이 사자 부족의 도전을 꺾다. 성광국과의 전쟁을 바라는 목소리가 더 커지다.`); if (rng.chance(0.5)) kill(g, p, '대족장 결투에서'); }
           const won = (key === 'lion') === lionWins && key !== 'none';
           if (won) { L(g).renown += 3; return end(`내가 선 쪽이 이겼다. ${lionWins ? '새 대족장' : '가룸'}은 결투가 끝난 뒤 나를 불러 술잔을 건넸다. 부족의 법에서 그것은 형제라는 뜻이다.`); }
