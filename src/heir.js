@@ -198,6 +198,8 @@ export function becomeHeir(g, rng, child) {
   life.notoriety = Math.floor(life.notoriety * 0.5);
   life.travel = null;
   life.home = life.houses.includes(life.place) ? 'own' : life.place === 'ern' ? 'family' : life.home === 'barracks' ? 'inn' : life.home;
+  // 어린 상속자는 앞 사람의 길바닥·셋방·여관 살림을 잇지 않는다. 남은 부모나 친척 집에서 자란다 (48단계 헤드).
+  if (age < 15 && life.home !== 'own') life.home = 'family';
   if (age >= 15 && cj && WORK[child.job] && WORK[child.job].places.includes(life.place) && !WORK[child.job].faction) takeJob(g, child.job);
   for (const n of life.nemeses) if (n.alive) n.grudge += 1; // 부모의 원수는 자식도 기억한다
 
