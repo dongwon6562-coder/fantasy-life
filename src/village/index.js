@@ -136,9 +136,9 @@ export function villageInfo(g) {
 
 /* ---------- 품앗이 ---------- */
 const HELP = {
-  spring: ['모내기', '밭갈이', '울타리 고치기'],
+  spring: ['씨뿌리기', '밭갈이', '울타리 고치기'],
   summer: ['김매기', '지붕 이엉 잇기', '물꼬 손보기'],
-  autumn: ['추수', '타작', '김장'],
+  autumn: ['추수', '타작', '양배추 절이기'],
   winter: ['장작 패기', '눈 치우기', '헛간 고치기'],
 };
 const seasonOf = (m) => (m === 12 || m <= 2 ? 'winter' : m <= 5 ? 'spring' : m <= 8 ? 'summer' : 'autumn');

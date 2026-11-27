@@ -16,6 +16,7 @@
 import { playerAge, playerAgeMonths, family, me } from '../game.js';
 import { living as livingAll, byId, ageYears, fullName } from '../npc.js';
 import { HOOKS } from '../hooks.js';
+import { fixParents } from '../narrative/parents.js';
 
 export const EVENTS = [];
 // 사건 하나를 고르고 난 뒤 창이 비었을 때 부르는 것들 (밀린 장면을 이어 띄우기 등)
@@ -124,8 +125,8 @@ export function pickEvent(game, rng) {
   last[e.id] = now;
   if (!e.once && e.weight < URGENT) seen[e.id] = (seen[e.id] ?? 0) + 1;
   return {
-    id: e.id, title: e.title, text: e.text(game, ctx),
-    choices: shown.map(({ c }) => (typeof c.label === 'function' ? c.label(game, ctx) : c.label)), choiceIdx: shown.map(({ i }) => i), ctx,
+    id: e.id, title: e.title, text: fixParents(game, e.text(game, ctx)),
+    choices: shown.map(({ c }) => fixParents(game, typeof c.label === 'function' ? c.label(game, ctx) : c.label)), choiceIdx: shown.map(({ i }) => i), ctx,
   };
 }
 
@@ -136,7 +137,7 @@ export function resolveEvent(game, rng, index) {
   if (!e) { game.pendingEvent = null; return null; }
   const real = pe.choiceIdx ? pe.choiceIdx[index] ?? pe.choiceIdx[0] : index;
   const c = e.choices[real] ?? e.choices[0];
-  const out = c.run(game, rng, pe.ctx ?? {}) ?? '';
+  const out = fixParents(game, c.run(game, rng, pe.ctx ?? {}) ?? '');
   if (e.once && !e.noFlag) setFlag(game, onceKey(e));
   // 선택지가 곧바로 다음 장면을 세웠으면(결투의 다음 합, 시험의 다음 관문) 그대로 둔다
   if (game.pendingEvent === pe) game.pendingEvent = null;

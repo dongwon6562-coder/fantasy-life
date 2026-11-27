@@ -241,7 +241,7 @@ export const ACTIONS = [
         const place = T.WANDER_PLACE[p.job] ?? '광장에서';
         const who = `${p.job === 'child' ? '' : `${p.lastName}네 `}${p.name}(${ageYears(p)}살, ${jobName(p)})`;
         const t = p.traits.find((x) => T.WANDER_TRAIT[x]);
-        scene = join(`${place} ${J(who, '과/와')} 처음 말을 섞었다.`, t ? T.WANDER_TRAIT[t] : '');
+        scene = join(`${place} ${who}${J(p.name, '과/와').slice(p.name.length)} 처음 말을 섞었다.`, t ? T.WANDER_TRAIT[t] : '');
         meetMemory(g, p, '마을을 돌아다니다 처음 말을 섞었다');
       } else {
         scene = line(g, rng, T.WANDER_NOBODY);

@@ -171,11 +171,14 @@ function makeTick(g, rng) {
   const pool = living(g).filter((p) => !p.isPlayer && p.known && ageYears(p) >= 16 && Math.abs(ageYears(p) - age) <= 15 && placeOf(p) === here(g)
     && (p.affection ?? 0) >= 25 && !fOf(g, p.id) && !isKin(g, p) && !sworn(g, p.id) && !['spouse', 'lover', 'ex', 'enemy'].includes(p.bond) && (p.rivalry ?? 0) < 40);
   s.newAt = mi(g);
-  const where = whereNow(g);
+  let where = whereNow(g);
+  const v = (s.meets = (s.meets ?? 0) + 1); // 갈래마다 글을 돌려 쓴다
   if (pool.length) {
     pool.sort((a, b) => (b.affection ?? 0) - (a.affection ?? 0));
     const p = pool[rng.int(0, Math.min(2, pool.length - 1))];
-    queueScene(g, 'fr_meet', { pid: p.id, name: p.name, where });
+    // 아는 이웃인데 일터도 술집도 아니면 '늘 같은 자리에 앉는 술꾼'처럼 쓰지 않는다
+    if (where === 'tavern' && !rng.chance(0.35)) where = 'village';
+    queueScene(g, 'fr_meet', { pid: p.id, name: p.name, where, v });
     return true;
   }
   // 낯선 고장이나 새 일터: 거기서 처음 보는 또래와 벗이 된다 (사람은 벗이 되기로 했을 때 만든다)
@@ -184,7 +187,7 @@ function makeTick(g, rng) {
   const tmp = { name: rng.pick(sex === 'm' ? MALE_NAMES : FEMALE_NAMES), lastName: rng.pick(LAST_NAMES), traits: [rng.pick(TRAITS).id] };
   const job = where === 'war' ? 'guard' : where === 'school' ? 'apprentice' : where === 'work' ? (L(g).job?.id && JOBS[L(g).job.id] ? L(g).job.id : 'laborer') : rng.pick(['laborer', 'smith', 'carpenter', 'merchant', 'hunter', 'cook', 'weaver', 'miller']);
   const fresh = { sex, name: tmp.name, lastName: tmp.lastName, traits: tmp.traits, age: clamp(age + rng.int(-6, 6), 16, 90), job };
-  queueScene(g, 'fr_meet', { pid: null, name: fresh.name, where, fresh });
+  queueScene(g, 'fr_meet', { pid: null, name: fresh.name, where, fresh, v });
   return true;
 }
 
@@ -224,7 +227,7 @@ function npcTick(g, rng) {
 /* ---------- 장면 ---------- */
 defineScene('fr_meet', {
   title: () => '벗',
-  text: (g, s) => (T.MEET[s.where] ?? T.MEET.tavern)({ n: s.name }),
+  text: (g, s) => { const list = T.MEET[s.where] ?? T.MEET.tavern; return list[(s.v ?? 0) % list.length]({ n: s.name }); },
   choices: () => [{ label: '마음을 연다', key: 'open' }, { label: '적당히 선을 긋는다', key: 'line' }],
   resolve(g, rng, s, key) {
     let p = s.pid != null ? byId(g, s.pid) : null;
@@ -234,6 +237,7 @@ defineScene('fr_meet', {
       p.name = c.name; p.lastName = c.lastName; p.place = here(g); p.known = true; p.affection = 30;
       g.people.push(p);
     }
+    if (key !== 'open') S(g).newAt = mi(g) + 18; // 선을 그었으면 한동안 새 벗 자리가 안 난다(한 삶에 스무 번 뜨던 것)
     if (!p && s.fresh) return `좋은 사람이다. 그래도 거기까지만 하기로 했다. ${J(s.name, '은/는')} 눈치를 챘는지 다음부터는 인사만 했다.`;
     if (!p?.alive) return '그 사람은 이제 여기 없다.';
     if (key === 'open') {

@@ -39,17 +39,20 @@ EVENTS.push(
     chance: () => 0.12, weight: 70,
     prepare: (g, rng) => {
       const ps = peers(g, 2).sort((a, b) => (b.known ? b.affection : 0) - (a.known ? a.affection : 0));
-      return { id: (rng.chance(0.6) ? ps[0] : rng.pick(ps)).id };
+      const p = rng.chance(0.6) ? ps[0] : rng.pick(ps);
+      // 48단계: 뛰어놀기·찾아가기로 이미 어울리던 아이면 첫 만남처럼 쓰지 않는다
+      return { id: p.id, known: !!p.known && (p.affection ?? 0) > 0 };
     },
     title: '골목 끝 집 아이',
     text: (g, c) => {
       const p = byId(g, c.id);
+      if (c.known) return `요즘 자주 어울리던 골목 끝 집의 ${J(p.name, '이/가')} 담장 위에 앉아 다리를 흔들고 있었다. "오늘은 개구리 잡으러 갈 건데, 다른 애들은 안 데려가. 너만." 대답을 기다리지도 않고 담에서 뛰어내렸다.`;
       return `골목 끝 집의 ${J(p.name, '이/가')} 담장 위에 앉아 다리를 흔들고 있었다. ${ageYears(p)}살, 무릎에 딱지가 앉아 있다. "너 저 집 애지? 나 개구리 잡으러 갈 건데." 대답을 기다리지도 않고 담에서 뛰어내렸다.`;
     },
     choices: [
-      { label: '따라간다', run: (g, rng, c) => { const p = byId(g, c.id); CH(g).friend = p.id; like(p, 22); remember(g, p, '개구리를 잡으러 처음 같이 갔다', 1, { tag: 'bestie' }); gainStat(g, 'agi', 0.5); step(g, 1, rng, 12, 26); return `개구리는 한 마리도 못 잡았다. 대신 둘 다 개울에 빠졌다. 젖은 옷을 말리며 ${J(p.name, '이/가')} 말했다. "내일도 와." 그날부터 해만 뜨면 골목 끝 집으로 달려갔다.`; } },
-      { label: '쭈뼛거리며 바라본다', run: (g, rng, c) => { const p = byId(g, c.id); CH(g).friend = p.id; like(p, 12); remember(g, p, '처음엔 낯을 가렸다', 0, { tag: 'bestie' }); gainStat(g, 'sen', 0.5); step(g, 1, rng, 18, 30); return `${J(p.name, '은/는')} 몇 걸음 가다 돌아보더니 그냥 기다렸다. 결국 한참 뒤떨어져 따라갔다. 그 뒤로도 ${he(p)}는 늘 몇 걸음 앞에서 기다려 주었다.`; } },
-      { label: '주머니의 사탕을 내민다', run: (g, rng, c) => { const p = byId(g, c.id); CH(g).friend = p.id; like(p, 18); remember(g, p, '첫날 사탕을 나눠 주었다', 1, { tag: 'bestie' }); gainStat(g, 'cha', 0.5); step(g, 1, rng, 12, 26); return `${J(p.name, '은/는')} 사탕을 받아 반으로 깨물어 돌려주었다. 침이 묻어 있었다. 그래도 먹었다. 그걸로 친구가 되었다.`; } },
+      { label: '따라간다', run: (g, rng, c) => { const p = byId(g, c.id); CH(g).friend = p.id; like(p, 22); remember(g, p, c.known ? '둘이서만 개구리를 잡으러 갔다' : '개구리를 잡으러 처음 같이 갔다', 1, { tag: 'bestie' }); gainStat(g, 'agi', 0.5); step(g, 1, rng, 12, 26); if (c.known) return `개구리는 한 마리도 못 잡았다. 대신 둘 다 개울에 빠졌다. 젖은 옷을 말리며 ${J(p.name, '이/가')} 말했다. "이제 우리 단짝이다." 그날부터 해만 뜨면 골목 끝 집으로 달려갔다.`; return `개구리는 한 마리도 못 잡았다. 대신 둘 다 개울에 빠졌다. 젖은 옷을 말리며 ${J(p.name, '이/가')} 말했다. "내일도 와." 그날부터 해만 뜨면 골목 끝 집으로 달려갔다.`; } },
+      { label: (g, c) => (c.known ? '집에 가야 한다며 망설인다' : '쭈뼛거리며 바라본다'), run: (g, rng, c) => { const p = byId(g, c.id); CH(g).friend = p.id; like(p, 12); remember(g, p, c.known ? '개구리 잡으러 가자는 말에 망설였다' : '처음엔 낯을 가렸다', 0, { tag: 'bestie' }); gainStat(g, 'sen', 0.5); step(g, 1, rng, 18, 30); if (c.known) return `${J(p.name, '은/는')} 몇 걸음 가다 돌아보더니 그냥 기다렸다. 결국 한참 뒤떨어져 따라갔다. 그 뒤로도 ${he(p)}는 늘 몇 걸음 앞에서 기다려 주었다. 어느새 둘은 단짝이라 불렸다.`; return `${J(p.name, '은/는')} 몇 걸음 가다 돌아보더니 그냥 기다렸다. 결국 한참 뒤떨어져 따라갔다. 그 뒤로도 ${he(p)}는 늘 몇 걸음 앞에서 기다려 주었다.`; } },
+      { label: '주머니의 사탕을 내민다', run: (g, rng, c) => { const p = byId(g, c.id); CH(g).friend = p.id; like(p, 18); remember(g, p, c.known ? '개구리 잡던 날 사탕을 나눠 주었다' : '첫날 사탕을 나눠 주었다', 1, { tag: 'bestie' }); gainStat(g, 'cha', 0.5); step(g, 1, rng, 12, 26); if (c.known) return `${J(p.name, '은/는')} 사탕을 받아 반으로 깨물어 돌려주었다. 침이 묻어 있었다. 그래도 먹었다. 그날부터 둘은 단짝이었다.`; return `${J(p.name, '은/는')} 사탕을 받아 반으로 깨물어 돌려주었다. 침이 묻어 있었다. 그래도 먹었다. 그걸로 친구가 되었다.`; } },
     ],
   },
   {

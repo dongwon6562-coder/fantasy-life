@@ -362,7 +362,13 @@ defineScene('feud_peace', {
   text: (g, s) => {
     const p = byId(g, s.id);
     const gr = grudgeOf(g, s.id);
-    return `${J(p.name, '이/가')} 문을 열었다. ${gr.heat >= 65 ? '눈빛이 칼날 같았다.' : gr.heat >= 40 ? '들어오라는 말은 없었지만 문을 닫지도 않았다.' : '오래 나를 보다가 의자를 내주었다.'}${gr.gen > 0 ? ' 이 원한은 우리 둘이 시작한 것도 아니다.' : ''}`;
+    // 48단계: 한 줄짜리라 무엇 때문에 찾아왔는지가 안 보였다. 원한의 까닭·세월·지난번 일을 덧붙인다.
+    const why = gr.why?.length ? gr.why[gr.why.length - 1] : null;
+    const yrs = Math.floor((mi(g) - (gr.since ?? mi(g))) / 12);
+    const head = gr.tries ? `${gr.tries === 1 ? '두 번째' : `${gr.tries + 1}번째`}로 ${p.name}의 문 앞에 섰다. ` : '';
+    const past = !why ? '' : /다$/.test(why) ? `${yrs >= 2 ? `${yrs}년이 지났다. ` : ''}${p.name}에게 그 일은 아직 한 줄로 남아 있다. "${why}." ` : `${why}. ${yrs >= 2 ? `${yrs}년째 ` : ''}그게 우리 사이다. `;
+    const old = ageYears(p) >= 60 ? ' 머리가 하얗게 셌다. 문틀을 짚은 손이 떨렸다.' : (p.health ?? 60) < 30 ? ' 얼굴이 많이 상해 있었다.' : '';
+    return `${head}${past}${J(p.name, '이/가')} 문을 열었다.${old} ${gr.heat >= 65 ? '눈빛이 칼날 같았다.' : gr.heat >= 40 ? '들어오라는 말은 없었지만 문을 닫지도 않았다.' : '오래 나를 보다가 의자를 내주었다.'}${gr.gen > 0 ? ' 이 원한은 우리 둘이 시작한 것도 아니다.' : ''}`;
   },
   choices: (g, s) => {
     const gr = grudgeOf(g, s.id);
@@ -380,6 +386,7 @@ defineScene('feud_peace', {
     const gr = grudgeOf(g, s.id);
     if (!p || !gr) return '원한은 이미 풀려 있었다.';
     const done = () => { F(g).forgiven += gr.heat < 15 || !grudgeOf(g, p.id) ? 1 : 0; };
+    gr.tries = (gr.tries ?? 0) + 1;
     if (key === 'leave') return '말을 꺼내지 못하고 돌아섰다. 다음에는, 하고 생각했다. 다음이 있을지는 모르겠다.';
     if (key === 'pay') {
       let n = Math.round(gr.heat * 2);
