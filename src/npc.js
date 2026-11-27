@@ -176,7 +176,7 @@ export function simulateMonth(game, rng) {
       if (Math.floor(before / 25) < Math.floor(p.skill / 25) && p.skill >= 50) {
         const t = `${JOBS[p.job].name}로서 솜씨가 늘어 마을에서 인정받기 시작했다.`;
         note(p, t);
-        ev(`${fullName(p)}의 ${JOBS[p.job].name} 솜씨가 좋아졌다는 말이 돈다.`, [p.id], 1);
+        events.push({ text: `${fullName(p)}의 ${JOBS[p.job].name} 솜씨가 좋아졌다는 말이 돈다.`, who: [p.id], weight: 1, small: true });
       }
     }
 

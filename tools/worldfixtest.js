@@ -127,6 +127,8 @@ const mi = (g) => g.date.year * 12 + g.date.month;
     }
     g.pendingEvent = null; L(g).queue.length = 0; L(g).scene = null;
   }
+  const small = g.chronicle.filter((c) => c.text.includes('솜씨가 좋아졌다는 말이 돈다') && c.rel < 40).length;
+  check(small === 0, `모르는 사람 솜씨 소문 ${small}줄이 연대기에 쌓였다`);
   let twice = 0;
   for (let i = 1; i < seq.length; i++) if (seq[i] === seq[i - 1]) twice++;
   check(twice === 0, `빵값 소식이 같은 말을 거푸 한다: ${seq.join(',')}`);

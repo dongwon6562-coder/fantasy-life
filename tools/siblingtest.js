@@ -50,7 +50,7 @@ function play(seed, years, setup, stay = false) {
     months++;
     const ls = siblingLines(g);
     ok(Array.isArray(ls) && ls.length <= 2, 'shape');
-    for (const x of ls) if (x.kind === 'far') { const key = `${seed}:${x.id}`; const head = x.form; const prev = (farSeen[key] ??= []); ok(!prev.includes(head), `같은 형제에게 같은 소식 앞 문장 [${prev}/${head}] ${key}: ${x.text}`); prev.push(head); if (prev.length > 5) prev.shift(); ok(head != null, 'far form'); }
+    for (const x of ls) if (x.kind === 'far') { const key = `${seed}:${L(g).gen ?? 1}:${x.id}`; /* 48단계 도우미3: 대를 이은 달의 소식은 이 점검이 못 세어(g.over 달), 대가 바뀌면 따로 센다 */ const head = x.form; const prev = (farSeen[key] ??= []); ok(!prev.includes(head), `같은 형제에게 같은 소식 앞 문장 [${prev}/${head}] ${key}: ${x.text}`); prev.push(head); if (prev.length > 5) prev.shift(); ok(head != null, 'far form'); }
     for (const x of ls) { lines++; ok(!bad(x.text), `bad line [${x.kind}]: ${x.text}`); kinds[x.kind] = (kinds[x.kind] ?? 0) + 1; (samples[x.kind] ??= []).length < 3 && samples[x.kind].push(`${playerAge(g)}살: ${x.text}`); }
     const l1 = siblingLine(g); ok(l1 === null || typeof l1 === 'string', 'line');
     if (m % 24 === 0) { const info = siblingsInfo(g); ok(Array.isArray(info.siblings) && info.siblings.every((s) => !bad(s.word) && !bad(s.bond)), 'info'); uncleSeen += info.uncles.length; }
