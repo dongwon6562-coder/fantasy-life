@@ -161,7 +161,7 @@ defineScene('secret_bastard', {
       chron(g, `${g.player.name}, 혼인 밖에서 난 아이 ${J(kid.name, '을/를')} 자식으로 받다.`, 50);
       deed(g, 'honest', 3, '혼인 밖에서 난 아이를 숨기지 않았다더라');
       if (alive(sp)) { const ls = loveState(g).spouse; if (ls) { ls.mood = clamp((ls.mood ?? 50) - 30, 0, 100); ls.cheated = true; } remember(g, sp, '혼인 밖에서 아이를 낳았다', -3, { tag: 'secret' }); }
-      relState(g).news.push({ text: `${g.player.name}에게 혼인 밖에서 난 아이가 있다는 말이 돈다.`, who: [p.id], weight: 5 });
+      relState(g).news.push({ text: `나에게 혼인 밖에서 난 아이가 있다는 말이 돈다.`, who: [p.id], weight: 5 });
       p.affection = clamp((p.affection ?? 0) + 15, -100, 100);
       return `${kid.name}. 이름을 지어 주고 우리 집 족보에 올렸다. 장터 사람들은 한동안 수군거렸다.${alive(sp) ? ` ${J(sp.name, '은/는')} 며칠 동안 나와 한 상에서 밥을 먹지 않았다.` : ''} 아이는 그런 걸 모르고 잘 울고 잘 먹었다.`;
     }

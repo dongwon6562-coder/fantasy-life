@@ -7,7 +7,7 @@
 export const KIND_WORD = { fire: '불놀이', harvest: '거두기', market: '큰 장', drink: '술', contest: '겨룸', parade: '행렬', sacred: '제사', mourn: '기리는 날', vigil: '밤샘', hunt: '사냥', grim: '이름만 축제' };
 export const FEAST_KIND = {
   봉인제: 'sacred', '망자의 밤': 'mourn', '씨뿌림 제사': 'sacred', '하지 불놀이': 'fire', 수확제: 'harvest', '새 술 장': 'drink', '긴 밤 지키기': 'vigil',
-  '봉인제 대미사': 'sacred', '참회 주간': 'sacred', '용사 행렬': 'parade', '수확 감사 미사': 'harvest',
+  '봉인제 대미사': 'sacred', '참회 주간': 'sacred', '용사 행렬': 'parade', '수확 감사 미사': 'sacred',
   '황제 탄신 열병': 'parade', '추수 세금의 날': 'grim', '겨울 군영제': 'drink',
   '문 여는 날': 'market', '호수의 빛': 'contest', '서클 시험 철': 'contest',
   '항구 개장': 'market', '의회 장날': 'market',

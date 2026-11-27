@@ -17,6 +17,7 @@ import { rel } from '../relations.js';
 import { crimeState, isJailed, reportCrime } from '../crime.js';
 import { makeRng } from '../rng.js';
 import * as T from './lines.js';
+import { localize } from '../races/local.js';
 
 const mi = (g) => g.date.year * 12 + g.date.month;
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
@@ -95,12 +96,12 @@ function startStay(g, rng) {
   const ms = pool.slice(0, 2);
   while (ms.length < 2) {
     const p = makePerson(rng, { sex: rng.chance(0.8) ? 'm' : 'f', ageMonths: rng.int(19, 50) * 12, job: rng.pick(['gang_member', 'laborer', 'idle', 'sailor']) });
-    p.place = j.place; g.people.push(p);
+    p.place = j.place; localize(g, p, j.place); g.people.push(p);
     lockNpc(g, p, j.place, j.months + rng.int(-2, 10), rng.pick(WHY));
     ms.push(p);
   }
   const gd = makePerson(rng, { sex: 'm', ageMonths: rng.int(28, 55) * 12, job: 'guard' });
-  gd.place = j.place; g.people.push(gd);
+  gd.place = j.place; localize(g, gd, j.place); g.people.push(gd);
   s.stay = { place: j.place, kind, since: now, total: j.total ?? j.months, mates: ms.map((p) => p.id), guard: gd.id, bribed: false, gang: null, plot: 0, boss: null, left: j.months, plotAt: null };
   log(g, `${T.KINDS[kind].where(placeName(j.place))}에 갇혔다.`);
 }
@@ -119,8 +120,12 @@ function endStay(g) {
 
 /* ---------- 장면: 안에서 ---------- */
 defineScene('pr_arrive', {
-  title: () => '감방의 첫날',
-  text: (g, s) => `${s.where}. 문이 닫히자 어둠 속에서 눈들이 나를 본다. 구석 제일 마른 짚 위에 앉은 ${J(s.boss, '이/가')} 턱짓을 했다. "새로 왔으면 인사부터 해야지. 그 담요하고 오늘 빵." ${J(s.old, '은/는')} 벽에 기대 눈을 감고 있다. 못 본 척이다.`,
+  title: (g, s) => (s?.again ? '다시 감방' : '감방의 첫날'),
+  text: (g, s) => {
+    if (s.knew) return `${s.where}. 다시 이 냄새다. 문이 닫히자 짚 위에서 ${J(s.boss, '이/가')} 고개를 들었다. "또 왔냐. 이번엔 얼마나 있다 가냐." 반가운 얼굴은 아니었다. "옛정은 옛정이고, 담요하고 오늘 빵." ${J(s.old, '은/는')} 벽에 기대 눈을 감고 있다.`;
+    if (s.again) return `${s.where}. ${s.again >= 2 ? `벌써 ${s.again + 1}번째다.` : '다시 이 냄새다.'} 낯선 얼굴들이 나를 훑었다. 구석 마른 짚 위의 ${J(s.boss, '이/가')} 턱짓을 했다. "처음 온 얼굴은 아니네. 그래도 여기 법은 알지? 담요하고 오늘 빵." ${J(s.old, '은/는')} 벽에 기대 눈을 감고 있다. 못 본 척이다.`;
+    return `${s.where}. 문이 닫히자 어둠 속에서 눈들이 나를 본다. 구석 제일 마른 짚 위에 앉은 ${J(s.boss, '이/가')} 턱짓을 했다. "새로 왔으면 인사부터 해야지. 그 담요하고 오늘 빵." ${J(s.old, '은/는')} 벽에 기대 눈을 감고 있다. 못 본 척이다.`;
+  },
   choices: (g, s) => [{ label: '담요와 빵을 내준다', key: 'give' }, { label: '거절하고 맞선다', key: 'fight' }, { label: `${s.old}에게 다가가 앉는다`, key: 'ward' }],
   resolve(g, rng, s, key) {
     const st = S(g).stay; if (st) st.boss = key === 'give' ? 'gave' : key === 'fight' ? 'fought' : 'ward';
@@ -382,7 +387,11 @@ function insideTick(g, rng) {
   }
   if (L(g).queue.length >= 2) return;
   if (!st.boss && now - st.since <= 1) {
-    const ms = mates(g); if (ms.length >= 2) return q('pr_arrive', { where: T.KINDS[st.kind].where(placeName(st.place)), boss: ms[0].name, bossId: ms[0].id, old: ms[1].name, oldId: ms[1].id });
+    // 48단계: 같은 감옥에 다시 들어와도 처음 온 것처럼 같은 글이 뜨던 것. 두 번째부터는 '다시 왔군', 아는 얼굴이면 알아본다.
+    const ms = mates(g);
+    const before = s.past.filter((x) => x.place === st.place);
+    const knew = before.some((x) => (x.mates ?? []).includes(ms[0]?.id));
+    if (ms.length >= 2) return q('pr_arrive', { where: T.KINDS[st.kind].where(placeName(st.place)), boss: ms[0].name, bossId: ms[0].id, old: ms[1].name, oldId: ms[1].id, again: before.length, knew });
   }
   if (now - s.sceneAt < 2) return;
   const gd = guardOf(g);

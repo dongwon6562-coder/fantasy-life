@@ -406,12 +406,12 @@ defineScene('letters_forge', {
     if (!ok) {
       reportCrime(g, 'fraud');
       deed(g, 'honest', -5, '남의 글씨를 흉내 내다 들켰다더라');
-      log(g, `${f.name}가 들통났다.`);
+      log(g, `${J(f.name, '이/가')} 들통났다.`);
       if (k === 'love') { const t = byId(g, Number(id)); if (alive(t)) addGrudge(g, t, 30, '거짓 연서로 집안을 흔들려 했다'); }
       return '잉크가 마르기도 전에 들통났다. 인장의 테두리 무늬가 하나 모자랐다. 경비대가 내 이름을 적어 갔다.';
     }
     v.forged += 1;
-    log(g, `${f.name}를 꾸몄다.`);
+    log(g, `${J(f.name, '을/를')} 꾸몄다.`);
     if (k === 'seal' || k === 'will') {
       const n = rng.int(f.gain[0], f.gain[1]);
       g.player.money += n;

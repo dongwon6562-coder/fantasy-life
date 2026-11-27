@@ -225,12 +225,19 @@ function opening(g, p, body) {
   const mems = rel(p).memories.filter((m) => m.tone !== 0 && m.tag !== 'visit');
   if (mems.length && rng.chance(0.5)) {
     const m = rng.pick(mems);
-    parts.push((m.tone > 0 ? rng.pick(S.RECALL_GOOD) : rng.pick(S.RECALL_BAD))(p.name, recallOf(m)));
+    const r = recallOf(m);
+    // 48단계: 기억 글이 그 사람 말투('네가 …를 내가 봤다')면 서술로 옮기면 누가 누군지 꼬인다. 그땐 그 사람 말로만 꺼낸다.
+    const voiced = /(^|\s)(네가|너를|너랑|너의|네|내가|나를|나의|내)\s/.test(r);
+    const list = (m.tone > 0 ? S.RECALL_GOOD : S.RECALL_BAD).filter((f) => !voiced || /^\(n, r\) => `"/.test(String(f)));
+    parts.push(rng.pick(list.length ? list : (m.tone > 0 ? S.RECALL_GOOD : S.RECALL_BAD))(p.name, r));
   } else if (!home && (noto(g) >= 15 || renownOf(g) >= 15) && rng.chance(0.45)) {
     parts.push(S.reputationLine(p, noto(g), renownOf(g)));
   } else if (t.length && rng.chance(0.6)) parts.push(S.MOOD[rng.pick(t)](p.name));
   const b = Array.isArray(body) ? rng.pick(body) : body;
   parts.push(typeof b === 'function' ? b(p, g) : b);
+  // 48단계: "한스와 … 한스는 … 한스는 …"처럼 이름이 문장마다 되풀이되지 않게, 앞 문장에 이름이 있으면 다음 문장 첫머리 주어를 '그'로 바꾼다
+  const subj = new RegExp(`^${p.name}(은|는|이|가) `);
+  for (let i = 1; i < parts.length; i++) if (parts[i - 1]?.includes(p.name) && subj.test(parts[i] ?? '') && !parts[i - 1].startsWith('"')) parts[i] = parts[i].replace(subj, (_, j) => `${ageYears(p) < 16 ? '그 애' : '그'}${/[은는]/.test(j) ? '는' : '가'} `);
   return join(...parts);
 }
 
@@ -392,7 +399,7 @@ EVENTS.push(
         p.romance = Math.min(100, p.romance + 10);
         remember(g, p, '서로 마음을 확인했다', 1, { tag: 'confess', log: `${J(g.player.name, '과/와')} 연인이 되었다.` });
         note(g, me(g), `${J(n(p), '과/와')} 연인이 되었다.`);
-        relState(g).news.push({ text: `${J(fullName(p), '과/와')} ${J(g.player.name, '이/가')} 요즘 함께 다니는 모습이 자주 보인다는 소문이 돈다.`, who: [p.id], weight: 4 });
+        relState(g).news.push({ text: `요즘 내가 ${J(fullName(p), '과/와')} 함께 다니는 모습이 자주 보인다는 소문이 돈다.`, who: [p.id], weight: 4 });
         stress(g, -15);
         return has(p, 'timid')
           ? `${J(n(p), '은/는')} 귀까지 빨개져 한참을 땅만 보았다. 그러다 아주 작게, 고개를 끄덕였다.`
@@ -539,7 +546,7 @@ export function marry(g, p) {
   note(g, p, `${J(g.player.name, '과/와')} 혼인했다.`);
   note(g, meP, `${J(fullName(p), '과/와')} 혼인했다.`);
   remember(g, p, '예배당에서 혼인 서약을 했다', 1, { tag: 'wedding' });
-  R.news.push({ text: `${J(g.player.name, '과/와')} ${J(fullName(p), '이/가')} 성광교 예배당에서 혼인했다.`, who: [p.id], weight: 10 });
+  R.news.push({ text: `${J(fullName(p), '과/와')} 성광교 예배당에서 혼인했다.`, who: [p.id], weight: 10 });
   stress(g, -20);
   return `${J(n(p), '은/는')} 대답 대신 울음을 터뜨렸고, 그게 대답이었다. 다음 달, 예배당 종이 울렸다. ${cost}`;
 }
@@ -581,7 +588,7 @@ function registerChildren(g, sim) {
     rel(x);
     stress(g, -10);
     relState(g).tryChild = 0;
-    sim.push({ text: `${g.player.name}의 집에 ${x.sex === 'm' ? '아들' : '딸'}이 태어났다. 이름은 ${x.name}.`, who: [x.id], weight: 10 });
+    sim.push({ text: `우리 집에 ${x.sex === 'm' ? '아들' : '딸'}이 태어났다. 이름은 ${x.name}.`, who: [x.id], weight: 10 });
   }
 }
 
@@ -630,7 +637,7 @@ function monthly(g, rng, sim) {
       remember(g, p, '헤어지자고 했다', -1, { tag: 'breakup', log: `${J(g.player.name, '과/와')} 헤어졌다.` });
       note(g, meP, `${J(p.name, '과/와')} 헤어졌다.`);
       stress(g, 15);
-      sim.push({ text: `${J(fullName(p), '이/가')} ${J(g.player.name, '과/와')} 갈라섰다는 이야기가 들린다.`, who: [p.id], weight: 4 });
+      sim.push({ text: `${J(fullName(p), '과/와')} 내가 갈라섰다는 이야기가 마을에 돈다.`, who: [p.id], weight: 4 });
     }
 
     // 해가 바뀔 때, 한 해 넘게 못 본 친구와는 조금 멀어진다
@@ -641,7 +648,7 @@ function monthly(g, rng, sim) {
     // 원수는 가만있지 않는다
     if (p.bond === 'enemy' && !p.away && rng.chance(0.04)) {
       for (const q of living(g)) if (has(q, 'gossip') && q.known && q !== p) q.affection -= 2;
-      sim.push({ text: `${J(fullName(p), '이/가')} ${g.player.name}에 대해 험담을 늘어놓고 다닌다. 듣는 귀가 적지 않다.`, who: [p.id], weight: 5 });
+      sim.push({ text: `${J(fullName(p), '이/가')} 내 험담을 늘어놓고 다닌다. 듣는 귀가 적지 않다.`, who: [p.id], weight: 5 });
     }
 
     // 나를 좋게 기억하는 사람은 가끔 먼저 찾아온다
@@ -649,7 +656,7 @@ function monthly(g, rng, sim) {
     if (good >= 3 && p.affection >= 60 && !g.player.familyIds.includes(p.id) && rng.chance(0.015)) {
       const gift = rng.pick(['말린 사과 한 자루', '직접 짠 털장갑', '훈제 고기 한 덩이', '꿀 한 단지', '손수 깎은 나무 빗']);
       remember(g, p, `${J(gift, '을/를')} 가져다주었다`, 1, { tag: 'gift' });
-      sim.push({ text: `${J(fullName(p), '이/가')} ${g.player.name}의 집에 들러 ${J(gift, '을/를')} 두고 갔다. 지난번 일이 고마웠다고 한다.`, who: [p.id], weight: 6 });
+      sim.push({ text: `${J(fullName(p), '이/가')} 우리 집에 들러 ${J(gift, '을/를')} 두고 갔다. 지난번 일이 고마웠다고 한다.`, who: [p.id], weight: 6 });
     }
   }
 

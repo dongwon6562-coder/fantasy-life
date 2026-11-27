@@ -212,7 +212,7 @@ HOOKS.afterMonth.push((g, rng) => {
     stress(g, 8);
     note(g, `${placeName(pl)} ${what}에서 져 준 일이 들통났다.`);
     logContest(g, `${x.year}년 ${placeName(pl)} ${what}의 승부 조작이 들통났다.`);
-    if (Array.isArray(g.news)) g.news.unshift({ text: `${x.year}년 ${placeName(pl)} ${what}에서 ${J(g.player.name, '이/가')} 돈을 받고 져 주었다는 소문이 돈다.`, rel: 80 });
+    if (Array.isArray(g.news)) g.news.unshift({ text: `${x.year}년 ${placeName(pl)} ${what}에서 내가 돈을 받고 져 주었다는 소문이 돈다.`, rel: 80 });
     break;
   }
 });
