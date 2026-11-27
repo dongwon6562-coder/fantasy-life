@@ -255,8 +255,12 @@ export function renderPlan(game, ui) {
   const groups = groupActs(acts);
   const usual = acts.length > 12 ? usualActs(game, acts) : [];
   const folded = Array.isArray(prefs().foldActs) ? prefs().foldActs : [];
+  const opened = Array.isArray(prefs().openActs) ? prefs().openActs : [];
+  // 묶음이 많으면(48단계: 열여섯 살에 묶음 마흔 가까이, 폰에서 스크롤 1만 픽셀) 처음 묶음만 펼치고 나머지는 접어 둔다. 펼친 묶음은 기억한다.
+  const manyGroups = groups.length > 6;
+  const isOpen = (gid, i) => (manyGroups ? opened.includes(gid) || (i === 0 && !folded.includes(gid)) : !folded.includes(gid));
   const foldable = groups.map(([gid]) => gid).filter((gid) => gid !== 'dark' && gid !== 'crisis');
-  const allFolded = foldable.length > 0 && foldable.every((gid) => folded.includes(gid));
+  const allFolded = foldable.length > 0 && foldable.every((gid) => !isOpen(gid, groups.findIndex(([x]) => x === gid)));
   // 짧게 보기: 할 일 카드에서 설명을 빼고 이름만(이 기기에 기억). 고른 칸의 설명은 칸 줄 아래에 한 줄로.
   const many = acts.length > 12;
   const compact = many && !!prefs().actCompact;
@@ -298,14 +302,15 @@ export function renderPlan(game, ui) {
       </div>` : ''}
       ${usual.length >= 2 ? `<div class="act-group act-usual" id="ag-usual"><h4><span class="ag-ic">${icon('hourglass', 18)}</span>자주 하는 일</h4><div class="act-grid">${usual.map((a) => actCard(a, ui, counts)).join('')}</div></div>` : ''}
       ${groups.length > 3 && acts.length > 12 ? `<nav class="act-jump" aria-label="할 일 묶음으로 가기">${groups.map(([gid, name, list]) => `<button class="ghost sm" data-act-jump="${gid}">${esc(name)} <small>${list.length}</small></button>`).join('')}</nav>` : ''}
-      ${groups.map(([gid, name, list]) => {
+      ${groups.map(([gid, name, list], gi) => {
         const cards = list.map((a) => actCard(gid === 'crisis' ? crisisActDesc(game, a) : a, ui, counts)).join('');
         const gic = `<span class="ag-ic">${actionIcon(list[0], 18)}</span>`;
         if (gid === 'crisis') return `<div class="act-group cr-acts" id="ag-${gid}"><h4>${gic}${name}</h4><div class="act-grid">${cards}</div></div>`;
         // 어두운 일은 처음부터 접어 둔다. 다른 묶음은 펼쳐 두되, 접은 묶음은 기억한다(이 기기). 고른 일이 든 묶음은 늘 펼친다.
         const chosen = list.some((a) => counts[a.id]);
-        const open = chosen || (gid === 'dark' ? ui.darkOpen : !folded.includes(gid));
-        return `<details class="act-group${gid === 'dark' ? ' dark' : ''}" id="ag-${gid}" data-ag="${gid}"${open ? ' open' : ''}><summary><h4>${gic}${name}</h4><span class="note">${list.length}가지</span></summary><div class="act-grid">${cards}</div></details>`;
+        const open = chosen || (gid === 'dark' ? ui.darkOpen : isOpen(gid, gi));
+        const peek = list.length > 1 ? `<span class="ag-peek" aria-hidden="true">${list.slice(1, 5).map((a) => actionIcon(a, 15)).join('')}</span>` : `<span class="ag-peek one">${esc(list[0].name)}</span>`;
+        return `<details class="act-group${gid === 'dark' ? ' dark' : ''}" id="ag-${gid}" data-ag="${gid}"${open ? ' open' : ''}><summary><h4>${gic}${name}</h4><span class="note">${list.length}가지</span>${gid === 'dark' ? '' : peek}</summary><div class="act-grid">${cards}</div></details>`;
       }).join('')}
     </div>
     ${renderTpl(game, ui)}
@@ -337,14 +342,20 @@ export function bindPlan(game, ui, rerender) {
     if (ui.active < ui.plan.length - 1) ui.active++;
     rerender();
   });
-  document.querySelectorAll('details.act-group[data-ag]').forEach((d) => d.ontoggle = () => {
+  document.querySelectorAll('details.act-group[data-ag]').forEach((d) => { d.dataset.was = d.open ? '1' : '0'; d.ontoggle = () => {
+    // 처음 그릴 때 open으로 그린 묶음도 toggle이 한 번 온다. 그건 사람이 누른 게 아니니 기억하지 않는다 (48단계: 고른 적 있는 묶음이 다 펼쳐져 남던 것)
+    if ((d.open ? '1' : '0') === d.dataset.was) return;
+    d.dataset.was = d.open ? '1' : '0';
     if (d.dataset.auto) { delete d.dataset.auto; return; } // 찾기가 잠깐 펼친 것은 기억하지 않는다
     const gid = d.dataset.ag;
     if (gid === 'dark') { ui.darkOpen = d.open; return; }
     const cur = Array.isArray(prefs().foldActs) ? prefs().foldActs : [];
+    const curO = Array.isArray(prefs().openActs) ? prefs().openActs : [];
     const next = d.open ? cur.filter((x) => x !== gid) : [...new Set([...cur, gid])];
+    const nextO = d.open ? [...new Set([...curO, gid])] : curO.filter((x) => x !== gid);
     if (next.length !== cur.length) setPref('foldActs', next);
-  });
+    if (nextO.length !== curO.length) setPref('openActs', nextO);
+  }; });
   // 묶음으로 가기: 접혀 있으면 펼치고 그 묶음 머리로 굴린다
   document.querySelectorAll('[data-act-jump]').forEach((b) => b.onclick = () => {
     const g = document.getElementById(`ag-${b.dataset.actJump}`);
@@ -380,6 +391,7 @@ export function bindPlan(game, ui, rerender) {
   if (fold) fold.onclick = () => {
     const ids = [...document.querySelectorAll('.acts details.act-group[data-ag]')].map((d) => d.dataset.ag).filter((x) => x !== 'dark');
     setPref('foldActs', fold.dataset.fold === '1' ? ids : []);
+    setPref('openActs', fold.dataset.fold === '1' ? [] : ids);
     rerender();
   };
   const cmp = document.getElementById('act-compact');
