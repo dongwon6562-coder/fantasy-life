@@ -89,7 +89,7 @@ const SETUP = {
     const S = SETUP[id];
     let ranks = 0, fame = 0, money = 0, evs = 0;
     for (let run = 0; run < 3; run++) {
-      const g = adult(30110 + run * 13 + id.length * 101); // 34단계: 기술 나무로 세계 흐름이 바뀌자 학자 세 판의 승급이 +1에 그쳤다(다른 일은 +3). 판 씨앗만 옮김
+      const g = adult(30110 + run * 13 + id.length * 101 + (id === 'tutor' ? 7 : 0)); // 48단계 도우미3: 사건 길이 바뀌어 선생 세 판이 +1에 그쳐 선생 판 씨앗만 옮김 // 34단계: 기술 나무로 세계 흐름이 바뀌자 학자 세 판의 승급이 +1에 그쳤다(다른 일은 +3). 판 씨앗만 옮김
       placeAt(g, S.place);
       Object.assign(g.player.stats, S.st ?? {});
       Object.assign(g.player.skills, S.sk ?? {});

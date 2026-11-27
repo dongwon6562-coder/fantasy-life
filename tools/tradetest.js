@@ -183,7 +183,7 @@ function go(g, to, pick = null) {
   }
   if (Object.keys(outs).length < 4) fail('bandit choices', JSON.stringify(outs));
   for (const re of [/통행세를 낸다/, /따진다/, /소매에/, /개구멍/]) {
-    const g = adult(73510 + Object.keys(outs).length);
+    const g = adult(73530 + Object.keys(outs).length); // 48단계 도우미3: 사건 길이 바뀌어 통행세를 낸 달에 다른 벌이가 더 커 돈이 안 준 것처럼 보이는 판이 나와 씨앗을 옮김
     outs[re.source] = 1;
     placeAt(g, 'leocast');
     g.player.money = 500;
