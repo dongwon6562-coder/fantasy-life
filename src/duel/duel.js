@@ -10,7 +10,7 @@
 // 같은 수끼리는 실력 차로 가린다. 이긴 쪽은 기세가 오르고, 기세는 피해를 키운다.
 // 수치는 D의 전투(adventure/combat.js)와 같은 눈금: 체력은 playerVitality, 실력은 검술+몸.
 import { EVENTS, josa } from '../events/core.js';
-import { me, circleOf } from '../game.js';
+import { me, circleOf, playerAge } from '../game.js';
 import { playerVitality } from '../adventure/combat.js';
 import { schoolOf, rankOf, SCHOOLS, formMul, formFor, bladeSpell } from './schools.js';
 import { J } from '../narrative/text.js';
@@ -37,6 +37,7 @@ export const MOVES = {
   block: { name: '받아내기', label: '칼로 정면에서 받아낸다', dmg: 0 },
 };
 export const MAX_ROUND = 12;
+export const KID_ROUND = 5;
 const BEATS = {
   heavy: ['guard', 'feint', 'wait'],
   quick: ['heavy', 'feint', 'magic', 'aura', 'wait'],
@@ -101,6 +102,8 @@ export function startDuel(g, rng, opts) {
   const venue = venueFor(opts.kind, opts);
   g.duel = {
     kind: opts.kind ?? 'spar', title: opts.title ?? '결투', lethal: !!opts.lethal, ctx: opts.ctx ?? {}, magicDuel: opts.mode === 'magic',
+    // 15살 아래 아이의 목검 대련은 짧게: 다섯 합이면 판가름 (48단계, 아홉 합까지 가서 화면을 오래 붙잡았다)
+    maxRound: !opts.lethal && playerAge(g) < 15 ? KID_ROUND : MAX_ROUND,
     foe, hp, hp0: hp, fhp, fhp0: fhp, round: 0, mom: 0, fmom: 0, history: [],
     sharp: 0, read: 0, mana: Math.min(5, circleOf(g)) + (circleOf(g) > 0 ? (g.sword?.blade ?? 0) : 0), secretUsed: false, fmana: foe.circle ?? 0, log: [],
     next: null, tell: null,
@@ -428,7 +431,8 @@ function finished(g, rng) {
   if (!d.lethal && d.foe.trait !== 'proud' && d.fhp < d.fhp0 * 0.35 && d.mom - d.fmom >= 2 && rng.chance(0.2)) { d.endKind = 'retreat'; return 'win'; }
   // 합이 길어지면 판가름: 여덟 합이 넘고 차이가 뚜렷하면, 열두 합이면 무조건
   const gap = d.hp / d.hp0 - d.fhp / d.fhp0;
-  if ((d.round >= 8 && Math.abs(gap) >= 0.3) || d.round >= MAX_ROUND) { const w = gap >= 0; d.endKind = w ? 'judged' : 'lose_judged'; return w ? 'win' : 'lose'; }
+  const cap = d.maxRound ?? MAX_ROUND;
+  if ((d.round >= Math.min(8, cap - 2) && Math.abs(gap) >= 0.3) || d.round >= cap) { const w = gap >= 0; d.endKind = w ? 'judged' : 'lose_judged'; return w ? 'win' : 'lose'; }
   return null;
 }
 
@@ -475,7 +479,7 @@ function viewOf(g) {
   const d = g.duel;
   const moves = availableMoves(g);
   return {
-    round: d.round + 1, maxRound: MAX_ROUND, place: VENUES[d.venue]?.name ?? null, venue: d.venue, crowd: VENUES[d.venue]?.crowd ?? 0,
+    round: d.round + 1, maxRound: d.maxRound ?? MAX_ROUND, place: VENUES[d.venue]?.name ?? null, venue: d.venue, crowd: VENUES[d.venue]?.crowd ?? 0,
     me: { name: g.player.name, hp: Math.max(0, Math.round(d.hp)), hp0: Math.round(d.hp0), word: hpWord(d.hp, d.hp0), wounds: d.wounds.me.map((w) => PARTS[w].name) },
     foe: { name: d.foe.name, hp: Math.max(0, Math.round(d.fhp)), hp0: Math.round(d.fhp0), word: hpWord(d.fhp, d.fhp0), style: STYLES[d.foe.style]?.name ?? null, trait: TRAITS[d.foe.trait]?.name ?? null,
       habit: d.habitKnown ? HABITS[d.foe.habit]?.name ?? null : null, line: d.say || null, wounds: d.wounds.foe.map((w) => PARTS[w].name), school: d.foe.school ?? null },

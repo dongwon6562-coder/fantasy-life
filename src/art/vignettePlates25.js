@@ -224,9 +224,69 @@ function scLecture(v) {
 }
 export const SCHOLAR25 = { write: scWrite, debate: scDebate, shelf: scShelf, library: scLibrary, copy: scCopy, censor: scCensor, lecture: scLecture };
 
+// ───────── 주점 (48단계: 도박판·주점 장면이 음유시인·마법 공부 판을 빌려 쓰던 것) ─────────
+// 옆에서 본 술통: 배가 부른 몸통, 쇠테 둘, 꼭지 (끝면이 과녁처럼 보이지 않게)
+const barrel = (ctx, x, y, r) => { ctx.fillStyle = '#5a3e26'; ctx.beginPath(); ctx.moveTo(x - r * 1.1, y - r * 0.8); ctx.quadraticCurveTo(x, y - r * 1.05, x + r * 1.1, y - r * 0.8); ctx.lineTo(x + r * 1.1, y + r * 0.8); ctx.quadraticCurveTo(x, y + r * 1.05, x - r * 1.1, y + r * 0.8); ctx.closePath(); ctx.fill(); for (const k of [-0.6, 0.6]) stroke(ctx, [x + k * r, y - r * 0.98, x + k * r, y + r * 0.98], 1.6, '#2a1e14'); for (const k of [-0.3, 0, 0.3]) stroke(ctx, [x - r * 1.05, y + k * r, x + r * 1.05, y + k * r], 0.5, 'rgba(30,20,12,.5)'); rect(ctx, x - 1.5, y + r * 0.3, 3, r * 0.4, '#2a1e14'); };
+const mug = (ctx, x, y, s = 1) => { rect(ctx, x - 3 * s, y - 7 * s, 6 * s, 7 * s, '#8a6a44'); rect(ctx, x - 3 * s, y - 8 * s, 6 * s, 2 * s, '#e8e0c8'); stroke(ctx, [x + 3 * s, y - 6 * s, x + 5 * s, y - 5 * s, x + 5 * s, y - 2 * s, x + 3 * s, y - 1 * s], 1 * s, '#6a5034'); };
+/** 주점 안: 뒤쪽 술통 선반과 계산대, 둥근 탁자마다 잔을 든 사람들. 계산대 앞에 선 나 */
+function tvHall(v) {
+  const ctx = study(v, { wall: '#4e3e30', floor: '#2e241c', fy: 178 });
+  for (const x of [0, 160, 480]) rect(ctx, x, 0, 14, 178, '#3a2a1e');
+  rect(ctx, 0, 0, VW, 10, '#3a2a1e'); for (let i = 0; i < 9; i++) rect(ctx, 20 + i * 70, 10, 6, 14, '#3a2a1e');
+  // 술통 선반과 계산대
+  rect(ctx, 360, 70, 260, 6, '#3a2a1c'); for (let i = 0; i < 5; i++) barrel(ctx, 384 + i * 50, 100, 18);
+  rect(ctx, 360, 124, 260, 6, '#3a2a1c'); for (let i = 0; i < 7; i++) rect(ctx, 372 + i * 34, 104, 10, 20, ['#3a5a3a', '#6a2a24', '#2a3a5a'][i % 3]);
+  rect(ctx, 340, 150, 290, 40, '#4a3220'); rect(ctx, 336, 146, 298, 6, '#6a4a2e');
+  person(v, 470, 150, 86, { raw: true, f: -1, cloth: '#5a4a3a', hair: '#8a6a44', arm: 'fwd', noShadow: true }); mug(ctx, 440, 146, 1.2);
+  windowAt(v, 90, 40, 54, 70, {}); lamp(v, 250, 70, 0.5); lamp(v, 560, 46, 0.4); glow(v, 250, 90, 120, '#ffb060', 0.22);
+  // 탁자와 사람들
+  for (const [x, y, n, i0] of [[110, 226, 3, 0], [270, 214, 2, 3]]) {
+    for (let k = 0; k < n; k++) person(v, x - 34 + k * 34, y, 78, folk(i0 + k, { raw: true, pose: 'sit', f: k % 2 ? -1 : 1, arm: k === 1 ? 'up' : 'fwd', noShadow: true }));
+    oval(ctx, x, y - 26, 40, 8, '#5a4026'); rect(ctx, x - 3, y - 26, 6, 26, '#3a2a1a'); mug(ctx, x - 14, y - 28); mug(ctx, x + 12, y - 28); candle(v, x, y - 30, 7);
+  }
+  person(v, 380, 236, 104, mine(v, { raw: true, f: 1, arm: 'fwd' }));
+  finish(v, { inside: true, noLeaves: true });
+}
+/** 도박판: 어두운 뒷방, 촛불 하나 아래 주사위와 은화. 둘러앉은 노름꾼들과 뒤에서 보는 사람 */
+function tvDice(v) {
+  const ctx = study(v, { wall: '#3a2e26', floor: '#221c16', fy: 170 });
+  rect(ctx, 520, 30, 90, 140, '#2a201a'); rect(ctx, 528, 38, 74, 132, '#5a2a24'); // 휘장
+  for (let i = 0; i < 6; i++) stroke(ctx, [534 + i * 12, 38, 532 + i * 12, 170], 1, 'rgba(20,10,8,.4)');
+  glow(v, 320, 170, 170, '#ffb060', 0.3);
+  for (let k = 0; k < 3; k++) person(v, 210 + k * 110, 214, 84, folk(k + 1, { raw: true, pose: 'sit', f: k === 2 ? -1 : 1, arm: 'fwd', noShadow: true, rim: 'rgba(255,180,100,.5)', rimDir: k === 2 ? -1 : 1 }));
+  person(v, 470, 170, 70, { raw: true, f: -1, cloth: '#2a2a30', hair: '#1c1614', hat: true, noShadow: true });
+  table(ctx, 160, 480, 214, '#4a3220', 8, 30); rect(ctx, 176, 204, 288, 4, '#2e4a32');
+  candle(v, 320, 206, 10); glow(v, 320, 192, 60, '#ffd08a', 0.3);
+  for (let i = 0; i < 12; i++) oval(ctx, 220 + hash(i, 3) * 60 + (i % 2) * 140, 204 - hash(i, 4) * 3, 4, 1.6, '#d8c070');
+  for (const [x, y] of [[300, 202], [342, 201]]) { rect(ctx, x - 4, y - 7, 8, 8, '#e8e0c8'); oval(ctx, x - 1, y - 4, 0.9, 0.9, '#1c1410'); oval(ctx, x + 1.5, y - 2, 0.9, 0.9, '#1c1410'); }
+  person(v, 120, 240, 104, mine(v, { raw: true, f: 1, arm: 'chest', rim: 'rgba(255,180,100,.45)', rimDir: 1 }));
+  finish(v, { inside: true, noLeaves: true });
+}
+/** 주점 앞: 한낮 골목, 잔 그림 간판이 걸린 주점 문간. 문 안은 따뜻한 불빛, 밖에 선 나 */
+function tvFront(v) {
+  const { ctx } = v; sky(v); far(v, {}); townFar(v, 320, 140, {});
+  ground(v, () => 186, { color: '#5e5646', color2: '#3a3428', tufts: 2 });
+  rowHouse(v, 0, 120, 70, 186, '#5a4e40', { roof: '#3a2e24' }); rowHouse(v, 500, 140, 76, 186, '#54483c', { roof: '#3a2e24' });
+  // 주점 건물
+  rect(ctx, 150, 60, 330, 126, '#7a6448'); poly(ctx, [140, 64, 315, 24, 490, 64], '#4a3426');
+  for (let i = 0; i < 4; i++) stroke(ctx, [150, 84 + i * 26, 480, 84 + i * 26], 1, 'rgba(40,28,18,.35)');
+  for (const x of [190, 420]) { rect(ctx, x, 96, 40, 34, '#2a1e16'); rect(ctx, x + 3, 99, 34, 28, '#e8a050'); stroke(ctx, [x + 20, 99, x + 20, 127], 2, '#3a2a1c'); }
+  rect(ctx, 288, 110, 54, 76, '#2a1e16'); rect(ctx, 292, 114, 46, 72, '#f0a858'); glow(v, 315, 160, 70, '#ffb060', 0.3);
+  // 간판
+  stroke(ctx, [480, 80, 540, 80], 3, '#3a2a1c'); stroke(ctx, [480, 70, 520, 80], 1.4, '#3a2a1c');
+  rect(ctx, 506, 84, 2, 8, '#2a1e16'); rect(ctx, 530, 84, 2, 8, '#2a1e16'); rect(ctx, 498, 92, 42, 30, '#6a4a2e'); ring(ctx, 519, 107, 17, 12, 1.2, '#c8a050'); mug(ctx, 519, 116, 1.6);
+  barrel(ctx, 260, 172, 12); barrel(ctx, 370, 172, 12);
+  person(v, 340, 186, 76, folk(2, { f: -1, arm: 'out' })); person(v, 230, 210, 92, folk(4, { f: 1 }));
+  person(v, 420, 240, 104, mine(v, { f: -1 }));
+  finish(v, {});
+}
+export const TAVERN25 = { hall: tvHall, dice: tvDice, front: tvFront };
+
 export const PLATES25 = {
   /** 축제와 인생 의례. variant: feast·host·rite·calendar·contest·mishap */
   rites(v) { return (RITES25[v.variant] ?? rtFeast)(v); },
   /** 학자의 길. variant: write·debate·shelf·library·copy·censor·lecture */
   scholar(v) { return (SCHOLAR25[v.variant] ?? scLibrary)(v); },
+  /** 주점과 도박판. variant: hall·dice·front */
+  tavern(v) { return (TAVERN25[v.variant] ?? tvHall)(v); },
 };
