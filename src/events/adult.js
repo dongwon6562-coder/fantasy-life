@@ -7,10 +7,12 @@ import { startDuel } from '../duel/duel.js';
 import {
   EVENTS, flag, setFlag, fam, father, mother, alive, age, findJob, peers, stat, skill, money, spend,
   spendFamily, stress, tire, like, note, injure, check, nm, byId, living, ageYears, isFamily, siblings,
-  startChain,
+  startChain, here,
 } from './core.js';
 
 const parents = (g) => [father(g), mother(g)].filter(alive);
+// 곁에 사는 부모 (멀리 떠나 사는데 우물가에서 주저앉는 걸 볼 수는 없다, 48단계 헤드)
+const nearParents = (g) => parents(g).filter((p) => (p.place ?? 'ern') === here(g));
 // 최근 반년 안에 세상을 떠난 부모
 const diedRecently = (g, p) => { const h = p.history[p.history.length - 1]; return !!h && (g.date.year * 12 + g.date.month) - (h.y * 12 + h.m) <= 6; };
 const deadParents = (g) => [father(g), mother(g)].filter((p) => p && !p.alive && diedRecently(g, p));
@@ -29,9 +31,9 @@ EVENTS.push(
   },
   {
     id: 'adult_parent_aging', cooldown: 60,
-    cond: (g) => age(g) >= 18 && parents(g).some((p) => ageYears(p) >= 55),
+    cond: (g) => age(g) >= 18 && nearParents(g).some((p) => ageYears(p) >= 55),
     chance: () => 0.04, weight: 50,
-    prepare: (g) => ({ id: parents(g).find((p) => ageYears(p) >= 55).id }),
+    prepare: (g) => ({ id: nearParents(g).find((p) => ageYears(p) >= 55).id }),
     title: '작아진 등',
     text: (g, c) => { const p = byId(g, c.id); return `${p.name}이(가) 우물에서 물동이를 들다 허리를 짚고 주저앉았다. 언제 저렇게 작아졌을까. 머리는 하얗게 셌고, 손은 마른 나뭇가지 같다.`; },
     choices: [
