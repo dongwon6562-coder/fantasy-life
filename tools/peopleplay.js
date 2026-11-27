@@ -21,7 +21,8 @@ const GHOST = [];
 const FAR = [];
 for (let m = 0; m < years * 12 && !g.over; m++) {
   const rng = rngOf(g);
-  const acts = availableActions(g).filter((x) => process.env.PP_MOVE || (x.id !== 'travel' && !/move|emigr/.test(x.id)));
+  // PP_CALM=1이면 도둑질·한탕 같은 어두운 행동을 빼고 보통 살림으로 산다 (어른·노년 사람 사이를 보려고)
+  const acts = availableActions(g).filter((x) => (process.env.PP_MOVE || (x.id !== 'travel' && !/move|emigr/.test(x.id))) && (!process.env.PP_CALM || !/steal|rob|crime|heist|burgl|fraud|assass|smuggl|pick|theft|thief|con_|fence|loot|poach|extort|black|forge|spy|bribe/.test(x.id)));
   const choices = [];
   for (let i = 0; i < slotsFor(g); i++) {
     let a = rng.pick(acts);

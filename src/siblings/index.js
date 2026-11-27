@@ -345,7 +345,7 @@ function estates(g, rng) {
     const heirs = siblingsOf(g).filter((p) => ageYears(p) >= 16);
     const pot = clamp(Math.round(par.wealth ?? 0), 0, 240);
     const other = byId(g, par.spouseId);
-    if (!heirs.length || pot < 12 || other?.alive) continue; // 남은 부모가 있으면 그쪽이 지닌다
+    if (!heirs.length || pot < 12 || other?.alive || other?.wasPlayer) continue; // 남은 부모가 있으면 그쪽이 지닌다 (앞 주인이었던 부모가 이미 물려받은 몫은 대 잇기에서 넘어왔다)
     queueScene(g, 'sib_estate', { parent: par.id, pot, eldest: eldestOf(g, heirs).id }, { first: true });
   }
 }

@@ -9,6 +9,10 @@ import { localize } from '../src/races/local.js';
 import { showScene, L } from '../src/adventure/core.js';
 import { J } from '../src/narrative/text.js';
 import { RACE_NAMES } from '../src/races/data.js';
+import { kinState, myKids } from '../src/kin/index.js';
+import { loveState } from '../src/love/index.js';
+import { feudState } from '../src/feud/index.js';
+import { makePerson as mkP } from '../src/npc.js';
 
 const t0 = Date.now();
 let fails = 0;
@@ -100,6 +104,66 @@ ok(J('아일린', '이/가') === '아일린이' && J('미나', '이다/다') ===
   const show = (extra) => { g.pendingEvent = null; L(g).scene = null; showScene(g, { ...s1, ...extra }, { force: true }); return g.pendingEvent ?? {}; };
   ok(show({}).title === '감방의 첫날' && show({ again: 1 }).title === '다시 감방', '감방 제목');
   ok(/또 왔냐/.test(show({ again: 1, knew: true }).text) && /다시 이 냄새/.test(show({ again: 1 }).text), '감방 다시 글');
+}
+
+
+// 9. 어른·노년 (둘째): 유품·늙음·거둔 아이·유언·떠난 자식·사별 뒤·화해
+{
+  const g = newGame({ name: '하린', sex: 'f', familyId: 'farmer', mode: 'free', seed: 4821 });
+  const meP = me(g);
+  meP.ageMonths = 40 * 12;
+  // 거둔 아이: 갓난아기 이야기를 하지 않는다
+  const kid = mkP(rngOf(11), { sex: 'm', ageMonths: 10 * 12, lastName: g.player.lastName, motherId: meP.id }); kid.id = 95001; kid.adopted = true; kid.alive = true;
+  g.people.push(kid); meP.childIds.push(kid.id);
+  kinState(g).kids[kid.id] = { temper: 'gentle', gift: 'str', giftKnown: false, path: null, bond: 50, learned: 0, rebelled: 0, left: null, disowned: false, adopted: true, grudge: {}, jobSet: false, born: 9 * 12, parent: g.player.id, adoptedAt: 0 };
+  const show = (s) => { g.pendingEvent = null; L(g).scene = null; showScene(g, s, { force: true }); return g.pendingEvent ?? {}; };
+  const kp = show({ kind: 'kin_path', id: kid.id });
+  ok(kp.text && !/울음소리|안기면/.test(kp.text) && /거두어 온/.test(kp.text), `거둔 아이 가르칠 길: ${kp.text}`);
+  // 유언: 똑같이 나누면 이름을 붙이지 않는다
+  const kid2 = mkP(rngOf(12), { sex: 'f', ageMonths: 12 * 12, lastName: g.player.lastName, motherId: meP.id }); kid2.id = 95002; g.people.push(kid2); meP.childIds.push(kid2.id);
+  kinState(g).will = { mode: 'equal', heirId: kid.id };
+  const wl = show({ kind: 'kin_will' });
+  ok(/"자식들에게 똑같이 나눈다"/.test(wl.text ?? ''), `유언 표시: ${wl.text}`);
+  // 떠난 자식은 떠난 고장에 산다
+  kinState(g).kids[kid.id].left = 'harfen';
+  endMonth(g, [{ id: 'rest' }, { id: 'rest' }]); g.pendingEvent = null;
+  ok(kid.place === 'harfen', `떠난 자식 사는 곳 ${kid.place}`);
+  // 배우자는 내가 집을 두고 사는 고장에 같이 산다
+  const sp = mkP(rngOf(13), { sex: 'm', ageMonths: 42 * 12 }); sp.id = 95003; sp.alive = true; sp.place = 'solaris'; g.people.push(sp); meP.spouseId = sp.id; sp.spouseId = meP.id;
+  L(g).home = 'own'; L(g).place = 'ern';
+  endMonth(g, [{ id: 'rest' }, { id: 'rest' }]); g.pendingEvent = null;
+  ok((sp.place ?? 'ern') === 'ern', `배우자 사는 곳 ${sp.place}`);
+  // 사별 뒤 '다시 봄': 아직은 아니라고 하면 해가 지나기 전엔 다시 묻지 않고, 햇수도 맞다
+  meP.spouseId = null; sp.spouseId = null;
+  const v = loveState(g); v.widowed = { id: 1, name: '레온', at: (g.date.year * 12 + g.date.month) - 5 * 12, vow: false };
+  const la = show({ kind: 'love_after', seed: 1 });
+  ok(/떠난 지 5해/.test(la.text ?? ''), `다시 봄 햇수: ${la.text}`);
+  resolveEvent(g, rngOf(3), 1);
+  ok(/떠난 지 5해/.test(show({ kind: 'love_after', seed: 2 }).text ?? ''), '아직은 아니다 뒤에도 햇수 그대로');
+  ok(v.widowed.askAt != null, '다시 봄 물은 때 기록');
+  // 몸 나이로 늙는다: 쉰 넘은 글은 예순·일흔에 다르다
+  const ev = EVENTS.find((x) => x.id === 'adult_body_aging');
+  meP.ageMonths = 72 * 12; const t70 = ev.text(g, {}); meP.ageMonths = 52 * 12; const t50 = ev.text(g, {});
+  ok(t70 !== t50 && /지팡이/.test(t70), '늙음 글이 나이에 따라');
+  // 유품: 대를 이은 앞 주인은 빼고, 집안마다 남는 것이 다르다
+  const inh = EVENTS.find((x) => x.id === 'adult_inheritance');
+  const t = inh.text(g, { id: meP.motherId ?? kid.id });
+  ok(!/손때 묻은 연장/.test(t) || g.player.familyId !== 'farmer', `농부 유품: ${t}`);
+}
+// 10. 화해: 받아들여졌는지에 따라 무릎 꿇은 글이 다르다
+{
+  const outs = new Set();
+  for (const heat of [20, 50, 90]) {
+    const g = newGame({ name: '하린', sex: 'f', familyId: 'farmer', mode: 'free', seed: 4830 + heat });
+    me(g).ageMonths = 30 * 12;
+    const p = g.people.find((x) => !x.isPlayer && x.alive && x.ageMonths > 20 * 12);
+    feudState(g).grudges[p.id] = { heat, gen: 0, why: ['나에 대한 헛소문을 퍼뜨렸다'], since: 0 };
+    g.pendingEvent = null; L(g).scene = null; showScene(g, { kind: 'feud_peace', id: p.id }, { force: true });
+    const ks = g.pendingEvent?.choices?.findIndex((c) => (c.label ?? c) === '무릎을 꿇는다');
+    if (ks >= 0) { const r = resolveEvent(g, rngOf(5), ks); outs.add(String(r?.text ?? r ?? g.lastResults?.at?.(-1)?.text ?? JSON.stringify(g.log?.[0] ?? ''))); }
+  }
+  if (process.env.PT_SHOW) console.log([...outs]);
+  ok(outs.size >= 2, `무릎 글 ${outs.size}가지`);
 }
 
 console.log(`${((Date.now() - t0) / 1000).toFixed(1)}초`);

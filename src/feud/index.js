@@ -397,8 +397,12 @@ defineScene('feud_peace', {
       return `은화 자루를 탁자에 올려놓았다. ${J(p.name, '은/는')} 자루를 오래 보았다. 그리고 받았다. 돈으로 풀리는 원한도 있다. 다 풀리지는 않아도.`;
     }
     if (key === 'kneel') {
+      const before = gr.heat;
       ease(g, p, 30); stress(g, 12); deed(g, 'brave', -3, null); done();
       log(g, `${p.name} 앞에 무릎을 꿇었다.`);
+      // 무릎이 받아들여졌는지에 따라 (48단계 도우미2: 누구 앞에서든 같은 글이던 것)
+      if (!grudgeOf(g, p.id)) return `무릎을 꿇었다. ${J(p.name, '은/는')} 한참 말이 없다가 내 팔을 잡아 일으켰다. "됐다. 이제 됐어." ${gr.gen > 0 ? '윗대에서 내려온 미움이 그 한마디에 내려앉았다.' : '그 손이 생각보다 따뜻했다.'}`;
+      if (before >= 65) return `무릎을 꿇었다. ${J(p.name, '은/는')} 내려다보기만 했다. "그런다고 달라지는 건 없어." 문이 닫혔다. 그래도 닫히기 전에 한 번 더 나를 보았다.`;
       return `무릎을 꿇었다. ${J(p.name, '은/는')} 놀란 얼굴이었다. "일어나." 목소리가 떨렸다. 미움은 남았겠지만 칼은 거두었을 것이다.`;
     }
     if (check(rng, g.player.stats.cha * 0.5 + g.player.stats.wil * 0.2 + (gr.formerFriend ? 15 : 0) - gr.gen * 8, 20 + gr.heat * 0.5)) {
