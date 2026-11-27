@@ -18,9 +18,10 @@ const strip = (h) => h.replace(/<(details|summary)[^>]*>/g, '').replace(/<\/(p|l
 const log = [];
 const ACTS = {};
 const GHOST = [];
+const FAR = [];
 for (let m = 0; m < years * 12 && !g.over; m++) {
   const rng = rngOf(g);
-  const acts = availableActions(g).filter((x) => x.id !== 'travel' && !/move|emigr/.test(x.id));
+  const acts = availableActions(g).filter((x) => process.env.PP_MOVE || (x.id !== 'travel' && !/move|emigr/.test(x.id)));
   const choices = [];
   for (let i = 0; i < slotsFor(g); i++) {
     let a = rng.pick(acts);
@@ -50,6 +51,8 @@ for (let m = 0; m < years * 12 && !g.over; m++) {
     for (const [k2, v] of Object.entries(data)) {
       if (typeof v !== 'number' || v < 1) continue;
       const d = g.people.find((x) => x.id === v);
+      const myPl = L(g).place ?? 'ern';
+      if (d && d.alive && !d.isPlayer && d.place && d.place !== myPl && pe.text.includes(d.name) && !/편지|소식|전해|인편|사람을 보내|찾아왔|찾아온|왔다|돌아왔|들렀|기별|소문/.test(pe.text)) FAR.push(`${g.date.year}.${g.date.month} ${pe.title} [${pe.id === 'life_scene' ? 'S:' + L(g).scene?.kind : pe.id}] ${k2}=${d.name}@${d.place} 나는@${myPl} — ${pe.text.slice(0, 110).replace(/\n/g, ' ')}`);
       if (d && !d.alive && d !== me(g) && pe.text.includes(d.name)) GHOST.push(`${g.date.year}.${g.date.month} ${pe.title} [${pe.id === 'life_scene' ? 'S:' + L(g).scene?.kind : pe.id}] ${k2}=${d.name}(${d.deathCause ?? '?'}) — ${pe.text.slice(0, 110).replace(/\n/g, ' ')}`);
     }
     const k = rngOf(g).int(0, pe.choices.length - 1);
@@ -60,4 +63,5 @@ for (let m = 0; m < years * 12 && !g.over; m++) {
 }
 fs.writeFileSync(out, log.join('\n'));
 if (GHOST.length) console.log('죽은 사람이 나오는 사건', GHOST.length, '\n' + [...new Set(GHOST)].slice(0, 30).join('\n'));
+if (FAR.length) console.log('멀리 있는 사람이 눈앞에', FAR.length, '\n' + [...new Set(FAR)].slice(0, 30).join('\n'));
 console.log(out, '끝', playerAge(g), '살', g.over ? '(끝남)' : '');

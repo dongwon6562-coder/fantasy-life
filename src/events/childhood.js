@@ -6,6 +6,7 @@ import {
 } from './core.js';
 import { makePerson, kill } from '../npc.js';
 import { J } from '../narrative/text.js';
+const homeSibs = (g) => siblings(g).filter((s) => ageYears(s) >= 4 && ageYears(s) <= 17 && (s.place ?? 'ern') === (g.life?.place ?? 'ern'));
 
 const parent = (g) => (alive(mother(g)) ? mother(g) : alive(father(g)) ? father(g) : null);
 const opposite = (g) => (g.player.sex === 'm' ? 'f' : 'm');
@@ -179,11 +180,12 @@ EVENTS.push(
     ],
   },
   {
-    id: 'sibling_quarrel', cond: (g) => age(g) >= 5 && age(g) <= 13 && siblings(g).some((s) => ageYears(s) >= 4),
+    // 48단계: 다른 고장에 사는 다 큰 형제와도 꿀빵을 두고 싸우던 것. 한집에 사는 열일곱 아래 형제만.
+    id: 'sibling_quarrel', cond: (g) => age(g) >= 5 && age(g) <= 13 && homeSibs(g).length > 0,
     chance: () => 0.025, weight: 30,
-    prepare: (g, rng) => ({ id: rng.pick(siblings(g).filter((s) => ageYears(s) >= 4)).id }),
+    prepare: (g, rng) => ({ id: rng.pick(homeSibs(g)).id }),
     title: '형제 싸움',
-    text: (g, c) => `${nm(byId(g, c.id))}와(과) 마지막 남은 꿀빵 한 조각을 두고 싸움이 붙었다. 서로 머리채를 잡기 직전이다.`,
+    text: (g, c) => `${J(nm(byId(g, c.id)), '과/와')} 마지막 남은 꿀빵 한 조각을 두고 싸움이 붙었다. 서로 머리채를 잡기 직전이다.`,
     choices: [
       { label: '양보한다', run: (g, rng, c) => { like(byId(g, c.id), 8); gainStat(g, 'wil', 0.3); return '빵을 내밀었다. 상대는 머쓱한 얼굴로 반을 갈라 돌려주었다.'; } },
       { label: '끝까지 싸운다', run: (g, rng, c) => { like(byId(g, c.id), -6); gainStat(g, 'str', 0.4); return '둘 다 혼났고, 빵은 개가 먹었다.'; } },
