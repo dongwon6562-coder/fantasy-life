@@ -11,6 +11,7 @@ import { runFight } from '../adventure/fight.js';
 import { reportCrime } from '../crime.js';
 import { E, LENDERS, LOAN_MONTHS, mi, debtTotal, netWorth, companies, companyOf, homeWorth, rentalWorth, placeName, payOut } from './core.js';
 import { sellHome } from './manage.js';
+import { opener } from '../narrative/openers.js';
 
 const here = (g) => L(g).place;
 const lendersHere = (g) => Object.entries(LENDERS).filter(([, d]) => !d.places || d.places.includes(here(g)));
@@ -36,7 +37,7 @@ ACTIONS.push({
   icon: 'coin',
   desc: '급한 돈을 빌리거나 빚을 갚는다. 이자는 달마다 붙는다. 돈을 빌려주는 곳이 있는 도시에서, 주머니가 가볍거나 빚이 있을 때 찾아간다.',
   available: (g) => isAdult(g) && !traveling(g) && lendersHere(g).length > 0 && (g.player.money < 80 || E(g).loans.length > 0) && !sceneQueued(g, 'estate_borrow'),
-  run(g) { queueScene(g, 'estate_borrow'); return '돈 이야기를 하러 나섰다.'; },
+  run(g, rng) { queueScene(g, 'estate_borrow'); return opener(g, 'estate_borrow', rng); },
 });
 defineScene('estate_borrow', {
   title: () => '빚',
@@ -105,7 +106,7 @@ ACTIONS.push({
   icon: 'coin',
   desc: '상단에 돈을 맡겨 굴린다. 상단이 잘되면 불어나고, 망하면 함께 사라진다.',
   available: (g) => isAdult(g) && !traveling(g) && investHere(g) && companies(g).length > 0 && (g.player.money >= 100 || E(g).deposits.length > 0) && !sceneQueued(g, 'estate_invest'),
-  run(g) { queueScene(g, 'estate_invest'); return '상단 거리의 금고들을 돌았다.'; },
+  run(g, rng) { queueScene(g, 'estate_invest'); return opener(g, 'estate_invest', rng); },
 });
 defineScene('estate_invest', {
   need: (g) => investHere(g) && !traveling(g),

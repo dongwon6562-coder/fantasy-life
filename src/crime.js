@@ -582,7 +582,8 @@ ACTIONS.push(
     id: 'jail_escape', name: '탈옥', icon: 'travel',
     desc: '창살을 갈고, 간수를 매수하고, 하수구를 기어 나간다. 실패하면 형기가 늘고 다친다. 성공하면 쫓기는 몸이 된다.',
     // 48단계: 붙잡힌 뒤 석 달은 간수들이 눈을 떼지 않는다 (실패를 달마다 되풀이해 형기가 끝없이 붙던 것)
-    available: (g) => isJailed(g) && !((C(g).jailed?.watchUntil ?? -1) > g.date.year * 12 + g.date.month),
+    // 남은 형기가 두 달 안이면 탈옥할 까닭이 없다 (한 달 형에 탈옥하다 여섯 달이 붙던 것)
+    available: (g) => isJailed(g) && (C(g).jailed.months ?? 0) > 2 && !((C(g).jailed?.watchUntil ?? -1) > g.date.year * 12 + g.date.month),
     run(g, rng) {
       if (!C(g).jailed) return '';
       const c = C(g);

@@ -12,6 +12,7 @@ import {
   mi, clamp, here, placeName, free, farmSkill, ownRng, farmland, regionCrop, CROPS, CROP_IDS, SEEDS, MAX_FIELDS, HAND_WAGE,
   fieldPrice, leaseFee, landlordName, tenantName,
 } from './core.js';
+import { opener } from '../narrative/openers.js';
 
 const pay = (g, n) => { const p = Math.max(0, Math.min(n, g.player.money)); g.player.money -= p; return p; };
 const learn = (g, b) => { const k = gainSkill(g, 'farming', b, 'str'); return k > 0.04 ? ` (농사 +${k.toFixed(1)})` : ''; };
@@ -31,9 +32,9 @@ ACTIONS.push({
   icon: 'coin',
   desc: '내 이름으로 된 밭을 사거나, 지주의 밭을 빌려 짓거나(거둔 것의 삼분의 일을 바친다), 내 밭을 소작 주거나 판다. 처음 밭을 가지면 이 고장에 내 농가가 생긴다.',
   available: canLand,
-  run(g) {
+  run(g, rng) {
     if (!sceneQueued(g, 'farm_land')) queueScene(g, 'farm_land', {}, { first: true });
-    return '읍내 서기에게 땅 장부를 보여 달라고 했다.';
+    return opener(g, 'farm_land', rng);
   },
 });
 defineScene('farm_land', {
@@ -199,9 +200,9 @@ ACTIONS.push({
   icon: 'home',
   desc: '품꾼을 들이거나 내보내고, 소를 사고, 씨앗을 고르고, 물길을 판다.',
   available: canManage,
-  run(g) {
+  run(g, rng) {
     if (!sceneQueued(g, 'farm_manage')) queueScene(g, 'farm_manage', {}, { first: true });
-    return '저녁 먹은 뒤 등잔 밑에서 농가 장부를 펼쳤다.';
+    return opener(g, 'farm_manage', rng);
   },
 });
 const OX = 50, DITCH = 25;

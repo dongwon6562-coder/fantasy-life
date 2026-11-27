@@ -12,6 +12,7 @@ import { PLACES } from '../places.js';
 import { L, defineScene, queueScene, sceneQueued, isAdult, traveling, note, chron, stress } from '../adventure/core.js';
 import { fac } from '../factions.js';
 import { P, members, join, leave, ROLES, roleOfJob, FIGHT_JOBS, MAX_COMPANIONS, compPow, addLoyalty, LOYAL_WORD } from './core.js';
+import { opener } from '../narrative/openers.js';
 
 const MERC_TOWNS = ['harfen', 'verden', 'leocast', 'gruental'];
 const traitWord = (p) => p.traits.slice(0, 2).map(traitName).join(', ');
@@ -23,7 +24,7 @@ ACTIONS.push({
   icon: 'heart',
   desc: '함께 미궁과 의뢰에 나설 동료를 구한다. 아는 사람, 주점의 용병, 길드의 소개.',
   available: (g) => isAdult(g) && !traveling(g) && P(g).members.length < MAX_COMPANIONS && !sceneQueued(g, 'gather_party'),
-  run(g, rng) { queueScene(g, 'gather_party', { offers: makeOffers(g, rng) }); return '함께 갈 사람을 찾아 나섰다.'; },
+  run(g, rng) { queueScene(g, 'gather_party', { offers: makeOffers(g, rng) }); return opener(g, 'gather_party', rng); },
 });
 
 // 이 고장에서 청할 수 있는 아는 사람
@@ -105,7 +106,7 @@ ACTIONS.push({
   icon: 'heart',
   desc: '모닥불 가에서 이야기를 듣고, 몫을 나누고, 맞지 않는 동료와는 헤어진다.',
   available: (g) => isAdult(g) && members(g).length > 0 && !sceneQueued(g, 'party_manage'),
-  run(g) { queueScene(g, 'party_manage'); return '동료들을 불러 모았다.'; },
+  run(g, rng) { queueScene(g, 'party_manage'); return opener(g, 'party_manage', rng); },
 });
 
 defineScene('party_manage', {

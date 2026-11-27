@@ -3,6 +3,7 @@ import '../src/content.js';
 import { newGame, endMonth, rngOf } from '../src/game.js';
 import { ACTIONS } from '../src/actions.js';
 import { startDuel, KID_ROUND, MAX_ROUND } from '../src/duel/duel.js';
+import { openerIds, openerLines, opener } from '../src/narrative/openers.js';
 import { art48, plate47 } from '../src/art/vignette.js';
 import { LINES, ACT_KIND } from '../src/senses/data.js';
 import * as UT from '../src/underworld/text.js';
@@ -79,6 +80,33 @@ if (T.REST.filter((e) => typeof e === 'string' || (e.bands ?? ['adult']).include
   if (sp.available(g)) fail('kid spar again within a year');
   g.sword.kidSparAt = g.date.year * 12 + g.date.month - 13;
   if (!sp.available(g)) fail('kid spar not available after a year');
+}
+
+// 7) 둘째 판(30~60살): 장면을 여는 행동의 첫 줄이 한 줄뿐이라 수천 번 되풀이되던 것
+for (const id of openerIds) {
+  if (openerLines(id).length < 3) fail('opener lines', id);
+  if (!ACTIONS.some((a) => a.id === id)) fail('opener for missing action', id);
+}
+{
+  const g = newGame({ name: '점검', sex: 'f', familyId: 'farmer', mode: 'once', seed: 4814 });
+  const seen = new Set();
+  for (let i = 0; i < 12; i++) seen.add(opener(g, 'seek_job', rngOf(g)));
+  if (seen.size < 3) fail('opener does not vary', seen.size);
+}
+
+// 8) 옥에 있는 동안은 길바닥 잠자리 줄이 뜨지 않고, 남은 형기가 두 달 안이면 탈옥을 고를 수 없다
+{
+  const g = newGame({ name: '점검', sex: 'm', familyId: 'farmer', mode: 'once', seed: 4815 });
+  g.people.find((p) => p.isPlayer).ageMonths = 30 * 12;
+  for (const id of g.player.familyIds) { const p = g.people.find((x) => x.id === id); if (p) p.alive = false; }
+  g.life.home = 'street'; g.life.place = 'harfen'; g.player.money = 0;
+  g.crime ??= {}; g.crime.jailed = { place: 'harfen', months: 8, total: 8 };
+  let street = 0;
+  for (let m = 0; m < 6 && g.crime.jailed; m++) { g.pendingEvent = null; const r = endMonth(g, [{ id: 'jail_endure' }]); street += r.filter((x) => x.name === '잠자리').length; }
+  if (street) fail('street line while jailed', street);
+  const esc = ACTIONS.find((a) => a.id === 'jail_escape');
+  g.crime.jailed = { place: 'harfen', months: 1, total: 1 };
+  if (esc.available(g)) fail('escape offered with one month left');
 }
 
 console.log(bad ? `adultfixtest: ${bad} problems` : `adultfixtest OK (${((Date.now() - t0) / 1000).toFixed(1)}s)`);
