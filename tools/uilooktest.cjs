@@ -3,8 +3,10 @@
 // 3) 이번 달 축제 카드는 설명을 다시 쓰지 않는다  4) 어느 화면도 폭을 넘지 않고, 할 일 묶음이 카드 밖으로 나가지 않는다
 // 5) 세 살이 되면 막대가 돌아온다  6) 카드 제목이 혼자일 때 왼쪽에 붙는다
 // node tools/uilooktest.cjs   (먼저 npm run build)
-const { chromium } = require('playwright');
 const path = require('path');
+const { chromium } = require('playwright');
+const fs = require('fs');
+if (!fs.existsSync(path.resolve(__dirname, '../dist/play.html'))) { console.log('화면 점검 건너뜀: dist/play.html이 없다 (npm run build 먼저)'); process.exit(0); }
 let fail = 0;
 const check = (ok, msg) => { if (!ok) { fail++; console.log('FAIL', msg); } };
 (async () => {
