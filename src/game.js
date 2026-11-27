@@ -1,5 +1,6 @@
 // 게임 상태와 한 달 진행.
 import { J } from './narrative/text.js';
+import { fixParents } from './narrative/parents.js';
 import { makeRng } from './rng.js';
 import { FAMILIES, START_YEAR, STATS, SKILLS, MONTHS, JOBS } from './data.js';
 import {
@@ -171,7 +172,7 @@ export function endMonth(game, choices) {
       continue;
     }
     done.add(act.id);
-    const text = act.run(game, rng, c);
+    const text = fixParents(game, act.run(game, rng, c));
     if (text) results.push({ name: act.name, text, id: act.id }); // id: 화면 맨 위 그림을 고를 때 (art/sceneInterior.js sceneFor)
   }
 

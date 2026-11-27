@@ -8,10 +8,12 @@ import { startDuel } from '../duel/duel.js';
 import {
   EVENTS, flag, setFlag, fam, father, mother, alive, age, findJob, peers, stat, skill, money, spend,
   spendFamily, stress, tire, like, note, injure, check, nm, byId, living, ageYears, isFamily, siblings,
-  startChain,
+  startChain, here,
 } from './core.js';
 
 const parents = (g) => [father(g), mother(g)].filter(alive);
+// 곁에 사는 부모 (멀리 떠나 사는데 우물가에서 주저앉는 걸 볼 수는 없다, 48단계 헤드)
+const nearParents = (g) => parents(g).filter((p) => (p.place ?? 'ern') === here(g));
 // 최근 반년 안에 세상을 떠난 부모
 const diedRecently = (g, p) => { const h = p.history[p.history.length - 1]; return !!h && (g.date.year * 12 + g.date.month) - (h.y * 12 + h.m) <= 6; };
 const deadParents = (g) => [father(g), mother(g)].filter((p) => p && !p.alive && diedRecently(g, p));
@@ -30,9 +32,9 @@ EVENTS.push(
   },
   {
     id: 'adult_parent_aging', cooldown: 60,
-    cond: (g) => age(g) >= 18 && parents(g).some((p) => ageYears(p) >= 55),
+    cond: (g) => age(g) >= 18 && nearParents(g).some((p) => ageYears(p) >= 55),
     chance: () => 0.04, weight: 50,
-    prepare: (g) => ({ id: parents(g).find((p) => ageYears(p) >= 55).id }),
+    prepare: (g) => ({ id: nearParents(g).find((p) => ageYears(p) >= 55).id }),
     title: '작아진 등',
     text: (g, c) => { const p = byId(g, c.id); return `${J(p.name, '이/가')} 우물에서 물동이를 들다 허리를 짚고 주저앉았다. 언제 저렇게 작아졌을까. 머리는 하얗게 셌고, 손은 마른 나뭇가지 같다.`; },
     choices: [
@@ -79,11 +81,12 @@ EVENTS.push(
   },
   {
     id: 'adult_old_friend_returns', once: true,
-    cond: (g) => age(g) >= 18 && g.people.some((p) => p.away && !p.drafted && p.alive && p.known && p.affection >= 10),
+    // 48단계: 내가 다른 고장에 사는데 '마을 어귀에' 떠났던 이웃이 돌아오던 것. 그 사람 고향에 내가 있을 때만.
+    cond: (g) => age(g) >= 18 && g.people.some((p) => p.away && !p.drafted && p.alive && p.known && p.affection >= 10 && (p.place ?? 'ern') === (g.life?.place ?? 'ern')),
     chance: () => 0.04, weight: 55,
-    prepare: (g, rng) => ({ id: rng.pick(g.people.filter((p) => p.away && !p.drafted && p.alive && p.known && p.affection >= 10)).id }),
+    prepare: (g, rng) => ({ id: rng.pick(g.people.filter((p) => p.away && !p.drafted && p.alive && p.known && p.affection >= 10 && (p.place ?? 'ern') === (g.life?.place ?? 'ern'))).id }),
     title: '돌아온 얼굴',
-    text: (g, c) => { const p = byId(g, c.id); return `마을 어귀에 낯익은 얼굴이 섰다. ${p.name}이다. 몇 년 전 떠났던. 얼굴엔 흉터가, 눈엔 피로가 들어앉았다. "...오랜만이야."`; },
+    text: (g, c) => { const p = byId(g, c.id); return `마을 어귀에 낯익은 얼굴이 섰다. ${p.name}${/[가-힣]/.test(p.name.slice(-1)) && (p.name.charCodeAt(p.name.length - 1) - 0xac00) % 28 !== 0 ? '이다' : '다'}. 몇 년 전 떠났던. 얼굴엔 흉터가, 눈엔 피로가 들어앉았다. "...오랜만이야."`; },
     choices: [
       { label: '끌어안는다', run: (g, rng, c) => { const p = byId(g, c.id); p.away = false; like(p, 15); note(g, p, '오랜 객지 생활 끝에 고향으로 돌아왔다.'); return `${J(p.name, '은/는')} 그날 밤 여관에서 바깥세상 이야기를 했다. 돈은 벌지 못했고, 동료 둘을 잃었다고. "그래도 후회는 안 해. 봤으니까. 세상이 얼마나 넓은지."`; } },
       { label: '무슨 일이 있었는지 묻는다', run: (g, rng, c) => { const p = byId(g, c.id); p.away = false; like(p, 8); gainStat(g, 'int', 0.5); note(g, p, '오랜 객지 생활 끝에 고향으로 돌아왔다.'); return `"왕도는 썩었어. 성 밖은 검은 장갑 거고, 성 안은 귀족들 거야. 우리 같은 사람 자리는 없더라." ${J(p.name, '은/는')} 쓴웃음을 지었다.`; } },

@@ -65,7 +65,7 @@ const rightsCost = (f) => Math.round(20 + f.size * 0.8 + (f.ore === 'manastone' 
 const tipPrice = (f) => Math.round(8 + f.size * 0.4 + (f.ore === 'manastone' ? 15 : f.ore === 'silver' ? 10 : 0));
 function openMine(g, f, legal) {
   const S = MS(g), id = `my${S.seq++}`;
-  S.sites[id] = { name: `${legal ? '' : '숨은 '}${placeName(f.place)} ${{ iron: '철광', copper: '구리 광산', silver: '은광', manastone: '마석 광산' }[f.ore]}`, near: f.place, ore: f.ore, owner: 'me', ownerName: g.player.name, depth: 1, vein: f.size, safety: 50, unrest: 10, wageMul: 1, strike: null, closed: 0, stir: 0, awoke: null, dead: 0, collapses: 0, miners: 0, wage: 3, legal, since: mi(g) };
+  S.sites[id] = { name: `${placeName(f.place)} ${legal ? '' : '몰래 판 '}${{ iron: '철광', copper: '구리 광산', silver: '은광', manastone: '마석 광산' }[f.ore]}`, near: f.place, ore: f.ore, owner: 'me', ownerName: g.player.name, depth: 1, vein: f.size, safety: 50, unrest: 10, wageMul: 1, strike: null, closed: 0, stir: 0, awoke: null, dead: 0, collapses: 0, miners: 0, wage: 3, legal, since: mi(g) };
   S.finds = S.finds.filter((x) => x !== f);
   S.me.owned += 1;
   return id;
@@ -376,7 +376,7 @@ EVENTS.push({
   title: '들통난 굴',
   text: (g, c) => { const m = site(g, c.site); return `${LANDLORD[m.near] ?? '땅 주인'}의 사람들이 ${m.name}의 덤불을 걷어 냈다. 입구에 서서 장부를 펼친다. "광업권 없이 판 것이 몇 해치인가."`; },
   choices: [
-    { label: '벌금과 광업권 값을 치른다 (은화 60닢)', show: (g) => canSpend(g, 60), run: (g, rng, c) => { const m = site(g, c.site); if (!m) return '굴은 이미 내 것이 아니었다.'; if (!spend(g, 60)) return '돈이 모자랐다.'; m.legal = true; m.found = false; m.name = m.name.replace('숨은 ', ''); return '은화 예순 닢을 세어 주었다. 덤불은 다시 덮지 않았다. 이제 이 굴은 숨길 것이 없다.'; } },
+    { label: '벌금과 광업권 값을 치른다 (은화 60닢)', show: (g) => canSpend(g, 60), run: (g, rng, c) => { const m = site(g, c.site); if (!m) return '굴은 이미 내 것이 아니었다.'; if (!spend(g, 60)) return '돈이 모자랐다.'; m.legal = true; m.found = false; m.name = m.name.replace('몰래 판 ', '').replace('숨은 ', ''); return '은화 예순 닢을 세어 주었다. 덤불은 다시 덮지 않았다. 이제 이 굴은 숨길 것이 없다.'; } },
     { label: '굴을 버리고 달아난다', run: (g, rng, c) => { const m = site(g, c.site); if (!m) return '굴은 이미 내 것이 아니었다.'; delete MS(g).sites[c.site]; deed(g, 'honest', -4, `${J(g.player.name, '이/가')} 남의 땅을 몰래 파다 들켰다더라`, m.near); return '밤에 광부들에게 마지막 품삯을 쥐여 주고 떠났다. 다음 날 그 굴은 땅 주인의 것이 되었다.'; } },
   ],
 });

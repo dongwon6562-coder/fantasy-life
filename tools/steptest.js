@@ -69,8 +69,7 @@ ok(blends >= 3, `섞인 NPC 집안이 너무 적음 ${blends}`);
 
 // 2. 내가 의붓자식: 어머니를 일찍 잃으면 아버지가 다시 혼인한다
 let stepKidLives = 0;
-// 48단계 도우미3: 사건 길이 바뀌면 네 판 중 재혼이 한 번만 나오기도 해 여덟 판으로 늘림
-for (let k = 0; k < 8; k++) {
+for (let k = 0; k < 8; k++) { // 48단계: 넷 중 둘은 흐름에 따라 흔들려서 여덟 판에 셋
   const g = newGame({ name: '한스', sex: 'm', familyId: 'farmer', mode: 'free', seed: 3720 + k });
   const m = me(g);
   for (let i = 0; i < 4 * 12; i++) rest(g);
@@ -80,7 +79,7 @@ for (let k = 0; k < 8; k++) {
   if (ties.some((t) => t.kind === 'parent')) stepKidLives++;
   checkInfo(g);
 }
-ok(stepKidLives >= 2, `아버지 재혼이 너무 드묾 ${stepKidLives}/8`);
+ok(stepKidLives >= 3, `아버지 재혼이 너무 드묾 ${stepKidLives}/8`);
 ok((scenes.sf_newparent ?? 0) >= 1, '새 부모 장면');
 
 // 3. 내가 의붓부모: 홀로된 뒤 아이 딸린 혼담 → 정혼 → 혼례 → 새 식탁, 그리고 세월

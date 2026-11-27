@@ -53,7 +53,7 @@ defineScene('credit_pawn', {
   choices: (g) => {
     const out = [];
     for (const p of M(g).pawns) if (money(g) >= redeemPrice(g, p)) out.push({ label: `${p.what}을 찾는다 (은화 ${redeemPrice(g, p)}닢)`, key: `get:${p.id}` });
-    for (const p of pawnables(g)) out.push({ label: `${p.what}을 맡긴다 (은화 ${p.val}닢)`, key: `put:${p.kind}` });
+    for (const p of pawnables(g)) out.push({ label: `${J(p.what, "을/를")} 맡긴다 (은화 ${p.val}닢)`, key: `put:${p.kind}` });
     out.push({ label: '그냥 돌아간다', key: 'none' });
     return out.slice(0, 7);
   },

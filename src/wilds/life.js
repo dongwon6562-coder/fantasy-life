@@ -49,12 +49,21 @@ ACTIONS.push({
     S.rec.hunts += 1;
     tired(g, 12);
     // 한눈에 상대가 안 되는 놈이면 대개는 물러난다
-    if (playerPower(g) < hitHard(g, kind, lv) - 20 && rng.chance(0.5)) { stress(g, 3); return `${K.name}의 흔적을 찾았다. 발자국 크기를 재 보고는 조용히 돌아섰다. 아직 내가 상대할 놈이 아니다.`; }
+    if (playerPower(g) < hitHard(g, kind, lv) - 20 && rng.chance(0.5)) {
+      stress(g, 3);
+      // 48단계: 물러선 날도 그냥 돌아오지 않는다. 버릇을 하나씩 익힌다
+      const sk = gainSkill(g, 'sword', 0.15, 'sen');
+      return `${rng.pick([`${K.name}의 흔적을 찾았다. 발자국 크기를 재 보고는 조용히 돌아섰다. 아직 내가 상대할 놈이 아니다.`, `멀리서 ${J(K.name, '이/가')} 먹이를 뜯는 걸 지켜보았다. 어디로 드나드는지만 적어 두고 물러섰다.`, `${K.name}의 울음이 가까워지자 바람 아래쪽으로 몸을 낮췄다. 오늘은 보기만 한다.`])}${sk > 0.04 ? ` (검술 +${sk.toFixed(1)})` : ''}`;
+    }
     if (!check(rng, playerPower(g), hitHard(g, kind, lv))) {
       injure(g, `${K.name}에게 입은 상처`, K.pow >= 50 ? 4 : 2);
       stress(g, 8);
       S.rec.lost += 1;
-      return `${J(K.name, '을/를')} 쫓다가 오히려 쫓겼다. ${K.pow >= 50 ? '갑옷 사이로 피가 배어 나왔다. 겨우 마을까지 기어 왔다.' : '팔을 물리고 달아났다. 상처가 욱신거린다.'}`;
+      const lt = (S.rec.lostTo ??= {}); lt[kind] = (lt[kind] ?? 0) + 1;
+      gainSkill(g, 'sword', 0.2, 'agi'); // 지고 온 날에도 몸이 무언가 배운다
+      const hurt = K.pow >= 50 ? rng.pick(['갑옷 사이로 피가 배어 나왔다. 겨우 마을까지 기어 왔다.', '방패가 두 동강 났다. 부러진 손잡이를 쥔 채 덤불 속을 기었다.']) : rng.pick(['팔을 물리고 달아났다. 상처가 욱신거린다.', '발목을 접질려 절뚝이며 돌아왔다. 등 뒤에서 울음소리가 오래 따라왔다.', '칼을 휘둘렀지만 허공만 갈랐다. 어깨를 긁히고 물러섰다.']);
+      const hint = lt[kind] === 3 ? ` 같은 놈에게 세 번째 졌다. 혼자서는 무리다. 동료를 모으거나 칼을 더 갈고 와야겠다.` : '';
+      return `${J(K.name, '을/를')} 쫓다가 오히려 쫓겼다. ${hurt}${hint}`;
     }
     const n = rng.int(1, K.pow >= 50 ? 2 : 3);
     addParts(g, kind, n);

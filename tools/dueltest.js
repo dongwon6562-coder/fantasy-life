@@ -13,6 +13,7 @@ const LABEL_KEY = { heavy: '강공', quick: '속공', guard: '막기', feint: '�
 
 function play(strategy, skill, foeSkill, seed, style = 'steady') {
   const g = newGame({ name: '검사', sex: 'm', familyId: 'fallen_knight', mode: 'free', seed });
+  g.people.find((p) => p.isPlayer).ageMonths = 25 * 12; // 어른의 대련 (15살 아래는 다섯 합에서 끝난다)
   g.player.skills.sword = skill; g.player.stats.agi = 30; g.player.stats.str = 30; g.player.stats.sen = 30;
   const rng = rngOf(g);
   startDuel(g, rng, { kind: 'spar', title: '시험', foe: { name: '상대', skill: foeSkill, style } });

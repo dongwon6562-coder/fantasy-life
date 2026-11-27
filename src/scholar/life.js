@@ -319,7 +319,7 @@ HOOKS.afterMonth.push((g) => {
 defineScene('sc_school', {
   need: (g) => !SS(g).school,
   title: (g, s) => `${SCHOOLS[s.school].name}의 부름`,
-  text: (g, s) => { const sc = SCHOOLS[s.school], gr = SS(g).greats.find((x) => x.alive && x.school === s.school); return `${libAt(here(g))?.name ?? '서고'}에서 자주 마주치던 학자들이 나를 저녁 자리에 불렀다. ${sc.name}다. "${sc.word}." ${sc.line} ${gr ? `지금은 ${J(gr.name, '이/가')} 이 학파의 대학자로 불린다.` : ''} ${SCHOOLS[sc.rival].name}과는 사이가 나쁘다.`.replace(`${SCHOOLS[sc.rival].name}과`, J(SCHOOLS[sc.rival].name, '과/와')); },
+  text: (g, s) => { const sc = SCHOOLS[s.school], gr = SS(g).greats.find((x) => x.alive && x.school === s.school); return `${libAt(here(g))?.name ?? '서고'}에서 자주 마주치던 학자들이 나를 저녁 자리에 불렀다. ${J(sc.name, '이다/다')}. "${sc.word}." ${sc.line} ${gr ? `지금은 ${J(gr.name, '이/가')} 이 학파의 대학자로 불린다.` : ''} ${SCHOOLS[sc.rival].name}과는 사이가 나쁘다.`.replace(`${SCHOOLS[sc.rival].name}과`, J(SCHOOLS[sc.rival].name, '과/와')); },
   choices: (g, s) => [{ label: `${SCHOOLS[s.school].name}에 든다`, key: 'join' }, { label: '어느 학파에도 매이지 않는다', key: 'no' }],
   resolve(g, rng, s, key) {
     const S = fill(g);

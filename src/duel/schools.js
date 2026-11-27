@@ -311,9 +311,12 @@ ACTIONS.push(
   {
     id: 'sword_spar', name: '대련하기', icon: 'sword',
     desc: '검을 쓰는 아는 사람에게 목검 대련을 청한다. 낌새를 읽고 수를 고르는 1대1 결투다.',
-    available: (g) => playerAge(g) >= 10 && !g.duelQueued && !g.life?.travel && sparPartners(g).length > 0,
+    // 15살 아래는 한 해에 한 번만 (48단계: 아이 대련이 한 해 세 번씩 떴다)
+    available: (g) => playerAge(g) >= 10 && !g.duelQueued && !g.life?.travel && sparPartners(g).length > 0
+      && !(playerAge(g) < 15 && (g.sword?.kidSparAt ?? -99) > g.date.year * 12 + g.date.month - 12),
     run(g, rng) {
       if (g.duelQueued) return '이번 달에는 이미 잡힌 대련이 있다. 혼자 목검을 휘두르며 몸을 풀었다.';
+      if (playerAge(g) < 15) swordState(g).kidSparAt = g.date.year * 12 + g.date.month;
       const p = rng.pick(sparPartners(g));
       if (!p) return '대련할 사람을 찾았지만 아무도 시간이 없었다.';
       queueDuel(g, {
