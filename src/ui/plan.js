@@ -342,7 +342,10 @@ export function bindPlan(game, ui, rerender) {
     if (ui.active < ui.plan.length - 1) ui.active++;
     rerender();
   });
-  document.querySelectorAll('details.act-group[data-ag]').forEach((d) => d.ontoggle = () => {
+  document.querySelectorAll('details.act-group[data-ag]').forEach((d) => { d.dataset.was = d.open ? '1' : '0'; d.ontoggle = () => {
+    // 처음 그릴 때 open으로 그린 묶음도 toggle이 한 번 온다. 그건 사람이 누른 게 아니니 기억하지 않는다 (48단계: 고른 적 있는 묶음이 다 펼쳐져 남던 것)
+    if ((d.open ? '1' : '0') === d.dataset.was) return;
+    d.dataset.was = d.open ? '1' : '0';
     if (d.dataset.auto) { delete d.dataset.auto; return; } // 찾기가 잠깐 펼친 것은 기억하지 않는다
     const gid = d.dataset.ag;
     if (gid === 'dark') { ui.darkOpen = d.open; return; }
@@ -352,7 +355,7 @@ export function bindPlan(game, ui, rerender) {
     const nextO = d.open ? [...new Set([...curO, gid])] : curO.filter((x) => x !== gid);
     if (next.length !== cur.length) setPref('foldActs', next);
     if (nextO.length !== curO.length) setPref('openActs', nextO);
-  });
+  }; });
   // 묶음으로 가기: 접혀 있으면 펼치고 그 묶음 머리로 굴린다
   document.querySelectorAll('[data-act-jump]').forEach((b) => b.onclick = () => {
     const g = document.getElementById(`ag-${b.dataset.actJump}`);

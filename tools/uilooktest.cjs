@@ -72,6 +72,11 @@ const check = (ok, msg) => { if (!ok) { fail++; console.log('FAIL', msg); } };
   const over = await p.evaluate(() => [...document.querySelectorAll('details.act-group')].filter((d) => d.getBoundingClientRect().right > d.parentElement.getBoundingClientRect().right + 1).map((d) => d.id));
   check(!over.length, `할 일 묶음이 카드 밖으로 나간다: ${over.join(', ')}`);
 
+  // 5-1) 그리기만 해도 '펼친 묶음'이 기억되면 안 된다 (고른 일이 든 묶음은 늘 펼쳐 그린다)
+  for (let k = 0; k < 3; k++) { await view('me'); await view('month'); }
+  const opened = await p.evaluate(() => { try { return JSON.parse(localStorage.getItem('fantasy-life:prefs') || '{}').openActs ?? []; } catch { return ['?']; } });
+  check(!opened.length, `누르지 않은 묶음이 '펼침'으로 기억됐다: ${opened.join(', ')}`);
+
   // 6) 제목 혼자인 카드
   const right = await p.evaluate(() => [...document.querySelectorAll('.card > h2')].filter((h) => !h.querySelector('small') && h.firstChild && h.getBoundingClientRect().width > 200).filter((h) => { const r = document.createRange(); r.selectNodeContents(h); const rr = [...r.getClientRects()].pop(); return rr && rr.left - h.getBoundingClientRect().left > h.getBoundingClientRect().width / 2; }).map((h) => h.textContent.trim().slice(0, 12)));
   check(!right.length, `제목이 오른쪽으로 밀린 카드: ${right.join(', ')}`);
