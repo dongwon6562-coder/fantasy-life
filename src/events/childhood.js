@@ -6,7 +6,6 @@ import {
   stat, skill, money, spend, spendFamily, stress, tire, like, note, injure, check, nm, josa, living, byId, ageYears, isFamily,
 } from './core.js';
 import { makePerson, kill } from '../npc.js';
-import { J } from '../narrative/text.js';
 const homeSibs = (g) => siblings(g).filter((s) => ageYears(s) >= 4 && ageYears(s) <= 17 && (s.place ?? 'ern') === (g.life?.place ?? 'ern'));
 
 const parent = (g) => (alive(mother(g)) ? mother(g) : alive(father(g)) ? father(g) : null);
