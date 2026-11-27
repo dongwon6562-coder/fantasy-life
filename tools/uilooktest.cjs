@@ -7,6 +7,11 @@ const path = require('path');
 const { chromium } = require('playwright');
 const fs = require('fs');
 if (!fs.existsSync(path.resolve(__dirname, '../dist/play.html'))) { console.log('화면 점검 건너뜀: dist/play.html이 없다 (npm run build 먼저)'); process.exit(0); }
+// 빌드가 src보다 낡았으면 옛 화면을 재는 셈이라 건너뛴다 (48단계 헤드)
+{
+  const newest = (d) => fs.readdirSync(d, { withFileTypes: true }).reduce((m, e) => Math.max(m, e.isDirectory() ? newest(path.join(d, e.name)) : fs.statSync(path.join(d, e.name)).mtimeMs), 0);
+  if (fs.statSync(path.resolve(__dirname, '../dist/play.html')).mtimeMs < newest(path.resolve(__dirname, '../src'))) { console.log('화면 점검 건너뜀: dist가 src보다 낡았다 (npm run build 먼저)'); process.exit(0); }
+}
 let fail = 0;
 const check = (ok, msg) => { if (!ok) { fail++; console.log('FAIL', msg); } };
 (async () => {
