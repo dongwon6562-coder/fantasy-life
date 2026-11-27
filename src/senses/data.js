@@ -5,6 +5,9 @@ import { J } from '../narrative/text.js';
 
 // ---------- 행동 → 결 ----------
 // field 들일·몸 쓰는 바깥일 | out 바깥 일(경비·순찰 같은 것) | train 몸·칼 단련 | hunt 사냥·싸움 | trade 장사 | kitchen 부엌·화덕 앞 | forge 대장간·공방
+// site 공사장·돌·짐 나르는 바깥일(밭이 아님) | wild 들·숲에서 약초 캐기, 짐승 돌보기
+// still 약탕관·술 솥 앞(부엌이지만 손님 받는 곳이 아님)
+// depths 미궁·땅 밑 싸움(날씨가 닿지 않는 곳)
 // study 글·책 | magic 마력·명상 | pray 기도 | rest 쉬기 | family 식구와 보내는 때 | play 아이 놀이 | poor 길바닥 살이 | road 길 위 | sea 바다 | mine 땅 밑 | home 집 안 일
 export const ACT_KIND = {
   play: 'play', mud_play: 'play', tag_along: 'play', beg_story: 'play', wander: 'play',
@@ -14,15 +17,15 @@ export const ACT_KIND = {
   train_body: 'train', sword_father: 'train', sword_guard: 'train', harfen_dojo: 'train', leocast_dojo: 'train', sword_school_train: 'train',
   sword_spar: 'train', verden_yard: 'train', fur_trial: 'train', spy_train: 'train',
   meditate: 'magic', magic_lesson: 'magic', silverleaf_tree: 'magic', spell_work: 'magic', mana_well: 'magic',
-  herbs: 'field', day_labor: 'field', nature_sow: 'field', nature_dike: 'field', nature_harvest: 'field', nature_winterprep: 'field',
-  farm_sow: 'field', farm_work: 'field', herd_work: 'field', herd_tend: 'field', herd_band_life: 'field', frontier_work: 'field',
-  works_labor: 'field', poor_labor: 'field', aftermath_rebuild: 'field', village_help: 'field', apo_gather: 'field', voc_traps: 'hunt',
-  beast_care: 'field', exile_settle: 'field', jail_labor: 'field', bondage_serve: 'field', poor_bond_work: 'field', house_build: 'field',
-  inn_kitchen: 'kitchen', cuisine_cook: 'kitchen', cuisine_create: 'kitchen', cuisine_serve: 'kitchen', inn_work: 'kitchen', brew_make: 'kitchen', apo_brew: 'kitchen',
+  herbs: 'wild', day_labor: 'field', nature_sow: 'field', nature_dike: 'field', nature_harvest: 'field', nature_winterprep: 'field',
+  farm_sow: 'field', farm_work: 'field', herd_work: 'wild', herd_tend: 'wild', herd_band_life: 'wild', frontier_work: 'field',
+  works_labor: 'site', poor_labor: 'site', aftermath_rebuild: 'site', village_help: 'field', apo_gather: 'wild', voc_traps: 'hunt',
+  beast_care: 'wild', exile_settle: 'field', jail_labor: 'site', bondage_serve: 'site', poor_bond_work: 'site', house_build: 'site',
+  inn_kitchen: 'kitchen', cuisine_cook: 'kitchen', cuisine_create: 'kitchen', cuisine_serve: 'kitchen', inn_work: 'kitchen', brew_make: 'still', apo_brew: 'still',
   graubel_forge: 'forge', tower_craft: 'forge',
   harfen_market: 'trade', trade_market: 'trade', shop_manage: 'trade', cargo: 'trade', voc_potions: 'trade', voc_pelts: 'trade', herd_market: 'trade',
   farm_market: 'trade', wilds_sell: 'trade', explore_sell: 'trade', apo_shop: 'trade', barka_exchange: 'trade', beast_sell: 'trade', silverleaf_trade: 'trade',
-  wilds_hunt: 'hunt', wilds_nest: 'hunt', quest: 'hunt', delve: 'hunt', beast_hawking: 'hunt', pol_merc: 'hunt', company_lead: 'hunt', party_quest: 'hunt',
+  wilds_hunt: 'hunt', wilds_nest: 'hunt', quest: 'hunt', delve: 'depths', beast_hawking: 'hunt', pol_merc: 'hunt', company_lead: 'hunt', party_quest: 'hunt',
   graubel_watch: 'out', solaris_pilgrims: 'out', beast_ride: 'out', village_duty: 'out', works_oversee: 'out',
   sea_deck: 'sea', at_sea: 'sea', sail: 'sea', shipyard: 'sea',
   pray: 'pray', worship: 'pray', keep_feast: 'pray', solaris_mass: 'pray', holy_heal: 'pray', elder_tomb: 'pray', love_grave: 'pray',
@@ -34,15 +37,16 @@ export const ACT_KIND = {
   estate_manage: 'home', household_manage: 'home', farm_manage: 'home', house_room: 'home',
 };
 // 일자리(일하러 가기)는 하는 일에 따라
-export const JOB_KIND = { farmer: 'field', laborer: 'field', hunter: 'hunt', herbalist: 'field', cook: 'kitchen', shop: 'trade', clerk: 'study', guard: 'out' };
-export const SKILL_KIND = { farming: 'field', cooking: 'kitchen', trade: 'trade', letters: 'study', sword: 'out', herbs: 'field', smithing: 'forge', magic: 'magic' };
+export const JOB_KIND = { farmer: 'field', laborer: 'site', hunter: 'hunt', herbalist: 'wild', cook: 'kitchen', shop: 'trade', clerk: 'study', guard: 'out' };
+export const SKILL_KIND = { farming: 'field', cooking: 'kitchen', trade: 'trade', letters: 'study', sword: 'out', herbs: 'wild', smithing: 'forge', magic: 'magic' };
 
 // 날씨가 몸에 닿는 결
-export const OUTDOOR = ['field', 'out', 'train', 'hunt', 'trade', 'play', 'poor', 'road', 'sea'];
-export const INDOOR = ['study', 'magic', 'kitchen', 'forge', 'rest', 'family', 'home', 'pray'];
-const LABOR = ['field', 'out', 'kitchen', 'forge', 'mine', 'trade', 'hunt', 'sea'];
-const WORKY = ['field', 'out', 'kitchen', 'forge', 'mine', 'trade', 'study', 'sea'];
+export const OUTDOOR = ['field', 'site', 'wild', 'out', 'train', 'hunt', 'trade', 'play', 'poor', 'road', 'sea'];
+export const INDOOR = ['still', 'study', 'magic', 'kitchen', 'forge', 'rest', 'family', 'home', 'pray'];
+const LABOR = ['field', 'site', 'wild', 'still', 'out', 'kitchen', 'forge', 'mine', 'trade', 'hunt', 'sea'];
+const WORKY = ['field', 'site', 'wild', 'still', 'out', 'kitchen', 'forge', 'mine', 'trade', 'study', 'sea'];
 const grown = (f) => f.age >= 12;
+const FARMY = /밭|고랑|괭이|짚단|소 방울|이랑|씨앗|지렁이|흙냄새|흙이/;
 
 // ---------- 날씨와 때 ----------
 export const LINES = [
@@ -154,7 +158,7 @@ export const LINES = [
   { k: ['field', 'out', 'trade', 'road', 'train', 'hunt'], w: (f) => f.sea, t: '바닷바람에 소금기가 묻어 입술이 짰다. 갈매기 우는 소리가 하루 종일 따라다녔다.' },
   { k: ['trade', 'kitchen'], w: (f) => f.sea, t: '부두에서 갓 내린 생선 비린내가 골목 안까지 밀려왔다.' },
   { k: ['trade', 'out', 'road'], w: (f) => f.city && !f.sea, t: '사람이 많아 목소리를 높여야 돌아봤다. 소매치기를 조심하라는 말을 몇 번이나 들었다.' },
-  { k: '*', w: (f) => f.place === 'solaris' && f.age >= 7, t: '정오 종이 울리자 거리의 사람들이 일제히 무릎을 꿇었다. 하던 일을 멈추고 따라 했다.' },
+  { k: ['trade', 'out', 'pray', 'study', 'rest', 'home', 'play', 'poor', 'kitchen', 'forge', 'family', 'train', 'site'], w: (f) => f.place === 'solaris' && f.age >= 7, t: '정오 종이 울리자 거리의 사람들이 일제히 무릎을 꿇었다. 하던 일을 멈추고 따라 했다.' },
   { k: ['study', 'magic', 'rest'], w: (f) => f.place === 'serenia', t: '창밖으로 탑 꼭대기의 마력 등불이 호수에 비쳐 흔들렸다.' },
   { k: ['trade', 'out', 'field'], w: (f) => f.place === 'leocast', t: '백색 성벽이 볕을 받아 눈이 부셨다. 성 밖 골목으로 돌아서면 냄새부터 달라졌다.' },
   { k: ['train', 'out', 'field', 'forge'], w: (f) => f.place === 'graubel', t: '성벽 위에서 교대 나팔이 울렸다. 이 도시에서는 일하는 사람도 칼을 곁에 둔다.' },
@@ -165,7 +169,36 @@ export const LINES = [
   { k: ['field', 'out', 'hunt', 'rest'], w: (f) => f.frontier, s: 1.5, t: '울타리도 제대로 없는 땅이었다. 해가 지면 다들 불가로 모여들어 어둠 쪽을 등지지 않았다.' },
   { k: ['field', 'out', 'trade'], w: (f) => f.place === 'ern' && f.age >= 12, t: '지나가던 이웃이 이름을 부르며 손을 흔들었다. 이 마을에서는 누가 무엇을 하는지 모두가 안다.' },
   { k: ['field', 'out', 'trade', 'kitchen'], w: (f) => f.plague, s: 1.5, t: '돌림병 소문에 사람들이 서로 얼굴을 가까이 대지 않았다. 기침 소리만 나도 고개가 돌아갔다.' },
+  // 공사장·돌일 (48단계): 밭 이야기가 끼지 않게 따로
+  { k: ['site'], w: (f) => f.weather === 'rain' && grown(f), t: '비에 젖은 돌이 미끄러워 두 사람이 한 덩이를 맞들었다. 진흙 묻은 밧줄이 손바닥을 쓸었다.' },
+  { k: ['site'], w: (f) => f.season === '여름' && f.weather === 'clear' && grown(f), t: '달군 돌에서 열기가 올라왔다. 감독이 물통을 돌릴 때만 다들 허리를 폈다.' },
+  { k: ['site'], w: (f) => f.season === '겨울' && grown(f), t: '언 손으로 망치를 쥐니 손가락이 말을 듣지 않았다. 쉬는 참마다 모닥불에 손을 녹였다.' },
+  { k: ['site'], w: (f) => f.tod === 'dawn' && grown(f), t: '날이 밝기도 전에 짐수레가 들어왔다. 첫 짐을 내릴 때 손이 아직 굳어 있었다.' },
+  { k: ['site'], w: (f) => f.tod === 'dusk' && grown(f), t: '해가 기울자 감독이 끝 종을 쳤다. 먼지를 털어도 옷에서 돌가루가 자꾸 떨어졌다.' },
+  { k: ['site'], w: (f) => grown(f), t: '돌 깨는 소리가 하루 종일 귀에 남았다. 저녁 밥상에서도 망치 소리가 들리는 것 같았다.' },
+  { k: ['site'], w: (f) => grown(f), t: '옆 사람과 박자를 맞춰 밧줄을 당겼다. 한 사람이라도 늦으면 돌이 기울었다.' },
+  // 미궁
+  { k: ['depths'], w: () => true, t: '횃불이 닿지 않는 곳에서 물방울 떨어지는 소리가 났다. 다들 숨을 죽이고 그 소리를 셌다.' },
+  { k: ['depths'], w: () => true, t: '돌벽에 먼저 간 사람들이 남긴 표시가 있었다. 어떤 것은 화살표였고, 어떤 것은 이름이었다.' },
+  { k: ['depths'], w: (f) => f.tired, t: '땅 밑에서는 낮과 밤을 알 수 없었다. 몸이 먼저 지쳐서야 하루가 갔다는 걸 알았다.' },
+  // 약탕관·술 솥
+  { k: ['still'], w: () => true, t: '김이 오르는 동안 불 앞을 떠나지 못했다. 한눈을 팔면 바닥이 눌어붙는다.' },
+  { k: ['still'], w: (f) => f.tod === 'night', t: '밤새 불을 지켰다. 솥이 끓는 소리를 듣다가 몇 번이나 꾸벅 졸았다.' },
+  { k: ['still'], w: (f) => f.season === '여름', t: '여름이라 솥 곁에 오래 있으면 머리가 핑 돌았다. 문을 열어 두어도 김이 빠지지 않았다.' },
+  // 들·숲 (약초, 짐승)
+  { k: ['wild'], w: (f) => f.weather === 'rain', t: '젖은 풀이 무릎까지 감겼다. 비 냄새에 섞여 쓴 풀내가 진하게 올라왔다.' },
+  { k: ['wild'], w: (f) => f.season === '봄', t: '새순이 돋은 비탈을 천천히 훑었다. 어린잎은 밟지 않으려고 발끝으로 걸었다.' },
+  { k: ['wild'], w: (f) => f.season === '가을', t: '마른 덤불 사이로 열매가 붉게 매달려 있었다. 바람이 불 때마다 낙엽이 발등을 덮었다.' },
+  { k: ['wild'], w: (f) => f.season === '겨울', t: '눈 덮인 들에서 짐승 발자국만 또렷했다. 입김이 목도리에 얼어붙었다.' },
+  { k: ['wild'], w: (f) => f.tod === 'dawn', t: '이슬이 마르기 전에 나섰다. 풀숲을 헤칠 때마다 바짓단이 젖었다.' },
+  { k: ['wild'], w: () => true, t: '바람이 풀을 한쪽으로 눕혔다. 멀리서 짐승 우는 소리가 났다가 그쳤다.' },
 ];
+// 밭 냄새가 없는 들일 줄은 공사장(site)·들(wild) 일에도 쓴다 (48단계: 공사장 품삯 글에 '이슬 젖은 밭'이 끼던 것)
+for (const e of LINES) if (Array.isArray(e.k) && e.k.includes('field') && !(typeof e.t === 'string' && FARMY.test(e.t))) { if (!e.k.includes('site')) e.k.push('site'); if (!e.k.includes('wild') && !/짐|돌|망치/.test(typeof e.t === 'string' ? e.t : '')) e.k.push('wild'); }
+// 날씨·철·고장을 타지 않는 싸움 줄은 미궁(depths)에도 쓴다
+for (const e of LINES) if (Array.isArray(e.k) && e.k.includes('hunt') && !e.k.includes('depths') && !/weather|season|tod|sea|place|frontier|month/.test(String(e.w))) e.k.push('depths');
+// 손님·그릇·부엌 일 이야기가 없는 화덕 줄은 약탕관·술 솥(still)에도 쓴다
+for (const e of LINES) if (Array.isArray(e.k) && e.k.includes('kitchen') && !e.k.includes('still') && !(typeof e.t === 'string' && /손님|그릇|부엌 일|주방|접시|국자/.test(e.t))) e.k.push('still');
 
 // ---------- 처음 해 보는 일 ----------
 // acts: 그 행동을 처음 했을 때. t는 결과 글 앞에 붙는 짧은 장면, hist는 삶의 기록 한 줄.

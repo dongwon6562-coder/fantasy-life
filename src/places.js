@@ -307,20 +307,42 @@ function payLiving(g, rng, results) {
   const life = L(g);
   const P = placeOf(g);
   const cost = { family: 0, inn: P.inn, rent: P.rent, own: 1, barracks: 0, street: 0 }[life.home] ?? 0;
+  if (life.home !== 'street') life.streetN = 0;
   if (!cost) {
     if (life.home === 'street') {
       tired(g, 12); stress(g, 10);
-      if (canSpend(g, P.inn + 2)) { life.home = 'inn'; results.push({ name: '잠자리', text: '돈이 조금 모여 다시 여관에 방을 얻었다.' }); }
-      else results.push({ name: '잠자리', text: '마구간 짚더미에서 잤다. 몸이 쑤시고 마음이 무겁다.' });
+      // 48단계: 한 달 치만 모이면 바로 방을 얻었다가 다음 달 또 쫓겨나는 되풀이를 막는다. 석 달 치가 모여야 다시 방을 얻는다.
+      if (canSpend(g, P.inn * 3 + 2)) { life.home = 'inn'; results.push({ name: '잠자리', text: `석 달 치 방값이 모였다. 다시 ${P.name} 여관에 방을 얻었다. 젖지 않은 이불이 이렇게 따뜻한 줄 몰랐다.` }); }
+      else {
+        const n = (life.streetN = (life.streetN ?? 0) + 1);
+        // 길바닥 잠자리는 같은 줄을 달마다 되풀이하지 않는다: 처음 한 번, 그 뒤로는 석 달에 한 번만 철과 고장에 맞춰 한 줄
+        if (n === 1 || n % 3 === 0) results.push({ name: '잠자리', text: streetLine(g, rng, P, n) });
+      }
     }
     return;
   }
   if (spend(g, cost)) return;
   if (life.home === 'own') return; // 집이 있으면 세금이 밀려도 쫓겨나지는 않는다
   const was = life.home;
-  life.home = 'street';
+  life.home = 'street'; life.streetN = 0;
   stress(g, 15);
   results.push({ name: '잠자리', text: `${HOME_NAMES[was]}값 은화 ${cost}닢을 낼 수 없어 쫓겨났다. 오늘 밤은 길에서 자야 한다.` });
+}
+
+// 길바닥 잠자리 한 줄 (48단계): 철·고장·날수에 따라
+function streetLine(g, rng, P, n) {
+  const m = g.date.month, cold = m === 12 || m <= 2, hot = m >= 6 && m <= 8;
+  const pool = [
+    `${P.name}의 마구간 짚더미에서 잤다. 말이 뒤척일 때마다 깼다.`,
+    '문 닫은 가게 처마 밑에 몸을 웅크렸다. 새벽에 주인이 나와 발로 툭 차며 비키라고 했다.',
+    '다리 밑에서 낯선 사람들과 불 하나를 나눠 쬐었다. 서로 이름은 묻지 않았다.',
+    '성당 뒤 담벼락에 기대 잤다. 새벽 종소리에 깨니 목이 굳어 있었다.',
+  ];
+  if (cold) pool.push('밤새 언 손을 겨드랑이에 끼우고 떨었다. 아침에 보니 옆자리 사람이 일어나지 않았다.', '얼어붙은 돌바닥이 등까지 시렸다. 빵집 굴뚝 옆 담벼락만이 조금 따뜻했다.');
+  if (hot) pool.push('여름밤이라 길에서 자도 얼어 죽을 걱정은 없었다. 대신 모기가 밤새 귓가에서 울었다.');
+  const lead = n === 1 ? '' : `길에서 잔 지 ${n}달째다. `;
+  const tail = n === 1 ? ' 여관이 아니어도 셋방이나 싼 잠자리는 "집 구하기"로 알아볼 수 있다.' : '';
+  return `${lead}${rng.pick(pool)}${tail}`;
 }
 
 /* ---------- 집 구하기 ---------- */

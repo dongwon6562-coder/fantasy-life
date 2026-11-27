@@ -66,7 +66,7 @@ function matches(e, ctx, game, extra) {
   if (e.bands) { if (!e.bands.includes(ctx.band)) return 0; score += 1; }
   if (e.season) { if (e.season !== ctx.season) return 0; score += 1; }
   if (e.fam) { if (e.fam !== ctx.fam) return 0; score += 1; }
-  if (e.when) { if (!e.when(ctx, game, extra)) return 0; score += 1.5; }
+  if (e.when) { if (!e.when(ctx, game, extra)) return 0; score += e.soft ? 0 : 1.5; } // soft: 한 번 맞으면 늘 맞는 조건(발명·가진 물건)은 무게를 더하지 않는다 (48단계: 시계탑 쉬기 줄이 쉬는 달의 다섯에 하나를 차지하던 것)
   return score;
 }
 // 최근에 쓴 문장은 한동안 잘 고르지 않는다 (반복 줄이기). 저장에는 넣지 않는다.
