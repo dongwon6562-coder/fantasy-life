@@ -224,7 +224,8 @@ function playDuel(g, pick) {
 {
   const g = fresh(50, 'hammer', { sword: 75, school: 'yusu', rank: 2 });
   if (H(g).famous.filter((f) => f.alive).length < 8) fail('famous count', H(g).famous.length);
-  if (H(g).famous.filter((f) => f.blade).length !== 1) fail('one spellblade famous');
+  // 48단계: 죽은 마검사의 제자가 마검을 이으면 기록에 둘이 남는다. 살아 있는 마검사가 많아야 하나, 세상에 한 번은 있었어야 한다.
+  if (H(g).famous.filter((f) => f.blade && f.alive).length > 1 || !H(g).famous.some((f) => f.blade)) fail('one spellblade famous');
   // 44단계: 주사위가 밀려 모루류 검객이 어른이 되기 전에 숨을 거둔 판이 나왔다. 살아 있는 걸로 세운다
   const f = H(g).famous.find((x) => x.school === 'moru'); f.place = 'hammer'; f.lastAt = -99; f.alive = true;
   if (!famousHere(g).length || !can(g, 'sw_challenge')) fail('challenge hidden');

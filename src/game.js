@@ -1,4 +1,5 @@
 // 게임 상태와 한 달 진행.
+import { fixParents } from './narrative/parents.js';
 import { makeRng } from './rng.js';
 import { FAMILIES, START_YEAR, STATS, SKILLS, MONTHS, JOBS } from './data.js';
 import {
@@ -170,7 +171,7 @@ export function endMonth(game, choices) {
       continue;
     }
     done.add(act.id);
-    const text = act.run(game, rng, c);
+    const text = fixParents(game, act.run(game, rng, c));
     if (text) results.push({ name: act.name, text, id: act.id }); // id: 화면 맨 위 그림을 고를 때 (art/sceneInterior.js sceneFor)
   }
 
@@ -210,7 +211,13 @@ export function endMonth(game, choices) {
   if (p.fatigue > 85 && rng.chance(0.25)) {
     p.fatigue = 50;
     p.stress += 10;
-    results.push({ name: '몸살', text: '무리한 탓에 앓아누웠다. 한동안 아무것도 못 했다.' });
+    results.push({ name: '몸살', text: [ // 48단계: 한 줄뿐이라 오래 살면 수백 번 같은 줄이 떴다
+      '무리한 탓에 앓아누웠다. 한동안 아무것도 못 했다.',
+      '열이 올라 사흘을 끙끙 앓았다. 일어나니 다리에 힘이 하나도 없었다.',
+      '온몸이 쑤시고 목이 부었다. 따뜻한 국물만 겨우 넘겼다.',
+      '아침에 눈을 떴는데 몸이 말을 듣지 않았다. 쉬지 않고 달려온 값이었다.',
+      '오한이 들어 이불을 두 겹 덮고도 떨었다. 며칠 동안 바깥을 보지 못했다.',
+    ][(game.date.year * 12 + game.date.month) % 5] });
   }
 
   // 집안 살림: 가족의 벌이가 집안 돈이 된다

@@ -2,6 +2,7 @@
 // - game.life: 사는 곳, 직업, 소속, 장비, 미궁 기록, 가계 같은 성인 이후 상태
 // - 장면(scene): 고를 것이 있는 행동(일자리, 이사, 의뢰, 미궁…)을 사건 창으로 보여 주는 장치.
 //   사건 창(game.pendingEvent)과 resolveEvent를 그대로 쓰므로 화면 코드를 고칠 필요가 없다.
+import { fixParents } from '../narrative/parents.js';
 import { HOOKS } from '../hooks.js';
 import { EVENTS, AFTER_RESOLVE } from '../events.js';
 import { me, playerAge } from '../game.js';
@@ -112,7 +113,7 @@ function tryShow(g, s, { force = false } = {}) {
   if (force && life.scene && life.scene !== s) life.queue.unshift(life.scene);
   s.choices = choices;
   life.scene = s;
-  g.pendingEvent = { id: SCENE_ID, title, text, choices: choices.map((c) => c.label) };
+  g.pendingEvent = { id: SCENE_ID, title, text: fixParents(g, text), choices: choices.map((c) => fixParents(g, c.label)) };
   return 'ok';
 }
 

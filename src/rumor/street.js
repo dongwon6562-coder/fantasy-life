@@ -81,6 +81,15 @@ FEASTS.wild = FEASTS.leonia;
 FEASTS.demon = DEMON_FEASTS; // 47단계: 마대륙 기념일 (src/rites/data.js와 같은 표)
 const FEAST_REALM = (pl) => { const r = realmAt(pl); return FEASTS[r] ? r : 'leonia'; };
 
+const FEAST_MOOD = {
+  mourn: ['올해는 국상이라 북도 피리도 없이 조용히 치렀다.', '국상 중이라 노래는 빼고 제사만 지냈다. 아이들이 시무룩했다.', '국상이라 다들 팔에 검은 천을 두른 채 치렀다. 웃음소리가 나면 누군가 쉿 했다.'],
+  famine: ['흉년이라 상이 비었다. 그래도 사람들은 빈 그릇을 들고 나왔다.', '흉년이라 집집마다 하나씩 내놓던 음식이 반으로 줄었다.', '먹을 것이 모자라 잔치는 짧았다. 남은 빵 부스러기까지 아이들 몫이었다.'],
+  war: ['젊은 남자들이 전장에 가서, 축제 자리는 여자와 늙은이들 몫이었다.', '전장에 간 사람들 몫으로 상 끝에 빈자리를 남겨 두었다.', '전쟁 통이라 축제는 조촐했다. 사람들이 자꾸 북쪽 길을 돌아보았다.'],
+  plague: ['돌림병이 돌아서 사람들이 서로 멀찍이 떨어져 섰다.', '돌림병 때문에 광장 대신 집집마다 문간에서 조촐하게 치렀다.', '병자가 난 집은 문에 흰 천을 걸고 나오지 않았다.'],
+  era1: ['처마 끝에 등석 등 몇 개가 걸렸다. 늙은이들은 옛날 횃불이 낫다고 투덜댔다.', '등석 등을 단 집이 올해는 몇 집 더 늘었다. 횃불 든 아이들이 그 밑을 뛰어다녔다.'],
+  era2: ['광장에 등석 등이 줄지어 걸려서 밤늦게까지 환했다.', '등석 등 불빛 아래서 밤이 깊도록 사람들이 흩어지지 않았다.'],
+  era3: ['횃불 대신 마석 등이 줄지어 걸렸고, 쇠수레를 타고 온 구경꾼도 있었다.', '마석 등 아래 쇠수레로 온 먼 고장 사람들까지 섞여 광장이 비좁았다.'],
+};
 /** 이 고장의 이달 축제 (없으면 null). 형편에 따라 모습이 달라진다. */
 export function feastAt(g, pl, month = g.date.month) {
   const f = FEASTS[FEAST_REALM(pl)][month];
@@ -88,11 +97,13 @@ export function feastAt(g, pl, month = g.date.month) {
   const [name, text] = f;
   const r = g.realm, era = r?.era ?? 0, extra = [];
   const mourning = r && !r.king?.alive && realmAt(pl) === 'leonia' && mi(g) - (g.rumor?.mourn ?? -99) < 9;
-  if (mourning) extra.push('올해는 국상이라 북도 피리도 없이 조용히 치렀다.');
-  else if (g.world?.famine || (r?.bread ?? 1) >= 1.5) extra.push('흉년이라 상이 비었다. 그래도 사람들은 빈 그릇을 들고 나왔다.');
-  else if (atWar(g) && realmAt(pl) === 'leonia') extra.push('젊은 남자들이 전장에 가서, 불을 넘는 것도 춤을 추는 것도 여자와 늙은이들 몫이었다.');
-  else if (g.world?.plague) extra.push('돌림병이 돌아서 사람들이 서로 멀찍이 떨어져 섰다.');
-  if (era >= 1 && !mourning) extra.push(era >= 3 ? '횃불 대신 마석 등이 줄지어 걸렸고, 쇠수레를 타고 온 구경꾼도 있었다.' : era >= 2 ? '광장에 등석 등이 줄지어 걸려서 밤늦게까지 환했다.' : '처마 끝에 등석 등 몇 개가 걸렸다. 늙은이들은 옛날 횃불이 낫다고 투덜댔다.');
+  // 48단계: 해마다 같은 문장이 붙어서 형편마다 여러 글을 해에 따라 돌려 쓴다
+  const v = (list) => list[(g.date.year + month) % list.length];
+  if (mourning) extra.push(v(FEAST_MOOD.mourn));
+  else if (g.world?.famine || (r?.bread ?? 1) >= 1.5) extra.push(v(FEAST_MOOD.famine));
+  else if (atWar(g) && realmAt(pl) === 'leonia') extra.push(v(FEAST_MOOD.war));
+  else if (g.world?.plague) extra.push(v(FEAST_MOOD.plague));
+  if (era >= 1 && !mourning) extra.push(v(era >= 3 ? FEAST_MOOD.era3 : era >= 2 ? FEAST_MOOD.era2 : FEAST_MOOD.era1));
   return { name, text: extra.length ? `${text} ${extra.join(' ')}` : text };
 }
 /** 다음 달 축제 (준비하는 모습용) */

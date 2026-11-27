@@ -582,7 +582,8 @@ ACTIONS.push(
     id: 'jail_escape', name: '탈옥', icon: 'travel',
     desc: '창살을 갈고, 간수를 매수하고, 하수구를 기어 나간다. 실패하면 형기가 늘고 다친다. 성공하면 쫓기는 몸이 된다.',
     // 48단계: 붙잡힌 뒤 석 달은 간수들이 눈을 떼지 않는다 (실패를 달마다 되풀이해 형기가 끝없이 붙던 것)
-    available: (g) => isJailed(g) && !((C(g).jailed?.watchUntil ?? -1) > g.date.year * 12 + g.date.month),
+    // 남은 형기가 두 달 안이면 탈옥할 까닭이 없다 (한 달 형에 탈옥하다 여섯 달이 붙던 것)
+    available: (g) => isJailed(g) && (C(g).jailed.months ?? 0) > 2 && !((C(g).jailed?.watchUntil ?? -1) > g.date.year * 12 + g.date.month),
     run(g, rng) {
       if (!C(g).jailed) return '';
       const c = C(g);
@@ -815,14 +816,14 @@ HOOKS.afterNpc.push((g, rng, sim) => {
       const total = c.jailed.total;
       c.jailed = null;
       note(g, `${total}달 만에 감옥에서 풀려났다.`);
-      sim.push({ text: `${J(g.player.name, '이/가')} ${total}달 옥살이를 마치고 풀려났다.`, who: [g.player.id], weight: 6 });
+      sim.push({ text: `${total}달 옥살이를 마치고 풀려났다.`, who: [g.player.id], weight: 6 });
       stress(g, -10);
       // 오래 갇혀 있으면 배우자가 떠날 수도 있다
       const sp = byId(g, me(g).spouseId);
       if (sp?.alive && total >= 12 && sp.affection < 40 && rng.chance(0.4)) {
         sp.spouseId = null; me(g).spouseId = null; sp.bond = 'ex';
         note(g, `옥살이 동안 ${J(sp.name, '이/가')} 떠났다.`);
-        sim.push({ text: `${J(fullName(sp), '이/가')} 옥살이하는 ${g.player.name}을 기다리지 못하고 집을 나갔다.`, who: [sp.id], weight: 8 });
+        sim.push({ text: `${J(fullName(sp), '이/가')} 옥살이하는 나를 기다리지 못하고 집을 나갔다.`, who: [sp.id], weight: 8 });
       }
     }
     return;

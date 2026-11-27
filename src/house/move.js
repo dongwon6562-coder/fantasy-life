@@ -10,6 +10,7 @@ import { byId } from '../npc.js';
 import { J } from '../narrative/text.js';
 import { H, here, placeName, free, recOf, logHouse } from './core.js';
 import { loseHome } from './life.js';
+import { opener } from '../narrative/openers.js';
 
 // 함께 가는 식구: 살아 있는 배우자와 열다섯 살 아래 자식
 export function household(g) {
@@ -35,7 +36,7 @@ ACTIONS.push({
   icon: 'travel',
   desc: '식구와 살림을 싣고 다른 고장으로 옮겨 산다. 이 고장의 집은 팔거나 두고 간다. 닿으면 셋방부터 얻는다.',
   available: (g) => canMove(g) && !sceneQueued(g, 'house_move') && !sceneQueued(g, 'house_move_house'),
-  run(g) { queueScene(g, 'house_move'); return '어디로 옮겨 살지 식구들과 이야기했다.'; },
+  run(g, rng) { queueScene(g, 'house_move'); return opener(g, 'house_move', rng); },
 });
 
 defineScene('house_move', {

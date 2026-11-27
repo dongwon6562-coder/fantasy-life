@@ -107,7 +107,7 @@ ok((kinds.in ?? 0) >= 6, '옥 안의 글');
 const stayIn = (kind) => (kind === 'pr_break' || kind === 'pr_plot' ? 0 : kind === 'exile_decree' ? 1 : null);
 {
   let escaped = 0;
-  for (let k = 0; k < 6; k++) {
+  for (let k = 0; k < 8; k++) { // 48단계: 6판 중 넷을 문턱으로 두니 흐름이 조금만 바뀌어도 흔들려서 8판
     const g = newGame({ name: '마르타', sex: 'f', familyId: 'farmer', mode: 'free', seed: 4140 + k });
     me(g).ageMonths = 26 * 12; L(g).place = 'verden'; crimeState(g).craft = 90; crimeState(g).contacts = 5; g.player.stats.agi = 80;
     month(g, null, 'rest');

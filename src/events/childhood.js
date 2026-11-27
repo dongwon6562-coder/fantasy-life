@@ -5,6 +5,8 @@ import {
   stat, skill, money, spend, spendFamily, stress, tire, like, note, injure, check, nm, josa, living, byId, ageYears, isFamily,
 } from './core.js';
 import { makePerson, kill } from '../npc.js';
+import { J } from '../narrative/text.js';
+const homeSibs = (g) => siblings(g).filter((s) => ageYears(s) >= 4 && ageYears(s) <= 17 && (s.place ?? 'ern') === (g.life?.place ?? 'ern'));
 
 const parent = (g) => (alive(mother(g)) ? mother(g) : alive(father(g)) ? father(g) : null);
 const opposite = (g) => (g.player.sex === 'm' ? 'f' : 'm');
@@ -18,9 +20,9 @@ EVENTS.push(
     title: '밤의 열',
     text: (g) => `아기가 불덩이처럼 뜨겁다. 울음소리도 점점 가늘어진다. ${nm(parent(g), '어른들')}의 얼굴이 하얗게 질렸다. 이 시대에 아이 셋 중 하나는 다섯 살을 넘기지 못한다.`,
     choices: [
-      { label: '약초사를 부른다', run: (g) => { spendFamily(g, 4); const h = findJob(g, 'herbalist'); like(h, 5); gainStat(g, 'wil', 0.4); return `${nm(h, '약초사')}가 버드나무 껍질을 달인 물을 떠먹였다. 새벽녘에 열이 내렸다. 집안 돈이 조금 줄었다.`; } },
+      { label: '약초사를 부른다', run: (g) => { spendFamily(g, 4); const h = findJob(g, 'herbalist'); like(h, 5); gainStat(g, 'wil', 0.4); return `${J(nm(h, '약초사'), '이/가')} 버드나무 껍질을 달인 물을 떠먹였다. 새벽녘에 열이 내렸다. 집안 돈이 조금 줄었다.`; } },
       { label: '예배당에서 기도한다', run: (g) => { const p = findJob(g, 'priest'); like(p, 4); if (g.player.manaPotential > 0.4) setFlag(g, 'fever_mark'); gainStat(g, 'wil', 0.6); return `사제가 밤새 성광의 기도문을 외웠다. 사흘 만에 열이 내렸다. 그 뒤로 아이의 눈동자 색이 아주 조금 옅어졌다고, 어머니는 나중에 말했다.`; } },
-      { label: '밤새 품에 안고 버틴다', run: (g) => { const p = parent(g); like(p, 6); gainStat(g, 'wil', 0.8); stress(g, 5); return `${nm(p, '어머니')}가 젖은 천으로 몸을 닦으며 밤을 새웠다. 아이는 살아남았다. 그 밤을 기억하지는 못하지만, 몸은 기억하는 듯했다.`; } },
+      { label: '밤새 품에 안고 버틴다', run: (g) => { const p = parent(g); like(p, 6); gainStat(g, 'wil', 0.8); stress(g, 5); return `${J(nm(p, '어머니'), '이/가')} 젖은 천으로 몸을 닦으며 밤을 새웠다. 아이는 살아남았다. 그 밤을 기억하지는 못하지만, 몸은 기억하는 듯했다.`; } },
     ],
   },
   {
@@ -40,7 +42,7 @@ EVENTS.push(
     cond: (g) => age(g) >= 2 && age(g) <= 4 && alive(parent(g)),
     chance: () => 0.08, weight: 50,
     title: '용사의 자장가',
-    text: (g) => `${nm(parent(g))}가 잠들기 전에 낮은 목소리로 옛이야기를 들려준다. 오백 년 전, 레오니아 시골에서 태어난 소년 아르스가 마신을 봉인하고 돌아오지 않았다는 이야기다.`,
+    text: (g) => `${J(nm(parent(g)), '이/가')} 잠들기 전에 낮은 목소리로 옛이야기를 들려준다. 오백 년 전, 레오니아 시골에서 태어난 소년 아르스가 마신을 봉인하고 돌아오지 않았다는 이야기다.`,
     choices: [
       { label: '"용사는 어디로 갔어요?"', run: (g) => { gainStat(g, 'int', 0.5); setFlag(g, 'asked_arth'); return '"아무도 몰라. 죽었다는 사람도 있고, 아직 봉인 안에서 마신을 붙잡고 있다는 사람도 있지." 그 대답이 이상하게 오래 마음에 남았다.'; } },
       { label: '"마신은 다시 와요?"', run: (g) => { gainStat(g, 'sen', 0.5); return `어른은 한참 대답하지 않았다. "...그래서 사람들이 매년 봉인제를 지내는 거란다." 창밖 북쪽 하늘이 유난히 어두웠다.`; } },
@@ -113,7 +115,7 @@ EVENTS.push(
     cond: (g) => age(g) >= 5 && age(g) <= 11,
     chance: () => 0.025, weight: 35,
     title: '깨진 항아리',
-    text: (g) => `뛰어다니다 부엌 선반의 항아리를 깼다. ${nm(parent(g), '어머니')}가 시집올 때 가져온, 하나뿐인 채색 항아리였다. 아직 아무도 모른다.`,
+    text: (g) => `뛰어다니다 부엌 선반의 항아리를 깼다. ${J(nm(parent(g), '어머니'), '이/가')} 시집올 때 가져온, 하나뿐인 채색 항아리였다. 아직 아무도 모른다.`,
     choices: [
       { label: '솔직히 말한다', run: (g) => { like(parent(g), 4); gainStat(g, 'wil', 0.6); setFlag(g, 'honest', (flag(g, 'honest') ?? 0) + 1); return '한참 혼났다. 그런데 잠자리에서 어머니가 말했다. "숨기지 않아서 고맙다." 그 말이 혼난 것보다 오래 남았다.'; } },
       { label: '고양이 탓으로 돌린다', run: (g) => { gainStat(g, 'cha', 0.4); setFlag(g, 'liar', (flag(g, 'liar') ?? 0) + 1); return '아무도 의심하지 않았다. 이웃집 고양이가 그날 빗자루로 쫓겨났다. 거짓말은 생각보다 쉬웠다.'; } },
@@ -178,11 +180,12 @@ EVENTS.push(
     ],
   },
   {
-    id: 'sibling_quarrel', cond: (g) => age(g) >= 5 && age(g) <= 13 && siblings(g).some((s) => ageYears(s) >= 4),
+    // 48단계: 다른 고장에 사는 다 큰 형제와도 꿀빵을 두고 싸우던 것. 한집에 사는 열일곱 아래 형제만.
+    id: 'sibling_quarrel', cond: (g) => age(g) >= 5 && age(g) <= 13 && homeSibs(g).length > 0,
     chance: () => 0.025, weight: 30,
-    prepare: (g, rng) => ({ id: rng.pick(siblings(g).filter((s) => ageYears(s) >= 4)).id }),
+    prepare: (g, rng) => ({ id: rng.pick(homeSibs(g)).id }),
     title: '형제 싸움',
-    text: (g, c) => `${nm(byId(g, c.id))}와(과) 마지막 남은 꿀빵 한 조각을 두고 싸움이 붙었다. 서로 머리채를 잡기 직전이다.`,
+    text: (g, c) => `${J(nm(byId(g, c.id)), '과/와')} 마지막 남은 꿀빵 한 조각을 두고 싸움이 붙었다. 서로 머리채를 잡기 직전이다.`,
     choices: [
       { label: '양보한다', run: (g, rng, c) => { like(byId(g, c.id), 8); gainStat(g, 'wil', 0.3); return '빵을 내밀었다. 상대는 머쓱한 얼굴로 반을 갈라 돌려주었다.'; } },
       { label: '끝까지 싸운다', run: (g, rng, c) => { like(byId(g, c.id), -6); gainStat(g, 'str', 0.4); return '둘 다 혼났고, 빵은 개가 먹었다.'; } },
@@ -299,7 +302,7 @@ EVENTS.push(
     text: () => '다락 들보 사이에서 가죽 표지의 낡은 책을 찾았다. 절반은 읽을 수 있는 글자고, 절반은 본 적 없는 각진 문자다. 마지막 장에는 일곱 겹의 원이 그려져 있다.',
     choices: [
       { label: '밤마다 몰래 읽는다', run: (g) => { gainSkill(g, 'letters', 2.5, 'int'); if (g.player.manaAwakened) gainSkill(g, 'magic', 1.5, 'int'); setFlag(g, 'arcana_book'); return '읽을 수 있는 부분은 고대 아르카나 왕국의 몰락에 관한 기록이었다. 각진 문자는 끝내 읽지 못했다. 그런데 그 원을 오래 보고 있으면, 눈 뒤가 욱신거렸다.'; } },
-      { label: '사제에게 가져간다', run: (g) => { const p = findJob(g, 'priest'); like(p, 5); gainStat(g, 'int', 0.5); return `${nm(p, '사제')}는 책을 펼쳐 보더니 얼굴이 굳었다. "이건 내가 맡아 두마." 책은 다시 볼 수 없었다.`; } },
+      { label: '사제에게 가져간다', run: (g) => { const p = findJob(g, 'priest'); like(p, 5); gainStat(g, 'int', 0.5); return `${J(nm(p, '사제'), '은/는')} 책을 펼쳐 보더니 얼굴이 굳었다. "이건 내가 맡아 두마." 책은 다시 볼 수 없었다.`; } },
     ],
   },
   {

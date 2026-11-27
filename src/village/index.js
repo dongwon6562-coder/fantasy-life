@@ -23,6 +23,7 @@ import { isJailed } from '../crime.js';
 import { deed, opinionAt } from '../repute/index.js';
 import { addGrudge } from '../feud/index.js';
 import { calamityAt } from '../nature/index.js';
+import { localize } from '../races/local.js';
 
 const mi = (g) => g.date.year * 12 + g.date.month;
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
@@ -93,7 +94,7 @@ function fillNeighbors(g, rng, pl = here(g)) {
   // 사람이 모자란 고장은 이웃을 새로 만든다
   while (r.neighbors.length < 4) {
     const p = makePerson(rng, { ageMonths: rng.int(24, 60) * 12, job: rng.pick(['farmer', 'laborer', 'carpenter', 'weaver', 'baker']) });
-    p.place = pl; p.known = true; p.affection = rng.int(-5, 10);
+    p.place = pl; localize(g, p, pl); p.known = true; p.affection = rng.int(-5, 10);
     g.people.push(p); rel(p);
     r.neighbors.push(p.id);
   }
@@ -136,9 +137,9 @@ export function villageInfo(g) {
 
 /* ---------- 품앗이 ---------- */
 const HELP = {
-  spring: ['모내기', '밭갈이', '울타리 고치기'],
+  spring: ['씨뿌리기', '밭갈이', '울타리 고치기'],
   summer: ['김매기', '지붕 이엉 잇기', '물꼬 손보기'],
-  autumn: ['추수', '타작', '김장'],
+  autumn: ['추수', '타작', '양배추 절이기'],
   winter: ['장작 패기', '눈 치우기', '헛간 고치기'],
 };
 const seasonOf = (m) => (m === 12 || m <= 2 ? 'winter' : m <= 5 ? 'spring' : m <= 8 ? 'summer' : 'autumn');
@@ -352,7 +353,7 @@ function candidates(g, rng, pl) {
   const out = local.slice(0, 2);
   while (out.length < 2) {
     const p = makePerson(rng, { ageMonths: rng.int(40, 62) * 12, job: rng.pick(['farmer', 'carpenter', 'baker']) });
-    p.place = pl; p.known = true; g.people.push(p); rel(p);
+    p.place = pl; localize(g, p, pl); p.known = true; g.people.push(p); rel(p);
     out.push(p);
   }
   return out.map((p) => p.id);
@@ -509,7 +510,7 @@ defineScene('village_quarrel', {
 function makeStranger(g, rng, how) {
   const pl = here(g);
   const p = makePerson(rng, { ageMonths: rng.int(20, 45) * 12, job: rng.pick(['laborer', 'farmer', 'weaver']) });
-  p.place = pl; p.known = true; p.affection = how === 'home' ? 45 : 20;
+  p.place = pl; localize(g, p, pl); p.known = true; p.affection = how === 'home' ? 45 : 20;
   g.people.push(p); rel(p);
   remember(g, p, how === 'home' ? '갈 곳 없는 나를 받아 주었다' : '마을에 머물게 해 주었다', 1, { tag: 'village_stranger' });
   V(g).strangers.push({ id: p.id, name: fullName(p), place: pl, at: mi(g), fate: null });

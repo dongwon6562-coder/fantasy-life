@@ -3,6 +3,7 @@
 import {
   MALE_NAMES, FEMALE_NAMES, LAST_NAMES, JOBS, ADULT_JOB_CHOICES, TRAITS,
 } from './data.js';
+import { RACE_NAMES } from './races/data.js';
 
 let nextId = 1;
 export function setNextId(n) { nextId = n; }
@@ -45,6 +46,17 @@ export function makePerson(rng, { sex, ageMonths, lastName, job, traits, fatherI
   };
 }
 
+// 48단계: 한 마을에 같은 이름이 서넛씩 있지 않게. 뽑은 이름이 이미 있으면 목록을 일정한 걸음으로 건너뛰어
+// 안 겹치는 이름을 고른다(난수를 더 쓰지 않아 다른 흐름은 그대로).
+export function freshName(name, sex, taken) {
+  if (!taken.has(name)) return name;
+  const pool = sex === 'm' ? MALE_NAMES : FEMALE_NAMES;
+  const i0 = Math.max(0, pool.indexOf(name));
+  for (let k = 1; k < pool.length; k++) { const c = pool[(i0 + k * 7) % pool.length]; if (!taken.has(c)) return c; }
+  return name;
+}
+const namesAt = (people, place) => new Set(people.filter((x) => x.alive && !x.away && (x.place ?? 'ern') === place).map((x) => x.name));
+
 export const ageYears = (p) => Math.floor(p.ageMonths / 12);
 // 몸 나이: 오래 사는 종족은 천천히 늙는다 (src/races/가 바꾼다). 늙음·죽음·출산은 이 값을 쓴다.
 let bodyAgeFn = (p) => ageYears(p);
@@ -60,7 +72,7 @@ export const has = (p, t) => p.traits.includes(t);
 // 처음 마을 만들기: 몇 개의 가구를 만든다.
 export function generateVillage(rng) {
   const people = [];
-  const add = (p) => (people.push(p), p);
+  const add = (p) => { p.name = freshName(p.name, p.sex, new Set(people.map((x) => x.name))); people.push(p); return p; };
   const couple = (job, wifeJob, ageY) => {
     const ln = rng.pick(LAST_NAMES);
     const h = add(makePerson(rng, { sex: 'm', ageMonths: ageY * 12 + rng.int(0, 11), lastName: ln, job }));
@@ -239,6 +251,12 @@ export function simulateMonth(game, rng) {
     if (lastChild && lastChild.ageMonths < 18) continue;
     if (!rng.chance((kids >= 4 ? 0.004 : 0.018) * fertilityFn(h, w))) continue;
     const baby = makePerson(rng, { lastName: h.lastName, fatherId: h.id, motherId: w.id });
+    // 48단계: 엘프·드워프 부부의 아이가 '레온'·'헤드비히' 같은 사람 이름을 받던 것. 둘이 같은 종족이면 그 종족 이름으로.
+    const race = h.race && h.race === w.race && h.race !== 'human' ? h.race : null;
+    const pool = race && RACE_NAMES[race] ? RACE_NAMES[race][baby.sex] ?? RACE_NAMES[race].m : null;
+    const taken = namesAt(game.people, w.place ?? 'ern');
+    if (pool?.length) { baby.name = pool[(baby.id * 7) % pool.length]; for (let k = 1; k < pool.length && taken.has(baby.name); k++) baby.name = pool[(baby.id * 7 + k * 3) % pool.length]; }
+    else baby.name = freshName(baby.name, baby.sex, taken);
     game.people.push(baby);
     w.childIds.push(baby.id); h.childIds.push(baby.id);
     note(w, `${baby.sex === 'm' ? '아들' : '딸'} ${baby.name}을(를) 낳았다.`);
@@ -250,6 +268,7 @@ export function simulateMonth(game, rng) {
   // 마을에 새 사람이 들어온다 (인구가 너무 줄지 않게. 60년을 돌리면 47명에서 36명까지 줄어 문턱을 40으로 올림, 17단계 헤드)
   if (living(game).length < 40 && rng.chance(0.04)) {
     const p = makePerson(rng, { ageMonths: rng.int(18, 35) * 12, job: rng.pick(ADULT_JOB_CHOICES) });
+    p.name = freshName(p.name, p.sex, namesAt(game.people, 'ern'));
     p.skill = rng.int(15, 50);
     game.people.push(p);
     note(p, `${JOBS[p.job].name} 일을 하러 에른 마을로 이사 왔다.`);

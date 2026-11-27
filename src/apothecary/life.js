@@ -14,6 +14,7 @@ import {
   AP, shop, atShop, knowsRx, herbCount, satchelCount, canBrew, namedOf, rxPower, logApo, newShop, shopCost, remedyName,
   mi, clamp, here, placeName, free, stat, herbSkill, ownRng, shopTown, HERBS, HERB_IDS, herbsHere, RECIPES, RECIPE_IDS, START_RECIPES,
 } from './core.js';
+import { opener } from '../narrative/openers.js';
 
 const pay = (g, n) => { const p = Math.max(0, Math.min(n, g.player.money)); g.player.money -= p; return p; };
 const learn = (g, b) => { const k = gainSkill(g, 'herbs', b, 'sen'); return k > 0.04 ? ` (약초 +${k.toFixed(1)})` : ''; };
@@ -60,9 +61,9 @@ ACTIONS.push({
   icon: 'scroll',
   desc: '말린 약초로 아는 처방의 약을 달이거나, 새 처방을 궁리한다. 달인 약은 약 보따리나 약방 선반에 둔다.',
   available: canBrewAny,
-  run(g) {
+  run(g, rng) {
     if (!sceneQueued(g, 'apo_brew')) queueScene(g, 'apo_brew', {}, { first: true });
-    return '약탕관에 물을 붓고 불을 지폈다.';
+    return opener(g, 'apo_brew', rng);
   },
 });
 defineScene('apo_brew', {

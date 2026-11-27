@@ -9,6 +9,7 @@ import {
   cargoQty, cargoList, capacity, spaceLeft, maxWagons, maxGuards, upkeep, addCargo, priceAt, buyAt, sellAt,
   pushMarket, remember, quote, bestKnown, cheapWord, logTrade, tradeSkill,
 } from './core.js';
+import { opener } from '../narrative/openers.js';
 
 const canTrade = (g) => playerAge(g) >= 14 && free(g) && isMarket(here(g)) && !(T(g).banned[here(g)] > mi(g));
 const placeName = (pl) => PLACES[pl]?.name ?? '먼 고장';
@@ -131,7 +132,7 @@ ACTIONS.push({
   icon: 'travel',
   desc: '마차를 사고, 호위와 짐꾼을 둔다. 짐을 많이 실을수록 한 번에 크게 남지만, 달마다 삯이 들고 도적의 눈에도 잘 띈다.',
   available: (g) => canCaravan(g) && !sceneQueued(g, 'trade_caravan'),
-  run(g) { queueScene(g, 'trade_caravan'); return '마구간과 용병 주점을 돌며 사람과 수레를 알아보았다.'; },
+  run(g, rng) { queueScene(g, 'trade_caravan'); return opener(g, 'trade_caravan', rng); },
 });
 defineScene('trade_caravan', {
   need: (g) => canCaravan(g),

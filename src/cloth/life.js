@@ -9,6 +9,7 @@ import {
   C, here, free, age, mi, clamp, placeName, noble, logCloth, addBolt, takeBolt, boltValue, boltName, boltCount, yarnCount, fashionDye,
   FIBERS, FIBER_IDS, DYES, DYE_IDS, DYE_TOWNS, TAILOR_TOWNS, SUMPTUARY, PLACE_MUL, FASHIONS,
 } from './core.js';
+import { opener } from '../narrative/openers.js';
 
 export const pay = (g, n) => { const p = Math.max(0, Math.min(n, g.player.money)); g.player.money -= p; return p; };
 // 바느질 솜씨: 손재주(민첩)가 좋을수록 빨리 는다. 높아질수록 더디다.
@@ -85,9 +86,9 @@ ACTIONS.push({
   id: 'cloth_dye', name: '옷감을 물들인다', icon: 'coin',
   desc: '염색 집에서 흰 옷감에 빛깔을 입힌다. 풀 염료는 싸고, 조개와 광물 염료는 비싸다.',
   available: (g) => free(g) && DYE_TOWNS.includes(here(g)) && C(g).bolts.some((b) => !b.dye),
-  run(g) {
+  run(g, rng) {
     if (!sceneQueued(g, 'cloth_dye')) queueScene(g, 'cloth_dye', {}, { first: true });
-    return '염색 집 마당에 들어서자 시큼한 냄새가 코를 찔렀다.';
+    return opener(g, 'cloth_dye', rng);
   },
 });
 const dyesHere = (g) => DYE_IDS.filter((d) => !DYES[d].where || DYES[d].where.includes(here(g)));

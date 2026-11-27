@@ -10,6 +10,7 @@ import {
   L, defineScene, queueScene, sceneQueued, isAdult, traveling, note, chron, newsNow,
   tired, stress, up, gains, spend, canSpend, check,
 } from './adventure/core.js';
+import { opener } from './narrative/openers.js';
 
 export const PLACES = {
   ern: {
@@ -306,6 +307,7 @@ function arrive(g, rng, results) {
 function payLiving(g, rng, results) {
   const life = L(g);
   const P = placeOf(g);
+  if (g.crime?.jailed) return; // 옥에 있는 동안은 방값도 길바닥 잠자리도 없다 (48단계: 감옥에서 '길에서 잔 지 30달째' 줄이 떴다)
   const cost = { family: 0, inn: P.inn, rent: P.rent, own: 1, barracks: 0, street: 0 }[life.home] ?? 0;
   if (life.home !== 'street') life.streetN = 0;
   if (!cost) {
@@ -326,7 +328,13 @@ function payLiving(g, rng, results) {
   const was = life.home;
   life.home = 'street'; life.streetN = 0;
   stress(g, 15);
-  results.push({ name: '잠자리', text: `${HOME_NAMES[was]}값 은화 ${cost}닢을 낼 수 없어 쫓겨났다. 오늘 밤은 길에서 자야 한다.` });
+  const evict = (life.evictN = (life.evictN ?? 0) + 1); // 48단계: 쫓겨나는 줄도 한 가지뿐이었다
+  results.push({ name: '잠자리', text: [
+    `${HOME_NAMES[was]}값 은화 ${cost}닢을 낼 수 없어 쫓겨났다. 오늘 밤은 길에서 자야 한다.`,
+    `${HOME_NAMES[was]}값 은화 ${cost}닢이 모자랐다. 주인이 보따리를 문밖에 내놓았다.`,
+    `밀린 ${HOME_NAMES[was]}값 은화 ${cost}닢을 끝내 못 냈다. 열쇠를 돌려주고 나왔다. 다시 길바닥이다.`,
+    `주인이 "이번 달도 못 내면 나가라" 하던 날이 왔다. ${HOME_NAMES[was]}값 은화 ${cost}닢. 짐을 싸서 나왔다.`,
+  ][(evict - 1) % 4] });
 }
 
 // 길바닥 잠자리 한 줄 (48단계): 철·고장·날수에 따라
@@ -351,7 +359,7 @@ ACTIONS.push({
   name: '집 구하기',
   desc: '이곳에서 지낼 곳을 정한다. 여관, 셋방, 아니면 내 집.',
   available: (g) => isAdult(g) && !traveling(g) && !sceneQueued(g, 'housing'),
-  run(g) { queueScene(g, 'housing'); return '지낼 곳을 알아보러 다녔다.'; },
+  run(g, rng) { queueScene(g, 'housing'); return opener(g, 'housing', rng); },
 });
 
 defineScene('housing', {
