@@ -6,6 +6,7 @@ import { L, defineScene, queueScene, sceneQueued, isAdult, traveling, note, chro
 import { PLACES } from '../places.js';
 import { SHOP_COST } from '../craft/shop.js';
 import { E, HOME_LEVELS, LEVEL_MUL, SERVANT_WAGE, MAX_SERVANTS, RENT_KINDS, pickTenant, homeOf, houseValue, homeWorth, rentedOut, rentalWorth, placeName } from './core.js';
+import { opener } from '../narrative/openers.js';
 
 const here = (g) => L(g).place;
 const repairCost = (g, place) => { const h = homeOf(g, place); return h ? Math.ceil((100 - h.cond) / 100 * houseValue(place) * LEVEL_MUL[h.level] * 0.25) : 0; };
@@ -22,7 +23,7 @@ ACTIONS.push({
   icon: 'home',
   desc: '내 집을 고치고 넓히고, 하인을 두고, 집이나 밭·가게 자리를 세놓는다.',
   available: (g) => isAdult(g) && !traveling(g) && (hasAnything(g) || ((landHere(g) || shopHere(g)) && g.player.money >= RENT_KINDS.land.price)) && !sceneQueued(g, 'estate_manage'),
-  run(g) { queueScene(g, 'estate_manage'); return '장부와 열쇠 꾸러미를 꺼냈다.'; },
+  run(g, rng) { queueScene(g, 'estate_manage'); return opener(g, 'estate_manage', rng); },
 });
 
 defineScene('estate_manage', {

@@ -8,6 +8,7 @@ import { me, playerAge, gainStat, gainSkill, circleOf, family } from './game.js'
 import { L, defineScene, queueScene, sceneQueued, isAdult, traveling, note, chron, tired, stress, up, gains } from './adventure/core.js';
 import { PLACES, placeOf, leaveJob } from './places.js';
 import { queueFight } from './adventure/fight.js';
+import { opener } from './narrative/openers.js';
 
 export const GRADES = ['견습', '숙련', '장인', '명장'];
 
@@ -97,7 +98,7 @@ ACTIONS.push({
   name: '일자리 구하기',
   desc: '이곳에서 할 수 있는 일을 알아본다. 지금 일을 그만둘 수도 있다.',
   available: (g) => isAdult(g) && !traveling(g) && !sceneQueued(g, 'seek_job'),
-  run(g) { queueScene(g, 'seek_job'); return '일자리를 알아보러 다녔다.'; },
+  run(g, rng) { queueScene(g, 'seek_job'); return opener(g, 'seek_job', rng); },
 });
 
 defineScene('seek_job', {

@@ -16,6 +16,7 @@ import {
   CU, mi, clamp, here, placeName, free, stat, cookSkill, ownRng, bigTown, TASTE, tasteOf, BASES, BASE_IDS, POSTS, COURT, postTitle,
   palateCount, knows, atPost, famous, cookPower, dishName, fullDish, dj, addFame, logCook, newDish, bestDish, leavePost, chefName, rivalName, tasterName,
 } from './core.js';
+import { opener } from '../narrative/openers.js';
 
 const pay = (g, n) => { const p = Math.max(0, Math.min(n, g.player.money)); g.player.money -= p; return p; };
 const learn = (g, base) => { const k = gainSkill(g, 'cooking', base, 'sen'); return k > 0.04 ? ` (요리 +${k.toFixed(1)})` : ''; };
@@ -57,9 +58,9 @@ ACTIONS.push({
   icon: 'home',
   desc: '영주의 저택이나 궁정의 부엌에 들어간다. 바닥 닦는 견습부터 시작해 부주방장, 주방장까지 오를 수 있다. 여관 부엌과는 다른 세계다.',
   available: canSeek,
-  run(g) {
+  run(g, rng) {
     if (!sceneQueued(g, 'cuisine_kitchen')) queueScene(g, 'cuisine_kitchen', {}, { first: true });
-    return '뒷문으로 돌아 부엌 쪽 문을 두드렸다.';
+    return opener(g, 'cuisine_kitchen', rng);
   },
 });
 defineScene('cuisine_kitchen', {
@@ -129,9 +130,9 @@ ACTIONS.push({
   icon: 'crown',
   desc: '자리를 올려 달라 청하거나, 시식관을 두거나, 견습을 가르치거나, 부엌을 떠난다.',
   available: canManage,
-  run(g) {
+  run(g, rng) {
     if (!sceneQueued(g, 'cuisine_post')) queueScene(g, 'cuisine_post', {}, { first: true });
-    return '불이 잦아든 밤, 부엌 한구석에 앉아 장부를 펼쳤다.';
+    return opener(g, 'cuisine_post', rng);
   },
 });
 const canRise = (g) => { const p = CU(g).post; return !!p && p.rank < 2 && p.favor >= 60 && cookSkill(g) >= POSTS[p.kind].need[p.rank + 1]; };
@@ -199,9 +200,9 @@ ACTIONS.push({
   icon: 'scroll',
   desc: '익힌 고장의 재료와 요리의 틀을 엮어 나만의 요리를 짓는다. 솜씨와 혀가 넓을수록 좋은 요리가 나온다. 이름난 요리는 대를 넘어 남는다.',
   available: canCreate,
-  run(g) {
+  run(g, rng) {
     if (!sceneQueued(g, 'cuisine_create')) queueScene(g, 'cuisine_create', {}, { first: true });
-    return '빈 솥 앞에 앉아 지금껏 맛본 것들을 하나씩 떠올렸다.';
+    return opener(g, 'cuisine_create', rng);
   },
 });
 const combos = (g) => {

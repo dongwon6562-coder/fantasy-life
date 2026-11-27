@@ -1,7 +1,7 @@
 import '../src/content.js';
 // 어른의 삶 해 보기 (48단계 도우미4): 여러 집안으로 태어나 16살부터 한 길을 붙들고 사는 사람처럼 고른다.
 // 달마다 한 일의 글·사건·돈을 적고, 같은 글 되풀이·돈 흐름·뜻 없이 뜨는 행동을 센다.
-//   node tools/adultplay.js [출력 폴더] [판 수] [끝 나이]
+//   node tools/adultplay.js [출력 폴더] [판 수] [끝 나이]   (AP_WISE=1 비싼 선택지 피하기, AP_RICH=N 28살에 돈)
 // 출력: <폴더>/life-N.md (한 삶의 기록), 화면에 요약
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { newGame, endMonth, availableActions, slotsFor, playerAge, rngOf } from '../src/game.js';
@@ -21,7 +21,7 @@ const fams = ['farmer', 'merchant', 'fallen_knight', 'capital_artisan', 'slum_or
 // 한 길을 붙드는 사람: 이 앞머리의 행동이 보이면 넷 중 셋은 그걸 고른다
 const PERSONAS = { worker: /^(seek_job|work)$/, farm: /^(farm_|nature_)/, cook: /^(cuisine_|inn_)/, apo: /^(apo_|herbs$)/, builder: /^builder_/, mine: /^mine_/, hunter: /^(hunter_|wilds_)/, cloth: /^cloth_/, adventurer: /^(gather_party|party_|quest$|delve$|dv_|gear$)/, merchant: /^(trade_|open_shop|shop_manage)/, harbor: /^harbor_/, brew: /^brew_/, home: /^(house_|estate_|household_|housing$)/ };
 const PK = Object.keys(PERSONAS);
-const BAD = (x) => x.crime || /^(heist|spy|revolt|herd_rustle|secret_night|travel)/.test(x.id) || x.id === 'travel';
+const BAD = (x) => x.crime || /^(heist|spy|revolt|herd_rustle|secret_night)/.test(x.id) || (x.id === 'travel' && !process.env.AP_TRAVEL);
 const textCount = new Map(), actShown = new Map(), actPicked = new Map(), money = [];
 const norm = (t) => String(t ?? '').replace(/\d+/g, '#').trim();
 for (let run = 0; run < N; run++) {
@@ -32,6 +32,8 @@ for (let run = 0; run < N; run++) {
   const picked = [], flow = { month: 0, ev: 0, evBy: {}, earn: {} };
   for (let m = 0; m < 12 * 90 && !g.over && playerAge(g) < END; m++) {
     const rng = rngOf(g), age = playerAge(g);
+    // AP_RICH=N: 28살에 은화 N닢을 쥐여 주고 30~60살의 큰 살림(영지·상단·공략대)을 본다
+    if (process.env.AP_RICH && age === 28 && !g._apRich) { g._apRich = 1; g.player.money += +process.env.AP_RICH; }
     const acts = availableActions(g).filter((x) => !BAD(x));
     const adult = age >= 16 && slotsFor(g) > 0;
     if (adult) for (const a of acts) actShown.set(a.id, (actShown.get(a.id) ?? 0) + 1);
@@ -56,7 +58,13 @@ for (let run = 0; run < N; run++) {
     }
     let k = 0;
     while (g.pendingEvent && k++ < 8) {
-      const pe = g.pendingEvent, n = pe.choices?.length ?? 1, pick = rngOf(g).int(0, Math.max(0, n - 1));
+      const pe = g.pendingEvent, n = pe.choices?.length ?? 1;
+      // AP_WISE=1: 사람처럼, 주머니보다 비싼 선택지는 고르지 않는다
+      let pick = rngOf(g).int(0, Math.max(0, n - 1));
+      if (process.env.AP_WISE && pe.choices?.length) {
+        const ok = pe.choices.map((c, i) => [c, i]).filter(([c]) => { const m = /은화 (\d+)닢/.exec(c?.label ?? String(c)); return !m || +m[1] <= g.player.money * 0.5; });
+        if (ok.length) pick = ok[rngOf(g).int(0, ok.length - 1)][1];
+      }
       if (adult) { let v = null; try { v = vignetteFor(g, { title: pe.title, text: pe.text }); } catch (e) { v = { plate: 'ERR ' + e.message }; } const sk = g.life?.scene?.kind ?? pe.id; const key = `${sk} | ${String(pe.title).replace(/\d+/g, '#').slice(0, 40)}`; const pk = v ? `${v.plate}${v.variant ? ':' + v.variant : ''}` : '-'; const m = plates.get(key) ?? new Map(); m.set(pk, (m.get(pk) ?? 0) + 1); plates.set(key, m); }
       const e0 = g.player.money;
       const o = resolveEvent(g, rngOf(g), pick);

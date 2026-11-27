@@ -15,6 +15,7 @@ import { fac } from '../factions.js';
 import { setRealmLaw, setExileOption, crimeState, notoriety, addNotoriety, isJailed, jail, reportCrime, sentenceAt, craftOf } from '../crime.js';
 import { remember } from '../relations.js';
 import { REALMS, NAMES, REALM_PLACES, LEONIA_LINKS, EXTRA_LINKS, REALM_PEOPLE, FOREIGN, REALM_IDS } from './data.js';
+import { opener } from '../narrative/openers.js';
 
 export { REALMS, REALM_IDS };
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
@@ -388,7 +389,7 @@ ACTIONS.push({
   icon: 'scroll',
   desc: '이 나라의 관청에서 거주 신고, 귀화, 망명을 알아본다. 나라마다 받아 주는 조건이 다르다.',
   available: (g) => isAdult(g) && !traveling(g) && !isJailed(g) && isForeigner(g) && !sceneQueued(g, 'realm_office'),
-  run(g) { queueScene(g, 'realm_office'); return '관청 앞 줄에 섰다.'; },
+  run(g, rng) { queueScene(g, 'realm_office'); return opener(g, 'realm_office', rng); },
 });
 
 defineScene('realm_office', {
