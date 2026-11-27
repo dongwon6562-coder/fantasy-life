@@ -50,8 +50,10 @@ function calendar(s) {
     <details class="pl-more"><summary>축제 ${cal.length}가지 자세히</summary><ul class="rt-feasts">${cal.slice().sort((a, b) => a.m - b.m).map((c) => feastRow(c, c.m === cur ? 'on' : '')).join('')}</ul></details>`;
 }
 
+// 장례·성년식 글 뒤에 붙은 풍습 설명은 '풍습' 칸에 한 번만 (48단계: 같은 설명이 줄마다 되풀이)
+const short = (r) => { const t = String(r.text ?? r.who ?? ''); if (!/^(funeral|coming)$/.test(r.kind)) return t; const i = t.indexOf('. '); return i > 0 ? t.slice(0, i + 1) : t; };
 function rite(r) {
-  return `<li${r.mine ? ' class="rt-my"' : ''}><time>${when(r)}</time><span><b>${esc(riteWord(r.kind))}</b>${r.mine ? ' · 우리 집' : ''} · ${esc(r.text ?? r.who ?? '')}</span></li>`;
+  return `<li${r.mine ? ' class="rt-my"' : ''}><time>${when(r)}</time><span><b>${esc(riteWord(r.kind))}</b>${r.mine ? ' · 우리 집' : ''} · ${esc(short(r))}</span></li>`;
 }
 
 export function ritesView(s) {
@@ -75,7 +77,7 @@ export function ritesView(s) {
     ${mine.length ? `<p class="ac-h">내가 열거나 보탠 축제</p><ul class="ag-clues">${mine.map((x) => `<li>${x.text ? esc(x.text) : `${x.y ? `${x.y}년 ` : ''}<b>${esc(x.name)}</b>${x.placeName ? ` · ${esc(x.placeName)}` : ''}${x.how ? ` · ${esc(x.how)}` : ''}`}</li>`).join('')}</ul>` : ''}
     ${made.length ? `<p class="ac-h">고장에 남은 놀이</p><ul class="ag-clues">${made.map((x) => `<li><b>${esc(x.name)}</b>${x.place ? ` · ${esc(x.place)}` : ''}${x.m ? ` · ${x.m}월` : ''}${x.by ? ` · 처음 연 사람 ${esc(x.by)}` : ''}</li>`).join('')}</ul>` : ''}
     ${customs.length ? `<details class="pl-more"><summary>${cu?.name ? `${esc(cu.name)} 풍습` : '이 고장의 풍습'}</summary><ul class="rt-customs">${customs.map(([k, t]) => `<li>${k ? `<b>${esc(k)}</b>` : ''}<p>${esc(t)}</p></li>`).join('')}</ul></details>` : ''}
-    ${s.rites?.length ? `<details class="pl-more" open><summary>치른 의례 ${s.rites.length}가지</summary><ul class="pl-news">${s.rites.map(rite).join('')}</ul></details>` : ''}
+    ${s.rites?.length ? `<details class="pl-more"${s.rites.length <= 3 ? ' open' : ''}><summary>치른 의례 ${s.rites.length}가지</summary><ul class="pl-news">${s.rites.map(rite).join('')}</ul></details>` : ''}
     ${s.log?.length ? `<details class="pl-more"><summary>축제에서 있었던 일 ${s.log.length}가지</summary><ul class="pl-news">${s.log.slice().reverse().map((n) => `<li><time>${when(n)}</time><span>${esc(n.text)}</span></li>`).join('')}</ul></details>` : ''}
   </section>`;
 }

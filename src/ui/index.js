@@ -27,7 +27,7 @@ import { snapshot, diffSummary, summaryBody } from './summary.js';
 import { renderToday, revealSpans } from './today.js';
 import { renderPeople, bindPeople } from './people.js';
 import { yearFold, yearSpan } from './yearfold.js';
-import { applyPrefs, prefs, reducedMotion, revealOn, smoothOn, renderSettings, bindSettings } from './settings.js';
+import { applyPrefs, prefs, setPref, reducedMotion, revealOn, smoothOn, renderSettings, bindSettings } from './settings.js';
 import { runGuide, stopGuide } from './guide.js';
 import { installTouch } from './touch.js';
 import { audio } from '../audio/index.js';
@@ -575,6 +575,8 @@ function nowCards(parts) {
 }
 
 const SHEET_SHORT = { '늙음과 마지막 해들': '늙음', '내기와 겨루기': '내기', '풀리지 않은 일': '미제', '연구와 발명': '연구', '글과 예술': '예술', '병과 의술': '병', '내 집 마련': '집', '법과 재판': '법', '학원과 시험': '학원', '밑바닥 삶': '밑바닥', '내 가게': '가게', '마물 사냥': '마물', '용병단과 깃발': '용병단', '광산과 땅 밑': '광산', '사슬과 자유': '사슬', '무대와 재주': '무대', '전쟁 뒤': '전쟁 뒤', '몸과 마음': '몸과 마음', '집과 재산': '재산', '어린 시절': '어린 시절', '가문의 내력': '가문', '망자와 저주': '저주', '목축과 유목': '목축', '봉기와 반란': '봉기', '요리사의 길': '요리', '유배와 망명': '유배', '첩보와 밀정': '첩보', '마나의 흐름': '마나', '숨은 왕가의 피': '왕가의 피', '약초와 약방': '약방', '성유물': '성유물', '늙지 않는 몸': '불로', '타고남과 핏줄': '핏줄', '스스로 고른 끝': '마지막', '정령': '정령', '양조장': '양조', '사절과 볼모': '사절', '유적과 고대 마법': '유적', '기사단': '기사단', '내 나라': '내 나라', '하늘 기수': '하늘 기수', '뱃일': '뱃일', '태어난 집안': '집안', '옷감과 바느질': '바느질', '마족': '마족', '새 시대': '새 시대', '목수와 석공': '목수', '길 위의 일': '길', '사교계': '사교계', '점령 아래에서': '점령', '사냥': '사냥', '산적': '산적', '빚과 돈놀이': '빚', '장의사와 묘지기': '장의', '서자와 혼외 자식': '서자', '측량과 지도': '측량', '별 공부': '별', '옥살이': '옥살이', '수도원과 은둔': '수도원', '거둔 아이와 거둔 집': '거둔 아이', '내 주문서': '주문서', '내 검술 수첩': '검술', '마신의 조각': '마신', '마왕 아래': '마왕', '미궁 공략': '미궁', '남의 나라 궁정': '궁정', '마도구 장인': '마도구', '내 서재': '서재' };
+const unfold = (el) => { el?.classList.toggle('folded', false); return el; };
+
 function sheetJump() {
   const sheet = document.querySelector('.sheet:not(.side)');
   if (!sheet || sheet.querySelector('.view-jump')) return;
@@ -591,6 +593,24 @@ function sheetJump() {
   nav.setAttribute('aria-label', '바로 가기');
   nav.innerHTML = items.map(([id, name]) => `<button class="ghost sm" data-view-jump="${id}">${esc(name)}</button>`).join('');
   sheet.querySelector('.who')?.after(nav);
+  // 덩이가 많으면(48단계: 마흔 살 '나' 화면이 폰에서 2만 픽셀) 앞의 넷과 능력치·마력·기술·삶·몸과 마음만 펼치고 나머지는 이름만. 펼친 덩이는 기억한다.
+  if (blocks.length >= 12) {
+    const opened = Array.isArray(prefs().openBlocks) ? prefs().openBlocks : [];
+    blocks.forEach((b, i) => {
+      const h = b.querySelector('h3');
+      const t = (h.firstChild?.textContent ?? h.textContent).trim().replace(/\s+/g, ' ');
+      if (i < 4 || ['능력치', '마력', '기술', '삶', '몸과 마음'].includes(t)) return;
+      b.classList.add('foldable');
+      if (!opened.includes(t)) b.classList.add('folded');
+      h.setAttribute('role', 'button');
+      h.tabIndex = 0;
+      h.onclick = () => {
+        const f = b.classList.toggle('folded');
+        const cur = Array.isArray(prefs().openBlocks) ? prefs().openBlocks : [];
+        setPref('openBlocks', f ? cur.filter((x) => x !== t) : [...new Set([...cur, t])].slice(-40));
+      };
+    });
+  }
 }
 
 function renderSave() {
@@ -917,7 +937,7 @@ function bindGame() {
   $$('[data-chron]').forEach((b) => b.onclick = () => { ui.chronTab = b.dataset.chron; renderGame(); });
   $$('[data-chronf]').forEach((b) => b.onclick = () => { ui.chronFilter = b.dataset.chronf; renderGame(); });
   if (ui.view === 'me') sheetJump();
-  $$('[data-view-jump]').forEach((b) => b.onclick = () => document.getElementById(`jp-${b.dataset.viewJump}`)?.scrollIntoView({ block: 'start', behavior: reducedMotion() ? 'auto' : 'smooth' }));
+  $$('[data-view-jump]').forEach((b) => b.onclick = () => unfold(document.getElementById(`jp-${b.dataset.viewJump}`))?.scrollIntoView({ block: 'start', behavior: reducedMotion() ? 'auto' : 'smooth' }));
   $$('[data-legacy]').forEach((b) => b.onclick = () => { ui.legacySel = b.dataset.legacy === 'close' ? null : +b.dataset.legacy; renderGame(); if (ui.legacySel != null) document.querySelector('.lr-detail')?.scrollIntoView({ block: 'start' }); });
   const la = $('[data-legacy-all]');
   if (la) la.onclick = () => { ui.legacyAll = true; renderGame(); };

@@ -21,7 +21,7 @@ function one(p) {
     <div class="pe-top"><b>${esc(p.name)}</b>${sub ? `<small>${sub}</small>` : ''}${p.tieWord && p.alive !== false && (p.tie || !/데면데면/.test(p.tieWord)) ? `<em class="${TIE[p.tie] ?? 'plain'}">${esc(p.tieWord)}</em>` : ''}</div>
     ${p.path ? `<p class="pe-path">${esc(p.path)}${p.word ? ` · ${esc(p.word)}` : ''}</p>` : p.word ? `<p class="pe-path">${esc(p.word)}</p>` : ''}
     ${home ? `<p class="note pe-home">${home.includes('몰락') ? home.replace('몰락', '<b class="down">몰락</b>') : home}</p>` : ''}
-    ${p.fame != null && p.alive !== false ? `<div class="pe-fame"><span>이름값</span>${bar(p.fame, p.fame >= 60 ? 'kin' : 'mana')}</div>` : ''}
+    ${p.fame != null && p.alive !== false && (p.fame >= 5 || (p.age ?? 0) >= 16) ? `<div class="pe-fame"><span>이름값</span>${bar(p.fame, p.fame >= 60 ? 'kin' : 'mana')}</div>` : ''}
     ${p.last && p.last.text !== p.word ? `<p class="note pe-last"><time>${when(p.last)}</time> ${esc(p.last.text)}</p>` : ''}
   </li>`;
 }
