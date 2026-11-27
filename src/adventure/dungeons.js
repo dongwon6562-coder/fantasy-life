@@ -8,6 +8,7 @@ import { runFight, companionsFor } from './fight.js';
 import { playerVitality, playerPower, threatWord, describeFoes, foeTotal } from './combat.js';
 import { fac } from '../factions.js';
 import { PLACES } from '../places.js';
+import { opener } from '../narrative/openers.js';
 
 export const DUNGEONS = {
   old_tower: {
@@ -188,7 +189,7 @@ ACTIONS.push({
   name: '장비 맞추기',
   desc: '대장간과 무구점에서 무기와 갑옷을 산다.',
   available: (g) => !traveling(g) && playerAge(g) >= 14 && g.player.money >= 10 && L(g).place !== 'ern' && !sceneQueued(g, 'gear'),
-  run(g) { queueScene(g, 'gear'); return '무구점을 돌아보았다.'; },
+  run(g, rng) { queueScene(g, 'gear'); return opener(g, 'gear', rng); },
 });
 defineScene('gear', {
   title: () => '무구점',

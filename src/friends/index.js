@@ -241,7 +241,7 @@ defineScene('fr_meet', {
       g.people.push(p);
     }
     if (key !== 'open') S(g).newAt = mi(g) + 18; // 선을 그었으면 한동안 새 벗 자리가 안 난다(한 삶에 스무 번 뜨던 것)
-    if (!p && s.fresh) return `좋은 사람이다. 그래도 거기까지만 하기로 했다. ${J(s.name, '은/는')} 눈치를 챘는지 다음부터는 인사만 했다.`;
+    if (!p && s.fresh) return keepLine(g, s.name, s.v);
     if (!p?.alive) return '그 사람은 이제 여기 없다.';
     if (key === 'open') {
       addFriend(g, p, s.where, 30 + rng.int(0, 10)); aff(p, 8); stress(g, -6);
@@ -250,9 +250,17 @@ defineScene('fr_meet', {
       return `헤어질 때 ${J(p.name, '이/가')} 어깨를 한 번 쳤다. "또 보자." 오랜만에 듣는 말이었다.`;
     }
     aff(p, 2);
-    return `좋은 사람이다. 그래도 거기까지만 하기로 했다. ${J(p.name, '은/는')} 눈치를 챘는지 다음부터는 인사만 했다.`;
+    return keepLine(g, p.name, s.v);
   },
 });
+// 선을 그을 때의 글 (나이에 따라, 같은 글이 되풀이되지 않게)
+function keepLine(g, n, v = 0) {
+  const old = playerAge(g) >= 50;
+  const L2 = old
+    ? [`이 나이에 새 사람을 들이는 게 번거롭다. ${J(n, '은/는')} 서운한 기색 없이 고개를 끄덕였다. 늙은이 마음은 늙은이가 안다.`, `좋은 사람이다. 하지만 오래 볼 사이를 새로 만들기엔 남은 해가 아깝기도, 넉넉하기도 했다. ${J(n, '은/는')} 그 뒤로 장날에만 인사를 건넸다.`]
+    : [`좋은 사람이다. 그래도 거기까지만 하기로 했다. ${J(n, '은/는')} 눈치를 챘는지 다음부터는 인사만 했다.`, `다음에 한잔하자는 말에 웃기만 했다. ${J(n, '은/는')} 두 번 묻지 않았다. 그게 고마우면서도 조금 아쉬웠다.`, `${J(n, '과/와')} 이야기는 즐거웠지만 마음 한쪽을 내주지는 않았다. 길에서 만나면 고개를 숙이는 사이로 남았다.`];
+  return L2[Math.abs(v ?? 0) % L2.length];
+}
 defineScene('fr_drink', {
   title: () => '벗과 보내는 저녁',
   text: (g, s) => T.DRINK[s.v % T.DRINK.length]({ n: s.name }),

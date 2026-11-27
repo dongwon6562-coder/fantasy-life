@@ -64,7 +64,7 @@ function register(g, rng) {
   const k = K(g);
   for (const p of myKids(g)) {
     if (k.kids[p.id]) { k.kids[p.id].parent ??= g.player.id; continue; }
-    k.kids[p.id] = { ...newRec(rng, p), parent: g.player.id };
+    k.kids[p.id] = { ...newRec(rng, p, { adopted: !!p.adopted }), parent: g.player.id };
   }
 }
 
@@ -203,7 +203,7 @@ defineScene('kin_adopt', {
     if (sp && sp.alive) sp.childIds.push(p.id);
     if (!g.player.familyIds.includes(p.id)) g.player.familyIds.push(p.id);
     const k = K(g);
-    k.kids[p.id] = { ...newRec(rng, p, { adopted: true }), temper: c.temper, parent: g.player.id };
+    k.kids[p.id] = { ...newRec(rng, p, { adopted: true }), temper: c.temper, parent: g.player.id, adoptedAt: mi(g) };
     k.adopted += 1;
     note(g, `${J(p.name, '을/를')} ${kidWord(p)}로 거두었다.`);
     chron(g, `${g.player.name}, 예배당에서 ${J(p.name, '을/를')} 거두어 ${kidWord(p)}로 삼다.`, 60);
@@ -227,7 +227,8 @@ defineScene('kin_will', {
   title: () => '유언',
   text: (g) => {
     const kids = myKids(g).sort((a, b) => b.ageMonths - a.ageMonths);
-    const cur = K(g).will ? ` 지금 유언은 "${WILLS[K(g).will.mode]}${K(g).will.heirId ? `: ${byId(g, K(g).will.heirId)?.name ?? ''}` : ''}"이다.` : '';
+    const w = K(g).will;
+    const cur = w ? ` 지금 유언은 "${WILLS[w.mode]}${w.heirId && w.mode !== 'equal' ? `: ${byId(g, w.heirId)?.name ?? ''}` : ''}"이다.` : '';
     return `자식은 ${kids.length}명. ${kids.map((p) => `${kidWord(p)} ${p.name}(${ageYears(p)}살)`).join(', ')}.${cur} 집과 재산, 집안의 이름을 누구에게 남길까.`;
   },
   choices: (g) => {
@@ -302,6 +303,12 @@ HOOKS.afterMonth.push((g, rng) => {
       p.history.push({ y: g.date.year, m: g.date.month, text: `배운 것을 살려 ${JOBS[job]?.name ?? '일'} 일을 시작했다.` });
     }
   }
+  // 어린 자식은 내가 집을 두고 사는 고장에서 같이 산다 (이사·피난 뒤에도 옛 고장에 남던 것)
+  if (!traveling(g) && !isJailed(g) && ['own', 'rent', 'family'].includes(L(g).home)) {
+    for (const p of homeKids(g)) if (ageYears(p) < 16 && !p.away && (p.place ?? 'ern') !== (L(g).place ?? 'ern')) p.place = L(g).place ?? 'ern';
+  }
+  // 집 떠난 자식은 떠난 고장에 산다 (48단계 도우미2: 떠났는데 집에 있는 사람처럼 다른 장면에 나오던 것)
+  for (const p of kids) { const r = rec(g, p.id); if (r?.left && LEAVE_PLACES[r.left] && (p.place ?? 'ern') !== r.left) p.place = r.left; }
   // 집 떠난 자식이 돈을 부친다
   for (const p of kids) {
     const r = rec(g, p.id);
@@ -325,7 +332,7 @@ HOOKS.afterMonth.push((g, rng) => {
   }
   // 형제 다툼
   // 같은 아이가 자식 목록에 두 번 들어간 옛 저장도 있다: 사람별로 한 번만
-  const big = [...new Map(kids.filter((p) => ageYears(p) >= 10).map((p) => [p.id, p])).values()];
+  const big = [...new Map(homeKids(g).filter((p) => ageYears(p) >= 10).map((p) => [p.id, p])).values()];
   if (big.length >= 2 && rng.chance(0.025 * Math.max(...big.map((p) => TEMPERS[rec(g, p.id).temper].quarrel)))) {
     const a = rng.pick(big);
     const b = rng.pick(big.filter((x) => x.id !== a.id));
@@ -348,13 +355,25 @@ HOOKS.afterMonth.push((g, rng) => {
 });
 
 /* ---------- 가르칠 길 ---------- */
+// 거두어 온 아이의 기질은 이 집에 온 뒤의 모습으로 말한다
+const ADOPT_LINE = {
+  gentle: '시키지 않아도 그릇을 먼저 치웠다. 아직도 무엇을 해도 되는지 먼저 묻는다.',
+  stubborn: '처음 온 날부터 제 자리를 정해 두고 아무에게도 내주지 않았다.',
+  bold: '온 지 사흘 만에 지붕에 올라가 마을을 내려다보았다.',
+  bright: '이 집 사람들의 버릇을 누구보다 빨리 익혔다.',
+  dreamy: '밤이면 창가에 앉아 예전에 살던 쪽 하늘을 보았다.',
+  quiet: '배가 고프다는 말을 아직도 먼저 하지 않는다.',
+};
 defineScene('kin_path', {
   title: (g, s) => `${byId(g, s.id)?.name ?? '아이'}에게 무엇을 가르칠까`,
   text: (g, s) => {
     const p = byId(g, s.id);
     const r = rec(g, s.id);
     const gift = r.giftKnown ? ` ${GIFTS[r.gift].sign} ${r.gift === 'magic' ? `${J(GIFTS[r.gift].name, '이/가')} 있다.` : `${J(GIFTS[r.gift].name, '을/를')} 타고난 듯하다.`}` : '';
-    return `${kidWord(p)} ${J(p.name, '이/가')} ${ageYears(p)}살이 되었다. ${TEMPERS[r.temper].name} 아이다. ${TEMPERS[r.temper].line}${gift} 이제 무엇을 가르칠지 정할 때다.`;
+    // 거두어 온 아이에게 갓난아기 때 이야기를 하지 않는다 (48단계 도우미2)
+    const came = r.adopted && (r.born ?? 0) >= 24;
+    const line = came ? `${r.adoptedAt != null ? `거두어 온 지 ${Math.max(1, Math.floor((mi(g) - r.adoptedAt) / 12))}해. ` : '거두어 온 아이다. '}${ADOPT_LINE[r.temper] ?? ''}` : TEMPERS[r.temper].line;
+    return `${kidWord(p)} ${J(p.name, '이/가')} ${ageYears(p)}살이 되었다. ${TEMPERS[r.temper].name} 아이다. ${line}${gift} 이제 무엇을 가르칠지 정할 때다.`;
   },
   choices: (g, s) => {
     const p = byId(g, s.id);
@@ -561,7 +580,7 @@ defineScene('kin_return', {
       return '들어오라고 했다. 밥상에 숟가락 하나를 더 놓았다. 아무도 지난 일을 꺼내지 않았다. 꺼낼 필요가 없었다.';
     }
     if (key === 'shut') { stress(g, 8); return '문을 닫았다. 발소리가 멀어질 때까지 문고리를 잡고 있었다.'; }
-    if (key === 'stay') { r.left = null; addBond(g, p, 8); return `${J(p.name, '은/는')} 짐을 풀었다. 떠날 때보다 짐이 무거웠다. 그동안 산 것들이었다.`; }
+    if (key === 'stay') { r.left = null; p.place = L(g).place ?? 'ern'; addBond(g, p, 8); return `${J(p.name, '은/는')} 짐을 풀었다. 떠날 때보다 짐이 무거웠다. 그동안 산 것들이었다.`; }
     addBond(g, p, 5);
     return '하룻밤 묵고 떠났다. 떠나며 문간에 은화 몇 닢을 놓고 갔다. 돌려줄 틈도 주지 않았다.';
   },

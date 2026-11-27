@@ -9,6 +9,7 @@ import { J } from '../narrative/text.js';
 import {
   B, KINDS, FAMILIAR_FORMS, MAX_ANIMALS, alive, ageOf, old, young, familiarOf, fullName, kindName, addAnimal, bury, logBeast, mi, DEATH_QUEUE, beastPow,
 } from './core.js';
+import { opener } from '../narrative/openers.js';
 
 /* ---------- 어디서 무엇을 파나 ---------- */
 export const SHOPS = {
@@ -50,7 +51,7 @@ ACTIONS.push({
   desc: '장터에서 개나 말, 매를 산다. 큰 고장에서는 군마를, 밀매 시장에서는 마수 새끼를 판다. 먹이 값이 달마다 든다.',
   // 48단계: 아이(10~14살)는 개 한 마리까지만. 예전엔 해마다 서너 번 장터에 가서 개를 몇 마리씩 들였다
   available: (g) => ownAge(g) && free(g) && !!SHOPS[here(g)] && alive(g).length < (isAdult(g) ? MAX_ANIMALS : 1) && !sceneQueued(g, 'beast_buy'),
-  run(g) { queueScene(g, 'beast_buy'); return '짐승 장터의 울타리 사이를 걸었다. 똥 냄새와 흥정 소리가 뒤섞였다.'; },
+  run(g, rng) { queueScene(g, 'beast_buy'); return opener(g, 'beast_buy', rng); },
 });
 defineScene('beast_buy', {
   need: (g) => free(g) && !!SHOPS[here(g)] && alive(g).length < (isAdult(g) ? MAX_ANIMALS : 1),

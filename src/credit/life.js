@@ -12,6 +12,7 @@ import { atWar } from '../world.js';
 import { E, LENDERS } from '../estate/core.js';
 import { collateral } from '../estate/money.js';
 import { CS, SEATS, PAWN_TOWNS, bankAt, bankById, myBank, newBank, endBank, clog, crRng, clamp, mi, placeName, stage, houseWord, fortuneWord, deposited, lentOut } from './state.js';
+import { opener } from '../narrative/openers.js';
 
 const M = (g) => CS(g).me;
 const busy = (g) => g.over || g.bondage?.slave || g.crime?.jailed || g.army?.campaign || g.army?.captive || !!L(g).heirPending;
@@ -40,7 +41,7 @@ ACTIONS.push({
   icon: 'ring',
   desc: '물건을 맡기고 급한 돈을 받는다. 여섯 달 안에 이자를 얹어 찾아가지 않으면 물건은 전당포 것이 된다.',
   available: (g) => settled(g) && pawnHere(g) && (M(g).pawns.length > 0 || (money(g) < 25 && pawnables(g).length > 0)) && !sceneQueued(g, 'credit_pawn'),
-  run(g) { queueScene(g, 'credit_pawn'); return '전당포 창살 창구 앞에 섰다.'; },
+  run(g, rng) { queueScene(g, 'credit_pawn'); return opener(g, 'credit_pawn', rng); },
 });
 defineScene('credit_pawn', {
   need: (g) => pawnHere(g) && !traveling(g),

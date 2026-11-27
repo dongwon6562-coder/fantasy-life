@@ -3,7 +3,7 @@
 import { J } from '../narrative/text.js';
 import { gainStat, gainSkill, circleOf, purse } from '../game.js';
 import { realm, nudge } from '../world.js';
-import { kill } from '../npc.js';
+import { kill, bodyAgeOf } from '../npc.js';
 import { startDuel } from '../duel/duel.js';
 import {
   EVENTS, flag, setFlag, fam, father, mother, alive, age, findJob, peers, stat, skill, money, spend,
@@ -16,7 +16,22 @@ const parents = (g) => [father(g), mother(g)].filter(alive);
 const nearParents = (g) => parents(g).filter((p) => (p.place ?? 'ern') === here(g));
 // 최근 반년 안에 세상을 떠난 부모
 const diedRecently = (g, p) => { const h = p.history[p.history.length - 1]; return !!h && (g.date.year * 12 + g.date.month) - (h.y * 12 + h.m) <= 6; };
-const deadParents = (g) => [father(g), mother(g)].filter((p) => p && !p.alive && diedRecently(g, p));
+// 대를 이은 뒤 앞 주인(wasPlayer)의 유품은 대 잇기 장면이 이미 다룬다 (48단계 도우미2)
+const deadParents = (g) => [father(g), mother(g)].filter((p) => p && !p.alive && !p.wasPlayer && diedRecently(g, p));
+// 몸 나이 (오래 사는 종족은 천천히 늙는다)
+const bodyAge = (g) => Math.floor(bodyAgeOf(g.people.find((p) => p.isPlayer)) ?? age(g));
+// 유품: 집안마다 남는 것이 다르다
+const KEEPSAKE = {
+  farmer: '흙 묻은 장화 한 켤레, 날이 무뎌진 낫',
+  fallen_knight: '녹을 닦아 둔 옛 갑옷 조각, 문장이 바랜 망토',
+  merchant: '손때 묻은 장부 몇 권, 저울추 한 벌',
+  capital_artisan: '손잡이가 닳은 연장 한 벌, 쓰다 만 도면',
+  port_folk: '소금기에 뻣뻣해진 그물 한 자락, 낡은 노',
+  sexton: '녹슨 종 망치, 묘지 장부',
+  march_guard: '이 빠진 창날, 성벽 순번표',
+  slum_orphan: '구멍 난 담요 한 장, 동전 몇 닢이 든 주머니',
+};
+const keepsake = (g, p) => KEEPSAKE[g.player.familyId] ?? (p.sex === 'f' ? '자주 두르던 목도리, 바느질 바구니' : '손때 묻은 연장, 닳은 허리띠');
 
 EVENTS.push(
   {
@@ -49,10 +64,10 @@ EVENTS.push(
     weight: 88,
     prepare: (g) => ({ id: deadParents(g).find((p) => !flag(g, 'mourned_' + p.id)).id }),
     title: '유품',
-    text: (g, c) => { const p = byId(g, c.id); return `${p.name}의 장례가 끝났다. 빈 방에 남은 것은 낡은 옷 몇 벌, 손때 묻은 연장, 그리고 침대 밑 작은 나무 상자 하나. ${siblings(g).length ? '형제들이 말없이 서로를 본다.' : ''}`; },
+    text: (g, c) => { const p = byId(g, c.id); const w = p.sex === 'f' ? '어머니' : '아버지'; return `${w} ${p.name}의 장례가 끝났다. 빈 방에 남은 것은 낡은 옷 몇 벌, ${keepsake(g, p)}, 그리고 침대 밑 작은 나무 상자 하나. ${siblings(g).length ? '형제들이 말없이 서로를 본다.' : '이제 이걸 정리할 사람은 나 하나다.'}`; },
     choices: [
       { label: '상자를 연다', run: (g, rng, c) => { setFlag(g, 'mourned_' + c.id); const n = rng.int(3, 12); g.player.money += n; stress(g, 10); return `안에는 은화 ${n}닢과, 내가 어릴 때 처음 쓴 글씨가 적힌 석판 조각이 들어 있었다. 그걸 지금까지 간직하고 있었다는 걸, 몰랐다.`; } },
-      { label: '형제들에게 먼저 고르게 한다', show: (g) => siblings(g).length > 0, run: (g, rng, c) => { setFlag(g, 'mourned_' + c.id); for (const s of siblings(g)) like(s, 10); gainStat(g, 'wil', 0.5); return '형제들이 하나씩 골랐다. 남은 건 낡은 연장 하나였다. 그걸로 충분했다.'; } },
+      { label: '형제들에게 먼저 고르게 한다', show: (g) => siblings(g).length > 0, run: (g, rng, c) => { setFlag(g, 'mourned_' + c.id); for (const s of siblings(g)) like(s, 10); gainStat(g, 'wil', 0.5); return `형제들이 하나씩 골랐다. 남은 건 ${keepsake(g, byId(g, c.id)).split(', ').pop()} 하나였다. 그걸로 충분했다.`; } },
       { label: '그대로 둔다', run: (g, rng, c) => { setFlag(g, 'mourned_' + c.id); stress(g, 15); return '방문을 닫았다. 아직은 열 수 없었다.'; } },
     ],
   },
@@ -141,10 +156,10 @@ EVENTS.push(
   },
   {
     id: 'adult_first_gray', once: true,
-    cond: (g) => age(g) >= 35 && !flag(g, 'ev_later_first_grey'),
+    cond: (g) => bodyAge(g) >= 35 && !flag(g, 'ev_later_first_grey'),
     chance: () => 0.05, weight: 30,
     title: '첫 흰머리',
-    text: () => '물에 비친 얼굴에서 흰 머리카락 한 올을 찾았다. 뽑아서 손가락 사이에 비춰 본다. 어릴 적 꿈꾸던 서른다섯은 이런 얼굴이 아니었다.',
+    text: (g) => `물에 비친 얼굴에서 흰 머리카락 한 올을 찾았다. 뽑아서 손가락 사이에 비춰 본다. ${age(g) - bodyAge(g) >= 10 ? `같은 해에 난 사람들은 진작 머리가 셌다. 나는 ${age(g)}해를 살고서야 처음이다.` : '어릴 적 꿈꾸던 서른다섯은 이런 얼굴이 아니었다.'}`,
     choices: [
       { label: '뽑아 버린다', run: (g) => { stress(g, -5); return '하나쯤이야. 다음 달엔 셋이 되어 있었다.' },
       },
@@ -153,10 +168,13 @@ EVENTS.push(
   },
   {
     id: 'adult_body_aging', cooldown: 120,
-    cond: (g) => age(g) >= 50,
+    cond: (g) => bodyAge(g) >= 50,
     chance: () => 0.04, weight: 45,
     title: '예전 같지 않은 몸',
-    text: () => '아침에 일어나는데 무릎이 말을 듣지 않는다. 옛 상처들이 날씨를 먼저 안다. 젊을 때는 하룻밤이면 낫던 피로가 사흘을 간다.',
+    // 열 해마다 오니 나이에 따라 다르게 (48단계 도우미2)
+    text: (g) => (bodyAge(g) >= 70 ? '지팡이 없이는 마당 끝까지도 멀다. 아침마다 손가락이 굳어 숟가락을 쥐기까지 한참 걸린다. 같은 해에 난 사람들 이름을 세어 보니 손가락이 남는다.'
+      : bodyAge(g) >= 60 ? '계단 앞에서 숨을 고르는 일이 잦아졌다. 바늘귀가 보이지 않아 이웃 아이에게 실을 꿰어 달라고 했다. 밤에 두 번은 깬다.'
+      : '아침에 일어나는데 무릎이 말을 듣지 않는다. 옛 상처들이 날씨를 먼저 안다. 젊을 때는 하룻밤이면 낫던 피로가 사흘을 간다.'),
     choices: [
       { label: '받아들이고 속도를 줄인다', run: (g) => { stress(g, -15); gainStat(g, 'wil', 0.4); return '서두를 일은 많지 않다. 남은 날을 어디에 쓸지, 조금 더 신중해졌다.'; } },
       { label: '이를 악물고 예전처럼 산다', run: (g) => { tire(g, 15); gainStat(g, 'str', 0.3); return '몸은 따라왔다. 대신 밤마다 끙끙 앓았다.'; } },

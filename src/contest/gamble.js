@@ -9,6 +9,7 @@ import { deed } from '../repute/index.js';
 import { E as estate, LENDERS } from '../estate/core.js';
 import { canBorrow } from '../estate/money.js';
 import { C, mi, clamp, here, placeName, free, stat, logContest, bannedAt, ban, itchWord } from './core.js';
+import { opener } from '../narrative/openers.js';
 
 export const GAMBLE_LOAN = 50;
 const canGamble = (g) => playerAge(g) >= 15 && free(g) && (PLACES[here(g)]?.inn ?? 0) > 0 && !bannedAt(g, 'gamble');
@@ -23,7 +24,7 @@ ACTIONS.push({
   icon: 'coin',
   desc: '주막 뒷방에서 주사위를 굴리거나 카드를 돌린다. 한 판에 크게 딸 수도, 크게 잃을 수도 있다. 자꾸 하면 버릇이 된다.',
   available: (g) => canGamble(g) && !sceneQueued(g, 'contest_gamble'),
-  run(g) { queueScene(g, 'contest_gamble'); return '주막 뒷방의 휘장을 걷었다. 탁자마다 촛불과 은화가 쌓여 있었다.'; },
+  run(g, rng) { queueScene(g, 'contest_gamble'); return opener(g, 'contest_gamble', rng); },
 });
 
 defineScene('contest_gamble', {

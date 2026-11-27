@@ -55,14 +55,15 @@ const rest = (g, pick) => { endMonth(g, [{ id: 'rest' }]); resolveAll(g, pick); 
 
 // 1. 그냥 사는 삶: NPC 집안이 고아를 거두고, 자식 없는 집이 양자를 들인다
 let made = 0; const npcKinds = {}; const forced = [];
-for (let k = 0; k < 4; k++) {
-  const g = newGame({ name: k % 2 ? '요나스' : '클라라', sex: k % 2 ? 'm' : 'f', familyId: ['farmer', 'merchant', 'sexton', 'port_folk'][k], mode: 'free', seed: 3900 + k });
+// 여섯 판 (48단계: 넷으로는 씨앗 운에 따라 부모 잃은 아이를 거두는 갈래가 0번인 때가 있었다)
+for (let k = 0; k < 6; k++) {
+  const g = newGame({ name: k % 2 ? '요나스' : '클라라', sex: k % 2 ? 'm' : 'f', familyId: ['farmer', 'merchant', 'sexton', 'port_folk'][k % 4], mode: 'free', seed: 3900 + k });
   const rng = rngOf(g);
   for (let m = 0; m < 40 * 12 && !g.over; m++) {
     const acts = availableActions(g).filter((a) => !/travel|move/.test(a.id));
     const ch = [];
     for (let i = 0; i < slotsFor(g) && acts.length; i++) ch.push({ id: rng.pick(acts).id });
-    if (k < 2 && m === 60) { // 돌림병에 부모를 다 잃은 NPC 아이
+    if (k % 4 < 2 && m === 60) { // 돌림병에 부모를 다 잃은 NPC 아이
       const kid = g.people.find((p) => p.alive && !p.isPlayer && p.ageMonths < 10 * 12 && byId(g, p.fatherId)?.alive && byId(g, p.motherId)?.alive && !g.player.familyIds.includes(p.id) && p.fatherId !== me(g).id);
       if (kid) { kill(g, byId(g, kid.fatherId), '돌림병'); kill(g, byId(g, kid.motherId), '돌림병'); forced.push([g, kid]); }
     }

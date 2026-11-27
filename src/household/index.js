@@ -33,6 +33,7 @@ import { loveState } from '../love/index.js';
 import { courtState } from '../court/index.js';
 import { H } from '../history/state.js';
 import { liveHouses, houseName } from '../history/nobles.js';
+import { opener } from '../narrative/openers.js';
 
 const jo = (w, pair) => J(w, pair).slice(w.length);
 const mi = (g) => g.date.year * 12 + g.date.month;
@@ -545,7 +546,7 @@ ACTIONS.push({
   id: 'household_serve', name: '큰 집안 하인으로 들어가기', icon: 'crown',
   desc: '이 고장에 터를 둔 귀족 가문의 하인으로 들어간다. 먹고 잘 곳이 생기고, 신임을 얻으면 집사까지 오른다. 남의 집 담 안에서는 들리는 것도 많다.',
   available: (g) => playerAge(g) >= 14 && !traveling(g) && !isJailed(g) && !g.over && !L(g).heirPending && !SV(g) && servingHouses(g).length > 0 && !sceneQueued(g, 'household_serve'),
-  run(g) { queueScene(g, 'household_serve', {}); return '대갓집 뒷문을 두드려 보기로 했다.'; },
+  run(g, rng) { queueScene(g, 'household_serve', {}); return opener(g, 'household_serve', rng); },
 });
 defineScene('household_serve', {
   title: (g, s) => (s.heir ? '선대가 섬기던 집' : '대갓집 뒷문'),

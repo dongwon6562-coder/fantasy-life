@@ -14,6 +14,7 @@ import { remember } from '../relations.js';
 import { makeRng } from '../rng.js';
 import { J } from '../narrative/text.js';
 import { queueDuel, registerDuelEnd } from './registry.js';
+import { opener } from '../narrative/openers.js';
 
 // 유파: sig는 유파가 잘 쓰는 수(피해 배율), style은 그 유파 사람과 겨룰 때의 성향, stat은 수련으로 느는 몸,
 // races가 있으면 그 종족에게만 기꺼이 가르치고, 바깥사람은 outsider의 몸을 갖춰야 받아 준다.
@@ -258,9 +259,9 @@ ACTIONS.push(
     desc: '스승을 찾아가 검의 유파에 든다. 나라와 종족마다 유파가 다르고, 이곳에서 가르치는 것 가운데 고른다. 다른 유파로 옮기면 등급은 처음부터다.',
     available: (g) => playerAge(g) >= 8 && !g.life?.travel && joinable(g).length > 0 && !g.swordJoinQueued
       && g.date.year * 12 + g.date.month - (g.swordJoinAt ?? -99) >= 6, // 한 번 정하면(입문이든 그만두든) 반년은 다시 찾지 않는다
-    run(g) {
+    run(g, rng) {
       g.swordJoinQueued = true;
-      return '검을 가르칠 사람을 찾아 나섰다.';
+      return opener(g, 'sword_school_join', rng);
     },
   },
   {

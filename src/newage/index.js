@@ -323,7 +323,8 @@ function guildTick(g, rng) {
 /* ---------- 플레이어 장면 ---------- */
 const noble = (g) => g.player.familyId === 'fallen_knight' || g.player.familyId === 'count_bastard' || !!g.player.title || !!g.domain;
 const parentOf = (g) => [byId(g, me(g)?.fatherId), byId(g, me(g)?.motherId)].find((p) => p?.alive && ageYears(p) >= 40) ?? null;
-const kidOf = (g) => (me(g)?.childIds ?? []).map((id) => byId(g, id)).find((p) => p?.alive && !p.away && ageYears(p) >= 16 && ageYears(p) <= 28) ?? null;
+// 한집에 사는 자식만 (이미 떠난 자식이 '떠나겠다'고 하지 않게, 48단계 도우미2)
+const kidOf = (g) => (me(g)?.childIds ?? []).map((id) => byId(g, id)).find((p) => p?.alive && !p.away && (p.place ?? 'ern') === (L(g).place ?? 'ern') && ageYears(p) >= 16 && ageYears(p) <= 28) ?? null;
 const NEW_THING = (g) => (inv(g, 'railroad') ? '쇠수레 길' : inv(g, 'factory') ? '공장' : inv(g, 'ironcart') ? '쇠수레' : inv(g, 'forge') ? '마석 화로' : inv(g, 'plow') ? '마석 쟁기' : inv(g, 'press') ? '찍어 낸 책' : inv(g, 'manamill') || inv(g, 'erngrind') ? '마석 방아' : inv(g, 'betterplow') ? '개량 쟁기' : inv(g, 'windmill') ? '풍차' : inv(g, 'warmstone') ? '온석 화로' : inv(g, 'glass') ? '유리' : '화석');
 const NEW_WORK = (g) => (inv(g, 'factory') ? '공장' : inv(g, 'ironcart') ? '쇠수레 공장' : inv(g, 'forge') ? '마석 화로 대장간' : inv(g, 'press') ? '인쇄소' : inv(g, 'manamill') ? '마석 방앗간' : inv(g, 'windmill') ? '풍차 방앗간' : inv(g, 'warmstone') ? '온석 화로 공방' : inv(g, 'glass') ? '유리 공방' : '화석 공방');
 const OLD_THING = (g) => ({ farmer: '밭', merchant: '장사', fallen_knight: '칼', sexton: '종', capital_artisan: '손', port_folk: '바다', march_guard: '성벽' }[g.player.familyId] ?? '땀');
