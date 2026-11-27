@@ -21,9 +21,11 @@ const t0 = Date.now();
 const ids = new Set(ACTIONS.map((a) => a.id));
 for (const id of Object.keys(ACT_KIND)) if (!ids.has(id)) fail('ACT_KIND unknown action', id);
 for (const fi of FIRSTS) for (const id of fi.acts) if (!ids.has(id)) fail('FIRSTS unknown action', fi.id, id);
-const KINDS = new Set(['field', 'out', 'train', 'hunt', 'trade', 'kitchen', 'forge', 'study', 'magic', 'pray', 'rest', 'family', 'play', 'poor', 'road', 'sea', 'mine', 'home']);
+const KINDS = new Set(['field', 'site', 'wild', 'still', 'depths', 'out', 'train', 'hunt', 'trade', 'kitchen', 'forge', 'study', 'magic', 'pray', 'rest', 'family', 'play', 'poor', 'road', 'sea', 'mine', 'home']);
 for (const v of Object.values(ACT_KIND)) if (!KINDS.has(v)) fail('bad kind', v);
 for (const e of LINES) if (e.k !== '*') for (const k of e.k) if (!KINDS.has(k)) fail('bad line kind', k);
+// 48단계: 공사장·들 일에 밭 이야기가 끼지 않는다
+for (const e of LINES) if (Array.isArray(e.k) && (e.k.includes('site') || e.k.includes('wild')) && typeof e.t === 'string' && /밭|고랑|괭이|이랑/.test(e.t)) fail('farm line on site/wild', e.t);
 
 // 1. 모든 줄을 가능한 형편에 대 보며 글이 깨지지 않는지 (함수 줄은 여러 이름으로)
 const sample = { age: 30, season: '겨울', weather: 'snow', tod: 'dawn', month: 1, place: 'ern', hurt: 'leg', hurtName: '멧돼지 엄니에 찢긴 허벅지', spouse: '마리엔', kids: 2 };

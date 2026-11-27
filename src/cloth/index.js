@@ -54,7 +54,9 @@ export function clothLine(g) {
   if (shopHere(g) && t % 2 === 0) return SHOP_LINE[t % SHOP_LINE.length](`'${c.shop.name}'`);
   if (isTailor(g) && t % 3 === 0) return '손가락 끝마다 굳은살이 박였다. 골무 없이도 바늘이 들어가지 않는다.';
   if (c.loom && ['family', 'own', 'rent'].includes(g.life?.home) && t % 4 === 1) return '저녁마다 베틀 바디 소리가 집 안을 채운다.';
-  if (TAILOR_TOWNS.includes(pl) && t % 3 === 2) return c.fashion.by === g.player.name ? `거리의 옷차림 절반이 ${c.shop ? `'${c.shop.name}'에서` : '내 손에서'} 나온 모양이다.` : FASHIONS[c.fashion.id].line;
+  // 48단계: 유행 줄은 새 유행이 번지는 첫 반년에만 석 달마다, 그 뒤로는 해마다 한 번 (30년에 마흔 번 넘게 같은 줄이 뜨던 것)
+  const fAge = t - (c.fashion.since ?? 0), fashionNow = fAge < 6 ? fAge % 3 === 2 : fAge % 12 === 2;
+  if (TAILOR_TOWNS.includes(pl) && fashionNow) return c.fashion.by === g.player.name ? `거리의 옷차림 절반이 ${c.shop ? `'${c.shop.name}'에서` : '내 손에서'} 나온 모양이다.` : FASHIONS[c.fashion.id].line;
   if (TAILOR_TOWNS.includes(pl) && t % 5 === 0) return TOWN[t % TOWN.length];
   return null;
 }

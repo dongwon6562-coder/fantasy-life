@@ -581,7 +581,8 @@ ACTIONS.push(
   {
     id: 'jail_escape', name: '탈옥', icon: 'travel',
     desc: '창살을 갈고, 간수를 매수하고, 하수구를 기어 나간다. 실패하면 형기가 늘고 다친다. 성공하면 쫓기는 몸이 된다.',
-    available: (g) => isJailed(g),
+    // 48단계: 붙잡힌 뒤 석 달은 간수들이 눈을 떼지 않는다 (실패를 달마다 되풀이해 형기가 끝없이 붙던 것)
+    available: (g) => isJailed(g) && !((C(g).jailed?.watchUntil ?? -1) > g.date.year * 12 + g.date.month),
     run(g, rng) {
       if (!C(g).jailed) return '';
       const c = C(g);
@@ -598,9 +599,11 @@ ACTIONS.push(
         return T.ESCAPE_OK(placeName(g, place));
       }
       c.jailed.months += 6; c.jailed.total += 6;
+      c.jailed.watchUntil = g.date.year * 12 + g.date.month + 3;
+      c.jailed.fails = (c.jailed.fails ?? 0) + 1;
       p.injuries.push({ name: '간수에게 맞은 갈비뼈', months: 2 });
       stress(g, 15);
-      return T.ESCAPE_FAIL;
+      return T.ESCAPE_FAIL[(c.jailed.fails - 1) % T.ESCAPE_FAIL.length];
     },
   },
 );

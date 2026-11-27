@@ -7,10 +7,10 @@ const has = (id) => (c, g) => owns(g, id);
 const and = (...fs) => (c, g) => fs.every((f) => f(c, g));
 
 T.REST.push(
-  { when: has('lantern'), t: '등석 등잔 아래서 늦도록 깨어 있었다. 푸른 빛이 벽에 그림자를 길게 늘였다.' },
-  { season: '겨울', when: has('warmstone'), t: '온석 화로에 발을 대고 졸았다. 장작 타는 소리가 없는 겨울밤은 조금 낯설었다.' },
-  { when: inv('signal'), t: '창밖 언덕 위 전신탑의 빛이 깜빡이는 걸 세다가 잠들었다.' },
-  { when: inv('ironcart'), bands: ['young', 'adult', 'old'], t: '멀리서 쇠수레가 지나가는 소리가 들렸다. 말발굽 소리가 아닌 낮은 웅웅거림이 잦아질 때까지 누워 있었다.' },
+  { soft: true, when: has('lantern'), t: '등석 등잔 아래서 늦도록 깨어 있었다. 푸른 빛이 벽에 그림자를 길게 늘였다.' },
+  { soft: true, season: '겨울', when: has('warmstone'), t: '온석 화로에 발을 대고 졸았다. 장작 타는 소리가 없는 겨울밤은 조금 낯설었다.' },
+  { soft: true, when: inv('signal'), t: '창밖 언덕 위 전신탑의 빛이 깜빡이는 걸 세다가 잠들었다.' },
+  { soft: true, when: inv('ironcart'), bands: ['young', 'adult', 'old'], t: '멀리서 쇠수레가 지나가는 소리가 들렸다. 말발굽 소리가 아닌 낮은 웅웅거림이 잦아질 때까지 누워 있었다.' },
 );
 T.WANDER_NOBODY.push(
   { when: inv('streetlamp'), t: '해가 졌는데도 광장이 환했다. 등석 가로등 아래 밤 장사꾼들이 좌판을 펴고 있었다.' },
