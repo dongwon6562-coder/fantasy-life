@@ -165,12 +165,12 @@ HOOKS.afterActions.push((g) => {
 const inv = (id) => (c, g) => invented(g, id);
 const has = (id) => (c, g) => owns(g, id);
 T.REST.push(
-  { when: inv(SMALL.clock), bands: ['young', 'adult', 'old'], t: '광장 시계탑 종이 시각을 쳤다. 해를 보지 않고도 저녁이 된 걸 알았다.' },
-  { when: has('window'), t: '유리창 너머로 눈 내리는 걸 보며 쉬었다. 바람은 들어오지 않았다.' },
-  { when: has('spectacles'), bands: ['adult', 'old'], t: '안경을 코끝에 걸고 오래된 편지를 다시 읽었다.' },
-  { when: has('gazette'), t: '신문을 접었다 폈다 하며 졸았다. 부고란에서 아는 이름을 찾는 것이 버릇이 되었다.' },
-  { when: inv(LATE.factory), bands: ['young', 'adult', 'old'], t: '멀리서 공장 호루라기가 울렸다. 쉬는 날인데도 몸이 먼저 깼다.' },
-  { when: has('orb'), t: '탁자 위 수정구가 밤새 희미하게 깜빡였다. 어딘가에서 누군가 소식을 보내고 있다.' },
+  { soft: true, when: inv(SMALL.clock), bands: ['young', 'adult', 'old'], t: '광장 시계탑 종이 시각을 쳤다. 해를 보지 않고도 저녁이 된 걸 알았다.' },
+  { soft: true, when: has('window'), t: '유리창 너머로 눈 내리는 걸 보며 쉬었다. 바람은 들어오지 않았다.' },
+  { soft: true, when: has('spectacles'), bands: ['adult', 'old'], t: '안경을 코끝에 걸고 오래된 편지를 다시 읽었다.' },
+  { soft: true, when: has('gazette'), t: '신문을 접었다 폈다 하며 졸았다. 부고란에서 아는 이름을 찾는 것이 버릇이 되었다.' },
+  { soft: true, when: inv(LATE.factory), bands: ['young', 'adult', 'old'], t: '멀리서 공장 호루라기가 울렸다. 쉬는 날인데도 몸이 먼저 깼다.' },
+  { soft: true, when: has('orb'), t: '탁자 위 수정구가 밤새 희미하게 깜빡였다. 어딘가에서 누군가 소식을 보내고 있다.' },
 );
 T.WANDER_NOBODY.push(
   { when: inv(SMALL.windmill), t: '언덕 위 풍차 날개가 느릿느릿 돌았다. 아이들이 날개 그림자를 밟으며 뛰어다녔다.' },
