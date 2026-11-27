@@ -23,7 +23,8 @@ fs.mkdirSync(out, { recursive: true });
   await p.screenshot({ path: `${out}/01-setup.png`, fullPage: true });
   await p.fill('#pname', '하린');
   await p.click('#begin');
-  const log = [];
+  const log = { push: (x) => fs.appendFileSync(`${out}/log.md`, x + '\n') };
+  fs.writeFileSync(`${out}/log.md`, '');
   let months = 0;
   const shotAges = new Set([0, 3, 7, 12, 16, 20, 30, 45, 60]);
   const age = async () => p.evaluate(() => { try { const t = document.body.innerText.match(/(\d+)\s*살/); return t ? +t[1] : -1; } catch { return -1; } });
@@ -76,7 +77,6 @@ fs.mkdirSync(out, { recursive: true });
     log.push(`\n## ${months}달 (${a}살) 할 일: ${plan}\n${now}`);
   }
   await shoot('end');
-  fs.writeFileSync(`${out}/log.md`, log.join('\n'));
   console.log(fam, 'months', months, 'errors', errs.length, errs.slice(0, 5));
   await b.close();
 })();
