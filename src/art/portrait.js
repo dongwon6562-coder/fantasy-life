@@ -241,6 +241,7 @@ export function eraBits(game) {
   return (inv.includes('lens') ? 1 : 0) | (inv.includes('clock') ? 2 : 0) | (inv.includes('factory') ? 4 : 0);
 }
 
+const BROW_KINDS = ['soft', 'straight', 'arched', 'angled', 'bushy'];
 const FORMS = ['oval', 'square', 'heart', 'long', 'round', 'diamond'];
 const EYE_KINDS = ['almond', 'hooded', 'deep', 'round', 'down'];
 
@@ -308,7 +309,10 @@ function drawFace(game, p, age, stage, scars, ring, mood, detail, life, bust = f
   if (form === 'round') { jawW += 0.08 * fk; chinW += 0.08 * fk; }
   if (form === 'diamond') { cheekW += 0.06 * fk; temple = -0.1 * fk; jawW -= 0.06 * fk; }
   const gaunt = clamp(g.gaunt * 0.7 + old * 0.5 + ancient * 0.25 + life.hard * 0.6 + (M.pale ? 0.3 : 0) - kid - (male ? 0 : 0.15));
-  jawW = clamp(jawW, 0.5, 1.0); chinW = clamp(chinW, 0.14, 0.56);
+  // 51단계 둘째: 살집. 잘 먹고 덜 고된 사람은 얼굴이 넓고 턱이 두툼하다 (마른 얼굴과 한눈에 갈리게)
+  const plump = clamp(((0.42 - g.gaunt) * 2.2 + (life.tier >= 3 ? 0.35 : life.tier <= 0 ? -0.4 : 0) - life.hard * 0.8) * clamp((age - 18) / 14) * (1 - kid));
+  hw += plump * 1.9; jawW += plump * 0.12; chinW += plump * 0.08; cheekW += plump * 0.03;
+  jawW = clamp(jawW, 0.5, 1.04); chinW = clamp(chinW, 0.14, 0.6);
   const headR = [
     [cx, top], [cx + hw * 0.58, top + hh * 0.06], [cx + hw * (0.95 + temple), top + hh * 0.4], [cx + hw * cheekW, cy + hh * 0.06],
     [cx + hw * (lerp(cheekW, jawW, 0.45) - gaunt * 0.02), cy + hh * 0.36], [cx + hw * jawW, cy + hh * (0.62 + old * 0.04)],
@@ -317,7 +321,7 @@ function drawFace(game, p, age, stage, scars, ring, mood, detail, life, bust = f
   const head = mirrored(cx, headR);
 
   const eyeY = cy + hh * (0.03 + kid * 0.15);
-  const ew = hw * (1 - old * 0.1) * (0.182 + g.eyeSize * 0.07 + kid * 0.035 + (elf ? 0.012 : 0)); // 눈 반폭
+  const ew = hw * (1 - old * 0.1) * (1 - plump * 0.08) * (0.172 + g.eyeSize * 0.095 + kid * 0.035 + (elf ? 0.012 : 0)); // 눈 반폭
   const eyeGap = hw * (0.375 + g.eyeGap * 0.12);
   const browY = eyeY - hh * (0.175 + g.browArch * 0.02) - kid * 0.4 + (eyeK === 'deep' ? 0.5 * fk : 0) + (M.browIn > 1.5 ? 0.4 : 0);
   const noseBot = cy + hh * (0.38 + old * 0.035 + g.noseLen * 0.16 * (1 - kid) + kid * 0.04 + (dwarf ? 0.03 : 0));
@@ -331,7 +335,13 @@ function drawFace(game, p, age, stage, scars, ring, mood, detail, life, bust = f
   const sw = stage === 'baby' ? 25 : stage === 'child' ? 27 + (age - 3) * 0.5 : (male ? 39 : 33.5) + (dwarf ? 4 : 0) - (elf ? 1.5 : 0) - (stage === 'teen' ? 3 : 0);
   const sy = baseY + (male ? 4.2 : 5) + kid * 1.5;
   const r1 = r(), r2 = r(), r3 = r();
-  const o = wearCloth(wearTier(outfitOf(life.job, p.sex, stage, r1, r2, r3), life.tier, life.job, p.sex, r1, r2), life.garb);
+  let o = wearCloth(wearTier(outfitOf(life.job, p.sex, stage, r1, r2, r3), life.tier, life.job, p.sex, r1, r2), life.garb);
+  // 51단계 둘째: 흰 머릿수건 쓴 젊은이가 멀리서 늙어 보였다 (16살 여관 요리사 딸). 젊으면 머리를 드러내고, 서른 안팎이면 물들인 수건
+  if (o?.head && (o.head === 'coif' || o.head === 'scarf') && !(life.garb && life.garb.kind === 'mourn')) {
+    const pale = (hx) => { const n = parseInt(String(hx).slice(1), 16); return ((n >> 16) + ((n >> 8) & 255) + (n & 255)) / 3 > 170; };
+    if (age < 24) o = { ...o, head: null };
+    else if (age < 40 && pale(o.headCol ?? '#ddd3bf')) o = { ...o, headCol: ['#8a3a2e', '#3e5a74', '#6a7a3a', '#9a7a3a', '#5a3a5a'][Math.floor(r3 * 5)] };
+  }
   const gctx = { cx, chin, hw, male, kid, stage, uid, detail, nw: neckW, baseY, sw, sy, bottom: H + 4, bust };
   const gear = gearOf({ o, job: life.job, tier: life.tier, stage, male, age, era, patch: life.patch, r: rngFrom(hashStr('gear' + key)) });
   const garb = drawGarb(o, gctx);
@@ -569,7 +579,7 @@ function drawFace(game, p, age, stage, scars, ring, mood, detail, life, bust = f
   /* ----- 눈 ----- */
   const lidDrop = clamp((M.lid ?? 0) + (old > 0.45 ? (old - 0.45) * 0.5 : 0) + ancient * 0.16 + life.hard * 0.14 + g.lid * 0.12 + (eyeK === 'hooded' ? 0.14 * fk : 0));
   const roundE = eyeK === 'round' ? 1 + 0.12 * fk : 1;
-  const openU = ew * (0.46 + g.eyeSize * 0.08 + kid * 0.1) * (1 - lidDrop * 0.55) * (M.smile > 0 ? 0.9 : 1) * roundE;
+  const openU = ew * (0.38 + g.eyeSize * 0.2 + kid * 0.1) * (1 - lidDrop * 0.55) * (M.smile > 0 ? 0.9 : 1) * roundE;
   const openL = ew * (0.27 + kid * 0.04) * (M.smile > 0 ? 0.78 : 1) * (1 - (M.lowLid ?? 0)) * roundE;
   const tilt = (g.eyeTilt - 0.42) * ew * 0.42 - (eyeK === 'down' ? ew * 0.17 * fk : 0) + (elf ? ew * 0.14 : 0) + (beast && (p.beast === 'cat' || p.beast === 'tiger') ? ew * 0.12 : 0);
   const slit = (beast && ['cat', 'tiger', 'lion'].includes(p.beast)) || race === 'demon';
@@ -585,7 +595,7 @@ function drawFace(game, p, age, stage, scars, ring, mood, detail, life, bust = f
     const shape = `M${f(ix)} ${f(iy)} ${up} ${lo}Z`;
     P.push(`<clipPath id="${uid}e${s > 0 ? 'r' : 'l'}"><path d="${shape}"/></clipPath>`);
     P.push(`<path d="${shape}" fill="${sclera}"/>`);
-    const ir = ew * (0.5 + kid * 0.03);
+    const ir = ew * (0.44 + g.eyeSize * 0.1 + kid * 0.03);
     const icx = ex + s * ew * 0.02, icy = eyeY - tilt * 0.05 - openU * 0.12 + openL * 0.1 + s * asym;
     P.push(`<g clip-path="url(#${uid}e${s > 0 ? 'r' : 'l'})">
       <circle cx="${f(icx)}" cy="${f(icy)}" r="${f(ir)}" fill="url(#${uid}i)"/>
@@ -622,12 +632,16 @@ function drawFace(game, p, age, stage, scars, ring, mood, detail, life, bust = f
 
     /* 눈썹 */
     if (stage !== 'baby') {
-      const th = (0.85 + g.brow * (male ? 1.25 : 0.6) + (dwarf ? 0.9 : 0)) * (1 - kid * 0.35) * (old > 0.6 && male ? 1.15 : 1) * (elf ? 0.72 : 1) * (beast && p.beast === 'hawk' ? 1.5 : 1);
-      const inDy = (M.browIn ?? 0) * 0.95, arc = 0.9 + g.browArch * 1.5 + (male ? 0 : 0.5);
-      const bi = [ex - s * ew * 1.22, browY + 0.9 + inDy], bm = [ex + s * ew * 0.3, browY - arc + (M.browIn > 0 ? 0.6 : 0)], bo = [ex + s * ew * 1.36, browY + 0.4 + (M.smile < 0 && !M.furrow ? 0.4 : 0) + (M.sad ? 1.1 : 0) - (M.furrow > 1 ? 0.5 : 0)];
+      // 51단계 둘째: 눈썹 모양 다섯 갈래 (부드러운·일자·높은 아치·꺾인·숱 많은), 굵기 폭도 넓게
+      const bk = BROW_KINDS[Math.floor(((g.browArch * 7.31 + g.brow * 3.17) % 1) * BROW_KINDS.length)];
+      const th = (0.6 + g.brow * (male ? 2.0 : 1.0) + (dwarf ? 0.9 : 0)) * (bk === 'bushy' ? 1.45 : bk === 'arched' && !male ? 0.8 : 1) * (1 - kid * 0.35) * (old > 0.6 && male ? 1.15 : 1) * (elf ? 0.72 : 1) * (beast && p.beast === 'hawk' ? 1.5 : 1);
+      const inDy = (M.browIn ?? 0) * 0.95, arc = (0.9 + g.browArch * 1.5 + (male ? 0 : 0.5)) * (bk === 'straight' ? 0.3 : bk === 'arched' ? 1.6 : bk === 'angled' ? 1.35 : 1);
+      const blen = 1.22 + g.eyeGap * 0.3;
+      const bi = [ex - s * ew * 1.22, browY + 0.9 + inDy + (bk === 'angled' ? 0.4 : 0)], bm = [ex + s * ew * (bk === 'angled' ? 0.72 : bk === 'arched' ? 0.15 : 0.3), browY - arc + (M.browIn > 0 ? 0.6 : 0)], bo = [ex + s * ew * blen, browY + 0.4 + (bk === 'bushy' ? 0.7 : bk === 'angled' ? 1 : 0) + (M.smile < 0 && !M.furrow ? 0.4 : 0) + (M.sad ? 1.1 : 0) - (M.furrow > 1 ? 0.5 : 0)];
       if (M.browUp && s > 0) { bm[1] -= 1.1; bo[1] -= 0.5; } // 한쪽 눈썹만 치켜든 얼굴
       const browCol = gray > 0.55 ? mixHex(hairDark, '#d8d2c6', 0.55) : mixHex(hairDark, hair, 0.25);
       P.push(`<path d="M${f(bi[0])} ${f(bi[1] - th * 0.45)} Q${f(bm[0])} ${f(bm[1] - th * 0.62)} ${f(bo[0])} ${f(bo[1])} Q${f(bm[0])} ${f(bm[1] + th * 0.5)} ${f(bi[0] + s * 0.2)} ${f(bi[1] + th * 0.6)}Z" fill="${browCol}" opacity="${f(0.92 - kid * 0.25)}"/>`);
+      if (bk === 'bushy' && detail && !kid) { let hs = ''; for (let k = 0; k < 6; k++) { const t = k / 5, x = lerp(bi[0], bo[0], t), y = lerp(bi[1], bo[1], t) - Math.sin(t * Math.PI) * (bi[1] - bm[1]) * 0.8; hs += `M${f(x)} ${f(y + th * 0.4)} l${f(s * 0.9)} ${f(-th * 0.9)} `; } P.push(`<path d="${hs}" stroke="${browCol}" stroke-width="0.35" fill="none" stroke-linecap="round" opacity="0.8"/>`); }
     } else {
       P.push(`<path d="M${f(ex - ew)} ${f(browY + 1)} Q${f(ex)} ${f(browY - 0.4)} ${f(ex + ew)} ${f(browY + 1)}" fill="none" stroke="${hair}" stroke-width="0.5" opacity="0.4"/>`);
     }
@@ -638,8 +652,11 @@ function drawFace(game, p, age, stage, scars, ring, mood, detail, life, bust = f
   if (stage === 'baby') {
     P.push(`<path d="M${f(cx - 1.7)} ${f(noseBot - 0.4)} q0.5 1 1.3 0.5 M${f(cx + 1.7)} ${f(noseBot - 0.4)} q-0.5 1 -1.3 0.5" fill="none" stroke="${lineC}" stroke-width="0.5" stroke-linecap="round"/>${dab(cx - 0.4, noseBot - 2, 1.6, 1.3, 'l', 0.6)}`);
   } else {
-    const hook = [0, 0.5, 1.5, -0.7, 0.9][g.nose] * (1 - kid * 0.7);  // 콧대의 굽음
-    const tipW = nw * (0.52 + (g.nose === 4 ? 0.14 : 0));
+    const hook = [0, 0.5, 2.2, -1.0, 0.9][g.nose] * (1 - kid * 0.7);  // 콧대의 굽음 (51단계 둘째: 매부리·들창코를 더 또렷이)
+    const tipW = nw * (0.52 + (g.nose === 4 ? 0.3 : g.nose === 1 ? -0.08 : 0));
+    // 51단계 둘째: 코 모양이 멀리서도 보이게, 코끝 덩어리와 매부리 혹
+    if (!kid && g.nose === 4) P.push(`<ellipse cx="${f(cx + 0.3)}" cy="${f(noseBot - 1.4)}" rx="${f(tipW * 1.05)}" ry="${f(tipW * 0.85)}" fill="${sh1}" opacity="0.35"/>`);
+    if (!kid && g.nose === 2) P.push(`<path d="M${f(cx + 0.6)} ${f(lerp(nTop, noseBot, 0.25))} Q${f(cx + 2.6 + hook * 0.6)} ${f(lerp(nTop, noseBot, 0.45))} ${f(cx + 1.2)} ${f(lerp(nTop, noseBot, 0.7))}" fill="none" stroke="${sh2}" stroke-width="1.3" stroke-linecap="round" opacity="0.4"/>`);
     // 콧대 옆 그늘 (빛 반대쪽)
     P.push(`<path d="M${f(cx + 0.9)} ${f(nTop)} Q${f(cx + 1.8 + hook)} ${f(lerp(nTop, noseBot, 0.5))} ${f(cx + nw * 0.92)} ${f(noseBot - 2.6)} Q${f(cx + nw * 0.7)} ${f(noseBot + 0.2)} ${f(cx + 0.3)} ${f(noseBot + 0.3)} Q${f(cx + 0.9)} ${f(lerp(nTop, noseBot, 0.5))} ${f(cx + 0.1)} ${f(nTop + 2.4)}Z" fill="${sh2}" opacity="${f(0.3 + (male ? 0.08 : 0) * (1 - kid) - kid * 0.2)}"/>`);
     // 콧대의 빛
@@ -649,6 +666,9 @@ function drawFace(game, p, age, stage, scars, ring, mood, detail, life, bust = f
     P.push(`<path d="M${f(cx - nw)} ${f(noseBot - 2.5)} Q${f(cx - nw - 0.5)} ${f(noseBot - 0.2)} ${f(cx - nw * 0.56)} ${f(noseBot + 0.15)} M${f(cx + nw)} ${f(noseBot - 2.5)} Q${f(cx + nw + 0.5)} ${f(noseBot - 0.2)} ${f(cx + nw * 0.56)} ${f(noseBot + 0.15)}" fill="none" stroke="${lineC}" stroke-width="0.5" stroke-linecap="round" opacity="0.85"/>`);
     P.push(`<path d="M${f(cx - nw * 0.62)} ${f(noseBot - 0.1)} Q${f(cx - nw * 0.4)} ${f(noseBot - 1.15)} ${f(cx - nw * 0.12)} ${f(noseBot + 0.25)} Q${f(cx - nw * 0.4)} ${f(noseBot + 0.55)} ${f(cx - nw * 0.62)} ${f(noseBot - 0.1)}Z M${f(cx + nw * 0.62)} ${f(noseBot - 0.1)} Q${f(cx + nw * 0.4)} ${f(noseBot - 1.15)} ${f(cx + nw * 0.12)} ${f(noseBot + 0.25)} Q${f(cx + nw * 0.4)} ${f(noseBot + 0.55)} ${f(cx + nw * 0.62)} ${f(noseBot - 0.1)}Z" fill="${mixHex(sh2, '#1a0c08', 0.55)}" opacity="0.85"/>`);
     P.push(`<path d="M${f(cx - nw * 0.14)} ${f(noseBot + 0.3)} Q${cx} ${f(noseBot + 0.9)} ${f(cx + nw * 0.14)} ${f(noseBot + 0.3)}" fill="none" stroke="${lineC}" stroke-width="0.45" opacity="0.8"/>`);
+    if (!kid && g.nose === 3) P.push(`<ellipse cx="${f(cx - nw * 0.4)}" cy="${f(noseBot - 0.2)}" rx="${f(nw * 0.26)}" ry="${f(0.75)}" fill="#1a0c08" opacity="0.55"/><ellipse cx="${f(cx + nw * 0.4)}" cy="${f(noseBot - 0.2)}" rx="${f(nw * 0.26)}" ry="${f(0.75)}" fill="#1a0c08" opacity="0.55"/>`); // 들창코: 콧구멍이 보인다
+    // 51단계 둘째: 광대가 높은 얼굴은 그 아래가 패인다
+    if (!kid && g.cheek > 0.55) for (const sd of [-1, 1]) P.push(dab(cx + sd * hw * 0.62, cy + hh * 0.34, hw * 0.2, hh * 0.13, 'd', Math.min(0.85, (g.cheek - 0.55) * 1.4 + gaunt * 0.3)));
     // 코밑 그늘, 인중
     P.push(dab(cx + 0.4, noseBot + 1.5, nw * 0.95, 1.3, 'd', 0.6));
     if (detail && !kid) P.push(`<path d="M${f(cx - 0.9)} ${f(noseBot + 1.4)} L${f(cx - 1.1)} ${f(my - 1.9)} M${f(cx + 0.9)} ${f(noseBot + 1.4)} L${f(cx + 1.1)} ${f(my - 1.9)}" stroke="${sh1}" stroke-width="0.4" opacity="0.5" stroke-linecap="round"/>`);
@@ -671,7 +691,7 @@ function drawFace(game, p, age, stage, scars, ring, mood, detail, life, bust = f
   const cornerDy = -smile * 1.45;
   const lipCol = mixHex(skin, race === 'demon' ? '#5a3050' : '#8f3a33', (male ? 0.3 : 0.48) * (1 - old * 0.35) + kid * 0.08);
   const thin = (1 - old * 0.5) * (male ? 0.82 : 1.05) * (M.smile < 0 ? 0.88 : 1);
-  const upH = (1.05 + g.lips * 0.9) * thin, loH = (1.5 + g.lips * 1.3) * thin;
+  const upH = (0.75 + g.lips * 1.45) * thin, loH = (1.05 + g.lips * 2.1) * thin; // 51단계 둘째: 얇은 입술과 두툼한 입술의 폭을 넓게
   const mwS = mw * (1 + (M.smile > 0 ? 0.1 : 0));
   const cL = [cx - mwS, my + cornerDy + (M.smirk ? 0.3 : 0)], cR = [cx + mwS, my + cornerDy - (M.smirk ?? 0) * 0.85];
   const midY = my + 0.25 + (smile > 0 ? smile * 0.35 : 0);
@@ -688,6 +708,7 @@ function drawFace(game, p, age, stage, scars, ring, mood, detail, life, bust = f
   if (M.sneer && stage !== 'baby') P.push(`<path d="M${f(cx + nw + 0.4)} ${f(noseBot - 2.4)} Q${f(cx + mw + 1.8)} ${f(my - 3)} ${f(cR[0] + 0.6)} ${f(cR[1] + 0.4)}" fill="none" stroke="${sh2}" stroke-width="0.7" stroke-linecap="round" opacity="0.7"/><path d="M${f(cx - nw - 0.4)} ${f(noseBot - 2.4)} Q${f(cx - mw - 1.8)} ${f(my - 3)} ${f(cL[0] - 0.6)} ${f(cL[1] + 0.4)}" fill="none" stroke="${sh2}" stroke-width="0.55" stroke-linecap="round" opacity="0.5"/>`);
   if (M.smile > 0 && stage !== 'baby') P.push(`<path d="M${f(cL[0] - 1)} ${f(cL[1] - 1.5)} q-1.1 1.4 -0.2 2.9 M${f(cR[0] + 1)} ${f(cR[1] - 1.5)} q1.1 1.4 0.2 2.9" fill="none" stroke="${sh2}" stroke-width="0.45" stroke-linecap="round" opacity="0.6"/>`);
   if (beast && ['wolf', 'bear', 'tiger', 'lion'].includes(p.beast) && detail && !kid) P.push(`<path d="M${f(cx - mwS * 0.55)} ${f(midY + 0.2)} l0.5 1.3 l0.6 -1.2 M${f(cx + mwS * 0.55)} ${f(midY + 0.2)} l-0.5 1.3 l-0.6 -1.2" fill="#efe8da" stroke="${lineC}" stroke-width="0.25"/>`);
+  if (plump > 0.35 && (!beardKind || beardKind === 'stubble' || beardKind === 'mustache' || beardKind === 'handlebar')) P.push(`<path d="M${f(cx - hw * chinW * 1.5)} ${f(chin + 0.4)} Q${cx} ${f(chin + 2.6 + plump * 1.6)} ${f(cx + hw * chinW * 1.5)} ${f(chin + 0.4)}" fill="none" stroke="${sh2}" stroke-width="0.6" stroke-linecap="round" opacity="${f(0.25 + plump * 0.35)}"/>`); // 겹턱
   P.push(HW(beard.over));
 
   /* ----- 흉터와 삶의 흔적 ----- */
