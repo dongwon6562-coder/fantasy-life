@@ -192,7 +192,7 @@ export const PLATES27 = {
 // 장면 → 판. 마녀(wi_·witch_)와 의회(cn_·council_) 장면 id는 도우미3·2 PR이 들어오면 표에 채운다. 그 전에는 낱말로 고른다.
 export const BH_ART = { bh_board: 'bounty:board', bh_corner: 'bounty:trail', bh_rival: 'tavern:hall', bh_kin: 'stepfamily:door' };
 export const WI_ART = { wi_hut: 'witch:hut', wi_gran: 'witch:hut', wi_learn: 'witch:hut', wi_lesson: 'witch:brew', wi_client: 'witch:brew', wi_hunt: 'witch:hunt', wi_scorn: 'witch:hut' }; // 50단계 도우미3 장면 id
-export const CN_ART = {};
+export const CN_ART = { cn_invite: 'council:guild', cn_guildvote: 'council:guild', cn_election: 'council:vote', cn_vote: 'council:hall', cn_headvote: 'council:hall', cn_scandal: 'council:vote', cn_match: 'society:salon', cn_caught: 'watch:gate' }; // 50단계 도우미2 장면 id
 const WI_WORDS = [[/마녀사냥|횃불|몰려|고발|화형|hunt/, 'witch:hunt'], [/솥|묘약|달여|부적|주문|약초|brew|charm|potion/, 'witch:brew']];
 const CN_WORDS = [[/표결|투표|표를|선거|뽑|vote|elect/, 'council:vote'], [/길드|조합|장인|회관|guild/, 'council:guild']];
 const byWords = (table, ...texts) => { for (const t of texts) for (const [re, art] of table) if (re.test(t)) return art; return null; };
