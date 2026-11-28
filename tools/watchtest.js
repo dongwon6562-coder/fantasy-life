@@ -147,6 +147,17 @@ if (plate49('sx_x', '이단 심문') !== 'sect:trial') fail('plate49 sect trial'
   if (!v || v.plate !== 'watch' || v.variant !== 'case') fail('vignetteFor watch', v && `${v.plate}:${v.variant}`);
 }
 
+// 8-2) 해적 장면은 PI_ART 판을 고른다
+{
+  const { PI_ART } = await import('../src/art/vignettePlates26.js');
+  const g = guard(4991); month(g);
+  for (const [k, want] of Object.entries(PI_ART)) {
+    L(g).scene = { kind: k }; g.pendingEvent = { id: 'life_scene', title: '배', text: '', choices: [] };
+    const v = vignetteFor(g, { title: '배', text: '' });
+    if (!v || `${v.plate}:${v.variant}` !== want) fail('pi plate', k, v && `${v.plate}:${v.variant}`, want);
+  }
+}
+
 // 9) 대를 이으면 계급과 사건은 남지 않고, 고장 치안은 남는다
 {
   const g = guard(4995); month(g);

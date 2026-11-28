@@ -22,10 +22,12 @@ const FAR = [];
 for (let m = 0; m < years * 12 && !g.over; m++) {
   const rng = rngOf(g);
   // PP_CALM=1이면 도둑질·한탕 같은 어두운 행동을 빼고 보통 살림으로 산다 (어른·노년 사람 사이를 보려고)
-  const acts = availableActions(g).filter((x) => (process.env.PP_MOVE || (x.id !== 'travel' && !/move|emigr/.test(x.id))) && (!process.env.PP_CALM || !/steal|rob|crime|heist|burgl|fraud|assass|smuggl|pick|theft|thief|con_|fence|loot|poach|extort|black|forge|spy|bribe/.test(x.id)));
+  const acts = availableActions(g).filter((x) => (process.env.PP_MOVE || (x.id !== 'travel' && !/move|emigr/.test(x.id))) && (!process.env.PP_NO || !new RegExp(process.env.PP_NO).test(x.id)) && (!process.env.PP_CALM || !/steal|rob|crime|heist|burgl|fraud|assass|smuggl|pick|theft|thief|con_|fence|loot|poach|extort|black|forge|spy|bribe/.test(x.id)));
   const choices = [];
   for (let i = 0; i < slotsFor(g); i++) {
-    let a = rng.pick(acts);
+    // PP_PREFER=정규식: 그 행동이 있으면 반쯤은 그걸 고른다 (한 갈래를 깊이 살아 보려고)
+    const pref = process.env.PP_PREFER ? acts.filter((x) => new RegExp(process.env.PP_PREFER).test(x.id)) : [];
+    let a = pref.length && rng.chance(0.5) ? rng.pick(pref) : rng.pick(acts);
     if (!a || g.player.fatigue > 70) a = acts.find((x) => x.id === 'rest') ?? acts[0];
     const c = { id: a.id };
     if (a.needsTarget) { const ts = g.people.filter((p) => p.known && !p.isPlayer && p.alive && !p.away); c.target = ts.length ? rng.pick(ts).id : undefined; }
@@ -56,7 +58,9 @@ for (let m = 0; m < years * 12 && !g.over; m++) {
       if (d && d.alive && !d.isPlayer && d.place && d.place !== myPl && pe.text.includes(d.name) && !/편지|소식|전해|인편|사람을 보내|찾아왔|찾아온|왔다|돌아왔|들렀|기별|소문/.test(pe.text)) FAR.push(`${g.date.year}.${g.date.month} ${pe.title} [${pe.id === 'life_scene' ? 'S:' + L(g).scene?.kind : pe.id}] ${k2}=${d.name}@${d.place} 나는@${myPl} — ${pe.text.slice(0, 110).replace(/\n/g, ' ')}`);
       if (d && !d.alive && d !== me(g) && pe.text.includes(d.name)) GHOST.push(`${g.date.year}.${g.date.month} ${pe.title} [${pe.id === 'life_scene' ? 'S:' + L(g).scene?.kind : pe.id}] ${k2}=${d.name}(${d.deathCause ?? '?'}) — ${pe.text.slice(0, 110).replace(/\n/g, ' ')}`);
     }
-    const k = rngOf(g).int(0, pe.choices.length - 1);
+    // PP_PICK=정규식: 그 글이 든 선택지가 있으면 고른다
+    const pk = process.env.PP_PICK ? pe.choices.findIndex((c) => new RegExp(process.env.PP_PICK).test(typeof c === 'string' ? c : c.label ?? c.text ?? '')) : -1;
+    const k = pk >= 0 ? pk : rngOf(g).int(0, pe.choices.length - 1);
     log.push(`\n### 사건: ${pe.title} [${pe.id === 'life_scene' ? 'S:' + L(g).scene?.kind : pe.id}]\n${pe.text}\n${pe.choices.map((c, i) => `${i === k ? '>>' : '  '} ${typeof c === 'string' ? c : c.label ?? c.text}`).join('\n')}`);
     const r = resolveEvent(g, rngOf(g), k);
     log.push(`-- ${r}`);

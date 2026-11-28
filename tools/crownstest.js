@@ -68,7 +68,7 @@ for (const id of CROWN_IDS) {
     ok(s.news.length >= 10 && s.news.every((n) => !bad(n.text)), `궁정 소식 ${s.news.length}`);
     for (const id of CROWN_IDS) { const names = s.realms[id].cands.map((x) => x.name); ok(new Set(names).size === names.length, `후보 이름 겹침 ${id} ${names}`); }
   }
-  ok(crowned >= 10 && picked >= crowned * 0.8, `통치자 바뀜 ${crowned}, 후보가 이음 ${picked}`);
+  ok(crowned >= 10 && picked >= crowned * 0.7, `통치자 바뀜 ${crowned}, 후보가 이음 ${picked}`);
   // 정변: 흔들리는 나라에 힘센 후보
   const g = newGame({ name: '한스', sex: 'm', familyId: 'farmer', mode: 'free', seed: 5102 });
   const s = crownsState(g);

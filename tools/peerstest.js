@@ -135,7 +135,7 @@ ok((scenes.pe_young ?? 0) + (scenes.pe_parting ?? 0) >= 1, `어린 시절 장면
   let gave = false, repaid = false;
   for (let k = 0; k < 400 && !repaid; k++) {
     endMonth(h2, [{ id: 'rest' }]);
-    if (!gave) { c2.lastMet = Math.min(c2.lastMet, -999); }
+    if (!gave) { c2.lastMet = Math.min(c2.lastMet, -999); c2.place = L(h2).place; c2.alive = true; } // 49단계: 내가 다른 고장으로 옮겨 가도 따라오게 (씨앗 하나에 매이지 않게)
     for (let j = 0; j < 8 && h2.pendingEvent; j++) {
       const kind = L(h2).scene?.kind ?? h2.pendingEvent.id;
       let idx = 0;

@@ -193,7 +193,11 @@ export const PLATES26 = {
 
 // 장면 → 판. 해적(pi_·pirates_)과 교단(sx_·sect_) 장면 id는 도우미3·2 PR이 들어오면 표에 채운다. 그 전에는 낱말로 고른다.
 const WT_ART = { watch_thief: 'watch:patrol', watch_brawl: 'tavern:hall', watch_smuggle: 'watch:gate', watch_stray: 'watch:patrol', watch_noble: 'watch:patrol', watch_preacher: 'sect:preach', watch_case_new: 'watch:case', watch_accuse: 'watch:case', watch_promote: 'watch:case', watch_policy: 'watch:case', watch_boss: 'watch:case', watch_mate: 'tavern:hall', watch_grudge: 'watch:patrol', watch_riot: 'fire:riot', watch_inquiry: 'watch:case' };
-export const PI_ART = {};
+export const PI_ART = {
+  pi_taken: 'pirates:raid', pi_raid: 'pirates:raid', pi_hunt: 'pirates:hunt', pi_privateer: 'pirates:hunt', pi_past: 'pirates:sea', pi_fallen: 'pirates:hunt',
+  pi_share: 'heist:split', pi_trial: 'heist:plan', pi_vote: 'heist:plan', pi_oldsalt: 'tavern:hall',
+  pi_letter: 'envoy:table', pi_letter_end: 'envoy:table', pi_mapseller: 'survey:shop', pi_dig: 'ruins:dig',
+};
 export const SX_ART = {};
 const PI_WORDS = [[/사냥|함대|군선|쫓|토벌|hunt|navy/, 'pirates:hunt'], [/털|습격|갈고리|넘어|약탈|붙었|raid|board/, 'pirates:raid']];
 const SX_WORDS = [[/심문|이단|재판|화형|파문|trial|heresy|inquisit/, 'sect:trial'], [/모임|예배|기도|집회|신도|worship|gather/, 'sect:worship'], [/설교|예언|외쳤|광장|preach|prophet/, 'sect:preach']];
