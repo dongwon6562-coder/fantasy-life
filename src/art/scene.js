@@ -147,6 +147,9 @@ function farRanges(L, e, hgt = 1, o = {}) {
   const { P, S, q } = e, env = o.env ?? (() => 1), sharp = P.blight ? 1.5 : 1;
   const b = (x) => HZ - 34 - Math.pow(ridged1(x / 150 + q, 15), sharp) * 100 * hgt * env(x) - sbump(x, 860 - q * 3, 300) * 26 * hgt;
   const a = (x) => HZ - 10 - Math.pow(ridged1(x / 118 + q * 2, 5), sharp) * 90 * hgt * env(x) - sbump(x, 330 + q * 4, 360) * 30 * hgt;
+  // 51단계: 아주 먼 셋째 겹. 하늘빛에 거의 묻힌 높은 봉우리가 뒤에 서서 깊이를 준다
+  const c = (x) => HZ - 58 - Math.pow(ridged1(x / 210 + q * 3, 27), 1.3) * 120 * Math.max(0.75, hgt) * env(x) - sbump(x, 600 + (q % 9) * 30, 260) * 30;
+  mountains(L, c, { color: P.far, S, haze: 0.8, snowLine: P.snowLine ? P.snowLine - 30 : HZ - 120, seed: 27, reach: 0.6 });
   mountains(L, b, { color: P.far, S, haze: 0.6, snowLine: P.snowLine, seed: 15, reach: Math.max(0.7, hgt) });
   mountains(L, a, { color: P.far, S, haze: 0.36, snowLine: P.snowLine, seed: 5, reach: Math.max(0.7, hgt) });
 }
@@ -230,10 +233,30 @@ function dwelling(L, e, x, y, s, i) {
   if (c === 'sea') return stiltHut(L, x, y, s, st, S, P, wins, R, smoke);
   if (st.ruin || D.size === 'ruin') return ruins(L, x, y, s, S, P, wins, R, { n: 1, span: 10, glow: st.glow });
   const two = (D.size === 'capital' || D.size === 'city') && R() < 0.5;
-  const w = (15 + R() * 11) * s, type = st.flat ? 'flat' : R() < 0.56 ? 'eave' : 'gable';
-  const h = (9 + R() * 5) * s * st.tall * (two ? 1.5 : 1);
-  house(L, { x, y, w, h, d: w * 0.36, rh: (type === 'gable' ? w * 0.5 : w * (0.4 + R() * 0.16)) * (st.steep || 1), type, wall: st.walls[i % st.walls.length], roof: st.roofs[Math.floor(R() * st.roofs.length)], timber: st.timber && R() < 0.75 ? st.timber : null, seed: i, h2: two, chimney: R() < 0.8 }, st, S, P, wins, smoke);
+  // 51단계: 집마다 크기·지붕·벽이 조금씩 다르다. 따로 쓰는 해시라 마을 자리와 다른 무늬는 그대로다
+  const hv = (n) => hash(i * 7 + D.seed, 60 + n), big = hv(0) < 0.14 ? 1.32 : hv(0) < 0.34 ? 0.8 : 1;
+  const w = (15 + R() * 11) * s * (big > 1 ? 1.18 : big < 1 ? 0.86 : 1), type = st.flat ? 'flat' : R() < 0.56 ? 'eave' : 'gable';
+  const h = (9 + R() * 5) * s * st.tall * (two ? 1.5 : 1) * (big > 1 && !two ? 1.2 : big < 1 ? 0.88 : 1);
+  const rh = (type === 'gable' ? w * 0.5 : w * (0.4 + R() * 0.16)) * (st.steep || 1);
+  let roof = st.roofs[Math.floor(R() * st.roofs.length)], wall = st.walls[i % st.walls.length];
+  const old = ROOF_MIX[D.culture] ?? ROOF_MIX.leonia; roof = mixh(roof, old[Math.floor(hv(1) * old.length)], 0.25 + hv(2) * 0.6);
+  roof = hv(3) < 0.5 ? dark(roof, hv(4) * 0.16) : light(roof, hv(4) * 0.12);
+  wall = mixh(wall, hv(5) < 0.5 ? '#efe4c8' : '#9c8a6e', hv(6) * 0.22);
+  const timber = st.timber && R() < 0.75 ? st.timber : null, chimney = R() < 0.8;
+  // 곁채: 셋에 하나쯤은 그늘 쪽에 낮은 헛간이나 부엌채가 붙는다
+  if (!st.flat && hv(7) < 0.32 && w > 14) { const sd = -S.dir, aw = w * (0.45 + hv(8) * 0.15); house(L, { x: x + sd * (w * 0.5 + aw * 0.38), y: y + 1, w: aw, h: h * 0.62, d: aw * 0.3, rh: aw * 0.36, type: 'eave', wall: dark(wall, 0.08), roof: dark(roof, 0.1), timber: null, seed: i + 500, chimney: false }, st, S, P, wins, smoke); }
+  house(L, { x, y, w, h, d: w * 0.36, rh, type, wall, roof, timber, seed: i, h2: two || (big > 1 && D.size !== 'hamlet'), chimney }, st, S, P, wins, smoke);
 }
+// 지붕을 섞을 빛깔: 이엉·붉은 기와·청석·이끼 낀 지붕 (문화권마다 결이 다르다)
+const ROOF_MIX = {
+  leonia: ['#b49a5a', '#a04a34', '#4e5662', '#6e6a4a', '#8a6038'],
+  serenia: ['#3e5678', '#5a6a84', '#6a7a8a', '#2e3a52'],
+  empire: ['#a04a34', '#7a3a2c', '#b4643c', '#5a5450'],
+  holy: ['#6a7480', '#8a8070', '#5a6470', '#a08a5a'],
+  free: ['#b4683e', '#c47a48', '#8a4a30', '#4e5662', '#a49a6a'],
+  march: ['#4a4038', '#3a3a3e', '#5a5444', '#6a5a46'],
+  dragon: ['#3e3632', '#5a3a2e', '#2e2a2a'],
+};
 /** ground 곡선 위, cx 둘레에 마을을 놓는다. 돌려주는 값: 성문/길이 닿는 자리 */
 function settle(L, e, ground, cx, o = {}) {
   const { D, P, S, R, st, wins, smoke } = e;

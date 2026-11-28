@@ -31,17 +31,49 @@ export function skyOf(tod, weather, biome, k) {
   return S;
 }
 
-function cumulus(ctx, cx, cy, w, S, R, a) {
-  const n = 9 + Math.floor(w / 16);
+
+/** 51단계: 모양 있는 뭉게구름. 밑은 판판하고 위로 둥근 덩이가 솟는다. 해 쪽은 밝고 반대쪽과 밑은 그늘,
+ *  해가 낮으면 밑면이 노을빛을 받는다. 한 장짜리 캔버스에 그려 얹는다. */
+function cloudBank(ctx, cx, cy, w, S, R, a, o = {}) {
+  const h = w * (o.tall ?? 0.42), pad = Math.ceil(h * 0.5) + 6, cw = Math.ceil(w + pad * 2), ch = Math.ceil(h * 1.35 + pad * 2);
+  const c = document.createElement('canvas'); c.width = cw; c.height = ch;
+  const x = c.getContext('2d'), base = ch - pad, dir = S.dir;
+  const n = 5 + Math.floor(w / 46), lobes = [];
+  const peak = 0.35 + R() * 0.3; // 가장 높이 솟는 자리
   for (let i = 0; i < n; i++) {
-    const t = R() - 0.5, r = w * (0.11 + R() * 0.13) * (1 - Math.abs(t) * 0.7);
-    puff(ctx, cx + t * w, cy + r * 0.3 + R() * 4, r * 1.7, r * 0.66, S.sh, a * 0.6);
+    const t = (i + 0.5) / n, bell = Math.max(0, 1 - Math.abs(t - peak) * 1.7);
+    const r = h * (0.2 + 0.36 * bell) * (0.78 + R() * 0.44);
+    lobes.push([pad + t * w + (R() - 0.5) * (w / n) * 0.5, base - r * 0.7 - bell * h * 0.32, r]);
   }
-  for (let i = 0; i < n; i++) {
-    const t = R() - 0.5, r = w * (0.08 + R() * 0.13) * (1 - Math.abs(t) * 0.8);
-    puff(ctx, cx + t * w * 0.86 + S.dir * r * 0.25, cy - r * 0.55 - R() * w * 0.05, r * 1.35, r * 0.82, S.lit, a * 0.72);
+  for (let i = 0; i < n - 1; i++) if (R() < 0.6) { const [ax, ay, ar] = lobes[i], [bx, by, br] = lobes[i + 1], r = Math.min(ar, br) * (0.55 + R() * 0.25); lobes.push([(ax + bx) / 2, Math.min(ay, by) - r * 0.5, r]); }
+  const lit = o.lit ?? S.lit, sh = o.sh ?? S.sh;
+  x.fillStyle = '#fff'; x.beginPath();
+  for (const [lx, ly, r] of lobes) { x.moveTo(lx + r, ly); x.arc(lx, ly, r, 0, Math.PI * 2); }
+  x.fill();
+  x.fillRect(lobes[0][0], base - h * 0.32, lobes[n - 1][0] - lobes[0][0], h * 0.32);
+  // 밑을 판판하게 자르되 가장자리는 부드럽게
+  x.globalCompositeOperation = 'destination-out';
+  x.fillStyle = vgrad(x, base - 3, base + 6, [[0, 'rgba(0,0,0,0)'], [1, 'rgba(0,0,0,1)']]); x.fillRect(0, base - 3, cw, ch);
+  let mask = null;
+  if (o.rim) { mask = document.createElement('canvas'); mask.width = cw; mask.height = ch; mask.getContext('2d').drawImage(c, 0, 0); }
+  x.globalCompositeOperation = 'source-atop';
+  x.fillStyle = vgrad(x, base - h * 1.1, base, [[0, lit], [0.5, mixh(lit, sh, 0.3)], [1, sh]]); x.fillRect(0, 0, cw, ch);
+  const g = x.createLinearGradient(dir > 0 ? cw : 0, 0, dir > 0 ? 0 : cw, 0);
+  g.addColorStop(0, 'rgba(0,0,0,0)'); g.addColorStop(1, rgba(sh, 0.5)); x.fillStyle = g; x.fillRect(0, 0, cw, ch);
+  // 덩이마다 해 쪽 볕과 아래 주름 그늘
+  for (const [lx, ly, r] of lobes) { puff(x, lx - dir * r * 0.35, ly + r * 0.45, r * 0.9, r * 0.55, sh, 0.32); }
+  for (const [lx, ly, r] of lobes) { puff(x, lx + dir * r * 0.3, ly - r * 0.3, r * 0.8, r * 0.7, lit, 0.75); }
+  if (o.under) { x.fillStyle = vgrad(x, base - h * 0.55, base, [[0, rgba(o.under, 0)], [1, rgba(o.under, 0.75)]]); x.fillRect(0, 0, cw, ch); }
+  if (mask) { // 해 쪽 위 가장자리만 가늘게 빛나는 테: 실루엣에서 조금 비킨 실루엣을 뺀다
+    const m = mask.getContext('2d'), t = Math.max(2, h * 0.05); m.globalCompositeOperation = 'destination-out';
+    const cp = document.createElement('canvas'); cp.width = cw; cp.height = ch; cp.getContext('2d').drawImage(mask, 0, 0);
+    m.drawImage(cp, -dir * t, t * 1.2);
+    m.globalCompositeOperation = 'source-in'; m.fillStyle = o.rim; m.fillRect(0, 0, cw, ch);
+    x.globalCompositeOperation = 'source-over'; x.globalAlpha = 0.75; x.drawImage(mask, 0, 0); x.globalAlpha = 1;
+    mask.width = mask.height = cp.width = cp.height = 0;
   }
-  puff(ctx, cx, cy + w * 0.055, w * 0.62, w * 0.035, S.sh, a * 0.4);
+  ctx.globalAlpha = a; ctx.drawImage(c, cx - w / 2 - pad, cy - base); ctx.globalAlpha = 1;
+  c.width = c.height = 0;
 }
 
 export function paintSky(ctx, S, R, k) {
@@ -83,7 +115,8 @@ export function paintSky(ctx, S, R, k) {
   // 뭉게구름 / 층구름
   if (S.overcast) {
     for (let i = 0; i < 26; i++) { const x = R() * (W + 300) - 150, y = 10 + R() * (HZ - 60), w = 240 + R() * 320; puff(ctx, x, y, w, 26 + R() * 34, i % 3 ? S.sh : S.lit, S.heavy ? 0.5 : 0.36); }
-    for (let i = 0; i < 6; i++) cumulus(ctx, R() * W, 50 + R() * 110, 150 + R() * 200, S, R, 0.55);
+    const dim = S.tod === 'night' ? 0.35 : S.heavy ? 0.5 : 0.7;
+    for (let i = 0; i < 6; i++) cloudBank(ctx, R() * W, 90 + R() * 100, 180 + R() * 220, S, R, dim, { tall: 0.3, lit: mixh(S.lit, S.mid, 0.25), sh: mixh(S.sh, S.mid, 0.25) });
     if (S.storm) {
       // 뇌우: 낮게 깔린 먹구름과 번개 한 줄기
       for (let i = 0; i < 30; i++) { const x = R() * (W + 300) - 150, y = R() * 120, w = 260 + R() * 340; puff(ctx, x, y, w, 40 + R() * 44, S.tod === 'night' ? '#06080c' : '#262b34', 0.5); }
@@ -93,10 +126,17 @@ export function paintSky(ctx, S, R, k) {
       ctx.lineWidth = 1.1; for (const [fx, fy] of fork) { ctx.beginPath(); ctx.moveTo(fx, fy); let px = fx, py = fy; const d = R() < 0.5 ? -1 : 1; for (let j = 0; j < 4; j++) { px += d * (8 + R() * 18); py += 8 + R() * 14; ctx.lineTo(px, py); } ctx.stroke(); }
     }
   } else {
-    const n = 3 + Math.floor(hash(k, 9) * 4);
-    for (let i = 0; i < n; i++) cumulus(ctx, R() * (W + 100) - 50, 48 + R() * 105, 110 + R() * 200, S, R, 0.9);
-    // 지평선 가까이 납작한 먼 구름
-    for (let i = 0; i < 5; i++) cumulus(ctx, R() * W, HZ - 62 + R() * 30, 70 + R() * 90, S, R, 0.5);
+    // 51단계: 모양 있는 구름. 폰에 보이는 가운데(225~975)에 한두 덩이는 꼭 온다
+    const n = 3 + Math.floor(hash(k, 9) * 4), low = S.tod === 'dawn' || S.tod === 'dusk', night = S.tod === 'night';
+    const opt = { under: low ? S.glow : null, rim: low ? S.sunC : null, lit: night ? mixh(S.lit, S.mid, 0.3) : S.lit, sh: night ? S.top : low ? mixh(S.sh, S.top, 0.3) : S.sh };
+    const na = night ? 0.5 : 0.95;
+    // 지평선 가까이 낮게 깔린 먼 구름 띠 (먼저 그려 뒤로 간다)
+    for (let i = 0; i < 5; i++) cloudBank(ctx, R() * W, HZ - 40 + R() * 22, 90 + R() * 120, S, R, na * 0.55, { ...opt, tall: 0.3 });
+    for (let i = 0; i < n; i++) {
+      const cx = i < 2 ? 300 + R() * 600 : R() * (W + 100) - 50, cy = 70 + R() * 90, w = 150 + R() * 210;
+      if (S.sun && Math.abs(cx - S.sun[0]) < w * 0.45 && Math.abs(cy - S.sun[1]) < 60) continue; // 해를 통째로 가리지 않게
+      cloudBank(ctx, cx, cy, w, S, R, na, opt);
+    }
   }
 }
 
