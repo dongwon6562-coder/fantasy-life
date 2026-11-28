@@ -5,6 +5,8 @@ import { J } from '../narrative/text.js';
 import { travelMonths } from '../places.js';
 import { activeAt } from '../nature/state.js';
 import { regionOf } from '../nature/state.js';
+// 51단계: 피난 소식 중 작은 것은 내가 있는 곳에서 두 달 길 안의 일만 들린다 (그라우벨에서 하르펜 난민촌 소식이 들리던 것)
+const near = (g, pls) => { const h = g.life?.place; if (!h) return true; return pls.some((p) => p === h || travelMonths(h, p) <= 2); };
 import { MS, MG_PLACES, WHY, baseOf, realmOf, placeName, mlog, pastPush, quarterName, mgRng, clamp, mi } from './state.js';
 
 const FRONT = ['gruental', 'verden', 'harfen'];
@@ -84,7 +86,7 @@ export function migrateMonth(g, say) {
     const f = { id: S.seq++, from: pl, to, why, size, left: Math.max(1, travelMonths(pl, to)), at: now };
     S.flows.push(f);
     if (S.flows.length > 12) S.flows.shift();
-    say(`${placeName(pl)} 사람 ${size}명이 ${WHY[why].flee} ${placeName(to)} 쪽으로 길을 떠났다. 수레에 이불과 솥을 싣고, 아이들은 염소를 끌고 간다.`, size >= 400);
+    if (size >= 400 || near(g, [pl, to])) say(`${placeName(pl)} 사람 ${size}명이 ${WHY[why].flee} ${placeName(to)} 쪽으로 길을 떠났다. 수레에 이불과 솥을 싣고, 아이들은 염소를 끌고 간다.`, size >= 400);
     mlog(g, `${placeName(pl)}에서 ${J(WHY[why].name, '을/를')} 피해 ${size}명이 ${placeName(to)} 쪽으로 떠났다.`);
   }
   // 길 위의 행렬
@@ -95,7 +97,7 @@ export function migrateMonth(g, say) {
     if (gateOpen(g, f.to) && f.size < baseOf(f.to) * 0.12) {
       settleInto(g, f.to, f.from, f.size);
       mlog(g, `${placeName(f.from)}에서 온 ${f.size}명이 ${placeName(f.to)}에 자리를 잡았다.`);
-      if (f.size >= 300) say(`${placeName(f.to)} 성벽 아래 빈터에 ${placeName(f.from)} 사람들이 판잣집을 올리기 시작했다. 사람들은 그 골목을 벌써 '${placeName(f.from)} 거리'라 부른다.`);
+      if (f.size >= 300 && near(g, [f.to, f.from])) say(`${placeName(f.to)} 성벽 아래 빈터에 ${placeName(f.from)} 사람들이 판잣집을 올리기 시작했다. 사람들은 그 골목을 벌써 '${placeName(f.from)} 거리'라 부른다.`);
     } else {
       const c = (S.camps[f.to] ??= { from: f.from, why: f.why, size: 0, since: now });
       c.size += f.size;
@@ -106,10 +108,10 @@ export function migrateMonth(g, say) {
   // 난민촌
   for (const [pl, c] of Object.entries(S.camps)) {
     const pr = mgRng(g, 41 + pl.length * 7);
-    if (winter(g)) { const lost = Math.round(c.size * pr.float(0.01, 0.04)); c.size -= lost; if (lost >= 20 && pr.chance(0.3)) say(`${placeName(pl)} 성 밖 난민촌에서 밤사이 얼어 죽은 사람이 ${lost}명이라고 한다. 성안 신전이 장작을 실어 보냈다.`); }
+    if (winter(g)) { const lost = Math.round(c.size * pr.float(0.01, 0.04)); c.size -= lost; if (lost >= 20 && pr.chance(0.3) && near(g, [pl])) say(`${placeName(pl)} 성 밖 난민촌에서 밤사이 얼어 죽은 사람이 ${lost}명이라고 한다. 성안 신전이 장작을 실어 보냈다.`); }
     const homeCalm = (S.push[c.from] ?? 0) < 12;
     if (gateOpen(g, pl) && pr.chance(0.25)) { const n = Math.round(c.size * 0.2); settleInto(g, pl, c.from, n); c.size -= n; }
-    if (homeCalm && now - c.since >= 6 && pr.chance(0.35)) { const n = Math.round(c.size * 0.25); c.size -= n; S.pop[c.from] = (S.pop[c.from] ?? 0) + n; if (n >= 50) say(`${placeName(pl)} 성 밖 난민촌에서 ${n}명이 짐을 꾸려 ${J(placeName(c.from), '으로/로')} 돌아갔다. 남은 사람들이 길모퉁이까지 따라 나와 손을 흔들었다.`); }
+    if (homeCalm && now - c.since >= 6 && pr.chance(0.35)) { const n = Math.round(c.size * 0.25); c.size -= n; S.pop[c.from] = (S.pop[c.from] ?? 0) + n; if (n >= 50 && near(g, [pl, c.from])) say(`${placeName(pl)} 성 밖 난민촌에서 ${n}명이 짐을 꾸려 ${J(placeName(c.from), '으로/로')} 돌아갔다. 남은 사람들이 길모퉁이까지 따라 나와 손을 흔들었다.`); }
     if (pr.chance(0.06)) c.size -= Math.round(c.size * 0.1); // 더 먼 데로 떠난다
     if (c.size < 25) {
       pastPush(g, { kind: 'camp', place: pl, from: c.from, why: c.why, fromY: Math.floor(c.since / 12), toY: g.date.year });
@@ -125,14 +127,15 @@ export function migrateMonth(g, say) {
       q.mix = clamp(q.mix + 0.1 + (q.size < 200 ? 0.05 : 0), 0, 100);
       q.tension = clamp(q.tension + (g.world?.famine ? 0.6 : 0) + (full > 1.15 ? 0.4 : 0) - 0.25 - q.mix * 0.003 + pr.normal(0, 0.3), 0, 100);
       if (q.tension >= 55 && pr.chance(0.05)) {
-        say(pr.pick([`${placeName(pl)} 장터에서 토박이 젊은이들과 ${placeName(q.from)} 사람들 사이에 주먹다짐이 났다. 좌판 셋이 엎어졌다.`, `${placeName(pl)}에서 ${quarterName(q)} 우물에 누가 죽은 개를 던져 넣었다. 영주관이 순찰을 늘렸다.`, `${placeName(pl)} 길드가 ${placeName(q.from)} 사람은 도제로 받지 않겠다고 못 박았다.`]));
+        const line = pr.pick([`${placeName(pl)} 장터에서 토박이 젊은이들과 ${placeName(q.from)} 사람들 사이에 주먹다짐이 났다. 좌판 셋이 엎어졌다.`, `${placeName(pl)}에서 ${quarterName(q)} 우물에 누가 죽은 개를 던져 넣었다. 영주관이 순찰을 늘렸다.`, `${placeName(pl)} 길드가 ${placeName(q.from)} 사람은 도제로 받지 않겠다고 못 박았다.`]);
+        if (near(g, [pl])) say(line);
         q.tension -= 20;
         mlog(g, `${placeName(pl)}의 ${quarterName(q)}에서 텃세 다툼이 났다.`);
       }
       // 고향이 잠잠하면 조금씩 돌아간다 (처음 십 년 안에)
       if ((S.push[q.from] ?? 0) < 10 && now - q.since < 120 && pr.chance(0.03)) { const n = Math.round(q.size * 0.1); q.size -= n; S.pop[pl] -= n; S.pop[q.from] = (S.pop[q.from] ?? 0) + n; }
       if (q.mix >= 100 || q.size < 15) {
-        if (q.mix >= 100) say(`${placeName(pl)}의 ${J(quarterName(q), '은/는')} 이제 아무도 그렇게 부르지 않는다. 할아버지 대에 ${placeName(q.from)}에서 왔다는 이야기만 집집마다 남았다.`);
+        if (q.mix >= 100 && near(g, [pl])) say(`${placeName(pl)}의 ${J(quarterName(q), '은/는')} 이제 아무도 그렇게 부르지 않는다. 할아버지 대에 ${placeName(q.from)}에서 왔다는 이야기만 집집마다 남았다.`);
         pastPush(g, { kind: 'quarter', place: pl, from: q.from, fromY: Math.floor(q.since / 12), toY: g.date.year, end: q.mix >= 100 ? 'mixed' : 'left' });
         list.splice(list.indexOf(q), 1);
       }

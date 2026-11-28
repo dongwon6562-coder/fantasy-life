@@ -123,7 +123,7 @@ const mi = (g) => g.date.year * 12 + g.date.month;
     endMonth(g, [{ id: 'rest' }]);
     for (const n of g.news ?? []) {
       if (n.text.startsWith('빵값이 뛰었다')) seq.push('up');
-      else if (n.text.startsWith('물가가 겨우 가라앉았다')) seq.push('down');
+      else if (/^(물가가 겨우 가라앉았다|빵값이 제자리로|밀값이 내렸다)/.test(n.text)) seq.push('down'); // 51단계: 가라앉는 말이 해마다 바뀐다
     }
     g.pendingEvent = null; L(g).queue.length = 0; L(g).scene = null;
   }

@@ -7,6 +7,8 @@ import { kill, ageYears } from '../npc.js';
 import { chron } from '../adventure/core.js';
 import { REGIONS, regionOf } from '../nature/state.js';
 import { HS, mi, clamp, KINDS, hlog } from './state.js';
+// 51단계: 내가 있는 고장이 어느 묶음인지 (묶음 밖의 먼 땅이면 null. regionOf는 모르는 곳을 남부 들판으로 친다)
+const homeRegion = (g) => { const pl = g.life?.place; return pl ? Object.keys(REGIONS).find((r) => REGIONS[r].places.includes(pl)) ?? null : null; };
 
 // 이웃한 고장 묶음 (역병이 번지는 길)
 const NEAR = { south: ['river', 'coast'], river: ['south', 'north', 'lake', 'east'], north: ['river', 'mountain'], east: ['river', 'holy'], holy: ['east'], lake: ['river', 'forest'], forest: ['lake', 'north'], mountain: ['north'], coast: ['south', 'river'] };
@@ -18,7 +20,15 @@ export function startOutbreak(g, kind, region, sev, rng, say = () => {}) {
   const o = { kind, region, sev: Math.round(clamp(sev, 0.1, 1) * 100) / 100, left: rng.int(K.last[0], K.last[1]), start: { y: g.date.year, m: g.date.month } };
   H.outbreaks.push(o);
   const big = o.sev >= 0.65 || kind === 'plague';
-  say(`${REGIONS[region].name}에 ${J(K.name, '이/가')} 돈다. ${K.desc}`, big);
+  // 51단계: 병의 생김새 풀이는 그 병이 열두 해 만에 처음 돌 때만 붙인다. 먼 고장의 가벼운 병은 소식거리가 안 된다.
+  const home = homeRegion(g), near = home === region || (NEAR[home] ?? []).includes(region);
+  const told = (H.told ??= {}), now = mi(g), fresh = told[kind] == null || now - told[kind] >= 144;
+  if (big || near || o.sev >= 0.4) {
+    if (fresh) told[kind] = now;
+    say(fresh ? `${REGIONS[region].name}에 ${J(K.name, '이/가')} 돈다. ${K.desc}`
+      : home === region ? `${REGIONS[region].name}에 또 ${J(K.name, '이/가')} 돈다. 이번엔 우리 고장 일이다. 앓는 집 문마다 마른 풀 다발이 걸린다.`
+        : `${REGIONS[region].name}에 ${J(K.name, '이/가')} 돈다는 소식이 들려온다.`, big);
+  }
   if (big) chron(g, `${REGIONS[region].name}에 ${J(K.name, '이/가')} 크게 돌다.`, kind === 'plague' ? 85 : 50);
   hlog(g, `${REGIONS[region].name}에 ${K.name}${big ? ' (크다)' : ''}.`);
   return o;
@@ -45,7 +55,10 @@ WORLD_TICKS.push((g, worldRng, say) => {
   // 나라에 역병이 도는 동안 고장의 역병은 잦아들지 않는다
   for (const o of H.outbreaks) { o.left = o.kind === 'plague' && g.world?.plague ? Math.max(1, o.left - 1) : o.left - 1; takeTheWeak(g, o, rng); }
   for (const o of H.outbreaks.filter((x) => x.left <= 0)) {
-    if (o.sev >= 0.5 || o.kind === 'plague') say(`${REGIONS[o.region].name}의 ${J(KINDS[o.kind].name, '이/가')} 잦아들었다. 문마다 걸었던 마른 풀 다발을 걷어 낸다.`);
+    if (o.sev >= 0.5 || o.kind === 'plague') {
+      const home = homeRegion(g);
+      say(home === o.region ? `${REGIONS[o.region].name}의 ${J(KINDS[o.kind].name, '이/가')} 잦아들었다. 문마다 걸었던 마른 풀 다발을 걷어 낸다.` : `${REGIONS[o.region].name}의 ${J(KINDS[o.kind].name, '이/가')} 잦아들었다고 한다.`);
+    }
     H.past.push({ kind: o.kind, region: o.region, sev: o.sev, y: o.start.y, m: o.start.m });
   }
   H.outbreaks = H.outbreaks.filter((o) => o.left > 0);

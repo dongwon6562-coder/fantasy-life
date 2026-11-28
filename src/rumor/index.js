@@ -165,7 +165,11 @@ export function streetLine(g) {
 /** 이번 달 들려온 소식·소문 [{ text, via, wrong, fix }] (없으면 빈 배열) */
 export function rumorLines(g) {
   const n = fresh(g);
-  return n ? n.heard.map((h) => ({ text: h.text, via: h.via, wrong: !!h.wrong, fix: !!h.fix })) : [];
+  if (!n) return [];
+  // 51단계: 이달 '들려온 소식'에 이미 나온 일은 소문 줄에서 뺀다 (같은 말 열 글자 넘게 겹치면 같은 일로 본다)
+  const news = (g.news ?? []).map((x) => String(x?.text ?? x ?? '').replace(/\s+/g, ''));
+  const echo = (t) => { const c = String(t).replace(/\s+/g, '').replace(/(다고|라고)?(한다|들었다|말이돈다|소문이돈다)\.?$/, ''); for (let i = 0; i + 10 <= c.length; i += 2) { const w = c.slice(i, i + 10); if (news.some((x) => x.includes(w))) return true; } return false; };
+  return n.heard.filter((h) => h.wrong || !echo(h.text)).map((h) => ({ text: h.text, via: h.via, wrong: !!h.wrong, fix: !!h.fix }));
 }
 /** 이달 이 고장 축제 한 줄 (없으면 null) */
 export function feastLine(g) {

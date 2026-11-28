@@ -109,6 +109,16 @@ function sample(a, x, y) {
 /* ---------- terrain render ---------- */
 // 두 겹으로 그린다. 물감(땅 빛깔·그늘·얼룩)은 세계 한 칸에 한 점으로 칠해 두 배로 늘리고,
 // 그 위에 펜 선(바닷가, 물결선, 산, 나무, 국경)을 두 배 크기로 또렷하게 긋는다.
+// 51단계: 큰 숲 밖 들판에 흩어진 작은 숲. 바탕 물감과 나무 기호가 같은 곳을 쓴다.
+let copseM = null;
+function copseAt(wx, wy) {
+  const v = fbm(wx / 34, wy / 34, 3, 481);
+  if (v < 0.63) return 0;
+  const M = copseM; if (!M) return 0;
+  const bad = Math.max(sample(M.mountain, wx, wy) * 2, sample(M.forest, wx, wy), sample(M.dry, wx, wy), sample(M.cold, wx, wy), sample(M.blight, wx, wy), sample(M.swamp, wx, wy), sample(M.scorch, wx, wy), sample(M.ash, wx, wy), sample(M.deadwood, wx, wy), sample(M.tropic ?? M.dry, wx, wy) * 0.5);
+  if (bad > 0.3) return 0;
+  return Math.min(1, (v - 0.63) * 7) * (1 - bad / 0.3);
+}
 function renderTerrain(prep, INKK = 2) {
   const contMasks = continents.map(c => { const big = /^(dragon|forest|central|demon)$/.test(c.id); return raster([[1, c.pts]], big ? 5 : 2, 3); });
   const land = new Float32Array(GW * GH);
@@ -124,6 +134,7 @@ function renderTerrain(prep, INKK = 2) {
   const excl = prep ? prep() : [];
   const M = {};
   for (const k in TERRAIN) M[k] = raster(TERRAIN[k], k === "blight" || k === "cold" || k === "tropic" ? 9 : 6, 3);
+  copseM = M;
 
   const CW = WW, CH = WH;
   const wash = document.createElement("canvas"); wash.width = CW; wash.height = CH;
@@ -177,26 +188,31 @@ function renderTerrain(prep, INKK = 2) {
       const grain = vnoise(wx / 2.2, wy / 2.2, 311);
       if (f <= 0) {
         const df = -f;
-        col[0] = 174; col[1] = 182; col[2] = 168;
-        mix(col, [150, 164, 158], Math.min(1, df / 0.55) * 0.5);
-        mix(col, [206, 204, 178], Math.max(0, 1 - df / 0.07) * 0.7);
+        // 51단계: 바다는 조금 더 푸르고, 먼바다는 깊게, 바닷가는 옅은 여울빛
+        col[0] = 166; col[1] = 186; col[2] = 182;
+        mix(col, [124, 150, 160], Math.min(1, df / 0.5) * 0.62);
+        mix(col, [204, 212, 192], Math.max(0, 1 - df / 0.08) * 0.72);
       } else {
-        col[0] = 236; col[1] = 224; col[2] = 192;
+        col[0] = 238; col[1] = 224; col[2] = 188;
         const mx = mxA[i], my = myA[i];
-        const fo = sample(M.forest, mx, my); if (fo > 0.02) mix(col, [206, 210, 164], fo * 0.62);
+        // 51단계: 들판은 군데군데 풀빛이 돌고, 숲과 작은 숲(copse)은 더 짙은 초록
+        const meadow = fbm(wx / 90, wy / 90, 3, 471); if (meadow > 0.5) mix(col, [218, 220, 170], Math.min(1, (meadow - 0.5) * 3) * 0.42);
+        const cp = copseAt(wx, wy); if (cp > 0) mix(col, [196, 206, 152], cp * 0.55);
+        const fo = sample(M.forest, mx, my); if (fo > 0.02) mix(col, [186, 200, 146], Math.min(1, fo) * 0.72);
         const bl = sample(M.blight, mx, my); if (bl > 0.02) mix(col, [224, 198, 178], bl * 0.66);
         const ash = sample(M.ash, mx, my); if (ash > 0.02) mix(col, [208, 202, 194], ash * 0.7);
         const cold = sample(M.cold, mx, my); if (cold > 0.02) mix(col, [234, 232, 222], cold * 0.62);
         const sw = sample(M.swamp, mx, my); if (sw > 0.02) mix(col, [196, 206, 176], sw * 0.65);
         const dry = sample(M.dry, mx, my); if (dry > 0.02) mix(col, [238, 216, 168], dry * 0.5);
         const sc = sample(M.scorch, mx, my); if (sc > 0.02) mix(col, [176, 160, 144], sc * 0.6);
-        const mt = sample(M.mountain, mx, my); if (mt > 0.05) mix(col, [218, 204, 176], Math.min(1, mt) * 0.28);
+        const mt = sample(M.mountain, mx, my); if (mt > 0.05) mix(col, [210, 192, 162], Math.min(1, mt) * 0.42);
         const e = elev[i];
         const xl = px > 0 ? elev[i - 1] : e, xr = px < CW - 1 ? elev[i + 1] : e, yu = py > 0 ? elev[i - CW] : e, yd = py < CH - 1 ? elev[i + CW] : e;
-        let sh = 1 + (-(xr - xl) - (yd - yu)) * 3.6; sh = Math.max(0.93, Math.min(1.045, sh));
+        let sh = 1 + (-(xr - xl) - (yd - yu)) * 4.6; sh = Math.max(0.88, Math.min(1.07, sh));
         col[0] *= sh; col[1] *= sh; col[2] *= sh;
         const n = nat[i];
-        if (n >= 0) mix(col, nations[n].c, other(i, n, px, py, 3) ? 0.2 : other(i, n, px, py, 7) ? 0.14 : other(i, n, px, py, 12) ? 0.09 : 0.05);
+        // 나라 빛깔: 옛 손채색 지도처럼 국경 띠는 진하게, 안쪽은 옅게. 물감은 종이빛과 섞어 물빛으로 읽히지 않게 한다.
+        if (n >= 0) { const nc = nations[n].c, tc = [nc[0] * 0.6 + 96, nc[1] * 0.6 + 90, nc[2] * 0.6 + 72]; mix(col, tc, other(i, n, px, py, 3) ? 0.36 : other(i, n, px, py, 7) ? 0.24 : other(i, n, px, py, 12) ? 0.14 : 0.07); }
         if (f < 0.05) mix(col, [150, 122, 84], (1 - f / 0.05) * 0.3);
       }
       const k = 0.9 + stain * 0.16 + (grain - 0.5) * 0.05;
@@ -420,6 +436,8 @@ function drawGlyphs(ctx, CW, CH, fieldA, elev, mxA, myA, M, excl) {
     const dw = T("deadwood", i);
     if (dw > 0.35) { if (r < 0.2 && !blocked(x, y, 3, 6)) items.push(["d", x, y, 2.2 + r * 4, r]); return; }
     const fo = T("forest", i);
+    // 51단계: 들판의 작은 숲
+    if (fo < 0.34 && f > 0.06) { const cp = copseAt(x, y); if (cp > 0.15 && r < cp * 0.85 && !blocked(x, y, 2.6, 5)) items.push([fbm(x / 60, y / 60, 2, 433) > 0.62 ? "f" : "t", x, y, 1.6 + hash(Math.round(x * 3), Math.round(y * 3), 437) * 1.3, r, palAt(i)]); return; }
     // 숲 가장자리가 성기게 풀리고, 숲 안에는 빈터가 생긴다
     const gap = fbm(x / 26, y / 26, 3, 431);
     if (fo < 0.34 || r > (fo - 0.28) * 4 || gap < 0.34) return;
@@ -589,9 +607,10 @@ export function mountMap(container, opt = {}) {
         <button class="ghost sm" data-z="all">전체</button>
         <button class="ghost sm" data-z="town" aria-label="지금 있는 고장의 지도">고장</button>
         <button class="ghost sm" data-z="legend" aria-label="지도 기호 풀이">범례</button>
+        <button class="ghost sm" data-z="full" aria-label="지도를 화면 가득 보기">크게</button>
       </span>
     </div>
-    <div class="mapbox"><svg viewBox="0 0 ${WW} ${WH}" role="img" aria-label="용사력 500년 대륙 지도"></svg><div class="map-loading">양피지에 지도를 옮겨 그리는 중…</div></div>
+    <div class="mapbox"><svg viewBox="0 0 ${WW} ${WH}" role="img" aria-label="용사력 500년 대륙 지도"></svg><div class="map-loading">양피지에 지도를 옮겨 그리는 중…</div><button class="map-close" data-z="unfull">닫기</button><div class="map-sheet" hidden></div><span class="map-zoom2"><button data-z="in2" aria-label="확대">+</button><button data-z="out2" aria-label="축소">−</button><button data-z="here2" aria-label="지금 있는 곳으로">◎</button></span></div>
     <aside class="map-info" aria-live="polite"></aside>`;
   injectStyle();
   const svg = container.querySelector("svg");
@@ -621,6 +640,23 @@ function injectStyle() {
 .map-tools .zoom button { white-space: nowrap; flex: none; }
 @media (max-width: 420px) { .map-tools .zoom button.sm { padding: 6px 10px; min-width: 38px; } }
 @media (max-width: 360px) { .map-tools .zoom { gap: 4px; } .map-tools .zoom button.sm { padding: 6px 7px; min-width: 32px; } }
+.mapbox .plbl { cursor: pointer; }
+.mapbox .rlbl.dim { opacity: .28; }
+.mapbox .rlbl { transition: opacity .2s; }
+.mapbox .plbl.on text { fill: #9a2a17; }
+@media (max-width: 520px) { .mapbox { aspect-ratio: 0.92; } }
+.mapbox.full { position: fixed; inset: 0; z-index: 9000; aspect-ratio: auto; border-radius: 0; border: 0; margin: 0; }
+.mapbox .map-close { display: none; }
+.mapbox.full .map-close { display: block; position: absolute; top: calc(10px + env(safe-area-inset-top, 0px)); right: 10px; z-index: 4; padding: 7px 14px; border-radius: 18px; border: 1px solid #5a3a20; background: rgba(240,230,203,.94); color: #2b1d12; font: 700 15px var(--f-body, serif); box-shadow: 0 2px 8px rgba(0,0,0,.35); }
+.mapbox .map-zoom2 { display: none; }
+.mapbox.full .map-zoom2 { display: flex; flex-direction: column; gap: 8px; position: absolute; right: 10px; bottom: calc(14px + env(safe-area-inset-bottom, 0px)); z-index: 4; }
+.mapbox.full .map-zoom2 button { width: 42px; height: 42px; border-radius: 21px; border: 1px solid #5a3a20; background: rgba(240,230,203,.94); color: #2b1d12; font: 700 20px serif; box-shadow: 0 2px 8px rgba(0,0,0,.35); }
+body.map-full { overflow: hidden; }
+.mapbox .map-sheet { display: none; }
+.mapbox.full .map-sheet:not([hidden]) { display: block; position: absolute; left: 10px; right: 64px; bottom: calc(14px + env(safe-area-inset-bottom, 0px)); z-index: 4; padding: 8px 12px; border-radius: 8px; border: 1px solid #5a3a20; background: rgba(240,230,203,.95); color: #2b1d12; font-size: 14px; line-height: 1.4; box-shadow: 0 2px 8px rgba(0,0,0,.35); }
+.mapbox .map-sheet b { font-size: 16px; }
+.mapbox .map-sheet i { font-style: normal; color: #9a2a17; font-size: 12px; margin-left: 4px; }
+.mapbox .map-sheet span { display: block; font-size: 12.5px; color: #5a4630; }
 .map-legend { display: grid; gap: 3px; }
 .map-legend .lg-row { display: flex; align-items: center; gap: 8px; font-size: 13px; line-height: 1.3; }
 .map-legend .lg-row svg { flex: none; }
@@ -778,8 +814,8 @@ function build(svg, info, here, opt, signal) {
   // 설명 칸
   let current = null;
   const show = (d, g, place) => {
-    if (current) current.classList.remove("on");
-    current = g || null; if (current) current.classList.add("on");
+    if (current) { current.classList.remove("on"); current._lbl?.classList.remove("on"); }
+    current = g || null; if (current) { current.classList.add("on"); current._lbl?.classList.add("on"); }
     const isHere = place && place.id === here;
     const acts = place && opt.game ? MAP_ACTIONS.flatMap((fn) => { try { return fn(opt.game, place) || []; } catch (e) { console.error(e); return []; } }) : [];
     const extra = place && opt.game ? MAP_INFO.map((fn) => { try { return fn(opt.game, place) || ''; } catch (e) { console.error(e); return ''; } }).join('') : '';
@@ -790,6 +826,9 @@ function build(svg, info, here, opt, signal) {
       ${place ? marks.info(place) : ''}
       ${extra}
       ${acts.length || (place && place.id && !place.region) ? `<div class="actions-row">${acts.map((a, i) => `<button class="ghost" data-map-act="${i}">${a.label}</button>`).join("")}${place && place.id && !place.region ? `<button class="ghost" data-town-of="${place.id}">고장 지도</button>` : ""}</div>` : ""}`;
+    // 화면 가득 볼 때는 아래 설명 칸이 가려지니, 지도 안 아래쪽에 짧은 쪽지를 띄운다
+    const sheet = svg.closest(".mapbox")?.querySelector(".map-sheet");
+    if (sheet) { sheet.innerHTML = place || d.desc ? `<b>${d.name}</b>${isHere ? ' <i>지금 있는 곳</i>' : ''}<span>${d.kind ?? ''}${d.realm ? ' · ' + d.realm : ''}</span>` : ''; sheet.hidden = !sheet.innerHTML; }
     info.querySelector("[data-town-of]")?.addEventListener("click", () => openTown(place));
     info.querySelectorAll("[data-map-act]").forEach((b) => b.addEventListener("click", () => { acts[+b.dataset.mapAct].run(); opt.onChange?.(); }));
   };
@@ -820,6 +859,7 @@ function build(svg, info, here, opt, signal) {
   if (opt.game) { try { drawBeyond(el, trailG, opt.game, byId, pin); } catch { /* 탐험 기록이 없어도 지도는 그린다 */ } }
   // 장소
   const placeG = el("g", {}, svg);
+  const labelG = document.createElementNS("http://www.w3.org/2000/svg", "g"); labelG.setAttribute("class", "labels");
   let hereP = null;
   const labels = [];
   places.forEach((p) => {
@@ -828,10 +868,17 @@ function build(svg, info, here, opt, signal) {
     el("circle", { class: "hit", cx: 0, cy: 0, r: 14, fill: "transparent" }, g);
     const small = p.tier === 3;
     marker(p, g);
-    const lx = p.lx || 0, ly = p.ly != null ? p.ly : (small ? 15 : 19);
-    el("text", { x: lx, y: ly, "text-anchor": "middle", "font-family": SERIF, "font-weight": 700, "font-size": small ? 10 : p.t === "capital" ? 14 : 12,
-      fill: "#241a12", stroke: PAPER, "stroke-width": small ? 2.4 : 3, "stroke-linejoin": "round", "paint-order": "stroke" }, g).textContent = p.n;
-    labels.push([g.lastChild, p.id === here || p.t === "capital" ? 0 : p.t === "city" ? 1 : 2]);
+    // 51단계: 이름은 맨 위 겹(labelG)에 따로 둔다. 소문 표·발자취·내 깃발이 글자를 덮지 않게.
+    // 지금 있는 곳 이름은 깃발과 고리를 피해 조금 더 아래에 둔다.
+    const isHere = p.id === here;
+    const lx = p.lx || 0, ly = isHere ? Math.max(p.ly ?? 0, 27) : p.ly != null ? p.ly : (small ? 15 : 19);
+    const lg = el("g", { class: "plbl" + (p.tier === 3 && !isHere ? " t3" : "") + (isHere ? " here" : "") }, labelG);
+    pin(lg, p.x, p.y, "--ls");
+    el("text", { x: lx, y: ly, "text-anchor": "middle", "font-family": SERIF, "font-weight": 700, "font-size": small ? 10.5 : p.t === "capital" ? 15 : 12.5,
+      fill: isHere ? "#7a1e10" : "#1e140c", stroke: "#f6edd4", "stroke-width": small ? 3 : 3.8, "stroke-linejoin": "round", "paint-order": "stroke", "stroke-opacity": 0.92 }, lg).textContent = p.n;
+    labels.push([lg.lastChild, isHere || p.t === "capital" ? 0 : p.t === "city" ? 1 : 2, g.querySelector(".hit")]);
+    g._lbl = lg;
+    bind(lg, () => show(p._data, g, p));
     const data = { kind: KIND[p.t] ?? "장소", name: p.n, realm: p.realm, desc: p.d, todo: p.todo };
     if (p.nation === undefined) p.nation = nationOf(p.realm);
     p._g = g; p._data = data;
@@ -847,10 +894,15 @@ function build(svg, info, here, opt, signal) {
     pin(hg, hereP.x, hereP.y, "--ls");
     el("circle", { cx: 0, cy: 0, r: 10.5, fill: "none", stroke: "#9a2a17", "stroke-width": 1.8 }, hg);
     el("circle", { cx: 0, cy: 0, r: 15, fill: "none", stroke: "#9a2a17", "stroke-width": 0.8, "stroke-dasharray": "2.4 2.4" }, hg);
-    el("path", { d: "M0 -10.5V-33", stroke: "#3a1a10", "stroke-width": 1.3, "stroke-linecap": "round" }, hg);
-    el("path", { d: "M0.6 -33Q7 -34.5 14 -30.5Q7 -28.5 0.6 -24.5Z", fill: "#9a2a17", stroke: "#3a1a10", "stroke-width": 0.9, "stroke-linejoin": "round" }, hg);
-    show(hereP._data, hereP._g, hereP);
-  } else show(central, null);
+    // 길 위에 있으면 깃발은 길손 표가 대신한다 (떠나온 곳엔 고리만)
+    if (!opt.game?.life?.travel) {
+      el("path", { d: "M0 -10.5V-33", stroke: "#3a1a10", "stroke-width": 1.3, "stroke-linecap": "round" }, hg);
+      el("path", { d: "M0.6 -33Q7 -34.5 14 -30.5Q7 -28.5 0.6 -24.5Z", fill: "#9a2a17", stroke: "#3a1a10", "stroke-width": 0.9, "stroke-linejoin": "round" }, hg);
+    }
+  }
+  svg.appendChild(labelG);
+  if (hereP) show(hereP._data, hereP._g, hereP);
+  else show(central, null);
 
   // 확대·이동. 지도 칸의 모양(가로세로 비)에 맞춰 보이는 범위를 잡아, 좁은 화면에서도 칸이 꽉 찬다.
   const vb = { x: 0, y: 0, w: WW, h: WH };
@@ -866,13 +918,17 @@ function build(svg, info, here, opt, signal) {
     const over = (b, k, px = 4) => b.left < k.right + px && b.right > k.left - px && b.top < k.bottom + 1 && b.bottom > k.top - 1;
     // 다른 고장의 기호(가운데 60%)와 큰 땅 이름도 비켜 간다
     const icons = [];
-    for (const [t] of labels) {
-      const h = t.parentNode.querySelector(".hit"); const r = h?.getBoundingClientRect();
+    for (const [t, , h] of labels) {
+      const r = h?.getBoundingClientRect();
       if (!r || !r.width) continue;
       const cx = (r.left + r.right) / 2, cy = (r.top + r.bottom) / 2, w = r.width * 0.22;
       icons.push([t, { left: cx - w, right: cx + w, top: cy - w, bottom: cy + w }]);
     }
-    const regionsR = [...svg.querySelectorAll(".rlbl")].map((g) => g.getBoundingClientRect()).filter((r) => r.width);
+    const rgs = [...svg.querySelectorAll(".rlbl")];
+    const regionsR = rgs.map((g) => g.getBoundingClientRect()).filter((r) => r.width);
+    // 51단계: 지금 있는 곳·수도 이름과 겹치는 나라 이름은 옅게 물러난다
+    const top = labels.filter(([t, imp]) => imp === 0 && t.style.display !== "none").map(([t]) => t.getBoundingClientRect()).filter((r) => r.width);
+    for (const g of rgs) { const r = g.getBoundingClientRect(); g.classList.toggle("dim", !!r.width && top.some((k) => over(r, k, 2))); }
     for (const [t, imp] of order) {
       if (t.style.display === "none") continue;
       t.style.visibility = "";
@@ -885,6 +941,7 @@ function build(svg, info, here, opt, signal) {
   const apply = () => {
     const r = svg.getBoundingClientRect();
     const asp = r.width > 0 && r.height > 0 ? r.height / r.width : WH / WW;
+    // 51단계: 폰의 지도 칸이 세로로 길어져도 '전체'에선 대륙이 다 보이게, 칸이 땅보다 길면 위아래를 바다색 여백으로 둔다
     const maxW = Math.min(WW, WH / asp);
     vb.w = Math.max(Math.min(240, maxW), Math.min(maxW, vb.w)); vb.h = vb.w * asp;
     vb.x = Math.max(0, Math.min(WW - vb.w, vb.x)); vb.y = Math.max(0, Math.min(WH - vb.h, vb.y));
@@ -940,8 +997,17 @@ function build(svg, info, here, opt, signal) {
   box.querySelector('[data-z="out"]').addEventListener("click", () => zoomAt(1 / 1.5, vb.x + vb.w / 2, vb.y + vb.h / 2), o);
   box.querySelector('[data-z="all"]').addEventListener("click", () => { vb.x = 0; vb.y = 0; vb.w = WW; apply(); }, o);
   box.querySelector('[data-z="here"]').addEventListener("click", () => { if (hereP) { focusOn(hereP); show(hereP._data, hereP._g, hereP); } }, o);
+  // 51단계: 폰에서 지도를 화면 가득 펼쳐 본다. 닫으면 제자리로.
+  const mbox = svg.closest(".mapbox");
+  const setFull = (on) => { mbox.classList.toggle("full", on); document.body.classList.toggle("map-full", on); requestAnimationFrame(() => apply()); };
+  box.querySelector('[data-z="full"]')?.addEventListener("click", () => setFull(true), o);
+  mbox.querySelector('[data-z="unfull"]')?.addEventListener("click", () => setFull(false), o);
+  mbox.querySelector('[data-z="in2"]')?.addEventListener("click", () => zoomAt(1.5, vb.x + vb.w / 2, vb.y + vb.h / 2), o);
+  mbox.querySelector('[data-z="out2"]')?.addEventListener("click", () => zoomAt(1 / 1.5, vb.x + vb.w / 2, vb.y + vb.h / 2), o);
+  mbox.querySelector('[data-z="here2"]')?.addEventListener("click", () => { if (hereP) focusOn(hereP); }, o);
+  signal.addEventListener("abort", () => document.body.classList.remove("map-full"));
   // 38단계: 범례와 고장 지도
-  box.querySelector('[data-z="legend"]').addEventListener("click", () => { if (current) current.classList.remove("on"); current = null; info.innerHTML = legendHtml(); }, o);
+  box.querySelector('[data-z="legend"]').addEventListener("click", () => { if (current) { current.classList.remove("on"); current._lbl?.classList.remove("on"); } current = null; info.innerHTML = legendHtml(); }, o);
   const townBtn = box.querySelector('[data-z="town"]');
   if (!hereP) townBtn.hidden = true;
   townBtn.addEventListener("click", () => { if (hereP) openTown(hereP); }, o);
