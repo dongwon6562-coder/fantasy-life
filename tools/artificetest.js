@@ -313,7 +313,7 @@ function work(g, doneKey = 'keep', max = 60) {
 
 // 10. 백 년 흐름: 걸작이 태어나고 도둑맞고, 목록은 넘치지 않고, 연대기는 드문드문
 {
-  const g = fresh(16, 'ern');
+  const g = fresh(18, 'ern'); // 50단계: 마녀 갈래가 들어와 세상 흐름이 바뀌자 씨앗 16은 마도구 연대기 27줄로 문턱(25)을 넘었다. 씨앗만 옮김
   const c0 = g.chronicle.length;
   adv(g, 1200);
   const s = A(g);
