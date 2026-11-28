@@ -103,17 +103,24 @@ export function renderToday(game, parts = {}) {
   };
   const li = (x, cls = '') => { const c = (typeof x === 'object' && x.cls) || cls; return `<li class="ln${c ? ` ${esc(c)}` : ''}" style="--ln:${i++}">${esc(txt(x))}</li>`; };
   const body = `
-    <h2 ${ln()}>${esc(safe(() => placeName(game), '') || '이 고장')}</h2>
+    <header class="td-head ln" style="--ln:${i++}"><span class="td-eye">${esc(parts.when || '이번 달')}</span><h2>${esc(safe(() => placeName(game), '') || '이 고장')}</h2></header>
     ${lead.length ? `<div class="td-lead">${lead.map((x) => `<p class="ln" style="--ln:${i++}">${esc(txt(x))}</p>`).join('')}</div>` : ''}
     ${feast ? `<p class="td-feast ln" style="--ln:${i++}"><b>${esc(feast.name)}</b> ${esc(feast.text)}</p>` : ''}
-    ${parts.results ? `<details class="td-sec td-did"><summary ${ln('sub')}><h3>지난달 한 일</h3>${did ? `<span class="td-feel">${esc(txt(did))}</span>` : ''}</summary>${parts.results}${parts.summary ? `<div class="td-sec td-sum">${parts.summary}</div>` : ''}</details>` : ''}
     ${met.length ? `<div class="td-sec td-met"><h3 ${ln('sub')}>마주친 사람들</h3><ul class="news">${met.map((x) => li(x)).join('')}</ul></div>` : ''}
     ${news.length || heard.length ? `<div class="td-sec td-heard"><h3 ${ln('sub')}>들려온 소식</h3>${heardList()}</div>` : ''}
     ${quiet ? `<p class="note ln" style="--ln:${i++}">조용한 달이었다. 별다른 소문은 없다.</p>` : ''}
     ${parts.summary && !parts.results ? `<div class="td-sec td-sum ln" style="--ln:${i++}">${parts.summary}</div>` : ''}
     ${parts.world ? `<div class="ln" style="--ln:${i++}">${parts.world}</div>` : ''}`;
+  // 51단계 둘째 판: '지난달 한 일'은 이번 달 화면에서 제일 먼저 읽는 글이라, 풍경 카드 위 따로 밝은 기록지 카드로 펼쳐 둔다.
+  // 한 일이 넷 넘으면 셋만 펼치고 나머지는 접는다 (index.js renderNews). 지난달 한눈에(돈·자람 칩)는 그 아래.
+  const log = parts.results ? `<section class="card td-log${parts.reveal ? ' rv' : ''}" aria-label="지난달 한 일">
+    <header class="tl-head ln" style="--ln:0"><span class="tl-eye">지난달 기록</span><h2>지난달 한 일</h2></header>
+    ${did ? `<p class="tl-feel ln" style="--ln:1">${esc(txt(did))}</p>` : ''}
+    <div class="tl-list ln" style="--ln:2">${parts.results}</div>
+    ${parts.summary ? `<div class="tl-sum ln" style="--ln:3">${parts.summary}</div>` : ''}
+  </section>` : '';
   // 줄이 많아도 2.4초 안에 다 드러나게
-  return `<section class="card today news-card${parts.reveal ? ' rv' : ''}" style="--st:${Math.min(0.22, 2.4 / Math.max(1, i)).toFixed(3)}s">${body}
+  return `${log}<section class="card today news-card${parts.reveal ? ' rv' : ''}" style="--st:${Math.min(0.22, 2.4 / Math.max(1, i)).toFixed(3)}s">${body}
   </section>`;
 }
 
