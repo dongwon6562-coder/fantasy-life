@@ -11,7 +11,7 @@ fs.mkdirSync(out, { recursive: true });
   const b = await chromium.launch();
   const p = await b.newPage({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 1 });
   const errs = [];
-  p.on('pageerror', (e) => errs.push(e.message));
+  p.on('pageerror', (e) => { errs.push(e.message); try { fs.appendFileSync(`${out}/log.md`, `\n!! 오류 (${months}달): ${e.stack}\n`); } catch {} });
   p.on('console', (m) => m.type() === 'error' && errs.push(m.text()));
   await p.addInitScript(() => localStorage.setItem('fantasy-life:prefs', JSON.stringify({ monthCard: false, guideSeen: { all: 1 } })));
   await p.goto('file://' + process.cwd() + '/dist/play.html');
