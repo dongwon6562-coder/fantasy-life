@@ -5,6 +5,24 @@ import { J } from './narrative/text.js';
 import { HOOKS } from './hooks.js';
 import { TECH, ERA_KEYS } from './techtree/nodes.js';
 
+// 51단계: 같은 소식 줄을 gap달 안에 다시 쓰지 않는다. 고를 게 없으면 null. 기록은 g.realm.said { 줄: 달 } (작게 유지)
+function fresh(g, rng, lines, gap = 24) {
+  const R = g.realm ?? (g.realm = {}), S = (R.said ??= {}), t = g.date.year * 12 + g.date.month;
+  const ok = lines.filter((x) => S[x] == null || t - S[x] >= gap);
+  if (!ok.length) return null;
+  const x = ok[Math.floor(rng.next() * ok.length)]; S[x] = t; // 주사위는 예전 rng.pick처럼 한 번만 굴린다
+  const keys = Object.keys(S); if (keys.length > 60) for (const k of keys) if (t - S[k] > 120) delete S[k];
+  return x;
+}
+// 51단계: 물가 줄도 해마다 말을 바꾼다 (주사위는 쓰지 않는다)
+const BREAD_UP = ['빵집 앞에서 언성이 높아진다.', '빵집 주인이 덩이를 작게 굽기 시작했다.', '장터에서 밀가루 자루에 모래를 섞었다는 시비가 붙었다.', '아이들 손에 들린 빵이 눈에 띄게 얇아졌다.'];
+const BREAD_DOWN = ['물가가 겨우 가라앉았다. 장터에 다시 웃음소리가 들린다.', '빵값이 제자리로 돌아왔다. 빵집 앞 줄이 짧아졌다.', '밀값이 내렸다. 방앗간 물레가 다시 바쁘게 돈다.'];
+const MON_WHERE = ['가도에서', '숲 가장자리 마을에서', '강 나루터에서', '산골 숯막에서', '고개 너머 역참에서', '외딴 방앗간에서', '양치기 움막에서', '버려진 망루 근처에서'];
+const MON_WHAT = ['오우거가 상단을 덮쳤다', '고블린 무리가 곡식 창고를 털었다', '늑대 떼보다 큰 것이 양 우리를 부수었다', '트롤이 나무다리를 무너뜨렸다', '거미 떼가 밤사이 닭장을 비웠다', '와이번이 소를 채 갔다', '구울이 새 무덤을 파헤쳤다'];
+const MON_AFTER = ['호위 모험가 셋이 죽었다.', '길드가 토벌대를 모으고 있다.', '살아남은 사람들이 가까운 성읍으로 몰려들었다.', '영주가 현상금을 걸었다.', '사냥꾼들이 숲 깊이 들어가지 않는다.', '마을 사람들이 밤마다 횃불을 들고 돌아가며 지킨다.'];
+const MON_FIXED = ['미궁 하나에서 마물이 넘쳐 나왔다. 길드가 토벌대를 모으고 있다.', '밤마다 들개가 아닌 무언가가 울부짖는다. 사냥꾼들이 숲 깊이 들어가지 않는다.'];
+const MON_ALL = MON_WHERE.flatMap((a) => MON_WHAT.map((b, i) => `${a} ${b}. ${MON_AFTER[(a.length + i) % MON_AFTER.length]}`)).concat(MON_FIXED);
+
 export const ERAS = [
   { id: 0, name: '마석 시대', desc: '마석은 귀족과 마법사의 물건이다. 마을의 밤은 아직 등잔불로 밝힌다.' },
   { id: 1, name: '마도구 보급 시대', desc: '화석·등석·온석 같은 마도구가 도시를 넘어 시골까지 퍼진다.' },
@@ -206,7 +224,7 @@ function tick(g, rng) {
     b.warMonths += 1;
     const winter = g.date.month <= 2 || g.date.month === 12;
     if (!winter) b.front += rng.normal(r.succession === 'civilwar' ? -0.6 : -0.15, 1.6);
-    if (rng.chance(0.3)) say(rng.pick(b.front < -3 ? [
+    if (rng.chance(0.3)) say(fresh(g, rng, b.front < -3 ? [
       '전선 소식: 레오니아군이 밀리고 있다. 국경 요새 하나가 포위되었다.',
       '전선 소식: 발하르트의 마법사 군단이 성벽을 무너뜨렸다고 한다.',
       '전선 소식: 피란민들이 짐수레를 끌고 남쪽으로 내려오고 있다.',
@@ -217,7 +235,10 @@ function tick(g, rng) {
       '전선 소식: 국경에서 밀고 밀리는 싸움이 계속된다. 전사자 명단이 길어진다.',
       '전선 소식: 징집된 청년들이 하르펜을 거쳐 북동쪽으로 행군했다.',
       '전선 소식: 군량을 대느라 곡물상들이 밀을 사들이고 있다.',
-    ]));
+      '전선 소식: 국경 마을 우물에 누가 독을 풀었다는 말이 돈다. 양쪽 다 서로를 탓한다.',
+      '전선 소식: 다친 병사들을 실은 수레가 왕도 쪽으로 내려갔다.',
+      '전선 소식: 영주가 말과 수레를 거두어 갔다. 쟁기질을 사람이 끌어서 한다.',
+    ], 10) || '전선 소식: 국경에서 밀고 밀리는 싸움이 계속된다.');
     if (winter && rng.chance(0.1)) say('겨울이라 전선이 얼어붙었다. 양쪽 다 봄을 기다리고 있다.');
     // 끝나는 조건
     if (b.front <= -8) {
@@ -248,12 +269,14 @@ function tick(g, rng) {
     }
     if (n.war) {
       n.warMonths += 1;
-      if (rng.chance(0.25)) say(rng.pick([
+      if (rng.chance(0.25)) say(fresh(g, rng, [
         '북부 소식: 성채도시 그라우벨의 바깥 성벽이 불탔다고 한다.',
         '북부 소식: 마족 장군 하나가 변경 기사단과 맞붙어 쓰러졌다. 대신 기사단의 절반이 돌아오지 못했다.',
         '북부 소식: 모험가 길드가 C급 이상 모험가를 강제 소집했다.',
         '북부 소식: 북쪽에서 온 피란민이 마물의 이빨 자국이 난 방패를 팔고 있었다.',
-      ]));
+        '북부 소식: 해협에 마족의 검은 돛이 셋 더 보였다고 한다.',
+        '북부 소식: 변경백이 성채 종을 녹여 화살촉을 만들게 했다고 한다.',
+      ], 10) || '북부 소식: 변경에서 싸움이 이어진다.');
       if (n.warMonths > 8 && rng.chance(0.05)) {
         n.war = false; n.garbes = 30;
         if (rng.chance(0.15)) {
@@ -272,12 +295,11 @@ function tick(g, rng) {
   // ---------- 마물과 봉인 ----------
   r.seal = Math.max(0, r.seal - rng.float(0, 0.06));
   r.monsters = clamp(r.monsters + rng.normal((100 - r.seal) * 0.004, 0.7) + (atWar(g) ? 0.1 : 0) - (r.monsters > 70 ? 0.3 : 0), 0, 100);
-  if (r.monsters > 55 && rng.chance(0.06)) say(rng.pick([
-    '하르펜 근처 미궁에서 마물이 넘쳐 나왔다. 길드가 토벌대를 모으고 있다.',
-    '남쪽 가도에서 오우거가 상단을 덮쳤다. 호위 모험가 셋이 죽었다.',
-    '숲속 마을 하나가 고블린 무리에게 털렸다. 살아남은 사람들이 하르펜으로 몰려들었다.',
-    '밤마다 들개가 아닌 무언가가 울부짖는다. 사냥꾼들이 숲 깊이 들어가지 않는다.',
-  ]));
+  // 51단계: 예전엔 넉 줄(하르펜 미궁·남쪽 가도…)이 어디 살든 되풀이됐다. 곳·마물·뒷일을 엮고, 같은 줄은 몇 해 안에 다시 안 쓴다.
+  if (r.monsters > 55 && rng.chance(0.06)) {
+    const line = fresh(g, rng, MON_ALL, 60);
+    if (line) say(line);
+  }
   if (rng.chance(0.0025)) {
     r.noahLight = !r.noahLight;
     say(r.noahLight
@@ -308,9 +330,9 @@ function tick(g, rng) {
   r.bread = clamp(r.bread + (target - r.bread) * 0.2 + rng.normal(0, 0.02), 0.6, 3);
   r.bread = Math.round(r.bread * 100) / 100;
   // 48단계: 문턱 언저리에서 오르내릴 때마다 '뛰었다'·'가라앉았다'가 번갈아 뜨지 않게, 한 번 뛰면 가라앉을 때까지 한 번만 말한다
-  if (r.bread >= 1.3 && before < 1.3 && !r.breadHigh) { r.breadHigh = true; say(`빵값이 뛰었다. 평년의 ${Math.round(r.bread * 10) / 10}배다. 빵집 앞에서 언성이 높아진다.`); }
+  if (r.bread >= 1.3 && before < 1.3 && !r.breadHigh) { r.breadHigh = true; say(`빵값이 뛰었다. 평년의 ${Math.round(r.bread * 10) / 10}배다. ${BREAD_UP[g.date.year % BREAD_UP.length]}`); }
   if (r.bread >= 1.8 && before < 1.8 && r.breadHigh !== 'mad') { r.breadHigh = 'mad'; say('밀값이 미쳤다. 가난한 집들은 귀리죽으로 버틴다. 굶어 죽는 사람이 나올 거라는 말이 돈다.', true); }
-  if (r.bread < 1.15 && before >= 1.15 && r.breadHigh) { r.breadHigh = false; say('물가가 겨우 가라앉았다. 장터에 다시 웃음소리가 들린다.'); }
+  if (r.bread < 1.15 && before >= 1.15 && r.breadHigh) { r.breadHigh = false; say(BREAD_DOWN[g.date.year % BREAD_DOWN.length]); }
 
   // ---------- 기술 ----------
   // 34단계: 기술 값은 기술 나무(src/techtree/)가 정한다. 선행 기술·연구할 사람·재료·수요가 갖춰져야 자란다 (history powers 틱에서 techGrow).

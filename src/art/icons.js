@@ -85,8 +85,10 @@ const I = {
     l: '<path d="M4 2.8v18.4"/>',
   },
   travel: {
-    s: '<path d="M3.4 21.6c3.6-2.4 5.6-6.4 7.6-10.4 2-4 4.6-6.6 8.4-7.4l.4 1.8c-3.2.8-5.4 3-7.2 6.6-2.2 4.4-4.4 8.6-8.4 11.2z"/><circle cx="3.6" cy="20.4" r="2.2"/><path d="M16.4 1.6l5 1.6-1.6 5-1.4-.5 1-3.2-3.4-1z"/>',
-    c: '<path d="M2.8 19.8a1 1 0 0 1 1-.8"/>',
+    // 51단계: 갈림길 이정표
+    s: '<path d="M11 2.4h2.2V22H11z"/><path d="M3.6 4h14l3 2.8-3 2.8h-14z"/><path d="M20.4 11.6h-14l-3 2.8 3 2.8h14z"/>',
+    c: '<path d="M5.8 6.8h9.4M8.6 14.4h9.4"/>',
+    l: '<path d="M4.6 22h14.8"/>',
   },
   smith: {
     s: '<path d="M2.6 13.4h14.2l2.8-3.6h1.8l-.8 2.8-2.4 3H6.8z"/><path d="M8.4 16h5v3.6h2.4V22H6v-2.4h2.4z"/><path d="M13.6 2.2l1.4-1.2 5.4 5.4-1.2 1.4-1.6-.2-4.4 4.4-1.8-1.8 4.4-4.4z"/>',
@@ -139,7 +141,15 @@ const I = {
     c: '<path d="M12 4v9.4"/>',
   },
   chain: {
-    s: '<path d="M8.8 2.6a4.4 4.4 0 0 1 6.2 0l1.2 1.2a4.4 4.4 0 0 1 0 6.2l-1.6 1.6-1.8-1.8 1.6-1.6a1.8 1.8 0 0 0 0-2.6l-1.2-1.2a1.8 1.8 0 0 0-2.6 0L8.4 6.6 6.6 4.8z"/><path d="M15.2 21.4a4.4 4.4 0 0 1-6.2 0l-1.2-1.2a4.4 4.4 0 0 1 0-6.2l1.6-1.6 1.8 1.8-1.6 1.6a1.8 1.8 0 0 0 0 2.6l1.2 1.2a1.8 1.8 0 0 0 2.6 0l2.2-2.2 1.8 1.8z"/><path d="M9.6 13.2l3.6-3.6 1.8 1.8-3.6 3.6z"/>',
+    // 51단계: 세 고리가 비스듬히 엮인 사슬 (예전 그림은 S자로 읽혔다)
+    s: '<g transform="rotate(-45 12 12)"><rect x="-1.4" y="7.6" width="11.2" height="8.8" rx="4.4"/><rect x="7.2" y="10.4" width="9.6" height="3.2" rx="1.6"/><rect x="14.2" y="7.6" width="11.2" height="8.8" rx="4.4"/></g>',
+    c: '<g transform="rotate(-45 12 12)"><rect x="1.2" y="10.4" width="6.2" height="3.2" rx="1.6" fill="#000" stroke="none"/><rect x="16.6" y="10.4" width="6.2" height="3.2" rx="1.6" fill="#000" stroke="none"/><path d="M7 8.8v6.4M17 8.8v6.4"/></g>',
+  },
+  // 51단계: 쇠창살 낀 감옥 창 (옥살이 행동)
+  bars: {
+    s: '<path d="M2.6 22V8.6C2.6 4.6 6.8 2 12 2s9.4 2.6 9.4 6.6V22z"/>',
+    c: '<path d="M5 20V8.8C5 6 8 4.4 12 4.4S19 6 19 8.8V20z" fill="#000" stroke="none"/>',
+    l: '<path d="M8.4 5.6V20.4M12 4.6v15.8M15.6 5.6v14.8M5.4 12.4h13.2" stroke-width="1.7"/>',
   },
   tower: {
     s: '<path d="M8 22V9.4L6.6 8V5.2h1.8v1.4h1.6V5.2h1.2V1.6h1.6v3.6h1.2v1.4h1.6V5.2h1.8V8L16 9.4V22z"/>',
@@ -147,9 +157,9 @@ const I = {
     l: '<path d="M12 1.6l3 1.4-3 1.2M3 22h18"/>',
   },
   hammer: {
-    s: '<path d="M4.2 3.4h9.6l3 2v3.2h-3l-1.4-1.4H9.2v2.2H6V7.2H4.2z"/><path d="M6.2 9.4h2.8v12.4H6.2z"/>',
-    c: '<path d="M5.6 5.2h6.6"/><path d="M7.6 11.4v8.4"/>',
-    l: '<path d="M14 22h7M15.6 22v-4h3.8v4"/>',
+    // 51단계: 장도리 (머리와 자루가 또렷하게)
+    s: '<g transform="rotate(-38 12 12)"><path d="M10.7 8h2.6v14.6h-2.6z"/><path d="M4.6 2.6h9.8v5.4H4.6z"/><path d="M14.4 3c3.4.1 5.6 1.3 6.8 3.3-1.9-.8-4.2-1.1-6.8-.9z"/></g>',
+    c: '<g transform="rotate(-38 12 12)"><path d="M12 10v10.6"/><path d="M6.2 5.3h6.6"/></g>',
   },
   lute: {
     s: '<path d="M14.2 9.8c3 3 3 7.6.2 10.4s-7.4 2.8-10.4-.2-3-7.6-.2-10.4 7.4-2.8 10.4.2z"/><path d="M13 9.4l7-7 1.6 1.6-7 7z"/><path d="M19.4 1.4l3.2 3.2-1.2 1.2-3.2-3.2z"/>',
@@ -337,7 +347,7 @@ const I = {
 
 // 새 이름 → 예전 갈래 (소리·옛 표가 쓸 수 있게)
 const BASE = {
-  quill: 'book', mask: 'shield', key: 'shield', dagger: 'sword', chain: 'labor', tower: 'magic', hammer: 'labor', lute: 'play', bowl: 'coin',
+  quill: 'book', mask: 'shield', key: 'shield', dagger: 'sword', chain: 'labor', bars: 'labor', tower: 'magic', hammer: 'labor', lute: 'play', bowl: 'coin',
   horse: 'travel', wing: 'travel', skull: 'pray', candle: 'pray', scale: 'book', seal: 'crown', banner: 'crown', tent: 'home', flag: 'crown',
   torch: 'sword', eye: 'wander', tankard: 'cook', spool: 'labor', fish: 'ship', pick: 'labor', flask: 'herb', wheel: 'travel', compass: 'wander',
   lantern: 'wander', rune: 'magic', egg: 'hunt', letter: 'book', dice: 'coin', mortar: 'herb', sheaf: 'farm', sheep: 'farm', hourglass: 'rest',
@@ -369,7 +379,7 @@ const BY_ID = {
   builder_exam: 'hammer', carrier_haul: 'cart', carrier_cart: 'cart', hunter_license: 'seal', mount_brood: 'egg', mount_courier: 'griffin', mount_leave: 'griffin',
   // 다른 갈래보다 더 맞는 그림
   crime_pickpocket: 'key', crime_burglary: 'key', crime_assassinate: 'dagger', crime_snoop: 'eye', crime_lie_low: 'mask', gang_job: 'dagger', gang_seek: 'mask',
-  jail_escape: 'chain', jail_labor: 'chain', jail_endure: 'chain', jail_talk: 'chain', bondage_serve: 'chain', bondage_escape: 'chain', bondage_manumit: 'chain',
+  jail_escape: 'boot', jail_labor: 'pick', jail_endure: 'bars', jail_talk: 'visit', // 51단계: 옥살이 행동마다 다른 그림 bondage_serve: 'chain', bondage_escape: 'chain', bondage_manumit: 'chain',
   bondage_ransom: 'chain', bondage_market: 'chain', bondage_drive: 'chain', bondage_rescue: 'chain', poor_beg: 'bowl', poor_soup: 'bowl', poor_alms: 'bowl',
   beast_ride: 'horse', herd_steed: 'horse', beast_buy: 'horse', beast_sell: 'horse', mount_fly: 'griffin', mount_nest: 'egg', mount_join: 'griffin', mount_sortie: 'griffin',
   voc_busk: 'lute', troupe_join: 'lute', troupe_found: 'lute', troupe_manage: 'lute', troupe_show: 'lute', arts_work: 'quill', arts_read: 'book', na_write: 'quill',
@@ -399,12 +409,12 @@ const BY_ID = {
   ld_work: 'labor', ld_pass: 'seal', // 44단계 고장 늘리기
   ac_smuggle: 'coin', ac_mediate: 'seal', ac_spy: 'eye', // 45단계 나라 사이 흐름
   out_ride: 'torch', out_hunt: 'hunt', out_give: 'bread', out_lie_low: 'mask', spread_patron: 'flask', envoy_join: 'seal', envoy_tongue: 'letter', demon_trade: 'coin', demon_voyage: 'ship',
-  army_enlist: 'banner', army_escape: 'boot', army_resign: 'door', army_captive_wait: 'chain', dragon_climb: 'dragon', serpent_lair: 'dungeon', kin_adopt: 'home', kin_time: 'heart',
+  army_enlist: 'banner', army_escape: 'boot', army_resign: 'door', army_captive_wait: 'bars', dragon_climb: 'dragon', serpent_lair: 'dungeon', kin_adopt: 'home', kin_time: 'heart',
 };
 const WORDS = [
   [/sword|fence|duel|knight/, 'sword'], [/guard|patrol|defen/, 'shield'], [/magic|spell|mana|circle/, 'magic'],
   [/medit/, 'meditate'], [/pray|church|temple|faith/, 'pray'], [/herb|potion|alchem/, 'herb'], [/cook|kitchen|bake/, 'cook'],
-  [/inn|tavern|brew|ale/, 'tankard'], [/jail|prison|chain|slave|bond/, 'chain'], [/spy|secret|disguise|mask/, 'mask'],
+  [/inn|tavern|brew|ale/, 'tankard'], [/jail|prison/, 'bars'], [/chain|slave|bond/, 'chain'], [/spy|secret|disguise|mask/, 'mask'],
   [/trade|shop|sell|market|merchant|money/, 'coin'], [/farm|field|harvest|plant|sow/, 'farm'], [/hunt|bow|trap/, 'hunt'],
   [/letter|write|poem|pen/, 'quill'], [/study|book|read|school|library/, 'book'], [/train|body|run/, 'body'],
   [/build|carpent|mason|house/, 'hammer'], [/labor|work|job|craft/, 'labor'], [/mine|dig|ore/, 'pick'],

@@ -673,10 +673,13 @@ HOOKS.afterMonth.push((g, rng) => {
       const p = byId(g, rng.pick(blood).pid);
       c.jailed.months -= 1;
       g.news.unshift({ text: `${J(p.name, '이/가')} 옥리에게 술값을 찔러 주었다고 한다. 갇혀 있는 날이 줄었다.`, rel: 90 });
-    } else if (g.player.money < 5 && playerAge(g) >= 16 && rng.chance(0.12)) {
+    } else if (g.player.money < 5 && playerAge(g) >= 16 && rng.chance(0.12) && g.date.year * 12 + g.date.month - (v.aidAt ?? -99) >= 18) {
+      // 51단계: 빈털터리일 때마다 거의 달마다 같은 말로 은화를 놓고 가던 것을 한 해 반에 한 번으로, 말도 바꿔 가며
+      v.aidAt = g.date.year * 12 + g.date.month;
       const p = byId(g, rng.pick(blood).pid);
       g.player.money += 10;
-      g.news.unshift({ text: `${J(p.name, '이/가')} 말없이 은화 열 닢을 놓고 갔다. "${sworn(g, p)}끼리 셈은 무슨."`, rel: 90 });
+      const AID = [`${J(p.name, '이/가')} 말없이 은화 열 닢을 놓고 갔다. "${sworn(g, p)}끼리 셈은 무슨."`, `문간에 보리 자루와 은화 열 닢이 놓여 있었다. ${p.name}의 솜씨다. 고맙다는 말을 할 틈도 주지 않았다.`, `${J(p.name, '이/가')} 빚을 갚는 척 은화 열 닢을 쥐여 주었다. 그런 빚은 진 적이 없다.`];
+      g.news.unshift({ text: AID[g.date.year % AID.length], rel: 90 });
     }
   }
   // 약속한 집안이 어려울 때 돕는다

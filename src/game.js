@@ -279,10 +279,10 @@ function worldTick(game, rng) {
   game.worldNews = game.worldNews ?? [];
   if (w.famine) {
     w.famineMonths -= 1;
-    if (w.famineMonths <= 0) { w.famine = false; game.worldNews.push('흉년이 끝나 간다. 올해 밀은 제대로 여물었다.'); }
+    if (w.famineMonths <= 0) { w.famine = false; game.worldNews.push(['흉년이 끝나 간다. 올해 밀은 제대로 여물었다.', '흉년이 끝나 간다. 들판에 다시 이삭이 고개를 숙인다.', '흉년이 끝나 간다. 곳간 바닥이 다시 보이지 않게 되었다.'][game.date.year % 3]); }
   } else if (game.date.month === 8 && rng.chance(0.12)) {
     w.famine = true; w.famineMonths = 10;
-    game.worldNews.push('여름 가뭄으로 밀이 말라 죽고 있다. 흉년이 들 것 같다.');
+    game.worldNews.push(['여름 가뭄으로 밀이 말라 죽고 있다. 흉년이 들 것 같다.', '비 없는 여름이다. 밀 이삭이 여물기도 전에 하얗게 마른다. 흉년이 들 것 같다.', '밀밭에 깜부기병이 번졌다. 거둘 것이 반도 안 된다. 흉년이 들 것 같다.'][game.date.year % 3]);
   }
   if (w.plague) {
     w.plagueMonths -= 1;

@@ -17,7 +17,9 @@ export function atlasOf(g) {
 function note(g) {
   const A = atlasOf(g); if (!A) return;
   const life = g.life ?? {};
-  if (life.travel) return; // 길 위의 달은 어느 곳에도 적지 않는다
+  // 길 위의 달은 어느 곳에도 적지 않는다. 다만 길이 얼마나 되는지는 적어 둔다(지도에 간 만큼 그리려고)
+  if (life.travel) { const tr = life.travel, o = A.go; if (!o || o.to !== tr.to || o.from !== tr.from) A.go = { to: tr.to, from: tr.from, tot: (tr.left ?? 1) + 1 }; else o.tot = Math.max(o.tot, tr.left ?? 1); return; }
+  if (A.go) delete A.go;
   const here = life.place; if (!here) return;
   const year = g.date?.year ?? 500;
   const rec = A.v[here] ?? (A.v[here] = [year, 0]);
@@ -58,7 +60,34 @@ export function drawTrail(el, layer, g, byId, pin) {
   });
   // 지금 걷는 길
   const tr = g.life?.travel, ta = tr && byId[tr.from ?? g.life.place], tb = tr && byId[tr.to];
-  if (ta && tb) el('path', { d: `M${ta.x} ${ta.y}L${tb.x} ${tb.y}`, fill: 'none', stroke: INK, 'stroke-width': 1.5, 'stroke-dasharray': '5 3', 'stroke-linecap': 'round', opacity: 0.9 }, layer);
+  // 51단계: 간 만큼은 굵은 실선, 남은 길은 점선. 길손 표와 '몇 달 남음', 닿을 곳엔 빈 깃발.
+  if (ta && tb && ta !== tb) {
+    const go = A.go && A.go.to === tr.to ? A.go : null, left = Math.max(0, tr.left ?? 1), tot = Math.max(left, go?.tot ?? left, 1);
+    const t = Math.max(0.06, Math.min(0.94, (tot - left) / tot));
+    const dx = tb.x - ta.x, dy = tb.y - ta.y, len = Math.hypot(dx, dy) || 1, bend = Math.min(40, len * 0.16) * (tr.sea ? -1 : 1);
+    const cx = (ta.x + tb.x) / 2 - dy / len * bend, cy = (ta.y + tb.y) / 2 + dx / len * bend;
+    const q = (u) => [(1 - u) * (1 - u) * ta.x + 2 * (1 - u) * u * cx + u * u * tb.x, (1 - u) * (1 - u) * ta.y + 2 * (1 - u) * u * cy + u * u * tb.y];
+    // 앞부분 곡선(0..t)의 조절점: 드 카스텔조
+    const c1 = [ta.x + (cx - ta.x) * t, ta.y + (cy - ta.y) * t], P = q(t), c2 = [cx + (tb.x - cx) * t, cy + (tb.y - cy) * t];
+    const whole = `M${ta.x} ${ta.y}Q${cx.toFixed(1)} ${cy.toFixed(1)} ${tb.x} ${tb.y}`;
+    const done = `M${ta.x} ${ta.y}Q${c1[0].toFixed(1)} ${c1[1].toFixed(1)} ${P[0].toFixed(1)} ${P[1].toFixed(1)}`;
+    const rest = `M${P[0].toFixed(1)} ${P[1].toFixed(1)}Q${c2[0].toFixed(1)} ${c2[1].toFixed(1)} ${tb.x} ${tb.y}`;
+    const tg = el('g', { class: 'trail-go', 'pointer-events': 'none' }, layer);
+    el('path', { d: whole, fill: 'none', stroke: '#f0e6cb', 'stroke-width': 5, 'stroke-linecap': 'round', opacity: 0.7 }, tg);
+    el('path', { d: done, fill: 'none', stroke: INK, 'stroke-width': 2.6, 'stroke-linecap': 'round' }, tg);
+    el('path', { d: rest, fill: 'none', stroke: INK, 'stroke-width': 1.8, 'stroke-dasharray': '4 3.2', 'stroke-linecap': 'round', opacity: 0.85 }, tg);
+    // 닿을 곳: 빈 깃발
+    const fl = el('g', { class: 'trail-go', 'pointer-events': 'none' }, layer); pin(fl, tb.x, tb.y, '--ls');
+    el('path', { d: 'M0 -9V-29', stroke: '#3a1a10', 'stroke-width': 1.2, 'stroke-linecap': 'round' }, fl);
+    el('path', { d: 'M0.6 -29Q6 -30.3 12 -27Q6 -25.2 0.6 -21.6Z', fill: '#f0e6cb', stroke: INK, 'stroke-width': 1.1, 'stroke-linejoin': 'round' }, fl);
+    // 길손: 붉은 원 안에 발자국(배로 가면 돛)
+    const w = el('g', { class: 'trail-go', 'pointer-events': 'none' }, layer); pin(w, P[0], P[1], '--ls');
+    el('circle', { cx: 0, cy: 0, r: 6.4, fill: INK, stroke: '#f0e6cb', 'stroke-width': 1.6 }, w);
+    if (tr.sea) el('path', { d: 'M-3.6 1.4h7.2l-1.4 2.2h-4.4Z M-0.4 0.8V-4l3.2 4Z', fill: '#f0e6cb' }, w);
+    else el('path', { d: 'M-2.6 -3.2a1.3 1.8 0 1 0 0.1 0Z M2 -0.6a1.3 1.8 0 1 0 0.1 0Z', fill: '#f0e6cb' }, w);
+    const lbl = left > 0 ? `${left}달 남음` : '곧 닿음';
+    el('text', { x: 9.5, y: 3.6, 'text-anchor': 'start', 'font-family': SERIF, 'font-weight': 700, 'font-size': 10.5, fill: INK, stroke: '#f6edd4', 'stroke-width': 3, 'stroke-linejoin': 'round', 'paint-order': 'stroke' }, w).textContent = lbl;
+  }
   // 2. 가 본 곳: 손으로 두른 붉은 고리. 한 해 넘게 산 곳은 겹고리, 고향은 작은 집 표
   let count = 0;
   for (const [id, [, months]] of Object.entries(A.v)) {

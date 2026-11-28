@@ -3,6 +3,7 @@
 import { WORLD_TICKS, nudge } from '../world.js';
 import { H } from '../history/state.js';
 import { J } from '../narrative/text.js';
+import { PLACES } from '../places.js';
 import { LG, legend, legendName, playerScore, RANK_N, MAX_LIST, ROSTER } from './state.js';
 
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
@@ -112,12 +113,15 @@ function announce(g, say, record) {
   const wasRank = lg.playerRank;
   lg.playerRank = pr >= 0 ? pr + 1 : null;
   const nameOf = (id) => (id === 'player' ? g.player.name : legendName(legend(g, id)));
+  // 51단계: 9·10위 언저리를 오가는 사람을 들 때마다 '새 십강'으로 알리지 않는다 (한 사람이 열다섯 번 10위에 '이름을 올렸다')
+  const t = g.date.year * 12 + g.date.month, ann = (lg.annAt ??= {});
+  const quiet = (id) => { const r = now.includes(id) ? now.indexOf(id) + 1 : 99; const q = ann[id] != null && t - ann[id] < 120 && r >= 8; if (!q) ann[id] = t; return q; };
   for (const id of entered) {
-    if (id === 'player') continue;
+    if (id === 'player' || quiet(id)) continue;
     say(`모험가 길드와 마도사 협회가 새 십강을 발표했다. ${J(nameOf(id), '이/가')} ${now.indexOf(id) + 1}위에 이름을 올렸다.`, true);
     record(`${nameOf(id)}, 십강 ${now.indexOf(id) + 1}위`);
   }
-  for (const id of left) say(`${J(nameOf(id), '이/가')} 십강 명단에서 빠졌다. 사람들은 그의 전성기가 지났다고 수군거린다.`);
+  for (const id of left) if (ann[id] == null || t - ann[id] >= 24) say(`${J(nameOf(id), '이/가')} 십강 명단에서 빠졌다. 사람들은 그의 전성기가 지났다고 수군거린다.`);
   if (lg.playerRank && !wasRank) { lg.news.push({ k: 'rank', n: lg.playerRank }); record(`${g.player.name}, 십강 ${lg.playerRank}위`); }
   else if (!lg.playerRank && wasRank) lg.news.push({ k: 'unrank' });
 }
@@ -132,7 +136,9 @@ WORLD_TICKS.push((g, rng, say, record) => {
       const to = rng.pick(x.haunts);
       if (to !== x.at) {
         x.at = to;
-        if (!x.hidden && to !== 'far' && ['leocast', 'harfen', 'verden'].includes(to) && rng.chance(0.5)) say(`${legendName(x)}의 일행이 ${placeName(to)}에 들어왔다는 소문이 돈다.`);
+        // 51단계: 어디 살든 왕도·하르펜 소식이 들리던 것을, 내가 있는 고장이나 이웃 고장에 왔을 때만
+        const here = g.life?.place, near = !!here && (to === here || !!PLACES[here]?.links?.[to]);
+        if (!x.hidden && to !== 'far' && ['leocast', 'harfen', 'verden'].includes(to) && rng.chance(0.5) && near) say(`${legendName(x)}의 일행이 ${placeName(to)}에 들어왔다는 소문이 돈다.`);
       }
     }
   }

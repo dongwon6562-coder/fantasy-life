@@ -7,6 +7,8 @@ import { J } from '../narrative/text.js';
 import { kill, ageYears } from '../npc.js';
 import { L, chron } from '../adventure/core.js';
 import { NS, mi, clamp, REGIONS, REGION_IDS, BREADBASKET, KINDS, regionOf, nlog, cropWord } from './state.js';
+// 51단계: 내가 있는 고장이 어느 묶음인지 (묶음 밖의 먼 땅이면 null. regionOf는 모르는 곳을 남부 들판으로 친다)
+const homeRegion = (g) => { const pl = g.life?.place; return pl ? Object.keys(REGIONS).find((r) => REGIONS[r].places.includes(pl)) ?? null : null; };
 
 const MAX_PAST = 40;
 
@@ -22,7 +24,10 @@ export function startDisaster(g, kind, region, sev, rng, say = () => {}, record 
   N.crop[region] = clamp(N.crop[region] * (1 - K.crop * sev), 0.2, 1.4);
   const R = REGIONS[region];
   const big = sev >= 0.7;
-  say(`${R.name}에 ${J(K.name, '이/가')} 들었다. ${K.desc}`, big);
+  // 51단계: 풀이는 그 재앙이 열 해 만에 처음 들 때만, 남의 고장 일이면 짧게
+  const home = homeRegion(g), told = (N.told ??= {}), t = mi(g), fresh = told[kind] == null || t - told[kind] >= 120;
+  if (fresh) told[kind] = t;
+  say(fresh ? `${R.name}에 ${J(K.name, '이/가')} 들었다. ${K.desc}` : home === region ? `${R.name}에 또 ${J(K.name, '이/가')} 들었다. 이번엔 우리 고장이다.` : `${R.name}에 ${J(K.name, '이/가')} 들었다는 소식이 들려온다.`, big);
   if (big) { record(`${R.name}에 큰 ${K.name}`); chron(g, `${R.name}에 큰 ${J(K.name, '이/가')} 들다.`, BREADBASKET.includes(region) ? 80 : 50); }
   if (BREADBASKET.includes(region) && g.realm && K.crop >= 0.3) g.realm.bread = clamp((g.realm.bread ?? 1) + 0.12 * sev, 0.6, 3);
   nlog(g, `${R.name}에 ${K.name}${big ? ' (크다)' : ''}.`);
@@ -111,7 +116,9 @@ WORLD_TICKS.push((g, worldRng, say, record) => {
   }
   for (const d of N.active.filter((x) => x.left <= 0)) {
     const K = KINDS[d.kind];
-    if (d.sev >= 0.5) say(`${REGIONS[d.region].name}의 ${J(K.name, '이/가')} 끝났다. ${{ drought: '마침내 비가 왔다. 사람들이 맨발로 빗속에 나와 섰다.', flood: '물이 빠졌다. 들판에 진흙과 죽은 가축이 남았다.', winter: '얼음이 풀렸다. 봄이 왔다는 것을 아직 아무도 믿지 않는다.', quake: '땅이 잠잠해졌다. 무너진 집터에서 사람들이 쓸 만한 것을 골라낸다.', locust: '메뚜기 떼가 북쪽으로 날아갔다. 남은 것은 줄기와 굶주림이다.', storm: '바람이 잦아들었다. 부서진 배들을 끌어올리는 데 한 달이 걸릴 것이다.' }[d.kind]}`);
+    const home = homeRegion(g);
+    if (d.sev >= 0.5 && home !== d.region) say(`${REGIONS[d.region].name}의 ${J(K.name, '이/가')} 끝났다고 한다.`);
+    else if (d.sev >= 0.5) say(`${REGIONS[d.region].name}의 ${J(K.name, '이/가')} 끝났다. ${{ drought: '마침내 비가 왔다. 사람들이 맨발로 빗속에 나와 섰다.', flood: '물이 빠졌다. 들판에 진흙과 죽은 가축이 남았다.', winter: '얼음이 풀렸다. 봄이 왔다는 것을 아직 아무도 믿지 않는다.', quake: '땅이 잠잠해졌다. 무너진 집터에서 사람들이 쓸 만한 것을 골라낸다.', locust: '메뚜기 떼가 북쪽으로 날아갔다. 남은 것은 줄기와 굶주림이다.', storm: '바람이 잦아들었다. 부서진 배들을 끌어올리는 데 한 달이 걸릴 것이다.' }[d.kind]}`);
     N.past.push({ kind: d.kind, region: d.region, sev: d.sev, y: d.start.y, m: d.start.m });
   }
   N.active = N.active.filter((x) => x.left > 0);
