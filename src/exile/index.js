@@ -472,6 +472,7 @@ HOOKS.afterMonth.push((g) => {
   if (b && !g.bondage?.slave) {
     const away = !b.sneak && !traveling(g) && !isJailed(g) && here(g) !== SITES[b.site]?.place;
     if (away) { b.sneak = true; v.tally.escaped += 1; log(g, '허락 없이 유배지를 떠났다.'); }
+    if (b.sneak) b.until = Math.max(b.until, now) + 1; // 숨어 사는 달은 형기로 치지 않는다 (50단계 헤드: '형기는 다 찼다 · 몰래 돌아와 숨어 있다'가 끝없이 이어지던 것)
     if (!b.sneak && here(g) === SITES[b.site]?.place) { b.pardon = clamp(b.pardon + 0.35 + (courtState(g).favor ?? 0) / 300, 0, 100); v.tally.served += 1; }
     const due = now >= b.until && !b.sneak;
     if (base(g) && !sceneQueued(g, 'exile_pardon') && (amnesty && !b.sneak || due || (!b.sneak && b.pardon >= 60 && r.chance((b.pardon - 50) / 400)))) {
