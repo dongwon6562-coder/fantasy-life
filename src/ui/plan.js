@@ -296,7 +296,7 @@ export function renderPlan(game, ui) {
           ${people.map((p) => `<button class="target" data-target="${p.id}" aria-pressed="${p.id === ui.plan[ui.active].target}">
             ${portrait(game, p, { size: 48 })}
             <span class="nm">${esc(p.name)}</span>
-            <span class="aff ${p.affection >= 20 ? 'pos' : p.affection < 0 ? 'neg' : ''}">${p.affection}</span>
+            <span class="aff ${p.affection >= 20 ? 'pos' : p.affection < 0 ? 'neg' : ''}">${Math.round(p.affection)}</span>
           </button>`).join('')}
         </div>
       </div>` : ''}

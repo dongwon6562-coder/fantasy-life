@@ -3,22 +3,30 @@
 import { f, spline, arch, lerp, clamp } from './portraitKit.js';
 
 /** 그 사람의 머리 모양 고르기. roll은 타고난 값(0~1)이라 나이가 들어도 같은 계열을 유지한다. */
-export function hairStyleOf({ male, stage, roll, old, race, beast }) {
+// 51단계: 머리 모양 가짓수를 늘리고(곱슬·바짝 민 머리·삭발 테·헝클어진 머리·곱슬 긴머리), 하는 일이 머리에 드러나게
+const CLERGY = new Set(['priest', 'bishop', 'acolyte', 'cleric']);
+const ROUGH = new Set(['beggar', 'laborer', 'prisoner', 'miner', 'gang_member', 'pirate', 'trapper', 'dagger']);
+const DRILL = new Set(['soldier', 'knight', 'guard', 'mercenary', 'knight_captain', 'old_knight', 'border_guard', 'demon_warrior']);
+export function hairStyleOf({ male, stage, roll, old, race, beast, job }) {
   if (stage === 'baby') return 'wisp';
   if (race === 'beast' && beast === 'hawk') return 'feathers';
   if (race === 'beast' && beast === 'lion' && male && stage !== 'child') return 'mane';
   if (male) {
-    if (stage === 'child') return roll < 0.45 ? 'short' : roll < 0.8 ? 'shag' : 'crop';
+    if (stage === 'child') return roll < 0.35 ? 'short' : roll < 0.65 ? 'shag' : roll < 0.82 ? 'curly' : 'crop';
     if (race === 'elf' || race === 'half_elf') return roll < 0.5 ? 'longm' : roll < 0.8 ? 'tail' : 'side';
+    if (CLERGY.has(job) && stage !== 'teen' && race !== 'dwarf') return old > 0.5 && roll < 0.3 ? 'bald' : 'tonsure';
     if (old > 0.5 && roll < 0.42) return 'bald';
     if (old > 0.12 && roll < 0.62) return 'recede';
-    return ['crop', 'short', 'side', 'back', 'shag', 'tail', 'longm', 'short', 'side'][Math.floor(roll * 9)];
+    if (DRILL.has(job) && roll < 0.55) return roll < 0.3 ? 'buzz' : 'crop';
+    if (ROUGH.has(job) && roll < 0.5) return 'wild';
+    return ['crop', 'short', 'side', 'back', 'shag', 'tail', 'longm', 'curly', 'buzz', 'wild', 'side', 'curly'][Math.floor(roll * 12)];
   }
-  if (stage === 'child') return roll < 0.4 ? 'braids' : roll < 0.75 ? 'long' : 'bob';
+  if (stage === 'child') return roll < 0.35 ? 'braids' : roll < 0.6 ? 'long' : roll < 0.8 ? 'curlylong' : 'bob';
   if (race === 'elf') return roll < 0.6 ? 'long' : roll < 0.8 ? 'braid' : 'updo';
   if (race === 'dwarf') return roll < 0.5 ? 'braids' : roll < 0.8 ? 'braid' : 'bun'; // 드워프 여인은 굵게 땋는다
-  if (old > 0.55) return roll < 0.6 ? 'bun' : roll < 0.85 ? 'updo' : 'long';
-  return ['long', 'braid', 'bun', 'tailf', 'long', 'updo', 'bob', 'braid', 'long'][Math.floor(roll * 9)];
+  if (old > 0.55) return roll < 0.5 ? 'bun' : roll < 0.75 ? 'updo' : roll < 0.9 ? 'curly' : 'long';
+  if (ROUGH.has(job) && roll < 0.4) return 'wild';
+  return ['long', 'braid', 'bun', 'tailf', 'curlylong', 'updo', 'bob', 'braid', 'long', 'curly', 'tailf', 'wild'][Math.floor(roll * 12)];
 }
 
 /**
@@ -185,6 +193,44 @@ export function drawHair(style, h) {
     return `<path d="${d}" fill="${dark}" stroke="${dark}" stroke-width="0.5"/><path d="${d}" fill="${fillG}" opacity="0.55"/><path d="${st}" fill="none" stroke="${light}" stroke-width="0.5" opacity="0.3"/>`;
   };
 
+  // 51단계: 곱슬 다발 (윤곽 위 동그라미 + 안쪽 말린 결)
+  const curls = (c, long) => {
+    const pts = c.o; let blobs = '', rings = '';
+    const R0 = Math.max(1.6, hw * 0.16);
+    for (let k = 0; k < pts.length - 1; k++) {
+      const [x0, y0] = pts[k], [x1, y1] = pts[k + 1];
+      const steps = Math.max(1, Math.round(Math.hypot(x1 - x0, y1 - y0) / (R0 * (detail ? 1.25 : 1.9)))); // 작은 초상은 다발을 성기게 (용량)
+      for (let s = 0; s < steps; s++) {
+        const t = s / steps, x = lerp(x0, x1, t), y = lerp(y0, y1, t);
+        if (y > (long ? chin + 6 : cy + hh * 0.2)) continue;
+        const rr = R0 * (0.62 + h.r() * 0.75);
+        const nx = x - cx, ny = y - cy, L = Math.hypot(nx, ny) || 1;
+        const jt = (h.r() - 0.5) * rr * 0.7, px = x - (nx / L) * rr * (0.25 + h.r() * 0.4) + (ny / L) * jt, py = y - (ny / L) * rr * (0.25 + h.r() * 0.4) - (nx / L) * jt;
+        blobs += `<circle cx="${f(px)}" cy="${f(py)}" r="${f(rr)}"/>`;
+        if (detail) rings += `M${f(px - rr * 0.5)} ${f(py + rr * 0.1)} a${f(rr * 0.5)} ${f(rr * 0.5)} 0 1 1 ${f(rr * 0.6)} ${f(rr * 0.4)} `;
+      }
+    }
+    let inner = '';
+    if (detail) for (let k = 0; k < 14; k++) { const x = cx + (h.r() - 0.5) * hw * 1.6, y = lerp(top, c.hl, h.r()), rr = R0 * 0.55; inner += `M${f(x - rr)} ${f(y)} a${f(rr)} ${f(rr * 0.8)} 0 1 1 ${f(rr * 1.2)} ${f(rr * 0.5)} `; }
+    return `<g fill="${fillG}" stroke="${dark}" stroke-width="0.4" stroke-opacity="0.6">${blobs}</g>${detail ? `<path d="${rings}${inner}" fill="none" stroke="${dark}" stroke-width="0.45" opacity="0.55"/><path d="${inner}" fill="none" stroke="${light}" stroke-width="0.4" opacity="0.35" transform="translate(-0.4 -0.4)"/>` : ''}`;
+  };
+  const curlFringe = (c) => {
+    let d = '';
+    for (let k = 0; k < 5; k++) { const u = -0.7 + k * 0.35 + (h.r() - 0.5) * 0.1; const x = cx + u * hw * 0.85, y = c.hl + hh * 0.03 + Math.abs(u) * hh * 0.06, rr = hw * 0.13; d += `<circle cx="${f(x)}" cy="${f(y)}" r="${f(rr)}"/>`; }
+    return `<g fill="${fillG}" stroke="${dark}" stroke-width="0.4" stroke-opacity="0.6">${d}</g>`;
+  };
+  // 51단계: 헝클어진 다발 (윤곽 밖으로 뾰족)
+  const spikes = (c) => {
+    let d = '';
+    for (const [x, y] of c.o) {
+      if (y > cy + hh * 0.3 || h.r() < 0.5) continue;
+      const nx = x - cx, ny = y - (cy - hh * 0.1), L = Math.hypot(nx, ny) || 1, ux = nx / L, uy = ny / L;
+      const len = 1.5 + h.r() * 2.2, w = 2 + h.r() * 1.4, tw = (h.r() - 0.5) * 3.4 + (x < cx ? -1 : 1) * 1.2;
+      d += `M${f(x - uy * w - ux)} ${f(y + ux * w - uy)} Q${f(x + ux * len * 0.5)} ${f(y + uy * len * 0.5)} ${f(x + ux * len - uy * tw)} ${f(y + uy * len + ux * tw)} Q${f(x + ux * len * 0.4)} ${f(y + uy * len * 0.4)} ${f(x + uy * w - ux)} ${f(y - ux * w - uy)}Z `;
+    }
+    return `<path d="${d}" fill="${hair}" stroke="${dark}" stroke-width="0.35" stroke-linejoin="round"/>`;
+  };
+
   const cov = h.covered;
   const need = (layer) => !(cov === 'top' && layer !== 'back');
 
@@ -283,13 +329,13 @@ export function drawHair(style, h) {
     case 'braid': {
       const c = cap({ v: 2.5, drop: hh * 0.2 });
       out.front = capDraw(c, strands(c, { ox: part * hw * 0.3 })) + fringe('sweep', c);
-      out.mid = braid(along(cx + part * (hw * 0.78), cy + hh * 0.66, cx + part * (hw * 0.5), chin + 27, 9, part * 4.4), 3.3, 2.3);
+      out.mid = braid(along(cx + part * (hw * 0.97), cy + hh * 0.16, cx + part * (hw * 0.62), chin + 27, 11, part * 4.4), 3.3, 2.3); // 51단계 둘째: 머리 덮개 아래에서 시작해 머리와 이어지게
       break;
     }
     case 'braids': {
       const c = cap({ v: 2.5, drop: hh * 0.2 });
       out.front = capDraw(c, strands(c, { ox: 0 })) + fringe(h.peak > 0.5 ? 'bangs' : 'curtain', c);
-      out.mid = [-1, 1].map((s) => braid(along(cx + s * (hw * 0.9), cy + hh * 0.5, cx + s * (hw * 0.8), chin + 18, 7, s * 3), 2.7, 1.9)).join('');
+      out.mid = [-1, 1].map((s) => braid(along(cx + s * (hw * 0.97), cy + hh * 0.16, cx + s * (hw * 0.82), chin + 18, 9, s * 3), 2.7, 1.9)).join('');
       break;
     }
     case 'bun': {
@@ -308,11 +354,41 @@ export function drawHair(style, h) {
       const c = cap({ v: 2.3, drop: hh * 0.02 });
       out.front = capDraw(c, strands(c, { ox: 0, back: true })) + (h.peak > 0.45 ? fringe('sweep', c) : fringe('curtain', c)) + (h.peak > 0.8 ? fringe('strand', c) : '');
       {
-        const x0 = cx + part * hw * 0.62, y0 = cy + hh * 0.86;
-        const R1 = [[x0 + part * 2.2, y0], [x0 + part * 5.4, y0 + 7], [x0 + part * 4.6, y0 + 16], [x0 + part * 1.4, y0 + 26]];
-        const R2 = [[x0 - part * 1.6, y0 + 25], [x0 + part * 0.6, y0 + 15], [x0 + part * 1.2, y0 + 7], [x0 - part * 0.6, y0 + 1]];
-        out.mid = `<path d="${spline(R1)} L${f(R2[0][0])} ${f(R2[0][1])} ${spline(R2, false, false)}Z" fill="${fillG}" ${line}/>${detail ? `<path d="M${f(x0 + part * 2.4)} ${f(y0 + 4)} q${f(part * 2)} 9 ${f(-part * 1.6)} 20" fill="none" stroke="${dark}" stroke-width="0.4" opacity="0.6"/>` : ''}<path d="M${f(x0 - part * 0.4)} ${f(y0 + 2)} l${f(part * 3)} 0.8" stroke="#8a6d38" stroke-width="1.2" stroke-linecap="round"/>`;
+        // 51단계 둘째: 꼬리가 머리와 떨어져 어깨 위에 혼자 서 있었다. 귀 뒤에서 묶어 목 옆을 따라 어깨로 늘어뜨린다 (머리 덮개 아래에서 시작해 이어져 보인다)
+        const X = (d) => cx + part * d;
+        const R1 = [[X(hw * 0.82), cy - hh * 0.12], [X(hw + 1.6), cy + hh * 0.2], [X(hw + 3.2), cy + hh * 0.62], [X(hw + 2.8), chin + 7], [X(hw + 1.2), chin + 19]];
+        const R2 = [[X(hw - 1.4), chin + 18], [X(hw - 0.2), chin + 6], [X(hw + 0.4), cy + hh * 0.6], [X(hw * 0.86), cy + hh * 0.22], [X(hw * 0.7), cy - hh * 0.1]];
+        const ty = cy + hh * 0.3;
+        out.mid = `<path d="${spline(R1)} L${f(R2[0][0])} ${f(R2[0][1])} ${spline(R2, false, false)}Z" fill="${fillG}" ${line}/>${detail ? `<path d="M${f(X(hw + 1.2))} ${f(ty + 3)} Q${f(X(hw + 2.6))} ${f(chin)} ${f(X(hw + 0.4))} ${f(chin + 16)}" fill="none" stroke="${dark}" stroke-width="0.4" opacity="0.6"/>` : ''}<path d="M${f(X(hw - 0.2))} ${f(ty)} L${f(X(hw + 2.4))} ${f(ty + 0.9)}" stroke="#8a6d38" stroke-width="1.3" stroke-linecap="round"/>`;
       }
+      break;
+    }
+    case 'curly':
+    case 'curlylong': {
+      // 51단계: 곱슬머리. 윤곽을 따라 둥근 다발이 몽글몽글 솟고, 안에는 말린 결
+      const long = style === 'curlylong';
+      const c = cap({ v: long ? 3.6 : 3.2, drop: long ? hh * 0.36 : hh * 0.06, flare: long ? 2.2 : 1.2, lock: long ? 10 : 0 });
+      if (long) out.back = backMass(h.bottom ? Math.min(h.bottom, chin + 24) : chin + 24, 7, 4.4);
+      out.front = capDraw(c, curls(c, long)) + (h.peak > 0.5 ? curlFringe(c) : '');
+      break;
+    }
+    case 'buzz': {
+      // 51단계: 바짝 민 머리. 머리통 모양이 그대로 드러나고 결 대신 짧은 털 기운만
+      const c = cap({ v: 0.35, drop: -hh * 0.1, hl: hlBase - hh * 0.04, peak: h.peak * 1.2 });
+      out.front = `<path d="${c.d}" fill="${hair}" opacity="0.82" ${line}/>` + (detail ? `<path d="${c.d}" fill="${dark}" opacity="0.25" filter="url(#${uid}xm)"/>` : '') + `<path d="M${f(cx - hw * 0.7)} ${f(top + hh * 0.18)} Q${f(cx - hw * 0.2)} ${f(top + hh * 0.02)} ${f(cx + hw * 0.2)} ${f(top + hh * 0.06)}" fill="none" stroke="${light}" stroke-width="1.6" stroke-linecap="round" opacity="0.3"/>`;
+      break;
+    }
+    case 'tonsure': {
+      // 51단계: 사제의 삭발 테. 정수리는 맨살, 귀 위로 머리 띠가 빙 두른다
+      const ring = [-1, 1].map((s) => `<path d="M${f(cx + s * hw * 0.55)} ${f(top + hh * 0.2)} Q${f(cx + s * (hw + 2.6))} ${f(top + hh * 0.3)} ${f(cx + s * (hw + 1.6))} ${f(cy + hh * 0.1)} L${f(cx + s * hw * 0.94)} ${f(cy + hh * 0.08)} Q${f(cx + s * hw * 0.93)} ${f(top + hh * 0.5)} ${f(cx + s * hw * 0.45)} ${f(top + hh * 0.34)}Z" fill="${fillG}" ${line}/>`).join('');
+      const brow = `<path d="M${f(cx - hw * 0.62)} ${f(top + hh * 0.3)} Q${cx} ${f(top + hh * 0.2)} ${f(cx + hw * 0.62)} ${f(top + hh * 0.3)} L${f(cx + hw * 0.5)} ${f(top + hh * 0.42)} Q${cx} ${f(top + hh * 0.34)} ${f(cx - hw * 0.5)} ${f(top + hh * 0.42)}Z" fill="${fillG}" ${line}/>`;
+      out.front = ring + brow + `<path d="M${f(cx - hw * 0.35)} ${f(top + hh * 0.1)} Q${cx} ${f(top + hh * 0.02)} ${f(cx + hw * 0.2)} ${f(top + hh * 0.08)}" fill="none" stroke="#fff6e6" stroke-width="1.8" stroke-linecap="round" opacity="0.22"/>`;
+      break;
+    }
+    case 'wild': {
+      // 51단계: 헝클어진 머리. 윤곽 밖으로 뾰족한 다발이 제멋대로 뻗는다
+      const c = cap({ v: 3.4, drop: hh * 0.22, flare: 1.6 });
+      out.front = capDraw(c, spikes(c) + strands(c, { n: 9 })) + fringe(h.peak > 0.5 ? 'strand' : 'curtain', c);
       break;
     }
     default: {
@@ -335,9 +411,10 @@ export function beardOf({ male, stage, roll, old, race, job, rough }) {
   if (rough) return roll < 0.55 ? 'stubble' : roll < 0.85 ? 'full' : 'short'; // 면도할 형편이 못 되는 사람
   const wise = job === 'elder' || job === 'court_mage' || job === 'hedge_mage' || job === 'bishop' || job === 'scholar';
   if (old > 0.45 && wise && roll < 0.7) return 'long';
+  // 51단계 둘째: 수염 가짓수 (턱끈·갈래·둥근·팔자 콧수염)
   const table = stage === 'adult'
-    ? [['none', 0.34], ['stubble', 0.22], ['mustache', 0.07], ['goatee', 0.08], ['short', 0.17], ['full', 0.12]]
-    : [['none', 0.2], ['stubble', 0.14], ['mustache', 0.12], ['goatee', 0.1], ['short', 0.2], ['full', 0.18], ['long', 0.06]];
+    ? [['none', 0.3], ['stubble', 0.18], ['mustache', 0.05], ['handlebar', 0.04], ['goatee', 0.07], ['circle', 0.06], ['chinstrap', 0.05], ['short', 0.15], ['full', 0.1]]
+    : [['none', 0.18], ['stubble', 0.1], ['mustache', 0.08], ['handlebar', 0.05], ['goatee', 0.07], ['circle', 0.07], ['chinstrap', 0.04], ['short', 0.17], ['full', 0.16], ['long', 0.05], ['forked', 0.03]];
   let x = roll;
   for (const [k, w] of table) { x -= w; if (x < 0) return k === 'none' ? null : k; }
   return null;
@@ -356,20 +433,43 @@ export function drawBeard(kind, h, m) {
   const stache = (droop = 0, thick = 1) => `<path d="M${cx} ${f(m.my - 2.5 * thick)} C${f(cx + m.mw * 0.5)} ${f(m.my - 3.6 * thick)} ${f(cx + m.mw * 1.0)} ${f(m.my - 1.4)} ${f(cx + m.mw + 2)} ${f(m.my + 0.8 + droop)} C${f(cx + m.mw * 0.7)} ${f(m.my - 0.2)} ${f(cx + m.mw * 0.3)} ${f(m.my - 0.9)} ${cx} ${f(m.my - 0.6)} C${f(cx - m.mw * 0.3)} ${f(m.my - 0.9)} ${f(cx - m.mw * 0.7)} ${f(m.my - 0.2)} ${f(cx - m.mw - 2)} ${f(m.my + 0.8 + droop)} C${f(cx - m.mw * 1.0)} ${f(m.my - 1.4)} ${f(cx - m.mw * 0.5)} ${f(m.my - 3.6 * thick)} ${cx} ${f(m.my - 2.5 * thick)}Z" fill="${fillG}" ${line}/>${detail ? `<path d="M${f(cx - m.mw * 0.6)} ${f(m.my - 2.4)} l-1.6 1.8 M${f(cx + m.mw * 0.6)} ${f(m.my - 2.4)} l1.6 1.8 M${f(cx - 1)} ${f(m.my - 2.4)} v1.4 M${f(cx + 1)} ${f(m.my - 2.4)} v1.4" stroke="${dark}" stroke-width="0.35" opacity="0.6"/>` : ''}`;
   const stubble = (op) => `<path d="M${f(cx - hw * 0.93)} ${f(cy + hh * 0.2)} C${f(cx - hw * 0.8)} ${f(cy + hh * 0.5)} ${f(cx - m.mw - 3)} ${f(m.my - 3.4)} ${cx} ${f(m.my - 3.2)} C${f(cx + m.mw + 3)} ${f(m.my - 3.4)} ${f(cx + hw * 0.8)} ${f(cy + hh * 0.5)} ${f(cx + hw * 0.93)} ${f(cy + hh * 0.2)} L${f(cx + hw)} ${f(chin + 2)} L${f(cx - hw)} ${f(chin + 2)}Z" fill="${hair}" opacity="${op}" clip-path="url(#${uid}h)"/>`;
   if (kind === 'stubble') { res.under = stubble(0.2); return res; }
-  if (kind === 'mustache') { res.under = stubble(0.07); res.over = stache(1.2, 1.15); return res; }
-  if (kind === 'goatee') {
-    res.under = stubble(0.06) + `<path d="M${f(cx - m.mw - 0.6)} ${f(m.my + 0.6)} C${f(cx - m.mw - 1.6)} ${f(m.my + 5)} ${f(cx - hw * m.chinW - 1)} ${f(chin + 1)} ${cx} ${f(chin + 3.4)} C${f(cx + hw * m.chinW + 1)} ${f(chin + 1)} ${f(cx + m.mw + 1.6)} ${f(m.my + 5)} ${f(cx + m.mw + 0.6)} ${f(m.my + 0.6)} C${f(cx + m.mw * 0.6)} ${f(m.my + 4.4)} ${f(cx - m.mw * 0.6)} ${f(m.my + 4.4)} ${f(cx - m.mw - 0.6)} ${f(m.my + 0.6)}Z" fill="${fillG}" ${line}/>`;
-    res.over = stache(1, 1);
+  if (kind === 'handlebar') {
+    // 끝을 말아 올린 콧수염
+    res.under = stubble(0.06);
+    res.over = stache(-0.6, 1.1) + [-1, 1].map((s) => `<path d="M${f(cx + s * (m.mw + 1.6))} ${f(m.my + 0.2)} q${f(s * 1.8)} 0.4 ${f(s * 2.4)} -1.6 q${f(-s * 0.2)} -1.2 ${f(-s * 1.2)} -0.8" fill="none" stroke="${dark}" stroke-width="0.9" stroke-linecap="round"/>`).join('');
     return res;
   }
-  const len = { short: 1.6, full: 6.5, long: 17, braided: 15 }[kind] ?? 3;
+  if (kind === 'chinstrap' || kind === 'mutton') {
+    // 턱선을 따라가는 띠 수염 / 귀밑에서 뺨으로 내려오는 구레나룻 (턱끝은 비운다)
+    const H = m.headR, w = kind === 'mutton' ? hw * 0.2 : 1.6;
+    const pts = kind === 'mutton' ? [H[3], H[4], H[5]] : [H[3], H[4], H[5], H[6], H[7], H[8]];
+    let d = '';
+    for (const s of [-1, 1]) {
+      const P2 = pts.map(([x, y]) => [cx + s * (x - cx), y]);
+      const inner = P2.map(([x, y]) => [x - s * w * (y > chin - 1 ? 0 : 1), y - (y > chin - 1 ? w : 0)]).reverse();
+      d += `M${f(P2[0][0])} ${f(P2[0][1] - hh * 0.08)} ${P2.map(([x, y]) => `L${f(x + s * 0.5)} ${f(y + 0.4)}`).join(' ')} ${inner.map(([x, y]) => `L${f(x)} ${f(y)}`).join(' ')}Z `;
+    }
+    res.under = stubble(0.05) + `<path d="${d}" fill="${fillG}" ${line}/>`;
+    if (kind === 'mutton') res.over = stache(0.6, 1.0);
+    return res;
+  }
+  if (kind === 'mustache') { res.under = stubble(0.07); res.over = stache(1.2, 1.15); return res; }
+  if (kind === 'goatee' || kind === 'circle') {
+    res.under = stubble(0.06) + `<path d="M${f(cx - m.mw - 0.6)} ${f(m.my + 0.6)} C${f(cx - m.mw - 1.6)} ${f(m.my + 5)} ${f(cx - hw * m.chinW - 1)} ${f(chin + 1)} ${cx} ${f(chin + 3.4)} C${f(cx + hw * m.chinW + 1)} ${f(chin + 1)} ${f(cx + m.mw + 1.6)} ${f(m.my + 5)} ${f(cx + m.mw + 0.6)} ${f(m.my + 0.6)} C${f(cx + m.mw * 0.6)} ${f(m.my + 4.4)} ${f(cx - m.mw * 0.6)} ${f(m.my + 4.4)} ${f(cx - m.mw - 0.6)} ${f(m.my + 0.6)}Z" fill="${fillG}" ${line}/>`;
+    res.over = stache(1, 1);
+    if (kind === 'circle') res.under += [-1, 1].map((s) => `<path d="M${f(cx + s * (m.mw + 1.8))} ${f(m.my + 0.6)} q${f(s * 0.6)} 2 ${f(-s * 1.2)} 3.4 l${f(-s * 0.9)} -0.4 q${f(s * 0.9)} -1.4 ${f(s * 0.4)} -3Z" fill="${fillG}" ${line}/>`).join(''); // 콧수염과 턱수염이 입가로 이어진다
+    return res;
+  }
+  const len = { short: 1.6, full: 6.5, long: 17, braided: 15, forked: 14 }[kind] ?? 3;
   const wide = kind === 'braided' ? 3 : kind === 'long' ? 0.6 : kind === 'full' ? 1.2 : 0.3;
   // 얼굴 윤곽(m.headR: 광대 3 → 턱 5 → 턱끝 8)을 따라간다
   const H = m.headR;
   const taper = kind === 'braided' ? 0.85 : len > 10 ? 0.55 : 1;
   const outerR = [[H[3][0] - 0.1, H[3][1] - hh * 0.1], [H[4][0] + 0.3 + wide * 0.4, H[4][1]], [H[5][0] + 0.6 + wide, H[5][1] + len * 0.08], [H[6][0] * taper + cx * (1 - taper) + 0.9 + wide, H[6][1] + len * 0.34], [(H[7][0] - cx) * taper * 0.9 + cx + 0.6, H[7][1] + len * 0.78], [cx, chin + len]];
   const innerR = [[cx, m.my - 2.7], [cx + m.mw * 0.85, m.my - 2.4], [cx + m.mw + 2.8, m.my - 0.5], [H[4][0] - hw * 0.13, H[4][1] - hh * 0.05], [H[3][0] - hw * 0.1, H[3][1] - hh * 0.08]];
-  const o = arch(cx, outerR.slice().reverse()), i = arch(cx, innerR).reverse();
+  const oR = outerR.slice().reverse();
+  if (kind === 'forked') { oR[0] = [cx, chin + len * 0.62]; oR.splice(1, 0, [cx + 3, chin + len]); } // 갈래 수염: 끝이 둘로 갈린다
+  const o = arch(cx, oR), i = arch(cx, innerR).reverse();
   // o: 왼쪽 위 → 아래 가운데 → 오른쪽 위, i: 오른쪽 위 → 가운데 → 왼쪽 위
   const d = `${spline(o)} L${f(i[0][0])} ${f(i[0][1])} ${spline(i, false, false)}Z`;
   let st = '';

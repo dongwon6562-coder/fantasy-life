@@ -160,7 +160,7 @@ export function visitPerson(g, rng, p) {
   const long = p.lastSeen != null && mi(g) - p.lastSeen > 12;
   let gain = rng.int(4, 9) + (has(p, 'kind') ? 2 : 0) - (has(p, 'cruel') ? 3 : 0) + (long ? 2 : 0);
   if (r === 'enemy') gain = Math.round(gain / 3);
-  if (!['father', 'mother', 'sibling', 'child', 'spouse'].includes(r)) gain = Math.max(r === 'enemy' ? 0 : 1, gain + reputationShift(g, p) + affinityOf(g, p));
+  if (!['father', 'mother', 'sibling', 'child', 'spouse'].includes(r)) gain = Math.max(r === 'enemy' ? 0 : 1, Math.round(gain + reputationShift(g, p) + affinityOf(g, p)));
   p.affection = Math.min(100, p.affection + gain);
   const c = gainStat(g, 'cha', 0.4);
   if (canRomance(g, p)) {
@@ -744,7 +744,11 @@ EVENTS.push(
     title: '문 두드리는 소리',
     text: (g) => {
       const p = missingFriend(g);
-      return `저녁 무렵 누가 문을 두드렸다. ${J(p.name, '이었/였')}다. "요즘 통 얼굴을 못 봐서." 손에는 뭔가 먹을 것이 들려 있었다.`;
+      // 51단계: 여섯 살에도 마흔 살에도 똑같던 글을 나이에 맞게
+      const a = playerAge(g), v = (p.id + Math.floor(mi(g) / 12)) % 2;
+      if (a < 13) return v ? `${J(p.name, '이/가')} 담 너머로 고개를 내밀었다. "너 요즘 왜 안 나와?" 손에 구운 밤을 한 줌 쥐고 있었다.` : `저녁 무렵 누가 문을 두드렸다. ${J(p.name, '이었/였')}다. "요즘 통 얼굴을 못 봐서." 손에는 뭔가 먹을 것이 들려 있었다.`;
+      if (a < 40) return v ? `저녁 무렵 누가 문을 두드렸다. ${J(p.name, '이었/였')}다. 술병을 들어 보이며 웃었다. "얼굴 잊어버리겠다."` : `저녁 무렵 누가 문을 두드렸다. ${J(p.name, '이었/였')}다. "요즘 통 얼굴을 못 봐서." 손에는 뭔가 먹을 것이 들려 있었다.`;
+      return v ? `${J(p.name, '이/가')} 지팡이를 짚고 문 앞에 서 있었다. "이 나이엔 안 보이면 걱정이 돼서 말이야."` : `저녁 무렵 누가 문을 두드렸다. ${J(p.name, '이었/였')}다. "살아는 있나 보러 왔지." 손에는 말린 과일 한 봉지가 들려 있었다.`;
     },
     choices: [
       { label: '반갑게 맞아들인다', run: (g) => {

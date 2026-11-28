@@ -431,14 +431,21 @@ defineScene('faith_convert', {
     const f = F(g);
     const out = OPEN_GODS.filter((x) => x !== f.god && GODS[x].shrines[here(g)]).map((x) => (canConvert(g, x)
       ? { label: `${J(GODS[x].deity, '을/를')} 섬기기로 한다`, key: x }
-      : { label: `${GODS[x].name}의 이야기만 듣는다 (같은 핏줄이 아니면 받아 주지 않는다)`, key: 'listen' }));
+      : { label: `${GODS[x].name}의 이야기만 듣는다 (같은 핏줄이 아니면 받아 주지 않는다)`, key: 'listen:' + x }));
     if (!out.length) return [];
     out.push({ label: '이야기만 듣고 돌아간다', key: 'listen' });
     return out;
   },
   resolve(g, rng, s, key) {
     const f = F(g);
-    if (key === 'listen' || !GODS[key]) { gainStat(g, 'int', 0.3); return '사제는 아니, 제관은 서두르지 않았다. "마음이 정해지면 다시 오시오." 돌아오는 길에 들은 이야기를 여러 번 되새겼다.'; }
+    if (key === 'listen' || !GODS[key]) {
+      // 51단계: 누가 이야기해 줬는지가 신앙마다 다르다 ('사제는 아니, 제관은'이 늘 똑같이 나왔다)
+      gainStat(g, 'int', 0.3);
+      const x = String(key).startsWith('listen:') ? key.slice(7) : OPEN_GODS.find((y) => y !== f.god && GODS[y].shrines[here(g)]);
+      const who = { solar: '사제', earth: '할머니 제관', tree: '나무지기', ancestor: '토템 기둥을 지키는 장로', sea: '포구의 무녀' }[x] ?? '제관';
+      const last = ['돌아오는 길에 들은 이야기를 여러 번 되새겼다.', '그날 밤 들은 이야기가 오래 귓가에 남았다.', '마음이 쉽게 정해지지 않았다.'][(f.listened = (f.listened ?? 0) + 1) % 3];
+      return `${J(who, '은/는')} 서두르지 않았다. "마음이 정해지면 다시 오시오." ${last}`;
+    }
     if (!canConvert(g, key)) return '그들은 나를 받아 주지 않았다.';
     const prev = f.god;
     f.god = key;

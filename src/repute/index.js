@@ -245,11 +245,13 @@ HOOKS.afterMonth.push((g, rng) => {
 });
 
 /* ---------- 거짓 소문 ---------- */
+// 소문 글 끝('~더라', '~고 한다.')을 떼어 '~다는 말'로 잇는다 (51단계: '졌다고 한다.는 말' 고침)
+const said = (t) => String(t).replace(/\.$/, '').replace(/(는 말이 돈다|고 수군대는 사람이 있다|더라|고 한다)$/, '');
 defineScene('repute_lie', {
   title: () => '도는 소문',
   text: (g, s) => {
     const x = R(g).rumors.find((y) => y.id === s.rid);
-    return `장터에서 사람들이 나를 보고 수군거렸다. 귀를 기울여 보니, 내가 ${x.text.replace(/더라$/, '')}는 것이다. 그런 일은 없었다. ${(x.str[here(g)] ?? 0) >= 60 ? '벌써 모르는 사람이 없는 눈치다.' : '아직은 몇몇만 아는 것 같다.'}`;
+    return `장터에서 사람들이 나를 보고 수군거렸다. 귀를 기울여 보니, '${said(x.text)}'는 것이다. 그런 일은 없었다. ${(x.str[here(g)] ?? 0) >= 60 ? '벌써 모르는 사람이 없는 눈치다.' : '아직은 몇몇만 아는 것 같다.'}`;
   },
   choices: (g, s) => {
     const x = R(g).rumors.find((y) => y.id === s.rid);
@@ -359,7 +361,7 @@ ACTIONS.push({
     if (check(rng, v, 30)) {
       addFame(g, pl, 2.5);
       if (best) { best.str[pl] = Math.min(100, (best.str[pl] ?? 0) + 25); for (const n of nearOf(pl)) best.str[n] = Math.max(best.str[n] ?? 0, 20); }
-      return `${paid ? '한 순배 술을 돌리고 ' : ''}이야기를 풀었다. ${best ? `내가 ${best.text.replace(/더라$/, '')}는 이야기에 사람들이 잔을 내려놓았다.` : '대단한 이야기는 아니었지만 사람들은 내 이름을 기억했다.'}${gains([up('이름', 2.5)])}`;
+      return `${paid ? '한 순배 술을 돌리고 ' : ''}이야기를 풀었다. ${best ? `'${said(best.text)}'는 이야기에 사람들이 잔을 내려놓았다.` : '대단한 이야기는 아니었지만 사람들은 내 이름을 기억했다.'}${gains([up('이름', 2.5)])}`;
     }
     deed(g, 'honest', -2, rng.chance(0.5) ? '술만 들어가면 제 자랑을 늘어놓는다더라' : null);
     return [
@@ -399,9 +401,9 @@ ACTIONS.push({
     // 사실인 소문은 사과와 보상으로만 누그러진다
     if (check(rng, g.player.stats.cha * 0.5 + g.player.stats.wil * 0.3, 40 + Math.abs(x.val))) {
       x.str[pl] *= 0.5;
-      return `변명하지 않았다. 내가 ${x.text.replace(/더라$/, '')}는 말이 사실이라고 인정하고 고개를 숙였다. 사람들은 놀랐고, 몇몇은 용서했다.`;
+      return `변명하지 않았다. '${said(x.text)}'는 말이 사실이라고 인정하고 고개를 숙였다. 사람들은 놀랐고, 몇몇은 용서했다.`;
     }
-    return `해명하려 했지만 ${x.text.replace(/더라$/, '')}는 말은 사실이었다. 사람들은 다 알고 있다는 얼굴로 듣기만 했다.`;
+    return `해명하려 했지만 '${said(x.text)}'는 말은 사실이었다. 사람들은 다 알고 있다는 얼굴로 듣기만 했다.`;
   },
 });
 ACTIONS.push({
