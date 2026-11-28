@@ -170,6 +170,26 @@ for (const k of ['bh_board', 'bh_corner', 'bh_rival', 'bh_kin']) if (!seen[k]) f
   if (ids.length) fail('bh actions where they mean nothing', ids);
 }
 
+// 11) 한 사람은 한 장만: 잡혀 넘어간 이름은 다시 붙지 않고, 게시판에 같은 이름이 둘 붙지 않는다
+{
+  const g = hunter(5013); join(g);
+  const s = bountyState(g), r = rngOf(g);
+  const first = makeHuntPost(g, r, 'harfen'); Object.assign(first, { kind: 'debtor', loc: 'harfen', need: 0, wrong: false, pow: -50, until: 999999 }); takePost(g, first);
+  s.me.known = true; show(g, 'bh_corner', { post: first.id }, 0);
+  if (first.end !== 'caught') fail('setup capture', first.end);
+  for (let i = 0; i < 300; i++) {
+    const p = makeHuntPost(g, r, 'harfen');
+    if (p.name === first.name) { fail('caught man posted again', p.name); break; }
+    if (i % 3 === 0) { p.end = 'rival'; s.taken.push(p.name); }
+    if (s.posts.length > 60) s.posts = s.posts.filter((x) => !x.end || x === first);
+  }
+  const open = s.posts.filter((p) => !p.end).map((p) => p.name);
+  if (new Set(open).size !== open.length) fail('same name twice on board', open.length - new Set(open).size);
+  for (let m = 0; m < 240; m++) month(g);
+  const names = s.posts.filter((p) => !p.end).map((p) => p.name);
+  if (new Set(names).size !== names.length) fail('same name twice after years');
+}
+
 // 10) 50단계 장면(현상금·마녀·마을 회의)은 제 판을 고른다
 {
   const { BH_ART, WI_ART, CN_ART } = await import('../src/art/vignettePlates27.js');

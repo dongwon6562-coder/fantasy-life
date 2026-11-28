@@ -37,7 +37,11 @@ export function makePost(g, rng, hall, o = {}) {
   for (const [k, v] of Object.entries(w)) { if ((r -= v) < 0) { kind = k; break; } }
   const K = KINDS[kind];
   const sex = kind === 'witch' ? (rng.chance(0.75) ? 'f' : 'm') : rng.chance(kind === 'debtor' ? 0.3 : 0.15) ? 'f' : 'm';
-  let name = `${pick(rng, NICKS)} ${pick(rng, sex === 'f' ? NAMES_F : NAMES_M)}`, pid = null, crime = pick(rng, K.crimes);
+  // 한 사람은 한 장만: 게시판에 있거나 이미 잡히고 베인 이름, 내가 잡은 사람 식구가 말하는 이름은 다시 쓰지 않는다
+  const used = new Set([...s.posts.map((x) => x.name), ...(s.taken ?? []), ...s.kin.map((k) => k.of)]);
+  let name = null;
+  for (let i = 0; i < 24 && (name == null || used.has(name)); i++) name = `${pick(rng, NICKS)} ${pick(rng, sex === 'f' ? NAMES_F : NAMES_M)}`;
+  let pid = null, crime = pick(rng, K.crimes);
   if (kind === 'escapee' && real) { name = fullName(real.p); pid = real.p.id; crime = `${placeName(real.from)} 감옥에서 달아났다`; }
   if (kind === 'outlaw' && liveBands(g).length) { const b = pick(rng, liveBands(g)); crime = `${b.name}에 끼어 ${pick(rng, ['길목에서 상단을 털었다', '역참을 불태웠다', '세금 수레를 덮쳤다'])}`; }
   if (kind === 'pirate' && pirateBands(g).length) { const b = pick(rng, pirateBands(g)); crime = `${b.name} 배를 타고 ${pick(rng, ['상선을 털었다', '세관 배를 불태웠다', '어촌을 덮쳤다'])}`; }
@@ -58,7 +62,9 @@ export function makePost(g, rng, hall, o = {}) {
 
 function endPost(g, p, how) {
   p.end = how; p.endAt = mi(g);
-  B(g).done += 1;
+  const s = B(g); s.done += 1;
+  // 잡히거나 베인 사람 이름은 오래 기억된다 (방이 지워진 뒤에도 같은 얼굴이 다시 붙지 않게)
+  if (/^(caught|killed|rival)$/.test(how)) { (s.taken ??= []).push(p.name); if (s.taken.length > 80) s.taken.splice(0, s.taken.length - 80); }
   if (p.pid != null && (how === 'rival' || how === 'caught')) {
     const q = byId(g, p.pid);
     if (q?.alive) { q.history.push({ y: g.date.year, m: g.date.month, text: `현상금 사냥꾼에게 붙잡혀 ${placeName(p.hall)}로 끌려갔다.` }); q.place = p.hall; }
