@@ -198,7 +198,12 @@ export const PI_ART = {
   pi_share: 'heist:split', pi_trial: 'heist:plan', pi_vote: 'heist:plan', pi_oldsalt: 'tavern:hall',
   pi_letter: 'envoy:table', pi_letter_end: 'envoy:table', pi_mapseller: 'survey:shop', pi_dig: 'ruins:dig',
 };
-export const SX_ART = {};
+export const SX_ART = {
+  sx_preach: 'sect:preach', sx_sermon: 'sect:preach', sx_invite: 'spy:recruit',
+  sx_gather: 'sect:worship', sx_miracle: 'sect:worship', sx_name: 'sect:worship', sx_found: 'sect:worship', sx_disciple: 'sect:worship', sx_legacy: 'sect:worship',
+  sx_trial: 'sect:trial', sx_raid: 'sect:trial', sx_warn: 'chapel:inquisition',
+  sx_doubt: 'credit:ledger', sx_kin: 'stepfamily:table', sx_split: 'newage:meeting', sx_patron: 'society:salon', sx_crown: 'envoy:table', sx_reform: 'square:notice',
+};
 const PI_WORDS = [[/사냥|함대|군선|쫓|토벌|hunt|navy/, 'pirates:hunt'], [/털|습격|갈고리|넘어|약탈|붙었|raid|board/, 'pirates:raid']];
 const SX_WORDS = [[/심문|이단|재판|화형|파문|trial|heresy|inquisit/, 'sect:trial'], [/모임|예배|기도|집회|신도|worship|gather/, 'sect:worship'], [/설교|예언|외쳤|광장|preach|prophet/, 'sect:preach']];
 const byWords = (table, ...texts) => { for (const t of texts) for (const [re, art] of table) if (re.test(t)) return art; return null; };
