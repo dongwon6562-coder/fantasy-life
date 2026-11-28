@@ -56,12 +56,12 @@ function bank(ctx, o) {
   const body = P.snow ? mixh(ground, S.sh ?? '#8899aa', night ? 0.7 : 0.18) : shade(ground, 0.34);
   const g = ctx.createLinearGradient(0, H - 90, 0, H);
   g.addColorStop(0, body); g.addColorStop(1, dark(body, 0.35));
-  ctx.fillStyle = g; ctx.beginPath(); ctx.moveTo(VIS0 - 60, H);
-  for (let x = VIS0 - 60; x <= VIS1 + 60; x += 8) ctx.lineTo(x, top(x));
-  ctx.lineTo(VIS1 + 60, H); ctx.closePath(); ctx.fill();
+  ctx.fillStyle = g; ctx.beginPath(); ctx.moveTo(-10, H);
+  for (let x = -10; x <= W + 10; x += 8) ctx.lineTo(x, top(x));
+  ctx.lineTo(W + 10, H); ctx.closePath(); ctx.fill();
   // 등성이에 닿는 빛 (해를 마주 보는 쪽)
-  ctx.save(); ctx.beginPath(); ctx.moveTo(VIS0 - 60, H);
-  for (let x = VIS0 - 60; x <= VIS1 + 60; x += 8) ctx.lineTo(x, top(x)); ctx.lineTo(VIS1 + 60, H); ctx.closePath(); ctx.clip();
+  ctx.save(); ctx.beginPath(); ctx.moveTo(-10, H);
+  for (let x = -10; x <= W + 10; x += 8) ctx.lineTo(x, top(x)); ctx.lineTo(W + 10, H); ctx.closePath(); ctx.clip();
   for (let i = 0; i < 26; i++) { const x = VIS0 + R() * (VIS1 - VIS0), y = top(x) + 6 + R() * 26; puff(ctx, x, y, 50 + R() * 90, 6 + R() * 8, i % 3 ? lit(body, 0.18) : dark(body, 0.2), 0.32); }
   if (P.snow) { // 눈 둔덕: 푸른 그늘과 빛 받는 결
     for (let i = 0; i < 18; i++) { const x = VIS0 + R() * (VIS1 - VIS0), y = top(x) + 10 + R() * 30; puff(ctx, x, y, 70 + R() * 80, 5 + R() * 6, night ? '#2a3448' : '#9fb0c8', 0.35); }
@@ -70,7 +70,7 @@ function bank(ctx, o) {
   ctx.restore();
   // 등성이 테두리 빛
   ctx.strokeStyle = rgba(backlit ? S.glow : S.lit, night ? 0.12 : backlit ? 0.5 : 0.22); ctx.lineWidth = 1.4; ctx.beginPath();
-  for (let x = VIS0 - 60; x <= VIS1 + 60; x += 8) x === VIS0 - 60 ? ctx.moveTo(x, top(x) + 0.5) : ctx.lineTo(x, top(x) + 0.5);
+  for (let x = -10; x <= W + 10; x += 8) x === -10 ? ctx.moveTo(x, top(x) + 0.5) : ctx.lineTo(x, top(x) + 0.5);
   ctx.stroke();
   // 돌 둘
   for (let i = 0; i < 2; i++) {
@@ -83,7 +83,7 @@ function bank(ctx, o) {
   }
   if (P.snow) {
     const sg = ctx.createLinearGradient(0, H - 70, 0, H); sg.addColorStop(0, 'rgba(120,140,170,0)'); sg.addColorStop(1, night ? 'rgba(10,14,28,.6)' : 'rgba(110,130,165,.45)');
-    ctx.fillStyle = sg; ctx.fillRect(VIS0 - 60, H - 70, VIS1 - VIS0 + 120, 70);
+    ctx.fillStyle = sg; ctx.fillRect(-10, H - 70, W + 20, 70);
     ctx.strokeStyle = night ? '#2a2a30' : '#6a5a44'; ctx.lineCap = 'round';
     for (let i = 0; i < 40; i++) { const x = VIS0 + R() * (VIS1 - VIS0), y = top(x) + 8 + R() * 16, len = 10 + R() * 22; ctx.lineWidth = 0.8 + R(); ctx.beginPath(); ctx.moveTo(x, y); ctx.quadraticCurveTo(x + 2, y - len * 0.6, x + (R() - 0.5) * 10, y - len); ctx.stroke(); }
     return;
@@ -92,8 +92,8 @@ function bank(ctx, o) {
   const dry = !!P.dry || !!P.blight, autumn = P.autumn ?? 0;
   const tuft = dry ? mixh(body, '#8a7a50', 0.4) : autumn ? mixh(body, '#6a6030', 0.3) : body;
   ctx.lineCap = 'round';
-  for (let i = 0; i < (dry ? 70 : 170); i++) {
-    const x = VIS0 - 40 + R() * (VIS1 - VIS0 + 80), y = top(x) + 2 + R() * 14, len = (dry ? 10 : 14) + R() * (dry ? 16 : 30), lean = (R() - 0.4) * 0.8 + (S.windy ? 0.6 : 0);
+  for (let i = 0; i < (dry ? 100 : 240); i++) {
+    const x = R() * W, y = top(x) + 2 + R() * 14, len = (dry ? 10 : 14) + R() * (dry ? 16 : 30), lean = (R() - 0.4) * 0.8 + (S.windy ? 0.6 : 0);
     ctx.strokeStyle = R() < 0.35 ? lit(tuft, 0.25) : dark(tuft, R() * 0.3); ctx.lineWidth = 1 + R() * 1.6;
     ctx.beginPath(); ctx.moveTo(x, y); ctx.quadraticCurveTo(x + lean * len * 0.3, y - len * 0.6, x + lean * len, y - len); ctx.stroke();
     if (backlit && R() < 0.3) { ctx.strokeStyle = rgba(S.glow, 0.5); ctx.lineWidth = 0.8; ctx.beginPath(); ctx.moveTo(x + lean * len * 0.6, y - len * 0.7); ctx.lineTo(x + lean * len, y - len); ctx.stroke(); }

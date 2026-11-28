@@ -81,6 +81,16 @@ export function mountains(L, fn, o) {
     L.beginPath(); L.moveTo(x, y); L.quadraticCurveTo(x - S.dir * l * 0.2, y + l * 0.5, x - S.dir * l * (0.3 + hash(i, seed + 6) * 0.3), y + l); L.stroke();
   }
   L.restore();
+  // 51단계: 능선의 빛 테. 해 쪽 비탈 꼭대기만 가늘게 빛난다 (해 질 녘엔 더 진하게)
+  if (S.tod !== 'night' && !S.heavy) {
+    const low = S.tod !== 'day', rim = low ? S.glow : light(S.lit, 0.3);
+    L.lineWidth = low ? 1.6 : 1.2; L.lineCap = 'round';
+    for (let x = 4; x < W - 4; x += 4) {
+      const y0 = fn(x - 4), y1 = fn(x), facing = (y1 - y0) * S.dir; // 해 쪽으로 내려가는 비탈이 볕을 받는다
+      if (facing <= 0.4) continue;
+      L.strokeStyle = rgba(rim, Math.min(0.6, facing * 0.12) * (1 - haze * 0.6) * (S.overcast ? 0.5 : 1)); L.beginPath(); L.moveTo(x - 4, y0 + 0.6); L.lineTo(x, y1 + 0.6); L.stroke();
+    }
+  }
   mist(L, base + 6, 44 * reach, S.haze, 0.5 + haze * 0.3);
 }
 

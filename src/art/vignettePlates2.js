@@ -547,13 +547,31 @@ function armyClash(v) {
   const gy = (x) => 190 - fbm1(x / 150 + v.q, 3) * 5;
   ground(v, gy, { tufts: 80 });
   for (let i = 0; i < 12; i++) puff(ctx, R() * VW, 170 + R() * 24, 80, 10, v.S.haze, 0.2);
-  // 아군의 줄
-  standard(v, 96, 236, 150, '#8a2a1e');
-  for (let i = 0; i < 9; i++) {
-    const x = 60 + i * 66 + R() * 10, mineHere = i === 4, h = 118 + R() * 8;
-    person(v, x, 262, h, { f: 0, cloth: mineHere ? v.me.cloth : dark(ARMY[i % 4], 0.3), hair: mineHere ? v.me.hair : '#2a2420', female: mineHere && v.me.female, long: mineHere && v.me.long, hat: !mineHere, stick: 'spear', tilt: 0.04 });
-    ctx.fillStyle = t(i % 2 ? '#5a2a26' : '#4a4038'); ctx.beginPath(); ctx.ellipse(x - h * 0.16, 262 - h * 0.6, h * 0.1, h * 0.15, 0, 0, TAU); ctx.fill();
+  // 51단계: 가운데 들판에서 이미 맞붙은 앞줄. 창이 엇갈리고 흙먼지가 오른다
+  const foe = t('#2a2630');
+  for (let p = 0; p < 6; p++) { // 둘씩 마주 붙은 짝
+    const xa = 214 + p * 44 + R() * 8, y = 206 + (p % 2) * 6 + R() * 4, h = 54 + R() * 8;
+    if (R() < 0.18) { ctx.fillStyle = foe; ctx.beginPath(); ctx.ellipse(xa, y - 3, h * 0.3, 4, 0.1, 0, TAU); ctx.fill(); }
+    for (const f of [1, -1]) {
+      const x = xa - f * 10;
+      ctx.save(); ctx.translate(x, y); ctx.rotate(f * (0.16 + R() * 0.1)); // 앞으로 몸을 던진다
+      person(v, 0, 0, h, { f, cloth: f > 0 ? dark(ARMY[p % 4], 0.25) : '#2e2a32', hair: '#2a2420', hat: true, noShadow: true });
+      const ty = -h * (0.5 + R() * 0.2); stroke(ctx, [-f * 8, -h * 0.5, f * 34, ty], 2, t('#3a2e22'));
+      ctx.fillStyle = t('#c8ccd0'); ctx.beginPath(); ctx.moveTo(f * 34, ty - 2); ctx.lineTo(f * 42, ty - 1); ctx.lineTo(f * 34, ty + 2); ctx.fill();
+      ctx.restore();
+    }
   }
+  for (let p = 0; p < 5; p++) glow(v, 236 + p * 44 + R() * 8, 176 + R() * 10, 7, '#fff4d0', 0.7); // 쇠끼리 부딪는 불꽃
+  for (let i = 0; i < 10; i++) puff(ctx, 230 + R() * 240, 196 - R() * 26, 40 + R() * 40, 12 + R() * 10, mixh(v.S.haze, '#8a7a60', 0.4), 0.26);
+  // 아군의 줄: 가운데를 비워 싸움터가 보이게, 양옆에서 나아간다
+  standard(v, 70, 236, 150, '#8a2a1e');
+  const xs = [36, 100, 160, 486, 548, 610], me = 278;
+  xs.forEach((x0, i) => {
+    const x = x0 + R() * 8, h = 116 + R() * 8;
+    person(v, x, 262, h, { f: 0, cloth: dark(ARMY[i % 4], 0.3), hair: '#2a2420', hat: true, stick: 'spear', tilt: (x < VW / 2 ? 1 : -1) * 0.06 });
+    ctx.fillStyle = t(i % 2 ? '#5a2a26' : '#4a4038'); ctx.beginPath(); ctx.ellipse(x - h * 0.16, 262 - h * 0.6, h * 0.1, h * 0.15, 0, 0, TAU); ctx.fill();
+  });
+  person(v, me, 262, 112, { f: 0, cloth: v.me.cloth, hair: v.me.hair, female: v.me.female, long: v.me.long, stick: 'spear', tilt: 0.05 });
   finish(v, { noLeaves: true });
 }
 
