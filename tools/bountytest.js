@@ -170,6 +170,19 @@ for (const k of ['bh_board', 'bh_corner', 'bh_rival', 'bh_kin']) if (!seen[k]) f
   if (ids.length) fail('bh actions where they mean nothing', ids);
 }
 
+// 10) 50단계 장면(현상금·마녀·마을 회의)은 제 판을 고른다
+{
+  const { BH_ART, WI_ART, CN_ART } = await import('../src/art/vignettePlates27.js');
+  const { vignetteFor } = await import('../src/art/vignette.js');
+  if (Object.keys(WI_ART).length < 7 || Object.keys(CN_ART).length < 8) fail('art tables short');
+  const g = hunter(5140); month(g);
+  for (const [k, want] of Object.entries({ ...BH_ART, ...WI_ART, ...CN_ART })) {
+    L(g).scene = { kind: k }; g.pendingEvent = { id: 'life_scene', title: '장면', text: '', choices: [] };
+    const v = vignetteFor(g, { title: '장면', text: '' });
+    if (!v || `${v.plate}:${v.variant}` !== want) fail('plate50', k, v && `${v.plate}:${v.variant}`, want);
+  }
+}
+
 console.log('장면', JSON.stringify(seen));
 console.log(bad ? `bountytest: ${bad} problems` : `bountytest OK (${((Date.now() - t0) / 1000).toFixed(1)}s)`);
 process.exit(bad ? 1 : 0);
