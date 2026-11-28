@@ -299,17 +299,19 @@ export const PLATES = {
     for (let i = 0; i < n; i++) { const x = 40 + R() * 560, y = 118 + R() * 34, s = 1 + R() * 1.4, w = 4 + R() * 5; glow(v, x, y, 9 * s, eye, 0.5); ctx.fillStyle = light(eye, 0.4); ctx.fillRect(x - w / 2 - s, y - s / 2, s * 1.4, s); ctx.fillRect(x + w / 2, y - s / 2, s * 1.4, s); }
     // 숲에서 나오는 형체
     ctx.fillStyle = t('#0e100c');
-    for (const [x, s] of wolves ? [[250, 1], [372, 0.9], [470, 1.1]] : [[190, 1], [262, 1.2], [345, 0.9], [420, 1.3], [500, 1]]) {
-      const y = 160;
+    for (const [x, s] of wolves ? [[262, 1.2], [372, 1.05], [462, 1.25]] : [[236, 1.4], [300, 1.8], [370, 1.3], [430, 1.9], [494, 1.4]]) {
+      const y = 172; glow(v, x, y - 20 * s, 40 * s, '#ff8a3a', 0.08); // 횃불이 닿는 쪽
+      ctx.fillStyle = t('#0e100c');
       if (wolves) { ctx.beginPath(); ctx.ellipse(x, y - 12 * s, 18 * s, 7 * s, 0, 0, TAU); ctx.fill(); ctx.beginPath(); ctx.moveTo(x + 12 * s, y - 14 * s); ctx.lineTo(x + 26 * s, y - 20 * s); ctx.lineTo(x + 30 * s, y - 12 * s); ctx.lineTo(x + 16 * s, y - 8 * s); ctx.fill(); ctx.fillRect(x - 14 * s, y - 10 * s, 3 * s, 11 * s); ctx.fillRect(x + 10 * s, y - 10 * s, 3 * s, 11 * s); ctx.beginPath(); ctx.moveTo(x + 22 * s, y - 19 * s); ctx.lineTo(x + 23 * s, y - 26 * s); ctx.lineTo(x + 26 * s, y - 20 * s); ctx.fill(); }
       else { ctx.beginPath(); ctx.moveTo(x - 9 * s, y); ctx.quadraticCurveTo(x - 14 * s, y - 20 * s, x - 4 * s, y - 27 * s); ctx.arc(x + 2 * s, y - 28 * s, 6 * s, Math.PI, 0); ctx.quadraticCurveTo(x + 12 * s, y - 14 * s, x + 9 * s, y); ctx.fill(); ctx.beginPath(); ctx.moveTo(x - 4 * s, y - 31 * s); ctx.lineTo(x - 9 * s, y - 37 * s); ctx.lineTo(x - 1 * s, y - 33 * s); ctx.moveTo(x + 8 * s, y - 31 * s); ctx.lineTo(x + 13 * s, y - 37 * s); ctx.lineTo(x + 5 * s, y - 33 * s); ctx.fill(); ctx.strokeStyle = t('#0e100c'); ctx.lineWidth = 1.6; ctx.beginPath(); ctx.moveTo(x + 10 * s, y - 16 * s); ctx.lineTo(x + 18 * s, y - 34 * s); ctx.stroke(); }
+      { const ex = wolves ? x + 24 * s : x + 2 * s, ey = wolves ? y - 16 * s : y - 29 * s; glow(v, ex, ey, 8 * s, eye, 0.55); ctx.fillStyle = light(eye, 0.5); ctx.fillRect(ex - 3 * s, ey - 0.6 * s, 1.8 * s, 1.3 * s); ctx.fillRect(ex + 1.2 * s, ey - 0.6 * s, 1.8 * s, 1.3 * s); }
     }
     // 말뚝 울타리와 지키는 사람들
     ctx.fillStyle = vgrad(ctx, 200, VH, [[0, 'rgba(16,12,10,0)'], [0.3, 'rgba(16,12,10,.7)'], [1, 'rgba(10,8,7,.9)']]); ctx.fillRect(0, 200, VW, 40); // 흙 둑
-    const men = [[70, 78, 'spear'], [150, 84, 'torch'], [236, 80, 'spear'], [420, 82, 'torch'], [500, 78, 'spear'], [584, 84, 'torch']];
+    const men = [[40, 80, 'spear'], [104, 86, 'torch'], [164, 78, 'spear'], [520, 82, 'torch'], [580, 78, 'spear'], [626, 84, 'torch']]; // 51단계: 가운데를 비워 숲에서 나오는 것들이 보이게
     for (const [x, h, st] of men) { person(v, x, 236, h, { f: 0, raw: true, cloth: ['#2a2420', '#262a26', '#2e2622'][x % 3], hair: '#14100e', hood: R() < 0.4, cloak: true, stick: st, rim: 'rgba(255,160,80,.6)', rimDir: st === 'torch' ? 1 : -1, female: R() < 0.2 }); }
-    person(v, 330, 240, 96, { f: 0, raw: true, cloth: dark(v.me.cloth, 0.5), hair: dark(v.me.hair, 0.4), female: v.me.female, long: v.me.long, stick: 'spear', rim: 'rgba(255,160,80,.65)', rimDir: -1 });
-    pool(v, 320, 232, 340, 26, '#ff9a48', 0.18);
+    person(v, 196, 240, 92, { f: 0, raw: true, cloth: dark(v.me.cloth, 0.5), hair: dark(v.me.hair, 0.4), female: v.me.female, long: v.me.long, stick: 'spear', rim: 'rgba(255,160,80,.65)', rimDir: -1 });
+    pool(v, 320, 232, 420, 30, '#ff9a48', 0.2);
     finish(v);
   },
 
@@ -356,6 +358,9 @@ export const PLATES = {
       ctx.lineWidth = 2; for (let i = 1; i < 6; i++) { const k = i / 6, x = bx - bw / 2 + bw * k, top = by - bh - 54 * (1 - Math.abs(k - 0.5) * 2); if (R() < 0.8) { ctx.beginPath(); ctx.moveTo(x, by - bh); ctx.lineTo(x + (R() - 0.5) * 6, top + R() * 10); ctx.stroke(); } }
       for (const [x, y, w, h] of [[-62, -54, 14, 17], [50, -54, 14, 17], [-17, -46, 34, 46]]) { ctx.fillStyle = vgrad(ctx, by + y, by + y + h, [[0, '#f0a848'], [1, '#b8440f']]); ctx.fillRect(bx + x, by + y, w, h); glow(v, bx + x + w / 2, by + y + h / 2, w * 1.3, '#ff8a30', 0.3); }
       ctx.fillStyle = '#150f0c'; ctx.fillRect(bx - 1.5, by - 46, 3, 46);
+      // 51단계: 불길이 지붕 위와 창 위로 앞에서 보이게 (예전엔 집 뒤에만 있어 안 타는 집처럼 보였다)
+      blaze(v, bx - 20, by - bh - 6, bw * 0.55, 66); blaze(v, bx + 46, by - bh + 4, 50, 44); blaze(v, bx - 55, by - 58, 18, 26); blaze(v, bx + 57, by - 58, 18, 22);
+      glow(v, bx, by - bh - 30, 150, '#ffa040', 0.35);
       pool(v, bx, by + 26, 300, 30, '#ff8a3a', 0.3);
       // 물동이를 나르는 사람들
       for (const [x, h, f] of [[176, 104, 1], [240, 96, 1], [566, 98, -1]]) { person(v, x, 230, h, { f, raw: true, cloth: '#1e1814', hair: '#14100e', arm: 'fwd', female: x === 240, rim: 'rgba(255,150,70,.75)', rimDir: f }); rect(ctx, x + f * h * 0.27 - 4, 230 - h * 0.56, 9, 9, '#14100e'); }
@@ -477,7 +482,7 @@ export const PLATES = {
       finish(v, { noLeaves: true }); return;
     }
     // 등불 줄
-    for (const [x0, x1] of [[60, 300], [340, 590]]) { ctx.strokeStyle = t('#2a2018'); ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(x0, 96); ctx.quadraticCurveTo((x0 + x1) / 2, 128, x1, 96); ctx.stroke(); rect(ctx, x0 - 2, 96, 4, 76, t('#2a2018')); rect(ctx, x1 - 2, 96, 4, 76, t('#2a2018')); for (let i = 1; i < 7; i++) { const k = i / 7, x = x0 + (x1 - x0) * k, y = 96 + Math.sin(k * Math.PI) * 16 + 4; ctx.fillStyle = ['#e8a040', '#d86a3a', '#e8c860'][i % 3]; ctx.beginPath(); ctx.ellipse(x, y, 3, 4, 0, 0, TAU); ctx.fill(); if (lit(v)) glow(v, x, y, 16, '#ffb060', 0.4); } }
+    for (const [x0, x1] of [[40, 236], [404, 600]]) { /* 51단계: 기둥이 모닥불 바로 뒤에 서면 화형대처럼 보여 옆으로 비킴 */ ctx.strokeStyle = t('#2a2018'); ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(x0, 96); ctx.quadraticCurveTo((x0 + x1) / 2, 128, x1, 96); ctx.stroke(); rect(ctx, x0 - 2, 96, 4, 76, t('#2a2018')); rect(ctx, x1 - 2, 96, 4, 76, t('#2a2018')); for (let i = 1; i < 7; i++) { const k = i / 7, x = x0 + (x1 - x0) * k, y = 96 + Math.sin(k * Math.PI) * 16 + 4; ctx.fillStyle = ['#e8a040', '#d86a3a', '#e8c860'][i % 3]; ctx.beginPath(); ctx.ellipse(x, y, 3, 4, 0, 0, TAU); ctx.fill(); if (lit(v)) glow(v, x, y, 16, '#ffb060', 0.4); } }
     if (v.variant === 'troupe') {
       // 수레 무대
       rect(ctx, cx - 90, cy - 62, 180, 46, t('#5a3a34')); rect(ctx, cx - 96, cy - 18, 192, 8, t('#3a2c20')); ctx.fillStyle = t('#8a2f2a'); ctx.beginPath(); ctx.moveTo(cx - 96, cy - 62); ctx.quadraticCurveTo(cx, cy - 96, cx + 96, cy - 62); ctx.fill();
@@ -488,7 +493,7 @@ export const PLATES = {
     } else {
       // 모닥불과 둥글게 도는 춤
       ctx.save(); zoom(v, cx, 236, 1.3);
-      for (let i = 0; i < 7; i++) { const a = Math.PI + (i / 6) * Math.PI, x = cx + Math.cos(a) * 120, y = cy - 12 + Math.sin(a) * 14; person(v, x, y, 56, { f: i < 3 ? 1 : i === 3 ? 0 : -1, cloth: ['#7a3a34', '#4a5240', '#8a7444', '#3e4658', '#5a3a34'][i % 5], hair: ['#2a1e16', '#6e4a28', '#9a7a48'][i % 3], female: i % 2 === 0, arm: 'out', rim: 'rgba(255,170,90,.7)', rimDir: i < 3 ? 1 : -1 }); }
+      for (let i = 0; i < 7; i++) { if (i === 3) continue; /* 불 바로 뒤에 선 사람은 불에 타는 것처럼 보인다 (51단계) */ const a = Math.PI + (i / 6) * Math.PI, x = cx + Math.cos(a) * 120, y = cy - 12 + Math.sin(a) * 14; person(v, x, y, 56, { f: i < 3 ? 1 : i === 3 ? 0 : -1, cloth: ['#7a3a34', '#4a5240', '#8a7444', '#3e4658', '#5a3a34'][i % 5], hair: ['#2a1e16', '#6e4a28', '#9a7a48'][i % 3], female: i % 2 === 0, arm: 'out', rim: 'rgba(255,170,90,.7)', rimDir: i < 3 ? 1 : -1 }); }
       ctx.fillStyle = '#1c1410'; for (let i = 0; i < 5; i++) { ctx.save(); ctx.translate(cx, cy); ctx.rotate(-0.9 + i * 0.45); ctx.fillRect(-2, -22, 4, 24); ctx.restore(); }
       blaze(v, cx, cy - 2, 40, 70); flame(v, cx, cy, 11); pool(v, cx, cy + 8, 240, 30, '#ff9a48', lit(v) ? 0.4 : 0.2); if (lit(v)) glow(v, cx, cy - 30, 240, '#ff8a3a', 0.3);
       for (const [x, y, h, f, fem] of [[cx - 136, cy + 26, 70, 1, false], [cx - 84, cy + 34, 66, 1, true], [cx + 92, cy + 34, 68, -1, false], [cx + 140, cy + 26, 66, -1, true]]) person(v, x, y, h, { f: 0, raw: true, cloth: fem ? '#2a2024' : '#221c18', hair: '#16110e', female: fem, cloak: !fem, rim: 'rgba(255,160,80,.65)', rimDir: f });
@@ -613,6 +618,8 @@ export const PLATES = {
     ctx.fillStyle = vgrad(ctx, 0, VH, [[0, '#0c0b10'], [0.6, '#1a1820'], [1, '#0e0d12']]); ctx.fillRect(0, 0, VW, VH + 40);
     // 동굴 벽과 종유석
     for (const d of [-1, 1]) { ctx.fillStyle = '#16141a'; ctx.beginPath(); ctx.moveTo(d < 0 ? 0 : VW, 0); for (let y = 0; y <= VH; y += 12) ctx.lineTo((d < 0 ? 0 : VW) - d * (70 + fbm1(y / 40 + v.q, d + 3, 3) * 90 - y * 0.12), y); ctx.lineTo(d < 0 ? 0 : VW, VH); ctx.fill(); }
+    // 51단계: 바위 결. 겹친 바위 턱과 젖은 돌의 빛점이 있어야 동굴로 읽힌다
+    for (let i = 0; i < 70; i++) { const x = R() * VW, y = R() * VH, w = 8 + R() * 22, side = x < 200 || x > 460; ctx.fillStyle = rgba(side ? '#3a3440' : '#2a2630', 0.25 + R() * 0.25); const k = 3 + R() * 5, sl = (R() - 0.5) * 6; ctx.beginPath(); ctx.moveTo(x - w, y + sl); ctx.lineTo(x - w * 0.2, y - k); ctx.lineTo(x + w, y - sl - k * 0.4); ctx.lineTo(x + w * 0.7, y + k * 0.6); ctx.closePath(); ctx.fill(); if (R() < 0.3) { ctx.fillStyle = rgba('#8a90a0', 0.25); ctx.fillRect(x - w * 0.3, y - 5, 2, 1.2); } }
     ctx.fillStyle = '#121016'; for (let i = 0; i < 16; i++) { const x = R() * VW, h = 14 + R() * 46, w = 5 + R() * 9; ctx.beginPath(); ctx.moveTo(x - w, 0); ctx.lineTo(x, h); ctx.lineTo(x + w, 0); ctx.fill(); }
     const cx = 330;
     if (throne) {
@@ -638,6 +645,9 @@ export const PLATES = {
       pts.forEach(([x, y, h, st], i) => person(v, x, y, h, { f: 0, raw: true, cloth: i === 1 ? dark(v.me.cloth, 0.45) : ['#241f1c', '#1e2220', '#26201e'][i % 3], hair: i === 1 ? dark(v.me.hair, 0.3) : '#14100e', female: i === 1 ? v.me.female : i === 3, long: i === 1 && v.me.long, cloak: i !== 1, hood: i === 2, stick: st, rim: 'rgba(255,160,80,.6)', rimDir: i < 2 ? -1 : 1 }));
       pool(v, cx, 232, 260, 24, '#ff9a48', 0.2);
     }
+    // 51단계: 횃불이 동굴 벽과 천장을 붉게 핥는다 (예전엔 거의 검은 판이었다)
+    for (const x of throne ? [cx - 40] : [cx - 96, cx + 104]) { glow(v, x, 140, 230, '#ff9a48', 0.2); glow(v, x, 140, 70, '#ffc880', 0.25); }
+    for (const x of [60, VW - 60]) glow(v, x, 120, 120, '#ff8a3a', 0.1);
     finish(v, { inside: true });
   },
 

@@ -211,6 +211,10 @@ function renderSetup() {
   try { races = playableRaces(); } catch (e) { console.error(e); }
   const race = s.race ?? 'human';
   const fams = races.length ? familiesOf(race) : FAMILIES;
+  // 51단계: 고를 것이 많아 길어진 시작 화면 맨 위에 붙어 다니는 단계 줄 (누르면 그 칸으로, 다 고른 칸은 표시)
+  const birthHtml = renderBirthPick(s, race);
+  const stepList = [['mode', '방식', true], ...(races.length > 1 ? [['race', '종족', true]] : []), ['family', '집안', !!s.family], ...(birthHtml ? [['birth', '타고남', birthReady(s)]] : []), ['child', '아이', !!s.name.trim()]];
+  const steps = `<nav class="setup-steps" aria-label="고를 것">${stepList.map(([id, name, ok], i) => `<button type="button" class="ss-step${ok ? ' ok' : ''}" data-step="${id}"><span class="ss-n">${ok ? '✓' : i + 1}</span><span>${name}</span></button>`).join('<i class="ss-line" aria-hidden="true"></i>')}</nav>`;
   root().innerHTML = `
     <div class="title-hero">
       ${art ? `<img src="${art}" alt="${esc(VILLAGE)}의 이른 봄 풍경">` : '<div class="hero-ph" aria-hidden="true"></div>'}
@@ -234,7 +238,8 @@ function renderSetup() {
             <li><b>삶은 이어진다.</b> 죽으면 자식 가운데 한 명으로 이어서 산다.</li>
           </ol>
         </div>`}
-        <section>
+        ${steps}
+        <section id="st-mode">
           <h2>삶의 방식</h2>
           <div class="choice-row">
             <button class="choice" data-mode="once" aria-pressed="${s.mode === 'once'}">
@@ -247,16 +252,16 @@ function renderSetup() {
             </button>
           </div>
         </section>
-        <section>
+        ${races.length > 1 ? `<section id="st-race">
           <h2>종족</h2>
           ${renderRacePick(races, race)}
-        </section>
-        <section>
+        </section>` : ''}
+        <section id="st-family">
           <h2>태어날 집안${races.length > 1 ? ` <small>${esc(races.find((r) => r.id === race)?.name ?? '')} 집안 ${fams.length}곳</small>` : ''}</h2>
           ${renderFamilyPick(fams, s)}
         </section>
-        ${renderBirthPick(s, race)}
-        <section>
+        ${birthHtml.replace('<section class="birth-pick"', '<section id="st-birth" class="birth-pick"')}
+        <section id="st-child">
           <h2>아이</h2>
           <div class="field-row">
             <label for="pname" class="note">이름</label>
@@ -274,6 +279,7 @@ function renderSetup() {
       </div>
     </div>`;
 
+  $$('[data-step]').forEach((b) => b.onclick = () => document.getElementById(`st-${b.dataset.step}`)?.scrollIntoView({ block: 'start', behavior: reducedMotion() ? 'auto' : 'smooth' }));
   $$('[data-mode]').forEach((b) => b.onclick = () => { s.mode = b.dataset.mode; renderSetup(); });
   $$('[data-family]').forEach((b) => b.onclick = () => { s.family = b.dataset.family; renderSetup(); });
   $$('[data-race]').forEach((b) => b.onclick = () => {
@@ -290,6 +296,8 @@ function renderSetup() {
     s.name = input.value;
     $('#begin').disabled = !(s.family && s.name.trim() && birthReady(s));
     $('#begin-note').textContent = beginNote(s);
+    const st = document.querySelector('[data-step="child"]');
+    if (st) { st.classList.toggle('ok', !!s.name.trim()); st.querySelector('.ss-n').textContent = s.name.trim() ? '✓' : String([...st.parentNode.querySelectorAll('[data-step]')].indexOf(st) + 1); }
   };
   $('#begin').onclick = () => {
     // 하던 삶은 지우지 않고 보관한다 (예전엔 한 번뿐인 삶을 새로 시작하면 하던 삶이 사라졌다)
@@ -522,7 +530,8 @@ function renderNews() {
   // 넷 넘으면 셋만 펼쳐 두고 나머지는 접는다 (여러 달을 건너뛰면 수십 줄이라)
   const res = !rows.length ? '' : rows.length <= 4 ? `<ul class="results">${rows.join('')}</ul>`
     : `<ul class="results">${rows.slice(0, 3).join('')}</ul><details class="td-more"><summary>그 밖에 한 일 ${rows.length - 3}가지</summary><ul class="results">${rows.slice(3).join('')}</ul></details>`;
-  return renderToday(game, { results: res, summary: summaryBody(ui.summary), world: renderWorldMini(), reveal });
+  const mi = monthInfo(game);
+  return renderToday(game, { results: res, summary: summaryBody(ui.summary), world: renderWorldMini(), reveal, when: `${mi.name}의 장면 · ${mi.season}` });
 }
 
 // 같은 일을 같은 글로 여러 칸 했으면 한 줄로 (감옥에서 '견디기' 네 칸 같은 것)
@@ -625,6 +634,30 @@ function sheetJump() {
   }
 }
 
+// 51단계: 사람들(만 픽셀)·지도(2만 픽셀) 화면도 카드가 많으면 앞의 몇만 펼치고 나머지는 제목 줄만. 펼친 카드는 기억한다.
+function viewFold(keep) {
+  const cards = [...document.querySelectorAll('.main > section.card[id^="jp-"]:not(.mapcard)')];
+  if (cards.length < 6) return;
+  const opened = Array.isArray(prefs().openCards) ? prefs().openCards : [];
+  cards.forEach((c, i) => {
+    const id = c.id.slice(3), h = c.querySelector(':scope > h2');
+    if (i < keep || !h) return;
+    c.classList.add('foldable');
+    if (!opened.includes(id)) c.classList.add('folded');
+    h.setAttribute('role', 'button');
+    h.tabIndex = 0;
+    h.setAttribute('aria-expanded', String(!c.classList.contains('folded')));
+    const flip = () => {
+      const f = c.classList.toggle('folded');
+      h.setAttribute('aria-expanded', String(!f));
+      const cur = Array.isArray(prefs().openCards) ? prefs().openCards : [];
+      setPref('openCards', f ? cur.filter((x) => x !== id) : [...new Set([...cur, id])].slice(-40));
+    };
+    h.onclick = flip;
+    h.onkeydown = (ev) => { if (ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); flip(); } };
+  });
+}
+
 function renderSave() {
   return `${renderSlotsBlock(game, ui.saves)}${renderSettings()}`;
 }
@@ -644,10 +677,10 @@ function renderEvent() {
   // 38단계: 사건에 나오는 사람이 있으면(ctx의 id, 글에 이름이 나올 때만) 삽화 위에 반신 초상
   const who = (() => { try { const c = e?.ctx ?? {}; for (const k of ['id', 'pid', 'who', 'target']) { const q = typeof c[k] === 'number' ? byId(game, c[k]) : null; if (q && q !== me(game) && q.name && `${e.title} ${e.text}`.includes(q.name)) return q; } } catch (err) { console.error(err); } return null; })();
   const whoHtml = who ? `<span class="ev-who">${portrait(game, who, { size: 88, bust: true, title: who.name })}<b>${esc(who.name)}</b></span>` : '';
-  const head = art ? `<div class="ev-art${who ? ' has-who' : ''}" aria-hidden="true"><i style="background-image:url(${art})"></i>${whoHtml}</div>` : '';
+  const head = art ? `<div class="ev-art${who ? ' has-who' : ''}" aria-hidden="true"><i style="background-image:url(${art})"></i><b class="ev-frame"></b>${whoHtml}</div>` : '';
   // 한 줄씩 드러나기: 이 창을 처음 그릴 때만 (다시 그리면 바로 다 보인다)
   const key = ui.outcome ? `o:${ui.outcome.title}:${String(ui.outcome.text).length}` : `e:${e.id}:${e.title}:${game.date.year * 12 + game.date.month}`;
-  const rv = revealOn() && ui.evSeen !== key ? ' rv' : '';
+  const rv = (revealOn() && ui.evSeen !== key ? ' rv' : '') + (!ovFresh && ui.evSeen && ui.evSeen !== key ? ' turn' : ''); // 51단계: 창이 떠 있는 채 다음 장으로 넘어가면 종이를 넘기듯
   ui.evSeen = key;
   let rvBase = 0;
   if (ui.outcome) {
@@ -718,7 +751,9 @@ function heroStrip() {
 // 38단계 장식 그림(src/art/ornament.js)의 기본 틀을 한 번만 붙인다
 if (typeof document !== 'undefined' && !document.getElementById('orn-css')) document.head.insertAdjacentHTML('beforeend', `<style id="orn-css">${ORNAMENT_CSS}
 ${['.layout.view-people .card', '.layout.view-chron .card:not(.chron-card)', '.sheet:not(.side)', '.setup > section', '.layout.view-save .card', '.layout.view-map .card:not(.mapcard)'].map((selector) => frameCss({ selector, kind: 'knot', size: 26, color: '#a8843f', inset: 4 })).join('\n')}
-${frameCss({ selector: '.layout.view-chron .chron-card', kind: 'leaf', size: 30, color: '#7a5524', inset: 6 })}</style>`);
+${frameCss({ selector: '.layout.view-chron .chron-card', kind: 'leaf', size: 30, color: '#7a5524', inset: 6 })}
+${frameCss({ selector: '.ev-art .ev-frame', kind: 'line', size: 24, color: '#f0d699', inset: 0 })}
+${frameCss({ selector: '.main > .card.td-log', kind: 'knot', size: 24, color: '#8a6d38', inset: 6 })}</style>`);
 
 const VIEWS = [
   ['month', '이번 달', 'scroll'],
@@ -780,10 +815,11 @@ function renderGame() {
   // 50단계 헤드: 실내 그림을 뒤에서 그릴 달에는 바깥 풍경을 새로 그리지 않고 지난 그림을 잠깐 둔다 (한 달에 큰 그림을 두 장 그리던 것, 폰에서 달 넘기기가 무거웠다)
   const art = roomArt || (roomArgs && lastArt && lastMonth != null && !game.pendingEvent ? lastArt : sceneImage(sceneArgs));
   let main = '';
-  if (ui.view === 'month') main = game.over ? renderOver() : renderCrisis(game) + renderNews() + nowCards([renderPrisonNow(game), renderBondageNow(game), renderMigrateNow(game), renderExileNow(game), renderLawNow(game), renderSecretNow(game), renderEnvoyNow(game), renderSpyNow(game, ui), renderHeistNow(game, ui), renderClaimNow(game, ui), renderRevoltNow(game), renderPoorNow(game), renderArmyNow(game), renderAftermathNow(game), renderDragonNow(game), renderHauntNow(game), renderExploreNow(game), renderFrontierNow(game), renderWildsNow(game), renderMineNow(game), renderHerdLine(game), renderTradeNow(game), renderWorksNow(game), renderNatureNow(game), renderManaNow(game), renderRelicNow(game), renderAgelessNow(game), renderSpiritNow(game), renderHealthNow(game), renderMysteryNow(game), renderOmenNow(game), renderLineageNow(game), renderSchoolNow(game), renderTroupeNow(game)]) + renderRitesNow(game) + renderYouthCard(game, ui) + renderCompanyNow(game, ui) + renderFarmNow(game, ui) + renderHerdNow(game, ui) + renderCuisineNow(game, ui) + renderApoNow(game, ui) + renderBrewNow(game, ui) + renderHarborNow(game, ui) + renderClothNow(game, ui) + renderBuilderNow(game, ui) + renderCarrierNow(game, ui) + renderCreditNow(game, ui) + renderUndertakerNow(game, ui) + renderSurveyNow(game, ui) + renderMagejobNow(game, ui) + renderBountyBoard(game) + renderHunterNow(game, ui) + renderInnNow(game, ui) + renderWorkshop(game, ui) + renderPlan(game, ui);
+  // 51단계: 형편을 알리는 카드(옥살이·재판·병·풀리지 않은 일…)가 할 일보다 앞에 길게 쌓여 할 일이 멀었다. 그것들은 할 일 뒤 '지금 내 형편'으로.
+  if (ui.view === 'month') main = game.over ? renderOver() : (() => { const st = nowCards([renderPrisonNow(game), renderBondageNow(game), renderMigrateNow(game), renderExileNow(game), renderLawNow(game), renderSecretNow(game), renderEnvoyNow(game), renderSpyNow(game, ui), renderHeistNow(game, ui), renderClaimNow(game, ui), renderRevoltNow(game), renderPoorNow(game), renderArmyNow(game), renderAftermathNow(game), renderDragonNow(game), renderHauntNow(game), renderExploreNow(game), renderFrontierNow(game), renderWildsNow(game), renderMineNow(game), renderHerdLine(game), renderTradeNow(game), renderWorksNow(game), renderNatureNow(game), renderManaNow(game), renderRelicNow(game), renderAgelessNow(game), renderSpiritNow(game), renderHealthNow(game), renderMysteryNow(game), renderOmenNow(game), renderLineageNow(game), renderSchoolNow(game), renderTroupeNow(game)]) + renderRitesNow(game); return renderCrisis(game) + renderNews() + renderYouthCard(game, ui) + renderCompanyNow(game, ui) + renderFarmNow(game, ui) + renderHerdNow(game, ui) + renderCuisineNow(game, ui) + renderApoNow(game, ui) + renderBrewNow(game, ui) + renderHarborNow(game, ui) + renderClothNow(game, ui) + renderBuilderNow(game, ui) + renderCarrierNow(game, ui) + renderCreditNow(game, ui) + renderUndertakerNow(game, ui) + renderSurveyNow(game, ui) + renderMagejobNow(game, ui) + renderBountyBoard(game) + renderHunterNow(game, ui) + renderInnNow(game, ui) + renderWorkshop(game, ui) + renderPlan(game, ui) + (st.trim() ? `<h3 class="month-sub">지금 내 형편</h3>${st}` : ''); })();
   else if (ui.view === 'me') main = renderSheet();
   else if (ui.view === 'people') main = withJump([['tree', '족보', renderFamTree(game)], ['love', '사랑', renderLove(game)], ['kin', '자식', renderKin(game)], ['siblings', '형제', renderSiblings(game)], ['stepfamily', '새 식구', renderStepfamily(game)], ['adopt', '거둔 아이', renderAdopt(game)], ['baseborn', '서자', renderBaseborn(game)], ['friends', '벗', renderFriends(game)], ['peers', '같은 세대', renderPeers(game)], ['rites', '축제와 의례', renderRites(game)], ['society', '사교계', renderSociety(game)], ['oath', '맹세', renderOath(game)], ['household', '식솔', renderHousehold(game)], ['troupe', '극단', renderTroupe(game)], ['letters', '편지', renderLetters(game)], ['village', '이웃', renderVillage(game)], ['aftermath', '전쟁 뒤', renderAftermath(game)], ['mentor', '제자', renderMentor(game)], ['beasts', '짐승', renderBeasts(game)], ['mount', '하늘 짐승', renderMountCard(game)], ['feud', '원한', renderFeud(game)], ['peoples', '종족의 땅', renderPeoples(game)], ['party', '동료', renderParty(game)], ['notebook', '인물 수첩', renderPeople(game, ui)]]);
-  else if (ui.view === 'map') main = withJump([['map', '지도', renderMap()], ['pol', '대륙 정세', renderPolitics(game, ui)], ['lands', '고장들', renderLandsMap(game)], ['crowns', '왕좌', renderCrownsMap(game)], ['council', '자유도시', renderCouncilsMap(game)], ['accord', '정세', renderAccordMap(game)], ['occupied', '점령지', renderOccupied(game)], ['migrate', '피난', renderMigrate(game)], ['outlaws', '산적', renderOutlaws(game)], ['founding', '새 나라', renderFoundings(game)], ['revolt', '민심', renderRevolt(game)], ['later', '새 기술', renderLater(game)], ['spread', '기술의 길', renderSpread(game)], ['city', '공장 거리', renderCity(game)], ['newage', '새 시대', renderNewage(game)], ['trade', '장사 길', renderTrade(game)], ['works', '큰 공사', renderWorks(game)], ['nature', '하늘과 땅', renderNature(game)], ['explore', '미지의 땅', renderExplore(game)], ['survey', '지도 공방', renderSurveyMap(game)], ['stars', '하늘', renderStarsMap(game)], ['ruins', '유적', renderRuins(game)], ['frontier', '변경 너머', renderFrontier(game)], ['wilds', '마물', renderWilds(game)], ['mine', '광산', renderMines(game)], ['herd', '목축', renderHerd(game)], ['seal', '봉인', renderSeal(game)], ['demonland', '마대륙', renderDemonland(game)], ['demons', '마족', renderDemons(game)], ['orders', '기사단', renderOrders(game)], ['cloister', '수도원', renderCloisters(game)], ['sect', '새 믿음', renderSectsMap(game)], ['witch', '마녀', renderWisesMap(game)], ['mana', '마나', renderMana(game)], ['dragon', '용', renderDragon(game)], ['haunt', '망자', renderHaunt(game)], ['omen', '예언', renderOmen(game)], ['delve', '미궁', renderDelveMap(game)], ['deep', '구렁', renderDeep(game)], ['sea', '바다', renderSea(game)], ['pirates', '해적', renderPiratesMap(game)], ['harbor', '포구', renderHarbor(game)], ['world', '레오니아', renderWorldCard()]], { after: 1 }); // 지도가 먼저 (폰에서 바로 보이게), 바로 가기는 지도 아래
+  else if (ui.view === 'map') main = withJump([['map', '지도', renderMap()], ['pol', '대륙 정세', renderPolitics(game, ui)], ['lands', '고장들', renderLandsMap(game)], ['crowns', '왕좌', renderCrownsMap(game)], ['council', '자유도시', renderCouncilsMap(game)], ['accord', '나라 사이', renderAccordMap(game)], ['occupied', '점령지', renderOccupied(game)], ['migrate', '피난', renderMigrate(game)], ['outlaws', '산적', renderOutlaws(game)], ['founding', '새 나라', renderFoundings(game)], ['revolt', '민심', renderRevolt(game)], ['later', '새 기술', renderLater(game)], ['spread', '기술의 길', renderSpread(game)], ['city', '공장 거리', renderCity(game)], ['newage', '새 시대', renderNewage(game)], ['trade', '장사 길', renderTrade(game)], ['works', '큰 공사', renderWorks(game)], ['nature', '하늘과 땅', renderNature(game)], ['explore', '미지의 땅', renderExplore(game)], ['survey', '지도 공방', renderSurveyMap(game)], ['stars', '하늘', renderStarsMap(game)], ['ruins', '유적', renderRuins(game)], ['frontier', '변경 너머', renderFrontier(game)], ['wilds', '마물', renderWilds(game)], ['mine', '광산', renderMines(game)], ['herd', '목축', renderHerd(game)], ['seal', '봉인', renderSeal(game)], ['demonland', '마대륙', renderDemonland(game)], ['demons', '마족', renderDemons(game)], ['orders', '기사단', renderOrders(game)], ['cloister', '수도원', renderCloisters(game)], ['sect', '새 믿음', renderSectsMap(game)], ['witch', '마녀', renderWisesMap(game)], ['mana', '마나', renderMana(game)], ['dragon', '용', renderDragon(game)], ['haunt', '망자', renderHaunt(game)], ['omen', '예언', renderOmen(game)], ['delve', '미궁', renderDelveMap(game)], ['deep', '구렁', renderDeep(game)], ['sea', '바다', renderSea(game)], ['pirates', '해적', renderPiratesMap(game)], ['harbor', '포구', renderHarbor(game)], ['world', '레오니아', renderWorldCard()]], { after: 1 }); // 지도가 먼저 (폰에서 바로 보이게), 바로 가기는 지도 아래
   else if (ui.view === 'chron') main = renderChron();
   else if (ui.view === 'save') main = renderSave();
   const hero = ui.view === 'month';
@@ -795,7 +831,7 @@ function renderGame() {
       ${art ? `<img class="${lastArt && lastArt !== art ? 'xfade' : ''}" src="${art}" alt="${esc(placeName(game))} ${roomArt ? ROOM_NAME[room.kind] ?? '안' : '풍경'}: ${mi.season}, ${esc(conditionText(game.date.year, game.date.month))}">` : ''}
       ${hero ? `<div class="hero-place"><span>${esc(placeName(game))}</span></div>` : ''}
       <div class="scene-cap">
-        ${hero ? '' : `<h1 class="view-title">${esc(viewName)}</h1>`}
+        ${hero ? '' : `<h1 class="view-title"><span class="vt-ic" aria-hidden="true">${icon(VIEWS.find(([id]) => id === ui.view)?.[2] ?? 'scroll', 20)}</span>${esc(viewName)}</h1>`}
         <div class="date"><span class="yr">용사력 ${game.date.year}년</span><strong>${mi.name}</strong><span class="cond">${mi.season} · ${esc(conditionText(game.date.year, game.date.month))}</span></div>
         <div class="purse"><span>내 돈 <b>은화 ${p.money}</b></span><span>집안 돈 <b>은화 ${p.familyMoney}</b></span></div>
       </div>
@@ -950,6 +986,7 @@ function bindGame() {
   $$('[data-chron]').forEach((b) => b.onclick = () => { ui.chronTab = b.dataset.chron; renderGame(); });
   $$('[data-chronf]').forEach((b) => b.onclick = () => { ui.chronFilter = b.dataset.chronf; renderGame(); });
   if (ui.view === 'me') sheetJump();
+  if (ui.view === 'people' || ui.view === 'map') viewFold(ui.view === 'map' ? 1 : 2);
   $$('[data-view-jump]').forEach((b) => b.onclick = () => unfold(document.getElementById(`jp-${b.dataset.viewJump}`))?.scrollIntoView({ block: 'start', behavior: reducedMotion() ? 'auto' : 'smooth' }));
   $$('[data-legacy]').forEach((b) => b.onclick = () => { ui.legacySel = b.dataset.legacy === 'close' ? null : +b.dataset.legacy; renderGame(); if (ui.legacySel != null) document.querySelector('.lr-detail')?.scrollIntoView({ block: 'start' }); });
   const la = $('[data-legacy-all]');

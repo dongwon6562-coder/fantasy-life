@@ -208,7 +208,10 @@ defineScene('kin_adopt', {
     note(g, `${J(p.name, '을/를')} ${kidWord(p)}로 거두었다.`);
     chron(g, `${g.player.name}, 예배당에서 ${J(p.name, '을/를')} 거두어 ${kidWord(p)}로 삼다.`, 60);
     stress(g, -8);
-    return `${J(p.name, '은/는')} 보따리 하나를 안고 따라나섰다. 집에 와서도 한동안 문 가까이에서만 잤다. 언제든 다시 나가야 할 것처럼.`;
+    // 51단계: 거둘 때마다 같은 글이 나오지 않게 성미 따라
+    return [`${J(p.name, '은/는')} 보따리 하나를 안고 따라나섰다. 집에 와서도 한동안 문 가까이에서만 잤다. 언제든 다시 나가야 할 것처럼.`,
+      `${J(p.name, '은/는')} 대문 앞에서 한 번 뒤를 돌아보았다. 예배당 종탑을. 그러고는 내 손을 잡았다. 손이 작고 찼다.`,
+      `첫날 저녁, ${J(p.name, '은/는')} 밥그릇을 다 비우고도 숟가락을 놓지 않았다. 다음 끼니가 올지 믿지 못하는 얼굴이었다.`][k.adopted % 3];
   },
 });
 
@@ -372,7 +375,7 @@ defineScene('kin_path', {
     const gift = r.giftKnown ? ` ${GIFTS[r.gift].sign} ${r.gift === 'magic' ? `${J(GIFTS[r.gift].name, '이/가')} 있다.` : `${J(GIFTS[r.gift].name, '을/를')} 타고난 듯하다.`}` : '';
     // 거두어 온 아이에게 갓난아기 때 이야기를 하지 않는다 (48단계 도우미2)
     const came = r.adopted && (r.born ?? 0) >= 24;
-    const line = came ? `${r.adoptedAt != null ? `거두어 온 지 ${Math.max(1, Math.floor((mi(g) - r.adoptedAt) / 12))}해. ` : '거두어 온 아이다. '}${ADOPT_LINE[r.temper] ?? ''}` : TEMPERS[r.temper].line;
+    const line = came ? `${r.adoptedAt != null ? `${(() => { const m = mi(g) - r.adoptedAt; return m < 12 ? `거두어 온 지 ${m < 2 ? '얼마 되지 않았다' : `${m}달`}. ` : `거두어 온 지 ${['한', '두', '세', '네', '다섯', '여섯', '일곱', '여덟', '아홉', '열'][Math.min(9, Math.floor(m / 12) - 1)]} 해. `; })()}` : '거두어 온 아이다. '}${ADOPT_LINE[r.temper] ?? ''}` : TEMPERS[r.temper].line;
     return `${kidWord(p)} ${J(p.name, '이/가')} ${ageYears(p)}살이 되었다. ${TEMPERS[r.temper].name} 아이다. ${line}${gift} 이제 무엇을 가르칠지 정할 때다.`;
   },
   choices: (g, s) => {

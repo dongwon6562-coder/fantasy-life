@@ -191,7 +191,8 @@ const study = (g, n = 30) => { const before = knownSpells(g).length; for (let i 
 // 9. 무작위 60년: 고서클은 드물고, 글이 새지 않는다
 {
   let high = 0, schools = 0, made = 0, titles = 0, circles = 0;
-  for (let s = 0; s < 3; s++) {
+  const RUNS = 5; // 51단계: 판 셋으로는 씨앗이 흔들리면 서클 장면이 둘에 그쳤다
+  for (let s = 0; s < RUNS; s++) {
     const h = mk(141 + s); grown(h, 14); stay(h, 'leocast'); h.player.manaAwakened = true; h.player.manaPotential = 1.2; h.player.mana = 20; h.player.skills.magic = 16;
     for (let m = 0; m < 12 * 60; m++) {
       if (h.over) { const hh = heirsOf(h)[0]; if (!hh) break; becomeHeir(h, rngOf(h), hh); if (h.over) break; }
@@ -207,9 +208,9 @@ const study = (g, n = 30) => { const before = knownSpells(g).length; for (let i 
     textOK([JSON.stringify(magicInfo(h)).replace(/null/g, '')], '60년 주문서');
     if (s === 0) console.log(`  판 1: 서클 ${circleOf(h)}, 계열 ${m.school}, 아는 주문 ${m.known?.length}, 영창 ${Math.round(m.chant ?? 0)}, 지은 주문 ${(m.made ?? []).map((x) => x.name)}, 이명 ${m.title}, 폭주 ${m.overloads}`);
   }
-  console.log(`  60년×3: 계열 ${schools}, 지은 주문 ${made}, 이명 ${titles}, 서클 장면 ${circles}, 5서클 넘은 달 ${high}`);
+  console.log(`  60년×${RUNS}: 계열 ${schools}, 지은 주문 ${made}, 이명 ${titles}, 서클 장면 ${circles}, 5서클 넘은 달 ${high}`);
   check(circles >= 3, `서클 장면 (${circles})`);
-  check(high < 12 * 60 * 3 * 0.3, '5서클은 여전히 드물다');
+  check(high < 12 * 60 * RUNS * 0.3, '5서클은 여전히 드물다');
 }
 console.log(`spelltest ${fail ? 'FAIL ' + fail : 'ok'} (${((Date.now() - T0) / 1000).toFixed(1)}s)`);
 process.exit(fail ? 1 : 0);

@@ -10,6 +10,7 @@ import { skyOf } from './sceneSky.js';
 import { paletteOf } from './sceneLand.js';
 import { describe } from './scenePlaces.js';
 import { conditions } from './scene.js';
+import { interiorNear } from './sceneInteriorNear.js';
 
 export const INTERIOR_KINDS = ['hearth', 'tavern', 'hall', 'temple', 'workshop'];
 
@@ -493,6 +494,7 @@ function draw(kind, year, month, place) {
   darkness(ctx, e.lights, amb, S.tod === 'night' ? '#05050b' : '#0c0704');
   darkness(ctx, e.lights.map(([x, y, r, k]) => [x, y, r * 0.55, k]), 0.35, S.tod === 'night' ? '#05050b' : '#0c0704');
   for (const [x, y, r, c, a] of e.glows) glow(ctx, x, y, r, c, a);
+  interiorNear(ctx, kind, e); // 51단계: 내 앞 탁자·의자 등받이·들보 (폰에 보이는 가운데)
   nearEdge(ctx, '#0b0705');
   paintFinish(ctx, W, H, { ...S, tod: S.tod === 'day' ? 'dusk' : S.tod }, { hz: 0.62, land: false, strength: 0.9, edgeK: 1.4 });
   grain(ctx);

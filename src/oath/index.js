@@ -711,7 +711,10 @@ HOOKS.afterMonth.push((g, rng) => {
   const due = blood.filter((b) => now - (b.calledAt ?? 0) >= 14);
   if (due.length && rng.chance(0.07)) {
     const b = rng.pick(due);
-    return fire('oath_blood_call', { who: b.pid, need: rng.pick(['debt', 'fight', 'wedding', 'jail', 'sick']) });
+    // 51단계: 혼인할 만큼 자란 자식이 없는 의형제에게 '자식 혼삿날'이 오던 일 (스물두 살 벗의 자식이 혼인)
+    const bp = byId(g, b.pid);
+    const grown = (bp?.childIds ?? []).some((id) => { const c = byId(g, id); return c?.alive && ageYears(c) >= 16; });
+    return fire('oath_blood_call', { who: b.pid, need: rng.pick(['debt', 'fight', ...(grown ? ['wedding'] : []), 'jail', 'sick']) });
   }
   if (lb && now - (lb.calledAt ?? 0) >= 10 && rng.chance(0.08)) {
     const war = !!g.realm?.balhart?.war;

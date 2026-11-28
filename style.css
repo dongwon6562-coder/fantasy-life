@@ -2520,3 +2520,190 @@ details.act-group > summary { min-width: 0; }
 .bh-trail { counter-reset: tr; gap: 3px; margin-top: 6px; }
 .bh-trail li { font-size: 13px; padding-left: 18px; position: relative; overflow-wrap: anywhere; }
 .bh-trail li::before { counter-increment: tr; content: counter(tr); position: absolute; left: 0; color: var(--brass); font-size: 11px; top: 2px; }
+
+/* 51단계: 사람들·지도 화면의 접힌 카드 (제목 줄만) */
+.main > section.card.foldable > h2 { cursor: pointer; -webkit-tap-highlight-color: transparent; }
+.main > section.card.foldable > h2::after { content: ''; flex: none; width: 9px; height: 9px; margin-left: 10px; border-right: 2px solid var(--brass); border-bottom: 2px solid var(--brass); transform: rotate(45deg) translate(-2px, -2px); transition: transform .2s; order: 10; }
+.main > section.card.folded > h2::after { transform: rotate(-45deg); }
+.main > section.card.folded > :not(h2) { display: none !important; }
+.main > section.card.folded { padding-top: 12px; padding-bottom: 12px; margin-bottom: 8px; }
+.main > section.card.folded > h2 { margin: 0; padding-bottom: 0; border-bottom: 0; font-size: 17px; }
+.main > section.card.folded > h2::before { display: none; }
+.main > section.card.foldable > h2:not(:has(> small))::after { margin-left: auto; }
+
+/* 51단계: 시작 화면 단계 줄 (위에 붙어 다닌다) */
+.setup-steps { position: sticky; top: 0; z-index: 30; display: flex; align-items: center; gap: 0; margin: 0 -16px; padding: 10px 60px 10px 12px; background: linear-gradient(rgba(24, 19, 14, .97), rgba(24, 19, 14, .92)); border-bottom: 1px solid rgba(201, 162, 90, .28); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); }
+.ss-step { flex: none; display: grid; justify-items: center; gap: 3px; background: none; border: 0; padding: 0 2px; color: var(--muted); font-size: 11.5px; min-width: 44px; cursor: pointer; }
+.ss-step .ss-n { width: 26px; height: 26px; border-radius: 50%; display: grid; place-items: center; border: 1.5px solid rgba(201, 162, 90, .45); color: var(--brass); font-family: var(--f-display); font-size: 13px; background: rgba(0, 0, 0, .25); }
+.ss-step.ok { color: var(--ink); }
+.ss-step.ok .ss-n { background: var(--brass); color: #22190f; border-color: var(--brass); font-weight: 700; }
+.ss-line { flex: 1 1 auto; height: 1.5px; min-width: 6px; margin: 0 2px 16px; background: rgba(201, 162, 90, .3); }
+.setup > section { scroll-margin-top: 70px; }
+
+/* 51단계: 집안 고르기는 폰에서 두 줄 타일(문장·이름·신분만), 고른 집안 설명은 그 줄 아래 */
+@media (max-width: 640px) {
+  .fam-grid { grid-template-columns: 1fr 1fr; gap: 8px; }
+  .setup .fam-grid .choice.fam-mini { display: grid; grid-template-columns: minmax(0, 1fr); justify-items: center; text-align: center; padding: 14px 8px 12px; gap: 4px; min-width: 0; }
+  .setup .fam-grid .choice.fam-mini .fm-crest { grid-row: auto; grid-column: 1; padding: 0; transform: scale(1.35); margin: 4px 0 6px; }
+  .setup .fam-grid .choice.fam-mini > * { grid-column: 1; }
+  .choice.fam-mini strong { font-size: 15px; line-height: 1.3; word-break: keep-all; }
+  .choice.fam-mini .tag { font-size: 11px; line-height: 1.4; word-break: keep-all; }
+  .choice.fam-mini > span:last-child:not(.tag):not(.fm-crest) { display: none; }
+  .choice.fam-mini[aria-pressed="true"] { box-shadow: 0 0 0 2px var(--brass), 0 6px 18px rgba(201, 162, 90, .18); }
+}
+
+/* 51단계: '지난달 한 일'은 접어 두고 느낌 한 줄만 (할 일이 첫 화면에서 가까워지게) */
+details.td-did > summary { list-style: none; cursor: pointer; display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 4px 10px; align-items: baseline; }
+details.td-did > summary::-webkit-details-marker { display: none; }
+details.td-did > summary h3 { margin: 0; grid-column: 1; }
+details.td-did > summary::after { content: '펼치기'; grid-column: 2; grid-row: 1; font-size: 11.5px; color: var(--muted); }
+details.td-did[open] > summary::after { content: '접기'; }
+details.td-did > summary .td-feel { grid-column: 1 / -1; font-style: italic; color: var(--ink-soft, var(--ink)); line-height: 1.7; }
+details.td-did[open] > summary { margin-bottom: 6px; }
+
+/* 51단계: 할 일 묶음이 많으면 접힌 묶음은 두 줄 타일(아이콘·이름·몇 가지), 펼친 묶음은 한 줄 전체 */
+.acts.ag-tiles { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); grid-auto-flow: row dense; gap: 8px; align-items: start; }
+.acts.ag-tiles > * { grid-column: 1 / -1; min-width: 0; }
+.acts.ag-tiles > details.act-group:not(.dark):not([open]) { grid-column: auto; }
+.acts.ag-tiles > details.act-group:not(.dark):not([open]) > summary { display: grid; grid-template-columns: auto minmax(0, 1fr); grid-template-rows: auto auto; column-gap: 10px; row-gap: 1px; align-items: center; min-height: 0; padding: 10px 10px; border: 1px solid rgba(201, 162, 90, .22); border-radius: 12px; background: linear-gradient(180deg, rgba(201, 162, 90, .07), rgba(0, 0, 0, .12)); border-bottom: 1px solid rgba(201, 162, 90, .22); }
+.acts.ag-tiles > details.act-group:not(.dark):not([open]) > summary::after { display: none; }
+.acts.ag-tiles > details.act-group:not(.dark):not([open]) > summary h4 { grid-row: 1 / span 2; display: contents; }
+.acts.ag-tiles > details.act-group:not(.dark):not([open]) > summary h4 .ag-ic { grid-row: 1 / span 2; grid-column: 1; }
+.acts.ag-tiles > details.act-group:not(.dark):not([open]) > summary h4 { font-size: 14px; letter-spacing: .02em; color: var(--ink); line-height: 1.3; word-break: keep-all; }
+.acts.ag-tiles > details.act-group:not(.dark):not([open]) > summary .note { grid-column: 2; font-size: 11.5px; }
+.acts.ag-tiles > details.act-group:not(.dark):not([open]) > summary .ag-peek { display: none; }
+.acts.ag-tiles > details.act-group:not(.dark):not([open]) > summary:active { transform: scale(.98); }
+
+/* 51단계: 할 일 뒤 '지금 내 형편' 머리 */
+.main > .month-sub { margin: 22px 4px 10px; font-size: 13px; letter-spacing: .16em; color: var(--brass); display: flex; align-items: center; gap: 10px; }
+.main > .month-sub::after { content: ''; flex: 1; height: 1px; background: linear-gradient(90deg, rgba(201, 162, 90, .45), transparent); }
+
+/* 51단계: 이번 달 머리 그림을 크게, 내 띠는 그림 아래쪽에 걸친 유리판 */
+:root { --hero-h: clamp(300px, 88vw, 460px); --muted: #b3a48c; }
+.scene.hero .scene-pic::before { background: linear-gradient(180deg, rgba(10, 8, 6, .5) 0%, rgba(10, 8, 6, 0) 22%, rgba(10, 8, 6, 0) 50%, rgba(12, 9, 6, .55) 72%, rgba(14, 10, 7, .96) 100%); }
+.scene.hero .scene-cap { padding-bottom: 78px; }
+.scene.hero .date strong { font-size: clamp(40px, 12vw, 56px); line-height: 1; text-shadow: 0 3px 14px rgba(0, 0, 0, .7); }
+.scene.hero .hero-me { margin-top: -66px; background: linear-gradient(180deg, rgba(40, 31, 22, .72), rgba(24, 19, 14, .9)); backdrop-filter: blur(8px) saturate(1.2); -webkit-backdrop-filter: blur(8px) saturate(1.2); border-color: rgba(201, 162, 90, .4); }
+@media (max-width: 860px) {
+  .scene.hero .scene-pic img { height: var(--hero-h); }
+}
+@media (min-width: 861px) { .scene.hero .scene-cap { padding-bottom: 14px; } .scene.hero .scene-pic img { height: clamp(230px, 26vw, 340px); } }
+
+/* 51단계: 사건 창 — 그림을 더 크게, 제목은 크게, 고르는 단추는 누를 곳이 분명하게 */
+@media (max-width: 860px) { .ev-art { height: clamp(210px, 60vw, 300px); } }
+.event .ev-body > .eyebrow { display: inline-block; justify-self: start; padding: 3px 10px; border-radius: 999px; background: rgba(111, 81, 34, .12); border: 1px solid rgba(111, 81, 34, .3); color: #6b4a1e; letter-spacing: .08em; }
+.event h2 { font-size: clamp(23px, 6.6vw, 28px); line-height: 1.25; }
+.event .opt { position: relative; padding-right: 36px; border-left: 3px solid #a07a3a; border-radius: 10px; text-align: left; }
+.event .opt::after { content: ''; position: absolute; right: 14px; top: 50%; width: 8px; height: 8px; border-right: 2px solid #8a6d38; border-top: 2px solid #8a6d38; transform: translateY(-50%) rotate(45deg); opacity: .8; }
+.event .opt:active { transform: translateY(1px); background: rgba(255, 250, 236, .85); }
+.event #ev-close { min-height: 52px; font-size: 16px; }
+
+/* ==========================================================================
+   51단계 둘째 판: 폰에서 처음 보자마자 달라진 게 느껴지게
+   ========================================================================== */
+
+/* 머리 그림: 아래쪽을 더 깊게 어둡게 해 글이 그림(난롯불)과 겹쳐도 읽히게, 해는 어두운 알약 위에 */
+.scene.hero .scene-pic::before { background: linear-gradient(180deg, rgba(10, 8, 6, .5) 0%, rgba(10, 8, 6, 0) 20%, rgba(10, 8, 6, 0) 38%, rgba(12, 9, 6, .5) 56%, rgba(12, 9, 6, .86) 74%, rgba(14, 10, 7, .98) 100%); }
+.scene.hero .date .yr { justify-self: start; width: max-content; margin-bottom: 6px; padding: 3px 11px 3px 9px; border-radius: var(--r-pill, 999px); font-size: 12px; letter-spacing: .12em; color: #f0d699;
+  background: rgba(12, 9, 6, .78); border: 1px solid rgba(201, 162, 90, .45); text-shadow: none; display: inline-flex; align-items: center; gap: 6px;
+  backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); box-shadow: 0 2px 8px rgba(0, 0, 0, .4); }
+.scene.hero .date .yr::before { content: ''; width: 5px; height: 5px; background: var(--brass); transform: rotate(45deg); flex: none; }
+.scene.hero .date .cond { text-shadow: 0 1px 4px rgba(0, 0, 0, .9); }
+/* 돈: 금화 알약 둘 */
+.scene.hero .purse { gap: 6px; }
+.scene.hero .purse span { display: inline-flex; align-items: center; gap: 6px; padding: 4px 11px 4px 7px; border-radius: 999px; font-size: 12.5px; color: #e6d7b8;
+  background: rgba(12, 9, 6, .72); border: 1px solid rgba(201, 162, 90, .32); text-shadow: none; backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); }
+.scene.hero .purse span::before { content: ''; width: 13px; height: 13px; border-radius: 50%; flex: none;
+  background: radial-gradient(circle at 35% 30%, #fff1c4 0 14%, #e2bd6c 30%, #a87d33 75%, #7a5722); box-shadow: 0 0 0 1px rgba(0, 0, 0, .35), 0 1px 2px rgba(0, 0, 0, .5); }
+.scene.hero .purse span + span::before { background: radial-gradient(circle at 35% 30%, #ffffff 0 14%, #d8d6d0 32%, #9d9a92 75%, #6d6a63); }
+
+/* 다른 탭 머리: 그 탭 아이콘을 금박 원에 담아 제목 앞에 */
+.view-title { display: flex; align-items: center; gap: 10px; }
+.view-title .vt-ic { display: grid; place-items: center; width: 34px; height: 34px; flex: none; border-radius: 50%; color: #1d140b;
+  background: linear-gradient(180deg, #e4c27e, #b48a43); box-shadow: inset 0 1px 0 rgba(255, 241, 205, .55), 0 0 0 3px rgba(12, 9, 6, .5), 0 3px 10px rgba(0, 0, 0, .5); }
+.view-title .vt-ic svg { width: 19px; height: 19px; }
+
+/* 아래 탭 막대: 위가 둥근 가죽 받침, 금줄 한 가닥 */
+@media (max-width: 860px) {
+  .nav { border-top: 0; border-radius: 18px 18px 0 0; background: var(--grain), linear-gradient(180deg, #2c241a, #1a1510 70%);
+    box-shadow: 0 -1px 0 rgba(201, 162, 90, .45), 0 -10px 26px rgba(0, 0, 0, .5); }
+  .nav::before { content: ''; position: absolute; left: 22%; right: 22%; top: 0; height: 1px; background: linear-gradient(90deg, transparent, rgba(255, 226, 160, .8), transparent); pointer-events: none; }
+  .nav button[aria-current="page"] span { color: #f0d699; font-weight: 600; }
+  .nav button[aria-current="page"] .ico { padding: 4px 16px; }
+}
+
+/* 지난달 한 일: 풍경 카드 위, 밝은 기록지. 한 일마다 왼쪽 줄에 점 */
+.main > .card.td-log { --ink-l: #2b1e13; --mute-l: #6b553b;
+  background: var(--fibers, none), var(--grain-ink, none), radial-gradient(ellipse 140% 100% at 50% 30%, #f3e8cc 0%, #eadcb8 65%, #dcc897 100%);
+  color: var(--ink-l); border: 1px solid #8a6d38; padding: 18px 18px 16px; gap: 10px;
+  box-shadow: inset 0 0 30px rgba(120, 82, 34, .22), 0 1px 0 rgba(0, 0, 0, .5), 0 14px 30px -10px rgba(0, 0, 0, .6); }
+.td-log .tl-head { display: grid; gap: 2px; padding-bottom: 8px; background: linear-gradient(90deg, rgba(111, 81, 34, .6), rgba(111, 81, 34, 0) 75%) left bottom / 100% 1px no-repeat; }
+.td-log .tl-eye { font-size: 11.5px; letter-spacing: .16em; color: #8a5a22; }
+.td-log .tl-head h2 { margin: 0; padding: 0; background: none; font-size: 22px; color: var(--ink-l); text-shadow: none; }
+.td-log .tl-feel { margin: 0; font-family: var(--f-display); font-style: italic; font-size: 15.5px; line-height: 1.7; color: #4a3523; }
+.td-log .results { gap: 0; }
+.td-log .results li { position: relative; padding: 8px 0 10px 20px; border-left: 0; }
+.td-log .results li::before { content: ''; position: absolute; left: 4px; top: 15px; bottom: -15px; width: 1.5px; background: rgba(138, 109, 56, .45); }
+.td-log .results li:last-child::before { display: none; }
+.td-log .results li::after { content: ''; position: absolute; left: 0; top: 11px; width: 9px; height: 9px; border-radius: 50%; background: #b48a43; box-shadow: 0 0 0 2px #f1e5c6, 0 0 0 3px rgba(138, 109, 56, .6); }
+.td-log .results li b { color: #7a3f14; font-size: 14px; font-weight: 700; }
+.td-log .results li b small { color: var(--mute-l); }
+.td-log .results .scene-text { color: #33241a; font-size: 15px; line-height: 1.75; }
+.td-log .results .gains { color: var(--mute-l); font-size: 12.5px; }
+.td-log .td-more > summary { color: #6b4a1e; font-size: 13.5px; font-weight: 600; min-height: 40px; display: flex; align-items: center; gap: 8px; list-style: none; padding: 0 12px; border: 1px dashed rgba(138, 109, 56, .55); border-radius: 10px; background: rgba(255, 250, 236, .45); }
+.td-log .td-more > summary::-webkit-details-marker { display: none; }
+.td-log .td-more > summary::after { content: ''; margin-left: auto; width: 7px; height: 7px; border-right: 2px solid #8a6d38; border-bottom: 2px solid #8a6d38; transform: rotate(45deg); transition: transform .15s; }
+.td-log .td-more[open] > summary::after { transform: rotate(-135deg); }
+.td-log .tl-sum { padding-top: 10px; border-top: 1px dashed rgba(138, 109, 56, .45); }
+.td-log .month-sum h3.sub { margin: 0; font-size: 12px; letter-spacing: .14em; color: #8a5a22; }
+.td-log .sm-row .lbl { color: var(--mute-l); }
+.td-log .sm-chip { background: rgba(255, 250, 236, .6); border-color: rgba(138, 109, 56, .45); color: var(--ink-l); }
+.td-log .sm-chip.up b { color: #3f6b2a; }
+.td-log .sm-chip.down b { color: #9a2f1f; }
+.td-log .sm-lines { color: #4a3523; }
+html.motion .main > .card.td-log { animation: log-in .5s cubic-bezier(.2, .8, .25, 1) both; }
+@keyframes log-in { from { opacity: 0; transform: translateY(14px) rotate(-.4deg); } }
+
+/* 이번 달의 장면: 머리에 '3월의 장면 · 봄' 띠, 고장 이름은 크게, 첫 줄은 큰 따옴표 */
+.today .td-head { display: grid; gap: 2px; }
+.today .td-head h2 { margin: 0; font-size: 24px; line-height: 1.25; padding-bottom: 9px; background: var(--rule) left bottom / 100% 1px no-repeat; }
+.today .td-eye { justify-self: start; font-size: 11.5px; letter-spacing: .14em; color: var(--brass); }
+.today .td-lead { position: relative; border-left: 0; padding: 4px 0 2px 34px; }
+.today .td-lead::before { content: '\201C'; position: absolute; left: -2px; top: -10px; font-family: var(--f-display); font-size: 56px; line-height: 1; color: rgba(201, 162, 90, .55); }
+.today .td-lead p:first-child { font-size: 18px; color: #f1e3c3; }
+
+/* 할 일 카드: 폰에서는 한 줄씩 넓게. 왼쪽 큰 아이콘, 가운데 이름·설명, 오른쪽 '넣기' 동그라미 (넣으면 ✓·몇 칸) */
+@media (max-width: 640px) {
+  .acts:not(.compact) .act-grid { grid-template-columns: minmax(0, 1fr); gap: 8px; }
+  .acts:not(.compact) .act { grid-template-columns: 46px minmax(0, 1fr) 30px !important; grid-template-rows: auto auto; column-gap: 12px; row-gap: 2px;
+    align-items: center; justify-items: stretch; min-height: 74px; padding: 11px 12px 11px 11px !important; }
+  .acts:not(.compact) .act .ic { display: grid !important; grid-row: 1 / span 2 !important; grid-column: 1; width: 46px !important; height: 46px !important; }
+  .acts:not(.compact) .act .ic svg { width: 26px; height: 26px; }
+  .acts:not(.compact) .act .nm { grid-row: 1 !important; grid-column: 2; align-self: end; padding-right: 0; font-size: 16px !important; }
+  .acts:not(.compact) .act .ds { grid-row: 2; grid-column: 2; align-self: start; -webkit-line-clamp: 2; max-height: none; font-size: 12.5px; }
+  .acts:not(.compact) .act::before { content: '+'; grid-column: 3; grid-row: 1 / span 2; justify-self: end; width: 30px; height: 30px; border-radius: 50%; display: grid; place-items: center;
+    font-size: 20px; line-height: 1; color: var(--brass); border: 1px solid rgba(201, 162, 90, .5); background: rgba(0, 0, 0, .2); }
+  .acts:not(.compact) .act[aria-pressed="true"]::before { content: '\2713'; font-size: 15px; font-weight: 700; color: #1b150e; background: linear-gradient(180deg, #e4c27e, #b48a43); border-color: transparent; }
+  .acts:not(.compact) .act:has(.cnt)::before { visibility: hidden; }
+  .acts:not(.compact) .act .cnt { top: 50%; right: 12px; transform: translateY(-50%); width: 30px; height: 30px; min-width: 0; border-radius: 50%; padding: 0; font-size: 14px; }
+  .acts:not(.compact) .act::after { left: 0; right: auto; top: 10px; bottom: 10px; width: 3px; height: auto; }
+}
+
+/* 사건 창: 그림은 금테 액자에 담겨 편지 위에 걸리고, 창은 아래에서 밀려 올라온다. 다음 장은 종이를 넘기듯 */
+.event:not(.battle) .ev-art:not(.fl-battle) { margin: 22px 14px 0; border-radius: 10px; border: 2px solid #5a3f1a;
+  box-shadow: 0 0 0 3px #e9d9b0, 0 0 0 4px #8a6d38, 0 8px 18px rgba(60, 38, 12, .35); }
+.event:not(.battle) .ev-art:not(.fl-battle)::after, .event:not(.battle) .ev-art.fl-vig:not(.fl-battle)::after { background: radial-gradient(ellipse 90% 85% at 50% 50%, transparent 55%, rgba(25, 16, 8, .45)) !important; }
+.ev-art .ev-frame { position: absolute !important; inset: 7px; z-index: 2; pointer-events: none; border: 1px solid rgba(240, 214, 153, .45); border-radius: 4px; }
+.event.battle .ev-frame, .ev-art.fl-battle .ev-frame { display: none; }
+@media (max-width: 860px) { .event:not(.battle) .ev-art:not(.fl-battle) { margin-top: 24px; } .event::before { top: 9px; background: rgba(111, 81, 34, .5); box-shadow: none; } }
+.event .ev-body { padding-top: 12px; }
+html.motion .overlay.fresh:not(.out) .event { animation: sheet-up .5s cubic-bezier(.18, .9, .28, 1.02) both; }
+@keyframes sheet-up { from { transform: translateY(70px); opacity: 0; } 60% { opacity: 1; } }
+html.motion .overlay.fresh:not(.out) .event .ev-art { animation: art-hang .7s cubic-bezier(.2, .8, .3, 1) .12s both; }
+@keyframes art-hang { from { transform: translateY(-8px) scale(.97); opacity: 0; } }
+html.motion .event.turn .ev-body { animation: page-turn .45s cubic-bezier(.2, .8, .25, 1) both; transform-origin: left center; }
+@keyframes page-turn { from { opacity: 0; transform: perspective(900px) translateX(34px) rotateY(-12deg); } }
+html.motion .event.turn .ev-art { animation: art-swap .5s ease both; }
+@keyframes art-swap { from { opacity: .2; filter: sepia(.6) brightness(.8); } }
+html.motion .event.rv h2 { animation: ink-in .7s ease-out both; }
+@keyframes ink-in { from { opacity: 0; letter-spacing: .14em; filter: blur(2px); } }

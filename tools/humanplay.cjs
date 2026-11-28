@@ -71,7 +71,11 @@ fs.mkdirSync(out, { recursive: true });
     const plan = await p.evaluate(() => [...document.querySelectorAll('.slotchip')].map((b) => b.innerText.replace(/\s+/g, ' ')).join(' | ')).catch(() => '');
     const go = await p.$('#go');
     if (!go) { log.push('!! #go 없음: ' + (await p.textContent('#app').catch(() => '')).replace(/\s+/g, ' ').slice(0, 600)); break; }
-    await go.click();
+    try { await go.click({ timeout: 8000 }); } catch (e) {
+      await p.screenshot({ path: `${out}/stuck-${months}.png`, fullPage: true });
+      const top = await p.evaluate(() => { const r = document.querySelector('#go').getBoundingClientRect(); const el = document.elementFromPoint(r.x + r.width / 2, r.y + r.height / 2); return `go ${JSON.stringify(r)} disabled=${document.querySelector('#go').disabled} top=${el?.outerHTML.slice(0, 300)}`; }).catch((x) => String(x));
+      log.push('!! #go 못 누름: ' + top); console.log('stuck', months, top); break;
+    }
     months++;
     const now = await p.evaluate(() => (document.querySelector('main')?.innerText || '').slice(0, 1800)).catch(() => '');
     log.push(`\n## ${months}달 (${a}살) 할 일: ${plan}\n${now}`);
