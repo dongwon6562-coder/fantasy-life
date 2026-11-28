@@ -329,13 +329,13 @@ export function drawHair(style, h) {
     case 'braid': {
       const c = cap({ v: 2.5, drop: hh * 0.2 });
       out.front = capDraw(c, strands(c, { ox: part * hw * 0.3 })) + fringe('sweep', c);
-      out.mid = braid(along(cx + part * (hw * 0.78), cy + hh * 0.66, cx + part * (hw * 0.5), chin + 27, 9, part * 4.4), 3.3, 2.3);
+      out.mid = braid(along(cx + part * (hw * 0.97), cy + hh * 0.16, cx + part * (hw * 0.62), chin + 27, 11, part * 4.4), 3.3, 2.3); // 51단계 둘째: 머리 덮개 아래에서 시작해 머리와 이어지게
       break;
     }
     case 'braids': {
       const c = cap({ v: 2.5, drop: hh * 0.2 });
       out.front = capDraw(c, strands(c, { ox: 0 })) + fringe(h.peak > 0.5 ? 'bangs' : 'curtain', c);
-      out.mid = [-1, 1].map((s) => braid(along(cx + s * (hw * 0.9), cy + hh * 0.5, cx + s * (hw * 0.8), chin + 18, 7, s * 3), 2.7, 1.9)).join('');
+      out.mid = [-1, 1].map((s) => braid(along(cx + s * (hw * 0.97), cy + hh * 0.16, cx + s * (hw * 0.82), chin + 18, 9, s * 3), 2.7, 1.9)).join('');
       break;
     }
     case 'bun': {
@@ -354,10 +354,12 @@ export function drawHair(style, h) {
       const c = cap({ v: 2.3, drop: hh * 0.02 });
       out.front = capDraw(c, strands(c, { ox: 0, back: true })) + (h.peak > 0.45 ? fringe('sweep', c) : fringe('curtain', c)) + (h.peak > 0.8 ? fringe('strand', c) : '');
       {
-        const x0 = cx + part * (hw * 0.92 + 1.6), y0 = cy + hh * 0.78; // 51단계 둘째: 얼굴이 넓어지며 꼬리가 턱 밑으로 와 염소수염처럼 보였다. 귀 뒤에서 어깨 옆으로
-        const R1 = [[x0 + part * 2.2, y0], [x0 + part * 5.4, y0 + 7], [x0 + part * 4.6, y0 + 16], [x0 + part * 1.4, y0 + 26]];
-        const R2 = [[x0 - part * 1.6, y0 + 25], [x0 + part * 0.6, y0 + 15], [x0 + part * 1.2, y0 + 7], [x0 - part * 0.6, y0 + 1]];
-        out.mid = `<path d="${spline(R1)} L${f(R2[0][0])} ${f(R2[0][1])} ${spline(R2, false, false)}Z" fill="${fillG}" ${line}/>${detail ? `<path d="M${f(x0 + part * 2.4)} ${f(y0 + 4)} q${f(part * 2)} 9 ${f(-part * 1.6)} 20" fill="none" stroke="${dark}" stroke-width="0.4" opacity="0.6"/>` : ''}<path d="M${f(x0 - part * 0.4)} ${f(y0 + 2)} l${f(part * 3)} 0.8" stroke="#8a6d38" stroke-width="1.2" stroke-linecap="round"/>`;
+        // 51단계 둘째: 꼬리가 머리와 떨어져 어깨 위에 혼자 서 있었다. 귀 뒤에서 묶어 목 옆을 따라 어깨로 늘어뜨린다 (머리 덮개 아래에서 시작해 이어져 보인다)
+        const X = (d) => cx + part * d;
+        const R1 = [[X(hw * 0.82), cy - hh * 0.12], [X(hw + 1.6), cy + hh * 0.2], [X(hw + 3.2), cy + hh * 0.62], [X(hw + 2.8), chin + 7], [X(hw + 1.2), chin + 19]];
+        const R2 = [[X(hw - 1.4), chin + 18], [X(hw - 0.2), chin + 6], [X(hw + 0.4), cy + hh * 0.6], [X(hw * 0.86), cy + hh * 0.22], [X(hw * 0.7), cy - hh * 0.1]];
+        const ty = cy + hh * 0.3;
+        out.mid = `<path d="${spline(R1)} L${f(R2[0][0])} ${f(R2[0][1])} ${spline(R2, false, false)}Z" fill="${fillG}" ${line}/>${detail ? `<path d="M${f(X(hw + 1.2))} ${f(ty + 3)} Q${f(X(hw + 2.6))} ${f(chin)} ${f(X(hw + 0.4))} ${f(chin + 16)}" fill="none" stroke="${dark}" stroke-width="0.4" opacity="0.6"/>` : ''}<path d="M${f(X(hw - 0.2))} ${f(ty)} L${f(X(hw + 2.4))} ${f(ty + 0.9)}" stroke="#8a6d38" stroke-width="1.3" stroke-linecap="round"/>`;
       }
       break;
     }

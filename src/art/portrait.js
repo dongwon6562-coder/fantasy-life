@@ -289,7 +289,7 @@ function drawFace(game, p, age, stage, scars, ring, mood, detail, life, bust = f
   let hh = 20.9 + g.long * 5.0 * (1 - kid * 0.5) + (male ? 0.7 : 0) - kid * 4.0;
   // 51단계 둘째: 젊은 얼굴은 넓은 폭을 덜 드러낸다 (열여덟이 살집 있는 중년처럼 보였다)
   const youth = clamp((26 - age) / 10) * (1 - kid);
-  hw -= Math.max(0, g.wide - 0.45) * 2.6 * youth;
+  hw -= Math.max(0, g.wide - 0.4) * 3.6 * youth;
   const settle = clamp((age - 16) / 16) * (1 - kid); // 46단계: 앳된 얼굴이 서른 즈음까지 길고 단단해진다
   hh += settle * 0.9; hw -= settle * 0.35;
   hh += old * 1.3; hw -= ancient * 0.5; // 51단계: 늙으면 얼굴이 아래로 처져 길어지고, 아주 늙으면 살이 빠져 좁아진다
@@ -298,8 +298,8 @@ function drawFace(game, p, age, stage, scars, ring, mood, detail, life, bust = f
   const form = FORMS[Math.min(5, Math.floor((g.form ?? 0) * 6))], eyeK = EYE_KINDS[Math.min(4, Math.floor((g.eyeKind ?? 0) * 5))];
   const fk = 1 - kid * 0.7; // 아이 얼굴은 생김새 갈래가 덜 드러난다
   if (form === 'long') { hh += 2.4 * fk; hw -= 1.1 * fk; }
-  if (form === 'round') { hw += 1.5 * fk; hh -= 1.6 * fk; }
-  if (form === 'square') { hw += 0.9 * fk; hh -= 0.5 * fk; }
+  if (form === 'round') { hw += 1.5 * fk * (1 - youth * 0.5); hh -= 1.6 * fk * (1 - youth * 0.5); }
+  if (form === 'square') { hw += 0.9 * fk * (1 - youth * 0.5); hh -= 0.5 * fk; }
   if (form === 'heart') { hw += 0.4 * fk; }
   const chin = 66 + kid * 1.5 + (dwarf ? 1.5 : 0);
   const top = chin - hh * 2;
