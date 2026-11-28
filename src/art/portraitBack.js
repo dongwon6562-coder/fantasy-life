@@ -49,7 +49,7 @@ export function backdrop({ job, tier, stage, race, uid, H, detail, roll = 0.5, r
   const blur = detail ? ` filter="url(#${uid}xs)"` : '';
   // 부드러운 빛 번짐: 필터 대신 둥근 그라데이션 (작은 초상에서도 가장자리가 부드럽다)
   let gn = 0;
-  const soft = (x, y, rx, ry, col, op) => { const id = `${uid}bk${gn++}`; return `<defs><radialGradient id="${id}"><stop offset="0" stop-color="${col}" stop-opacity="${op}"/><stop offset="0.5" stop-color="${col}" stop-opacity="${f(op * 0.45)}"/><stop offset="1" stop-color="${col}" stop-opacity="0"/></radialGradient></defs><ellipse cx="${f(x)}" cy="${f(y)}" rx="${f(rx)}" ry="${f(ry)}" fill="url(#${id})"/>`; };
+  const soft = (x, y, rx, ry, col, op) => { const id = `${uid}bk${gn++}`; return `<defs><radialGradient id="${id}"><stop offset="0" stop-color="${col}" stop-opacity="${op}"/>${detail ? `<stop offset="0.5" stop-color="${col}" stop-opacity="${f(op * 0.45)}"/>` : ''}<stop offset="1" stop-color="${col}" stop-opacity="0"/></radialGradient></defs><ellipse cx="${f(x)}" cy="${f(y)}" rx="${f(rx)}" ry="${f(ry)}" fill="url(#${id})"/>`; };
   const fl = (id) => (detail ? ` filter="url(#${uid}${id})"` : ''); // 작은 초상은 필터 없이
   switch (set) {
     case 'field': {

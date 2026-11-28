@@ -7,12 +7,12 @@ const { chromium } = require('playwright');
 const out = process.argv[2] || 'dist/art51';
 fs.mkdirSync(out, { recursive: true });
 const hasOld = fs.existsSync('dist/_old51/src/art/portrait.js');
-fs.writeFileSync('dist/_art51_entry.js', `
+fs.writeFileSync('dist/_art51p_entry.js', `
 import { portrait } from '../src/art/portrait.js';
 ${hasOld ? "import { portrait as oldPortrait } from './_old51/src/art/portrait.js';" : 'const oldPortrait = null;'}
 globalThis.FL_DATA_URLS = true;
 window.A = { portrait, oldPortrait };`);
-execSync('npx --yes esbuild@0.24.0 dist/_art51_entry.js --bundle --format=iife --outfile=dist/_art51_bundle.js --log-level=warning', { stdio: 'inherit' });
+execSync('npx --yes esbuild@0.24.0 dist/_art51p_entry.js --bundle --format=iife --outfile=dist/_art51p_bundle.js --log-level=warning', { stdio: 'inherit' });
 
 const NM = ['한스', '마리아', '오토', '리제', '페터', '안나', '클라우스', '엘제', '프리츠', '그레타', '루트비히', '힐데', '카를', '베르타', '요한', '도라'];
 const LN = ['뮐러', '슈미트', '바그너', '호프만', '베커', '마이어', '렘케', '폭스'];
@@ -25,6 +25,8 @@ const STATUS = [['beggar', 0], ['laborer', 1], ['farmer', 1], ['merchant', 2], [
 const LIFE = [6, 16, 25, 38, 52, 68, 80].map((a) => [P(3, { sex: 'm', job: a < 15 ? 'child' : 'smith', ageMonths: a * 12 }), `${a}살`]);
 const LIFE_F = [6, 16, 25, 38, 52, 68, 80].map((a) => [P(12, { sex: 'f', job: a < 15 ? 'child' : 'merchant', ageMonths: a * 12 }), `${a}살`]);
 const MOOD = ['', 'warm', 'cold', 'tired', 'stressed', 'sick', 'grief', 'fierce', 'proud'].map((m, k) => [P(700 + k * 3, { ageMonths: 34 * 12 }), m || '보통', m]);
+const BEARD = Array.from({ length: 16 }, (_, k) => [P(900 + k * 2, { sex: 'm', job: JOBS8[k % 8], ageMonths: (34 + (k * 7) % 20) * 12 }), `${JOBS8[k % 8]}`]);
+const YOUNG = [16, 19, 22, 26, 31, 36, 16, 20].map((a, k) => [P(1001 + k * 2, { sex: 'f', job: k % 2 ? 'baker' : 'cook', ageMonths: a * 12 }), `${k % 2 ? 'baker' : 'cook'} ${a}`]);
 const RACE = [['human', null], ['elf', null], ['half_elf', null], ['dwarf', null], ['beast', 'wolf'], ['beast', 'cat'], ['demon', null], ['half_demon', null]]
   .flatMap(([race, beast], k) => [0, 1].map((s) => [P(20 + k * 2 + s, { race, beast, ageMonths: (race === 'elf' ? 120 : race === 'dwarf' ? 70 : 30) * 12 }), `${race}${beast ? '/' + beast : ''}`]));
 
@@ -33,9 +35,9 @@ const RACE = [['human', null], ['elf', null], ['half_elf', null], ['dwarf', null
   const page = await b.newPage({ viewport: { width: 390, height: 800 }, deviceScaleFactor: 2 });
   const errs = []; page.on('pageerror', (e) => errs.push(e.message));
   await page.setContent('<html><body style="margin:0;background:#1b1611;color:#d8c9a8;font:11px sans-serif"><div id="g"></div></body></html>');
-  await page.addScriptTag({ content: fs.readFileSync('dist/_art51_bundle.js', 'utf8') });
+  await page.addScriptTag({ content: fs.readFileSync('dist/_art51p_bundle.js', 'utf8') });
   const shoot = async (name) => { const h = await page.evaluate(() => document.body.scrollHeight); await page.setViewportSize({ width: 390, height: h }); await page.screenshot({ path: `${out}/${name}.png` }); await page.setViewportSize({ width: 390, height: 800 }); };
-  for (const [name, list, size] of [['crowd-m', CROWD, 88], ['crowd-f', CROWD_F, 88], ['status', STATUS, 88], ['life-m', LIFE, 88], ['life-f', LIFE_F, 88], ['mood', MOOD, 88], ['race', RACE, 88], ['small', CROWD, 44]]) {
+  for (const [name, list, size] of [['crowd-m', CROWD, 88], ['crowd-f', CROWD_F, 88], ['status', STATUS, 88], ['life-m', LIFE, 88], ['life-f', LIFE_F, 88], ['mood', MOOD, 88], ['race', RACE, 88], ['small', CROWD, 44], ['beard', BEARD, 88], ['young', YOUNG, 88], ['big', BEARD.slice(0, 4).concat(CROWD_F.slice(0, 2)), 180]]) {
     const t = await page.evaluate(({ list, size }) => {
       const g = document.getElementById('g'); g.innerHTML = '';
       const times = { old: 0, now: 0 };
