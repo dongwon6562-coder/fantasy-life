@@ -2,7 +2,7 @@ import './lsshim.js';
 import '../src/content.js';
 // 48단계 도우미3: 사람처럼 여러 삶을 살며 뜨는 사건·장면·소식을 나이·고장·달과 함께 글로 남긴다.
 // 화면 없이 빠르게(한 삶 수십 초). 직접 실행: node tools/eventlog.js <출력 파일> [판 수] [해 수]
-//   FAM=farmer,merchant  집안을 정한다   FOCUS=정규식  그 id의 사건만 적는다
+//   FAM=farmer,merchant  집안을 정한다   FOCUS=정규식  그 id의 사건만 적는다   PREFER=정규식  그 행동을 자주 고른다
 import fs from 'node:fs';
 import { newGame, endMonth, availableActions, slotsFor, playerAge, rngOf } from '../src/game.js';
 import { resolveEvent } from '../src/events.js';
@@ -13,6 +13,7 @@ import { heirsOf, becomeHeir } from '../src/heir.js';
 const out = process.argv[2] ?? '/tmp/eventlog.md', N = +(process.argv[3] ?? 4), YEARS = +(process.argv[4] ?? 60);
 const fams = (process.env.FAM ?? 'farmer,merchant,fallen_knight,fisher,slum_orphan,tower_blood').split(',');
 const FOCUS = process.env.FOCUS ? new RegExp(process.env.FOCUS) : null;
+const PREFER = process.env.PREFER ? new RegExp(process.env.PREFER) : null; // 49단계: 이 id의 행동을 더 자주 고른다 (한 갈래 삶을 살아 보기)
 const lines = [];
 for (let run = 0; run < N; run++) {
   const fam = fams[run % fams.length];
@@ -24,7 +25,8 @@ for (let run = 0; run < N; run++) {
     const rng = rngOf(g), acts = availableActions(g), choices = [];
     for (let i = 0; i < slotsFor(g); i++) {
       const pool = acts.filter((x) => x.id !== 'travel' && !/move|emigr|leave_home/.test(x.id));
-      let a = rng.pick(pool.length ? pool : acts);
+      const pref = PREFER ? pool.filter((x) => PREFER.test(x.id)) : [];
+      let a = pref.length && rng.chance(0.6) ? rng.pick(pref) : rng.pick(pool.length ? pool : acts);
       if (!a || g.player.fatigue > 70) a = acts.find((x) => x.id === 'rest') ?? acts[0];
       const c = { id: a.id };
       if (a.needsTarget) c.target = g.people.find((p) => p.known && !p.isPlayer && p.alive && !p.away)?.id;
