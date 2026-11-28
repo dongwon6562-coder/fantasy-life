@@ -2,7 +2,8 @@
 import { INK, f, shade, tint, mixHex, spline } from './portraitKit.js';
 
 const pick = (arr, r) => arr[Math.min(arr.length - 1, Math.floor(r * arr.length))];
-const EARTH = ['#6e6040', '#5f6843', '#7b5e3c', '#5d5546', '#6a5a4c', '#4f5a52'];
+// 51단계: 평민 옷도 빛깔을 넓게 (생 양털 흰빛, 대청 푸른빛, 꼭두서니 적갈, 물푸레 노랑, 쑥빛 초록, 잿빛)
+const EARTH = ['#6e6040', '#5f6843', '#7b5e3c', '#5d5546', '#6a5a4c', '#4f5a52', '#9a8e70', '#4e6680', '#8a4a34', '#8e7c3a', '#5e7a4e', '#74726a'];
 const RICH = ['#6e2f2a', '#2f5248', '#3d3a66', '#5a4a26', '#4a2f4f', '#274a5c'];
 const GOLD = '#c9a25a', SILVER = '#b9bcc0', LINEN = '#d9cfba', STEEL = '#8a8f96';
 

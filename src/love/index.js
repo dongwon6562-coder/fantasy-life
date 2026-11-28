@@ -346,6 +346,7 @@ defineScene('love_glance', {
     if (!p) return '그 사람은 이미 가고 없었다.';
     rel(p);
     if (key === 'no') return '못 본 척 지나쳤다. 등 뒤가 한참 따가웠다.';
+    const wasKnown = !!p.known; // 51단계: 늘 보던 사람에게 '이름을 물었다'가 나오던 일
     if (!p.known) { p.known = true; p.affection = Math.max(p.affection, 8); }
     if (key === 'nod') { p.romance = Math.min(100, p.romance + 4); return '고개를 살짝 숙였다. 저쪽도 숙였다. 그게 다였다. 그날 밤 그게 다가 아니었던 것 같았다.'; }
     const ch = chemistry(g, p);
@@ -353,7 +354,7 @@ defineScene('love_glance', {
     p.affection = Math.min(100, p.affection + 5);
     remember(g, p, '처음 말을 나누었다', 1, { tag: 'met' });
     return ch > 0.4
-      ? `${p.name}. 이름을 물었고, 대답을 들었다. 별것 아닌 이야기를 했는데 해가 기울어 있었다.`
+      ? (wasKnown ? `이름도 얼굴도 알던 ${J(p.name, '과/와')} 처음으로 제대로 이야기를 했다. 별것 아닌 이야기였는데 해가 기울어 있었다.` : `${p.name}. 이름을 물었고, 대답을 들었다. 별것 아닌 이야기를 했는데 해가 기울어 있었다.`)
       : `말을 걸었다. ${J(p.name, '은/는')} 예의 바르게 대답했지만 눈은 다른 곳을 보고 있었다.`;
   },
 });
