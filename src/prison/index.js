@@ -352,6 +352,7 @@ defineScene('pr_kin', {
   resolve(g, rng, s, key) {
     S(g).done.kin = mi(g);
     const p = byId(g, s.id); const x = jailedNpc(g, s.id);
+    if (key === 'bribe' && g.player.money < s.cost) return '은화를 세어 보니 모자랐다. 옥졸은 손을 내민 채 기다리다 고개를 저었다.';
     if (key === 'bribe') { g.player.money -= s.cost; if (rng.chance(0.75) && x) { freeNpc(g, x, 'freed'); aff(p, 25); log(g, `${J(s.who, '을/를')} 옥에서 빼냈다.`); return `열흘 뒤 ${J(s.who, '이/가')} 해쓱한 얼굴로 문간에 섰다. 아무것도 묻지 않았다. 은화가 어디로 갔는지도 말하지 않았다.`; } stress(g, 8); return '옥졸은 은화를 받고 사라졌다. 다른 감옥으로 옮겨 갔다고 한다. 장부는 고쳐지지 않았다.'; }
     if (key === 'plea') { if (x && rng.chance(0.3 + (g.player.stats.cha ?? 30) / 300)) { x.until = Math.max(mi(g) + 1, x.until - 4); aff(p, 15); return '집사는 청원서를 두 번 읽었다. 넉 달이 줄었다는 쪽지가 왔다. 쪽지를 들고 감옥까지 걸어가 창살 사이로 보여 주었다.'; } aff(p, 6); return '집사는 청원서를 받아 서랍에 넣었다. 답은 없었다. 그래도 내가 다녀간 걸 안 식구는 창살 너머에서 고개를 숙였다.'; }
     if (key === 'visit') { aff(p, 12); g.player.money = Math.max(0, g.player.money - 2); return `보자기에 빵과 마른 고기를 싸 갔다. ${J(s.who, '은/는')} 창살 너머에서 빵을 받아 들고 한참 들여다보았다. "집 냄새가 난다."`; }
