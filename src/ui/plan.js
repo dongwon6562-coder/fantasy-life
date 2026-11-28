@@ -158,6 +158,7 @@ const GROUPS = [
   ['sect', '새 교단', /^sect_/],
   ['witch', '주술', /^wi_/],
   ['council', '조합과 의회', /^council_/],
+  ['bounty', '현상금 사냥', /^bh_/],
   ['revolt', '봉기와 반란', /^revolt_/],
   ['court', '궁정', /^(court_|crowns_)/],
   ['envoy', '사절과 외교', /^envoy_/],
