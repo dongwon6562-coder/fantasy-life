@@ -105,11 +105,11 @@ export function renderToday(game, parts = {}) {
     <h2 ${ln()}>${esc(safe(() => placeName(game), '') || '이 고장')}</h2>
     ${lead.length ? `<div class="td-lead">${lead.map((x) => `<p class="ln" style="--ln:${i++}">${esc(txt(x))}</p>`).join('')}</div>` : ''}
     ${feast ? `<p class="td-feast ln" style="--ln:${i++}"><b>${esc(feast.name)}</b> ${esc(feast.text)}</p>` : ''}
-    ${parts.results ? `<details class="td-sec td-did"><summary ${ln('sub')}><h3>지난달 한 일</h3>${did ? `<span class="td-feel">${esc(txt(did))}</span>` : ''}</summary>${parts.results}</details>` : ''}
+    ${parts.results ? `<details class="td-sec td-did"><summary ${ln('sub')}><h3>지난달 한 일</h3>${did ? `<span class="td-feel">${esc(txt(did))}</span>` : ''}</summary>${parts.results}${parts.summary ? `<div class="td-sec td-sum">${parts.summary}</div>` : ''}</details>` : ''}
     ${met.length ? `<div class="td-sec td-met"><h3 ${ln('sub')}>마주친 사람들</h3><ul class="news">${met.map((x) => li(x)).join('')}</ul></div>` : ''}
     ${news.length || heard.length ? `<div class="td-sec td-heard"><h3 ${ln('sub')}>들려온 소식</h3>${heardList()}</div>` : ''}
     ${quiet ? `<p class="note ln" style="--ln:${i++}">조용한 달이었다. 별다른 소문은 없다.</p>` : ''}
-    ${parts.summary ? `<div class="td-sec td-sum ln" style="--ln:${i++}">${parts.summary}</div>` : ''}
+    ${parts.summary && !parts.results ? `<div class="td-sec td-sum ln" style="--ln:${i++}">${parts.summary}</div>` : ''}
     ${parts.world ? `<div class="ln" style="--ln:${i++}">${parts.world}</div>` : ''}`;
   // 줄이 많아도 2.4초 안에 다 드러나게
   return `<section class="card today news-card${parts.reveal ? ' rv' : ''}" style="--st:${Math.min(0.22, 2.4 / Math.max(1, i)).toFixed(3)}s">${body}
