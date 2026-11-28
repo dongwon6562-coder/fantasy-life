@@ -300,13 +300,13 @@ export function renderPlan(game, ui) {
           </button>`).join('')}
         </div>
       </div>` : ''}
-    <div class="acts${compact ? ' compact' : ''}">
+    <div class="acts${compact ? ' compact' : ''}${manyGroups ? ' ag-tiles' : ''}">
       ${many ? `<div class="plan-bar">
         <label class="act-find"><span class="pb-ic" aria-hidden="true">${icon('eye', 18)}</span><input type="search" id="act-q" value="${esc(ui.actQ ?? '')}" placeholder="할 일 ${acts.length}가지에서 찾기" aria-label="할 일 찾기" autocomplete="off"><span class="note" id="act-q-n" hidden></span></label>
         <div class="pb-tools">${waysButton('갈 수 있는 길')}${groups.length > 3 ? `<button class="ghost sm" id="act-fold" data-fold="${allFolded ? 0 : 1}">${allFolded ? '다 펼치기' : '다 접기'}</button>` : ''}<button class="ghost sm" id="act-compact" aria-pressed="${compact}">${compact ? '설명 보기' : '이름만'}</button></div>
       </div>` : ''}
       ${usual.length >= 2 ? `<div class="act-group act-usual" id="ag-usual"><h4><span class="ag-ic">${icon('hourglass', 18)}</span>자주 하는 일</h4><div class="act-grid">${usual.map((a) => actCard(a, ui, counts)).join('')}</div></div>` : ''}
-      ${groups.length > 3 && acts.length > 12 ? `<nav class="act-jump" aria-label="할 일 묶음으로 가기">${groups.map(([gid, name, list]) => `<button class="ghost sm" data-act-jump="${gid}">${esc(name)} <small>${list.length}</small></button>`).join('')}</nav>` : ''}
+      ${groups.length > 3 && acts.length > 12 && !manyGroups ? `<nav class="act-jump" aria-label="할 일 묶음으로 가기">${groups.map(([gid, name, list]) => `<button class="ghost sm" data-act-jump="${gid}">${esc(name)} <small>${list.length}</small></button>`).join('')}</nav>` : ''}
       ${groups.map(([gid, name, list], gi) => {
         const cards = list.map((a) => actCard(gid === 'crisis' ? crisisActDesc(game, a) : a, ui, counts)).join('');
         const gic = `<span class="ag-ic">${actionIcon(list[0], 18)}</span>`;
