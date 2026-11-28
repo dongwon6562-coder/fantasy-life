@@ -197,11 +197,20 @@ export function sensesInfo(g) {
   return { line: sensesLine(g), firsts };
 }
 
+// 갇혀 있으면 바깥 하늘 대신 감방 안에서 느끼는 것
+const JAIL_NOW = {
+  wet: '벽 틈으로 빗물이 스며 바닥 짚이 축축하다. 바깥 날씨는 소리로만 안다.',
+  cold: '돌벽에서 냉기가 배어 나온다. 얇은 담요 한 장으로 밤을 버틴다.',
+  hot: '감방 안 공기가 무겁고 눅눅하다. 높은 창살 틈으로 한 뼘 햇빛이 지나간다.',
+  any: '높은 창살 틈으로 하늘이 손바닥만큼 보인다. 날짜는 벽에 그은 금으로 센다.',
+};
+
 /** 지금 이 달의 감각 한 줄(지금 시제): 계절·날씨·때와 몸 상태. 화면 '오늘의 장면'에 붙인다. 없으면 null. */
 export function sceneLine(g) {
   if (!g?.player || g.over) return null;
   let f;
   try { f = feelOf(g); } catch { return null; }
+  if (f.jailed) return JAIL_NOW[f.weather === 'rain' || f.weather === 'storm' ? 'wet' : f.season === '겨울' ? 'cold' : f.season === '여름' ? 'hot' : 'any'];
   const sky = NOW_SKY[f.weather] ?? NOW_SKY.cloudy;
   let line = sky[f.tod] ?? sky.any;
   if (line && typeof line === 'object') line = line[f.season];
