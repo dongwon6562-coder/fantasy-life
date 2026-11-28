@@ -187,6 +187,7 @@ function queueGuardFight(g, rng) {
   const big = rng.chance(0.3);
   queueFight(g, rng, {
     title: '순찰 중의 소란',
+    terrain: 'alley',
     intro: big ? '창고 거리에서 비명이 들렸다. 칼을 든 무리가 상인의 창고를 털고 있다.' : '골목 끝에서 건달들이 행인을 둘러싸고 있다.',
     enc: big ? { unit: 'bandit', count: rng.int(3, 5), leader: rng.chance(0.4) ? 'bandit_chief' : null } : { unit: 'thug', count: rng.int(2, 4), leader: null },
     reward: { money: big ? 6 : 2, renown: 1 },
