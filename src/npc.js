@@ -174,9 +174,9 @@ export function simulateMonth(game, rng) {
       if (p.wealth > 200) p.wealth -= Math.round((p.wealth - 200) * 0.006);
       else if (p.wealth < -60) p.wealth += Math.max(1, Math.round(-p.wealth * 0.004)); // 빚은 친척이 갚아 주거나 일부 탕감된다
       if (Math.floor(before / 25) < Math.floor(p.skill / 25) && p.skill >= 50) {
-        const t = `${JOBS[p.job].name} 일로 솜씨가 늘어 인정받기 시작했다.`;
+        const t = `${J(JOBS[p.job].name, '으로/로')}서 이름이 나기 시작했다.`;
         note(p, t);
-        events.push({ text: `${J(fullName(p), '이/가')} ${JOBS[p.job].name} 일로 솜씨를 인정받는다는 말이 돈다.`, who: [p.id], weight: 1, small: true });
+        events.push({ text: `${J(fullName(p), '이/가')} ${J(JOBS[p.job].name, '으로/로')}서 이름이 나기 시작했다는 말이 돈다.`, who: [p.id], weight: 1, small: true });
       }
     }
 
