@@ -41,7 +41,7 @@ function relWord(a) {
 
 function affBar(a) {
   const pct = clamp((a + 100) / 2, 0, 100);
-  return `<span class="affbar ${a < 0 ? 'neg' : ''}" title="호감 ${a}"><i style="left:50%;width:${Math.abs(pct - 50)}%;${a < 0 ? `left:${pct}%` : ''}"></i></span>`;
+  return `<span class="affbar ${a < 0 ? 'neg' : ''}" title="호감 ${Math.round(a)}"><i style="left:50%;width:${Math.abs(pct - 50)}%;${a < 0 ? `left:${pct}%` : ''}"></i></span>`;
 }
 
 export function renderPeople(game, ui) {
@@ -125,7 +125,7 @@ function renderDetail(game, p) {
           <p class="note">${esc(personMeta(game, p))}</p>
           <p class="note">${esc(looksOf(game, p))}</p>
           <div class="chips">${p.traits.map((t) => `<span class="chip">${esc(traitName(t))}</span>`).join('')}</div>
-          <div class="rel big">${affBar(p.affection)}<span class="aff ${p.affection >= 20 ? 'pos' : p.affection < 0 ? 'neg' : ''}">${esc(relationLabel(game, p))} · ${relWord(p.affection)} (호감 ${p.affection})</span></div>
+          <div class="rel big">${affBar(p.affection)}<span class="aff ${p.affection >= 20 ? 'pos' : p.affection < 0 ? 'neg' : ''}">${esc(relationLabel(game, p))} · ${relWord(p.affection)} (호감 ${Math.round(p.affection)})</span></div>
         </div>
       </div>
       ${(spouse || kids.length || parents.length) ? `<p class="kin">
