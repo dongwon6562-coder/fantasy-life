@@ -21,6 +21,14 @@ export const PIRATE_RANKS = ['졸개', '갑판장', '해적 선장', '섬장'];
 export const pirateRank = (g) => S(g).pirate?.rank ?? -1;
 const denHere = (g) => ['saltmare', 'crow'].includes(L(g).place);
 const boardHere = (g) => ['klein', 'portel'].includes(L(g).place);
+// 내가 든 해적단 이름 (49단계 src/pirates/의 해적단 목록을 읽는다. 없으면 까마귀단)
+const bandName = (g, id = S(g).pirate?.band ?? 'crow') => g.pirates?.bands?.find((b) => b.id === id && !b.fell)?.name ?? '까마귀단';
+const sea_traitorBand = (g) => S(g).traitorBand ?? '까마귀단';
+const DEN_LOOKS = [
+  '럼주와 생선 기름 냄새. 외눈의 사내가 탁자에 칼을 꽂아 놓고 사람을 고르고 있다. 까마귀단이 새 손을 찾는다는 소문이다. 들어가면 육지의 법과는 작별이다.',
+  '주점 안이 시끄럽다. 누가 노획한 앵무새가 탁자 위를 걸어 다니고, 구석에서는 주사위 소리가 난다. 외눈의 사내는 오늘도 까마귀단에 들 사람을 찾는다.',
+  '비 오는 밤이라 주점이 꽉 찼다. 젖은 외투에서 소금 냄새가 난다. 벽에는 해군 현상금 쪽지가 화살로 박혀 있고, 누군가 그 위에 수염을 그려 놓았다.',
+];
 
 /* ---------- 해적 주점 ---------- */
 ACTIONS.push({
@@ -36,8 +44,8 @@ defineScene('pirate_den', {
   title: () => '해적 주점 "익사한 쥐"',
   text: (g) => {
     const pr = S(g).pirate;
-    if (pr) return `해적들이 나를 보고 잔을 들었다. 나는 까마귀단의 ${PIRATE_RANKS[pr.rank]}다. 약탈 ${pr.raids}번, 내 몫으로 챙긴 은화 ${pr.share}닢.${S(g).hunted > 20 ? ' 요즘 해군 배가 내 이름을 묻고 다닌다고 한다.' : ''}`;
-    return '럼주와 생선 기름 냄새. 외눈의 사내가 탁자에 칼을 꽂아 놓고 사람을 고르고 있다. 까마귀단이 새 손을 찾는다는 소문이다. 들어가면 육지의 법과는 작별이다.';
+    if (pr) return `해적들이 나를 보고 잔을 들었다. 나는 ${bandName(g)}의 ${PIRATE_RANKS[pr.rank]}다. 약탈 ${pr.raids}번, 내 몫으로 챙긴 은화 ${pr.share}닢.${S(g).hunted > 20 ? ' 요즘 해군 배가 내 이름을 묻고 다닌다고 한다.' : ''}`;
+    return DEN_LOOKS[((g.date?.year ?? 0) * 12 + (g.date?.month ?? 0)) % DEN_LOOKS.length];
   },
   choices: (g) => {
     const pr = S(g).pirate;
@@ -77,11 +85,13 @@ defineScene('pirate_den', {
     }
     if (key === 'quit') {
       if (!sea.pirate) return '떠날 해적단이 없었다.';
+      const bn = bandName(g);
+      sea.traitorBand = bn;
       sea.pirate = null;
       sea.hunted += 15;
       sea.traitor = true;
-      note(g, '까마귀단을 떠났다.');
-      return '탁자에 해적의 표식을 내려놓고 나왔다. 아무도 막지 않았다. 그게 더 무서웠다. 까마귀단은 배신자를 잊지 않는다.';
+      note(g, `${J(bn, '을/를')} 떠났다.`);
+      return `탁자에 해적의 표식을 내려놓고 나왔다. 아무도 막지 않았다. 그게 더 무서웠다. ${J(bn, '은/는')} 배신자를 잊지 않는다.`;
     }
     return '주점을 나왔다.';
   },
@@ -99,7 +109,7 @@ ACTIONS.push({
   name: '약탈하러 나간다',
   icon: 'sword',
   desc: '해적단의 배를 타고 한 달 동안 바다에 나가 상선이나 해안을 턴다. 큰돈이 들어오지만 죄가 쌓이고 해군이 쫓는다.',
-  available: (g) => !!S(g).pirate && !traveling(g) && denHere(g) && !sceneQueued(g, 'pirate_raid'),
+  available: (g) => !!S(g).pirate && (S(g).pirate.band ?? 'crow') === 'crow' && !traveling(g) && denHere(g) && !sceneQueued(g, 'pirate_raid'),
   run(g) { queueScene(g, 'pirate_raid'); return '검은 돛을 올렸다.'; },
 });
 const RAIDS = {
@@ -165,13 +175,17 @@ HOOKS.afterMonth.push((g, rng) => {
   const onWater = atSea(g) || ['saltmare', 'crow', 'klein', 'portel', 'saltrock'].includes(L(g).place);
   if (!onWater || traveling(g) && !atSea(g)) return;
   if (sceneQueued(g, 'navy_hunt') || !rng.chance(Math.min(0.35, sea.hunted / 160))) return;
+  // 쫓기는 장면은 반 해에 한 번까지 (49단계: 한 해에 세 번씩 오던 것을 줄임)
+  const now = g.date.year * 12 + g.date.month;
+  if (now - (sea.chasedAt ?? -99) < 6) return;
+  sea.chasedAt = now;
   queueScene(g, 'navy_hunt', { traitor: !sea.pirate && !!sea.traitor, ...(atSea(g) ? { at: null } : {}) });
 });
 defineScene('navy_hunt', {
   need: (g) => S(g).hunted >= 10,
-  title: (g, s) => (s?.traitor ? '까마귀의 복수' : '해군의 추격'),
+  title: (g, s) => (s?.traitor ? (sea_traitorBand(g) === '까마귀단' ? '까마귀의 복수' : '배신자를 쫓는 배') : '해군의 추격'),
   text: (g, s) => (s?.traitor
-    ? '밤중에 검은 돛배가 다가왔다. 까마귀단의 표식이다. 배신자를 데리러 왔다.'
+    ? `밤중에 검은 돛배가 다가왔다. ${sea_traitorBand(g)}의 표식이다. 배신자를 데리러 왔다.`
     : `레오니아 해군의 깃발을 단 배가 내 뒤를 밟는다. 함장이 내 얼굴이 그려진 현상금 쪽지를 들고 있다.${PLACES[L(g).place]?.realm === 'sea' && !atSea(g) ? ' 섬 앞바다까지 들어온 것을 보니 단단히 벼른 모양이다.' : ''}`),
   choices: (g, s) => [
     { label: '맞서 싸운다', key: 'charge' },
@@ -194,7 +208,7 @@ defineScene('navy_hunt', {
     const r = fight(g, rng, enc, tacticOf(key));
     if (won(r)) {
       sea.hunted = Math.max(0, sea.hunted - 12);
-      if (s?.traitor) { sea.traitor = false; return `${r.text} 까마귀단은 당분간 나를 건드리지 않을 것이다.`; }
+      if (s?.traitor) { sea.traitor = false; return `${r.text} ${J(sea_traitorBand(g), '은/는')} 당분간 나를 건드리지 않을 것이다.`; }
       addNotoriety(g, 2);
       return `${r.text} 해군 함장의 칼을 빼앗아 들었다. 이 일로 내 현상금은 더 오를 것이다.`;
     }
@@ -230,7 +244,7 @@ defineScene('sea_bounty', {
     sea.pirateKills = (sea.pirateKills ?? 0) + 1;
     gainSkill(g, 'sailing', 0.8, 'agi');
     let extra = '';
-    if (sea.pirate) { sea.pirate = null; sea.traitor = true; sea.hunted += 15; extra = ' 까마귀단의 표식을 바다에 던졌다. 이제 나는 해적이 아니다. 그리고 놈들은 배신자를 잊지 않는다.'; }
+    if (sea.pirate) { sea.traitorBand = bandName(g); sea.pirate = null; sea.traitor = true; sea.hunted += 15; extra = ' 해적단의 표식을 바다에 던졌다. 이제 나는 해적이 아니다. 그리고 놈들은 배신자를 잊지 않는다.'; }
     if (sea.pirateKills === 5) chron(g, `${g.player.name}, 해적 사냥꾼으로 이름을 떨치다.`, 60);
     return `${r.text} 해적 선장의 머리를 항구장 앞에 내려놓고 은화 40닢을 받았다.${extra}`;
   },
