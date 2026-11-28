@@ -95,7 +95,8 @@ export function vignetteImage(spec) {
     noteMotion(url, { kind: 'vig', w: vw, h: vh, weather, tod: S.tod, embers: spec.plate === 'fire' || spec.plate === 'dragon' || spec.variant === 'still' || spec.variant === 'riot' });
   } catch { url = ''; }
   if (!url) return '';
-  while (cache.size >= 24) { const [k0, old] = cache.entries().next().value; cache.delete(k0); dropUrl(old); }
+  // '나' 화면 한 장에 그림 덩이가 스무 개를 넘기도 한다(50단계). 그 전에 버리면 아직 안 그린 그림 주소가 끊긴다.
+  while (cache.size >= 48) { const [k0, old] = cache.entries().next().value; cache.delete(k0); dropUrl(old); }
   cache.set(key, url);
   return url;
 }
