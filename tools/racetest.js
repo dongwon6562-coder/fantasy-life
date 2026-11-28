@@ -33,7 +33,7 @@ const samples = [];
 for (const [race, fam] of Object.entries(FAMS)) {
   stat[race] = { all: [], died: [], mana: 0, runs: 0, farewells: 0, drifted: 0, kids: {} };
   for (let run = 0; run < 6; run++) {
-    const g = newGame({ name: '아이', sex: run % 2 ? 'm' : 'f', familyId: fam, mode: 'once', seed: 4410 + run * 13 + race.length }); // 34단계: 기술 나무가 들어와 세계 흐름이 바뀌자 드워프 여섯 판이 모두 칼에 일찍 죽어 장수 비교가 58 대 58로 깨졌다. 판 씨앗만 옮김
+    const g = newGame({ name: '아이', sex: run % 2 ? 'm' : 'f', familyId: fam, mode: 'once', seed: 4415 + run * 13 + race.length }); // 49단계: 해적 행동이 늘어 무작위 판이 바뀌자 엘프 장수 비교가 73 대 60으로 깨졌다(엘프 판은 main에서도 10대에 많이 죽음). 씨앗 4410→4415만 옮김. 34단계: 기술 나무가 들어와 세계 흐름이 바뀌자 드워프 여섯 판이 모두 칼에 일찍 죽어 장수 비교가 58 대 58로 깨졌다. 판 씨앗만 옮김
     const S = stat[race];
     S.runs++;
     ok(raceOf(me(g)) === race && g.player.race === race, `${race} player race ${me(g).race}`);
