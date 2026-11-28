@@ -160,7 +160,7 @@ export function visitPerson(g, rng, p) {
   const long = p.lastSeen != null && mi(g) - p.lastSeen > 12;
   let gain = rng.int(4, 9) + (has(p, 'kind') ? 2 : 0) - (has(p, 'cruel') ? 3 : 0) + (long ? 2 : 0);
   if (r === 'enemy') gain = Math.round(gain / 3);
-  if (!['father', 'mother', 'sibling', 'child', 'spouse'].includes(r)) gain = Math.max(r === 'enemy' ? 0 : 1, gain + reputationShift(g, p) + affinityOf(g, p));
+  if (!['father', 'mother', 'sibling', 'child', 'spouse'].includes(r)) gain = Math.max(r === 'enemy' ? 0 : 1, Math.round(gain + reputationShift(g, p) + affinityOf(g, p)));
   p.affection = Math.min(100, p.affection + gain);
   const c = gainStat(g, 'cha', 0.4);
   if (canRomance(g, p)) {
