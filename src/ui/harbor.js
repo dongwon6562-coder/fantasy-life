@@ -5,7 +5,7 @@
 import { harborInfo } from '../harbor/index.js';
 import { vignetteImage } from '../art/vignette.js';
 import { esc } from './util.js';
-import { placeName } from '../places.js';
+import { PLACES } from '../places.js';
 
 const safe = (fn, d = null) => { try { return fn() ?? d; } catch (e) { console.error(e); return d; } };
 const chip = ([k, v, cls]) => `<span class="sm-chip${cls ? ` ${cls}` : ''}"><span>${esc(k)}</span><b>${esc(v)}</b></span>`;
@@ -34,7 +34,7 @@ export function renderHarbor(game) {
   const s = safe(() => harborInfo(game));
   const H = s?.harbor;
   if (!s || !H || (!s.atHarbor && !s.boat)) return '';
-  const lost = s.lost.filter((x) => x.place === placeName(H.id)); // 이 포구에서 돌아오지 않은 배
+  const lost = s.lost.filter((x) => x.place === (PLACES[H.id]?.name ?? H.id)); // 이 포구에서 돌아오지 않은 배
   const variant = lost.some((x) => game.date.year - x.y <= 1) ? 'wait' : s.cured ? 'racks' : 'dawn';
   const art = safe(() => vignetteImage({ plate: 'harbor', variant, year: game.date.year, month: game.date.month }), '');
   const ALT = { wait: '돌아오지 않는 배를 기다리는 포구', racks: '생선 말리는 장대', dawn: '새벽에 나가는 고깃배' };

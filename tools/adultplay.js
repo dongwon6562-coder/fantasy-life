@@ -7,6 +7,7 @@ import { mkdirSync, writeFileSync } from 'node:fs';
 import { newGame, endMonth, availableActions, slotsFor, playerAge, rngOf } from '../src/game.js';
 import { resolveEvent } from '../src/events.js';
 import { ACTIONS } from '../src/actions.js';
+import { WORK, takeJob } from '../src/jobs.js';
 import { vignetteFor } from '../src/art/vignette.js';
 const plates = new Map(); // 사건 제목(+장면 종류) → 고른 그림 판
 // 행동마다 주머니가 얼마나 움직였는지 (한 번 할 때 평균)
@@ -19,7 +20,7 @@ const END = +(process.argv[4] ?? 45);
 mkdirSync(out, { recursive: true });
 const fams = ['farmer', 'merchant', 'fallen_knight', 'capital_artisan', 'slum_orphan', 'port_folk', 'march_guard', 'sexton', 'dwarf_smith'];
 // 한 길을 붙드는 사람: 이 앞머리의 행동이 보이면 넷 중 셋은 그걸 고른다
-const PERSONAS = { worker: /^(seek_job|work)$/, farm: /^(farm_|nature_)/, cook: /^(cuisine_|inn_)/, apo: /^(apo_|herbs$)/, builder: /^builder_/, mine: /^mine_/, hunter: /^(hunter_|wilds_)/, cloth: /^cloth_/, adventurer: /^(gather_party|party_|quest$|delve$|dv_|gear$)/, merchant: /^(trade_|open_shop|shop_manage)/, harbor: /^harbor_/, brew: /^brew_/, home: /^(house_|estate_|household_|housing$)/ };
+const PERSONAS = { worker: /^(seek_job|work)$/, farm: /^(farm_|nature_)/, cook: /^(cuisine_|inn_)/, apo: /^(apo_|herbs$)/, builder: /^builder_/, mine: /^mine_/, hunter: /^(hunter_|wilds_)/, cloth: /^cloth_/, adventurer: /^(gather_party|party_|quest$|delve$|dv_|gear$)/, merchant: /^(trade_|open_shop|shop_manage)/, harbor: /^harbor_/, brew: /^brew_/, watch: /^(work$|watch_)/, home: /^(house_|estate_|household_|housing$)/ };
 const PK = Object.keys(PERSONAS);
 const BAD = (x) => x.crime || /^(heist|spy|revolt|herd_rustle|secret_night)/.test(x.id) || (x.id === 'travel' && !process.env.AP_TRAVEL);
 const textCount = new Map(), actShown = new Map(), actPicked = new Map(), money = [];
@@ -34,7 +35,9 @@ for (let run = 0; run < N; run++) {
     const rng = rngOf(g), age = playerAge(g);
     // AP_RICH=N: 28살에 은화 N닢을 쥐여 주고 30~60살의 큰 살림(영지·상단·공략대)을 본다
     if (process.env.AP_RICH && age === 28 && !g._apRich) { g._apRich = 1; g.player.money += +process.env.AP_RICH; }
-    const acts = availableActions(g).filter((x) => !BAD(x));
+    // 경비대 길(watch)은 17살부터 자리가 나면 경비대에 들어간다 (49단계)
+    if (per === 'watch' && age >= 17 && !g.life?.job && WORK.guard && !WORK.guard.req(g)) takeJob(g, 'guard');
+    const acts = availableActions(g).filter((x) => !BAD(x) && !(per === 'watch' && g.life?.job?.id === 'guard' && x.id === 'seek_job'));
     const adult = age >= 16 && slotsFor(g) > 0;
     if (adult) for (const a of acts) actShown.set(a.id, (actShown.get(a.id) ?? 0) + 1);
     const choices = [];

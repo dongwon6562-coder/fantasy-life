@@ -5,7 +5,7 @@ import { readFileSync, writeFileSync, mkdirSync, existsSync, cpSync, rmSync, rea
 
 mkdirSync('dist', { recursive: true });
 // --charset=utf8: 한글을 \uXXXX로 풀지 않는다. 파일이 3.4MB에서 2.6MB로 줄고, 글자 수로는 훨씬 줄어 켜질 때 읽는 시간이 준다 (헤드 16단계)
-execSync('npx --yes esbuild@0.24.0 src/main.js --bundle --format=iife --minify --charset=utf8 --outfile=dist/game.js', { stdio: 'inherit' });
+execSync(`npx --yes esbuild@0.24.0 src/main.js --bundle --format=iife ${process.env.NOMIN ? '' : '--minify'} --charset=utf8 --outfile=dist/game.js`, { stdio: 'inherit' }); // NOMIN=1이면 오류 줄을 읽을 수 있게 안 줄임
 const js = readFileSync('dist/game.js', 'utf8');
 const css = readFileSync('style.css', 'utf8');
 // 글꼴은 화면을 막지 않게 늦게 붙인다 (인터넷이 없거나 느려도 바로 켜지게, 헤드 16단계)
