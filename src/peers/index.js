@@ -70,6 +70,8 @@ function pickFresh(g, rng, key, pool) {
   return pool[i];
 }
 const ageOf = (g, c) => Math.floor((mi(g) - c.born) / 12);
+// 51단계: 함께 자랐으니 열다섯 즈음까지는 늘 보던 사이다 ('열여덟 살에 18년 만이다'가 나오던 일)
+const metAt = (c) => Math.max(c.lastMet ?? 0, c.born + 15 * 12);
 // 오래 사는 종족은 몸이 천천히 늙는다
 const bodyOf = (g, c) => ageOf(g, c) * 70 / (RACES[c.race]?.life ?? 70);
 const has = (c, t) => c.traits.includes(t);
@@ -657,7 +659,7 @@ function playerTick(g, rng) {
   if (camp && s.done.war !== camp.key && rng.chance(0.2)) {
     const c = live.find((x) => (x.path === 'soldier' || x.path === 'knight') && !x.fallen && realmOf(x.home) === realmOf(s.home));
     s.done.war = camp.key;
-    if (c) return q('pe_cross', { mode: 'war', v: 0, ci: c.id, name: c.name, stage: stageWord(c), place: here(g), years: Math.floor((now - c.lastMet) / 12) });
+    if (c) return q('pe_cross', { mode: 'war', v: 0, ci: c.id, name: c.name, stage: stageWord(c), place: here(g), years: Math.max(1, Math.floor((now - metAt(c)) / 12)) });
   }
   // 몰락한 이의 부탁
   if ((!s.done.ask || now - s.done.ask >= 36) && rng.chance(0.03)) {
@@ -676,12 +678,12 @@ function playerTick(g, rng) {
   }
   // 같은 고장에서 마주침
   const friendIds = new Set((g.friends?.list ?? []).filter((f) => f.state === 'close').map((f) => f.pid));
-  const near = live.filter((c) => c.path && c.place === here(g) && now - c.lastMet >= 36 && !(c.pid != null && friendIds.has(c.pid)));
+  const near = live.filter((c) => c.path && c.place === here(g) && now - metAt(c) >= 36 && !(c.pid != null && friendIds.has(c.pid)));
   if (near.length && rng.chance(0.08)) {
     const c = rng.pick(near);
     const st = myStand(g);
     const mode = c.path === 'outlaw' && !c.fallen && c.stage >= 1 ? 'outlaw' : c.fallen ? 'down' : c.stage >= st + 2 ? 'up' : 'even';
-    return q('pe_cross', { mode, v: rng.int(0, 9), ci: c.id, name: c.name, stage: stageWord(c), place: here(g), f: c.fallText ?? pOf(c).fall[0], years: Math.max(1, Math.floor((now - c.lastMet) / 12)) });
+    return q('pe_cross', { mode, v: rng.int(0, 9), ci: c.id, name: c.name, stage: stageWord(c), place: here(g), f: c.fallText ?? pOf(c).fall[0], years: Math.max(1, Math.floor((now - metAt(c)) / 12)) });
   }
   // 늙어서 남은 사람
   if (age >= 60 && !s.done.last && s.list.length >= 4 && live.length <= 1 && rng.chance(0.1)) {

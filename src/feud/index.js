@@ -357,6 +357,8 @@ ACTIONS.push({
     return `${p.name}의 집 앞까지 갔다. 문을 두드리기까지 한참이 걸렸다.`;
   },
 });
+// 51단계: 피를 본 원한일 때만 '피의 값'이라 부른다 (헛소문·도둑질에 피의 값은 어색했다)
+const bloody = (gr) => (gr.why ?? []).some((w) => /죽|피|다치|때리|때렸|칼|목숨|원수|해쳤/.test(w)) || (gr.gen ?? 0) > 0;
 defineScene('feud_peace', {
   title: () => '화해',
   text: (g, s) => {
@@ -365,8 +367,15 @@ defineScene('feud_peace', {
     // 48단계: 한 줄짜리라 무엇 때문에 찾아왔는지가 안 보였다. 원한의 까닭·세월·지난번 일을 덧붙인다.
     const why = gr.why?.length ? gr.why[gr.why.length - 1] : null;
     const yrs = Math.floor((mi(g) - (gr.since ?? mi(g))) / 12);
-    const head = gr.tries ? `${gr.tries === 1 ? '두 번째' : `${gr.tries + 1}번째`}로 ${p.name}의 문 앞에 섰다. ` : '';
-    const past = !why ? '' : /다$/.test(why) ? `${yrs >= 2 ? `${yrs}년이 지났다. ` : ''}${p.name}에게 그 일은 아직 한 줄로 남아 있다. "${why}." ` : `${why}. ${yrs >= 2 ? `${yrs}년째 ` : ''}그게 우리 사이다. `;
+    // 51단계: '3번째로'가 아니라 '세 번째로', 같은 문장이 매번 똑같이 나오지 않게, '나를 미워한다' 같은 마음은 그의 입으로 옮기지 않는다
+    const ORD = ['두', '세', '네', '다섯', '여섯', '일곱', '여덟', '아홉', '열'];
+    const head = gr.tries ? `${ORD[Math.min(gr.tries - 1, ORD.length - 1)]} 번째로 ${p.name}의 문 앞에 섰다. ` : '';
+    const feel = !why || /미워(한다|하게 되었다)$/.test(why);
+    const v = (s.id + (gr.tries ?? 0)) % 3;
+    const ago = yrs >= 2 ? `${yrs}년이 지났다. ` : '';
+    const past = feel ? `${ago}무엇 하나 때문이라기보다 쌓이고 쌓인 미움이다. ` : /다$/.test(why)
+      ? `${ago}${[`${p.name}에게 그 일은 아직 한 줄로 남아 있다. "${why}."`, `${p.name}의 입에서 나올 말은 뻔했다. "${why}."`, `그 일을 ${J(p.name, '은/는')} 잊지 않았다. "${why}."`][v]} `
+      : `${why}. ${yrs >= 2 ? `${yrs}년째 ` : ''}그게 우리 사이다. `;
     const old = ageYears(p) >= 60 ? ' 머리가 하얗게 셌다. 문틀을 짚은 손이 떨렸다.' : (p.health ?? 60) < 30 ? ' 얼굴이 많이 상해 있었다.' : '';
     return `${head}${past}${J(p.name, '이/가')} 문을 열었다.${old} ${gr.heat >= 65 ? '눈빛이 칼날 같았다.' : gr.heat >= 40 ? '들어오라는 말은 없었지만 문을 닫지도 않았다.' : '오래 나를 보다가 의자를 내주었다.'}${gr.gen > 0 ? ' 이 원한은 우리 둘이 시작한 것도 아니다.' : ''}`;
   },
@@ -376,7 +385,7 @@ defineScene('feud_peace', {
     const price = Math.round(gr.heat * 2);
     return [
       { label: '진심으로 사과한다', key: 'sorry' },
-      ...(g.player.money + g.player.familyMoney >= price ? [{ label: `피의 값을 치른다 (은화 ${price}닢)`, key: 'pay' }] : []),
+      ...(g.player.money + g.player.familyMoney >= price ? [{ label: `${bloody(gr) ? '피의 값을 치른다' : '갚을 것을 갚겠다고 은화를 내민다'} (은화 ${price}닢)`, key: 'pay' }] : []),
       { label: '무릎을 꿇는다', key: 'kneel' },
       { label: '그냥 돌아선다', key: 'leave' },
     ];
@@ -393,7 +402,7 @@ defineScene('feud_peace', {
       const f0 = Math.min(g.player.familyMoney, n); g.player.familyMoney -= f0; n -= f0; g.player.money = Math.max(0, g.player.money - n);
       p.wealth = (p.wealth ?? 0) + Math.round(gr.heat * 2);
       ease(g, p, 50); done();
-      log(g, `${p.name}에게 피의 값을 치렀다.`);
+      log(g, `${p.name}에게 ${bloody(gr) ? '피의 값을' : '은화를 건네고 잘못을'} 치렀다.`);
       return `은화 자루를 탁자에 올려놓았다. ${J(p.name, '은/는')} 자루를 오래 보았다. 그리고 받았다. 돈으로 풀리는 원한도 있다. 다 풀리지는 않아도.`;
     }
     if (key === 'kneel') {

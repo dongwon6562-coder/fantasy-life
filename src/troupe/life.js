@@ -225,7 +225,7 @@ defineScene('troupe_move', {
   title: () => '다음 고장',
   text: (g) => {
     const t = myTroupe(g);
-    return t.own ? `${placeName(here(g))}에서 벌 만큼 벌었다. 수레를 어디로 돌릴까.` : `${J(t.leader, '이/가')} 지도를 접었다. "다음은 ${placeName(nextStops(here(g))[t.shows % nextStops(here(g)).length])}다. 내일 새벽에 떠난다."`;
+    return t.own ? `${placeName(here(g))}에서 벌 만큼 벌었다. 수레를 어디로 돌릴까.` : `${J(t.leader, '이/가')} 지도를 접었다. "다음은 ${J(placeName(nextStops(here(g))[t.shows % nextStops(here(g)).length]), '이다/다')}. 내일 새벽에 떠난다."`;
   },
   choices: (g) => {
     const t = myTroupe(g), stops = nextStops(here(g));
