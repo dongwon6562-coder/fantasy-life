@@ -133,7 +133,7 @@ const adultIn = (seed, place, sex = 'm') => {
 // 5. 산 판: 자유도시에서 장사꾼으로 살면 조합 일이 오고, 아이 때는 아무것도 없다
 {
   let joined = 0, sat = 0;
-  for (const seed of [5051, 5052, 5053]) {
+  for (const seed of [5051, 5052, 5053, 5054, 5055]) {
     const g = newGame({ name: '루카', sex: 'm', familyId: 'merchant', mode: 'free', seed });
     L(g).place = 'portel'; realmState(g).cur = 'free'; realmState(g).citizen = 'free';
     const cnt = {}; let kid = 0;
@@ -154,8 +154,8 @@ const adultIn = (seed, place, sex = 'm') => {
     ok(kid === 0, `아이 때 의회 장면 ${kid}`);
     ok(Math.max(0, ...Object.values(cnt)) <= 30, `같은 장면 ${JSON.stringify(cnt)}`);
   }
-  ok(joined >= 2, `조합에 든 삶 ${joined}/3`);
-  ok(sat >= 1, `의원이 되어 표결한 삶 ${sat}/3`);
+  ok(joined >= 2, `조합에 든 삶 ${joined}/5`); // 51단계 세상 소식 손질로 길이 바뀌어 세 판 → 다섯 판
+  ok(sat >= 1, `의원이 되어 표결한 삶 ${sat}/5`);
 }
 
 console.log(`${((Date.now() - t0) / 1000).toFixed(1)}초`);
