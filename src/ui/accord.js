@@ -44,7 +44,7 @@ export function accordView(s) {
   const v = has('war') || has('border') ? 'border' : has('embargo') ? 'blockade' : s.ties.some((x) => x.kind === 'marriage' && s.year - (x.since ?? 0) <= 2) ? 'wedding' : 'map';
   const src = art(v);
   return `<section class="card ac-map">
-    <h2>대륙 정세 <small>${s.year ? `${s.year}년 ` : ''}얽힌 사이 ${s.ties.length}</small></h2>
+    <h2>나라 사이 <small>${s.year ? `${s.year}년 ` : ''}얽힌 사이 ${s.ties.length}</small></h2>
     ${src ? `<img class="blk-art" src="${src}" alt="나라 사이의 일">` : ''}
     ${s.line ? `<p class="note">${esc(((t) => (t === '잠잠하다' ? '큰 싸움 없이 잠잠하다.' : `${t}.`))(String(s.line).replace(/^대륙 정세:\s*/, '')))}</p>` : ''}
     ${groups.map(([label, list]) => list.length > 4 ? `<details class="pl-more ac-more"><summary>${label} ${list.length}</summary><ul class="ac-ties">${list.map(tie).join('')}</ul></details>` : `<p class="ac-h">${label}</p><ul class="ac-ties">${list.map(tie).join('')}</ul>`).join('')}

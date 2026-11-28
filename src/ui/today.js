@@ -88,15 +88,16 @@ export function renderToday(game, parts = {}) {
   const lead = safe(() => isJailed(game)) ? arr(safe(() => sceneLine(game))) : pick('lead', game).slice(0, 3); // 갇혀 있으면 바깥 거리 풍경은 안 보인다
   const did = pick('did', game)[0];
   const feast = safe(() => rumorInfo(game).feast); // 이달 이 고장 축제
-  const met = pick('met', game).slice(0, 4);
+  const met = pick('met', game).slice(0, 3);
   const heard = pick('heard', game).slice(0, 4);
   const news = game.news ?? [];
   const quiet = !news.length && !met.length && !heard.length;
   // 소식이 많으면(여러 달 건너뛰었거나 난리 난 해) 가까운 사람 일과 소문 다섯만 펼치고 나머지는 접는다
   const heardList = () => {
     const all = [...news.map((n) => ({ text: n.text, cls: n.rel >= 40 ? 'close' : '', w: n.rel >= 40 ? 2 : 0 })), ...heard.map((x) => ({ text: txt(x), cls: (typeof x === 'object' && x.cls) || 'rumor', w: 1 }))];
-    if (all.length <= 6) return `<ul class="news">${all.map((x) => li(x)).join('')}</ul>`;
-    const top = new Set([...all].sort((a, b) => b.w - a.w).slice(0, 5));
+    // 51단계: 첫 화면이 길어 할 일이 멀었다. 펼쳐 두는 소식은 셋까지
+    if (all.length <= 4) return `<ul class="news">${all.map((x) => li(x)).join('')}</ul>`;
+    const top = new Set([...all].sort((a, b) => b.w - a.w).slice(0, 3));
     const shown = all.filter((x) => top.has(x)), rest = all.filter((x) => !top.has(x));
     return `<ul class="news">${shown.map((x) => li(x)).join('')}</ul><details class="td-more"><summary>그 밖의 소식 ${rest.length}가지</summary><ul class="news">${rest.map((x) => `<li${x.cls ? ` class="${esc(x.cls)}"` : ''}>${esc(x.text)}</li>`).join('')}</ul></details>`;
   };
@@ -105,11 +106,11 @@ export function renderToday(game, parts = {}) {
     <h2 ${ln()}>${esc(safe(() => placeName(game), '') || '이 고장')}</h2>
     ${lead.length ? `<div class="td-lead">${lead.map((x) => `<p class="ln" style="--ln:${i++}">${esc(txt(x))}</p>`).join('')}</div>` : ''}
     ${feast ? `<p class="td-feast ln" style="--ln:${i++}"><b>${esc(feast.name)}</b> ${esc(feast.text)}</p>` : ''}
-    ${parts.results ? `<div class="td-sec td-did"><h3 ${ln('sub')}>지난달 한 일</h3>${did ? `<p class="td-feel ln" style="--ln:${i++}">${esc(txt(did))}</p>` : ''}${parts.results.replace(/<li>/g, () => `<li ${ln()}>`)}</div>` : ''}
+    ${parts.results ? `<details class="td-sec td-did"><summary ${ln('sub')}><h3>지난달 한 일</h3>${did ? `<span class="td-feel">${esc(txt(did))}</span>` : ''}</summary>${parts.results}${parts.summary ? `<div class="td-sec td-sum">${parts.summary}</div>` : ''}</details>` : ''}
     ${met.length ? `<div class="td-sec td-met"><h3 ${ln('sub')}>마주친 사람들</h3><ul class="news">${met.map((x) => li(x)).join('')}</ul></div>` : ''}
     ${news.length || heard.length ? `<div class="td-sec td-heard"><h3 ${ln('sub')}>들려온 소식</h3>${heardList()}</div>` : ''}
     ${quiet ? `<p class="note ln" style="--ln:${i++}">조용한 달이었다. 별다른 소문은 없다.</p>` : ''}
-    ${parts.summary ? `<div class="td-sec td-sum ln" style="--ln:${i++}">${parts.summary}</div>` : ''}
+    ${parts.summary && !parts.results ? `<div class="td-sec td-sum ln" style="--ln:${i++}">${parts.summary}</div>` : ''}
     ${parts.world ? `<div class="ln" style="--ln:${i++}">${parts.world}</div>` : ''}`;
   // 줄이 많아도 2.4초 안에 다 드러나게
   return `<section class="card today news-card${parts.reveal ? ' rv' : ''}" style="--st:${Math.min(0.22, 2.4 / Math.max(1, i)).toFixed(3)}s">${body}
