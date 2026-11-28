@@ -530,7 +530,8 @@ function renderNews() {
   // 넷 넘으면 셋만 펼쳐 두고 나머지는 접는다 (여러 달을 건너뛰면 수십 줄이라)
   const res = !rows.length ? '' : rows.length <= 4 ? `<ul class="results">${rows.join('')}</ul>`
     : `<ul class="results">${rows.slice(0, 3).join('')}</ul><details class="td-more"><summary>그 밖에 한 일 ${rows.length - 3}가지</summary><ul class="results">${rows.slice(3).join('')}</ul></details>`;
-  return renderToday(game, { results: res, summary: summaryBody(ui.summary), world: renderWorldMini(), reveal });
+  const mi = monthInfo(game);
+  return renderToday(game, { results: res, summary: summaryBody(ui.summary), world: renderWorldMini(), reveal, when: `${mi.name}의 장면 · ${mi.season}` });
 }
 
 // 같은 일을 같은 글로 여러 칸 했으면 한 줄로 (감옥에서 '견디기' 네 칸 같은 것)
@@ -676,10 +677,10 @@ function renderEvent() {
   // 38단계: 사건에 나오는 사람이 있으면(ctx의 id, 글에 이름이 나올 때만) 삽화 위에 반신 초상
   const who = (() => { try { const c = e?.ctx ?? {}; for (const k of ['id', 'pid', 'who', 'target']) { const q = typeof c[k] === 'number' ? byId(game, c[k]) : null; if (q && q !== me(game) && q.name && `${e.title} ${e.text}`.includes(q.name)) return q; } } catch (err) { console.error(err); } return null; })();
   const whoHtml = who ? `<span class="ev-who">${portrait(game, who, { size: 88, bust: true, title: who.name })}<b>${esc(who.name)}</b></span>` : '';
-  const head = art ? `<div class="ev-art${who ? ' has-who' : ''}" aria-hidden="true"><i style="background-image:url(${art})"></i>${whoHtml}</div>` : '';
+  const head = art ? `<div class="ev-art${who ? ' has-who' : ''}" aria-hidden="true"><i style="background-image:url(${art})"></i><b class="ev-frame"></b>${whoHtml}</div>` : '';
   // 한 줄씩 드러나기: 이 창을 처음 그릴 때만 (다시 그리면 바로 다 보인다)
   const key = ui.outcome ? `o:${ui.outcome.title}:${String(ui.outcome.text).length}` : `e:${e.id}:${e.title}:${game.date.year * 12 + game.date.month}`;
-  const rv = revealOn() && ui.evSeen !== key ? ' rv' : '';
+  const rv = (revealOn() && ui.evSeen !== key ? ' rv' : '') + (!ovFresh && ui.evSeen && ui.evSeen !== key ? ' turn' : ''); // 51단계: 창이 떠 있는 채 다음 장으로 넘어가면 종이를 넘기듯
   ui.evSeen = key;
   let rvBase = 0;
   if (ui.outcome) {
@@ -750,7 +751,9 @@ function heroStrip() {
 // 38단계 장식 그림(src/art/ornament.js)의 기본 틀을 한 번만 붙인다
 if (typeof document !== 'undefined' && !document.getElementById('orn-css')) document.head.insertAdjacentHTML('beforeend', `<style id="orn-css">${ORNAMENT_CSS}
 ${['.layout.view-people .card', '.layout.view-chron .card:not(.chron-card)', '.sheet:not(.side)', '.setup > section', '.layout.view-save .card', '.layout.view-map .card:not(.mapcard)'].map((selector) => frameCss({ selector, kind: 'knot', size: 26, color: '#a8843f', inset: 4 })).join('\n')}
-${frameCss({ selector: '.layout.view-chron .chron-card', kind: 'leaf', size: 30, color: '#7a5524', inset: 6 })}</style>`);
+${frameCss({ selector: '.layout.view-chron .chron-card', kind: 'leaf', size: 30, color: '#7a5524', inset: 6 })}
+${frameCss({ selector: '.ev-art .ev-frame', kind: 'line', size: 24, color: '#f0d699', inset: 0 })}
+${frameCss({ selector: '.main > .card.td-log', kind: 'knot', size: 24, color: '#8a6d38', inset: 6 })}</style>`);
 
 const VIEWS = [
   ['month', '이번 달', 'scroll'],
@@ -828,7 +831,7 @@ function renderGame() {
       ${art ? `<img class="${lastArt && lastArt !== art ? 'xfade' : ''}" src="${art}" alt="${esc(placeName(game))} ${roomArt ? ROOM_NAME[room.kind] ?? '안' : '풍경'}: ${mi.season}, ${esc(conditionText(game.date.year, game.date.month))}">` : ''}
       ${hero ? `<div class="hero-place"><span>${esc(placeName(game))}</span></div>` : ''}
       <div class="scene-cap">
-        ${hero ? '' : `<h1 class="view-title">${esc(viewName)}</h1>`}
+        ${hero ? '' : `<h1 class="view-title"><span class="vt-ic" aria-hidden="true">${icon(VIEWS.find(([id]) => id === ui.view)?.[2] ?? 'scroll', 20)}</span>${esc(viewName)}</h1>`}
         <div class="date"><span class="yr">용사력 ${game.date.year}년</span><strong>${mi.name}</strong><span class="cond">${mi.season} · ${esc(conditionText(game.date.year, game.date.month))}</span></div>
         <div class="purse"><span>내 돈 <b>은화 ${p.money}</b></span><span>집안 돈 <b>은화 ${p.familyMoney}</b></span></div>
       </div>
