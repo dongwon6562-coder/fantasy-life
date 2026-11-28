@@ -256,6 +256,7 @@ export function simulateMonth(game, rng) {
     const race = h.race && h.race === w.race && h.race !== 'human' ? h.race : null;
     const pool = race && RACE_NAMES[race] ? RACE_NAMES[race][baby.sex] ?? RACE_NAMES[race].m : null;
     const taken = namesAt(game.people, w.place ?? 'ern');
+    for (const id of [...w.childIds, ...h.childIds]) { const c = byId(game, id); if (c?.alive) taken.add(c.name); } // 형제끼리 같은 이름 (49단계)
     if (pool?.length) { baby.name = pool[(baby.id * 7) % pool.length]; for (let k = 1; k < pool.length && taken.has(baby.name); k++) baby.name = pool[(baby.id * 7 + k * 3) % pool.length]; }
     else baby.name = freshName(baby.name, baby.sex, taken);
     game.people.push(baby);
