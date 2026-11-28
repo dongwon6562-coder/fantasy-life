@@ -379,7 +379,7 @@ function meetResolve(g, rng, x, key, s) {
 }
 function join(g, x, role) {
   const st = S(g);
-  if (st.me && st.me.sect !== x.id) leaveSect(g, 'switch');
+  if (st.me && st.me.sect !== x.id) leaveSect(g, '다른 교단으로 옮김');
   st.me = { sect: x.id, role, since: mi(g), zeal: role === 'prophet' ? 80 : 45, heat: 0, gave: 0, brought: 0, heirName: null };
   x.places[here(g)] = (x.places[here(g)] ?? 0) + 1;
   x.known = true;

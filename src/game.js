@@ -250,7 +250,7 @@ export function endMonth(game, choices) {
     const rel = Math.max(...e.who.map((id) => relevance(game, byId(game, id))));
     return { text: e.text, rel, score: rel * e.weight, small: !!e.small };
   });
-  // 48단계: 'OO의 솜씨가 좋아졌다는 말이 돈다' 같은 작은 소문(무게 1)은 아는 사람 것만 연대기에 남긴다 (한 달에 몇 줄씩 쌓여 큰 일을 덮었다)
+  // 48단계: 'OO이 OO 일로 솜씨를 인정받는다는 말이 돈다' 같은 작은 소문(무게 1)은 아는 사람 것만 연대기에 남긴다 (한 달에 몇 줄씩 쌓여 큰 일을 덮었다)
   for (const e of scored) if (!e.small || e.rel >= 40) game.chronicle.push({ y: game.date.year, m: game.date.month, text: e.text, rel: e.rel });
   scored.sort((a, b) => b.score - a.score);
   const news = scored.filter((e) => e.rel >= 40 || e.score >= 16).slice(0, 4);
