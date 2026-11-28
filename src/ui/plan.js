@@ -179,7 +179,7 @@ const GROUPS = [
   ['beast', '짐승', /^beast_/],
   ['law', '법과 재판', /^law_/],
   ['contest', '내기와 겨루기', /^contest_/],
-  ['sea', '바다', /^(sail|sailing|at_sea|cargo|shipyard|sea_|serpent_lair|saltrock|pirate_)/],
+  ['sea', '바다', /^(sail|sailing|at_sea|cargo|shipyard|sea_|serpent_lair|saltrock|pirate_|pi_)/],
   ['poor', '밑바닥', /^poor_/],
   ['secret', '비밀과 이중생활', /^secret_/],
   ['spy', '첩보와 밀정', /^spy_/],
