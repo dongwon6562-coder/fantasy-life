@@ -65,9 +65,9 @@ export const KINDS = {
   witch: { name: '마녀로 고발된 자', pow: 14, pay: 26, dead: false, wrong: 0.4, crimes: ['우물에 저주를 걸었다는 고발을 받았다', '이웃 소를 말려 죽였다는 고발을 받았다', '흉년을 불렀다는 고발을 받았다'] },
 };
 export const KIND_IDS = Object.keys(KINDS);
-export const NAMES_M = ['한스', '디터', '오토', '루카스', '프리츠', '게오르크', '울리히', '카스파', '베른트', '얀', '토마스', '헤르만'];
-export const NAMES_F = ['마르타', '그레타', '안나', '리제', '도로테아', '엘제', '힐데', '카타리나', '로자', '베르타'];
-export const NICKS = ['외눈', '붉은 손', '여우', '쥐새끼', '절름발이', '갈고리', '흉터', '잿빛', '두 얼굴', '늙은'];
+export const NAMES_M = ['한스', '디터', '오토', '루카스', '프리츠', '게오르크', '울리히', '카스파', '베른트', '얀', '토마스', '헤르만', '쿠르트', '마티아스', '라인하르트', '지몬', '바르톨', '에발트', '콘라트', '페터'];
+export const NAMES_F = ['마르타', '그레타', '안나', '리제', '도로테아', '엘제', '힐데', '카타리나', '로자', '베르타', '이르마', '프리다', '오틸리에', '게르다', '알마', '루이제'];
+export const NICKS = ['외눈', '붉은 손', '여우', '쥐새끼', '절름발이', '갈고리', '흉터', '잿빛', '두 얼굴', '늙은', '검은 이', '곰보', '여윈', '칼자국', '말더듬이', '대머리', '빨간 머리', '외팔이', '까마귀', '굽은 등'];
 // 놓아줄지 망설이게 하는 사정
 export const STORY = {
   escapee: ['감옥에서 앓는 딸 소식을 듣고 담을 넘었다고 한다.', '훔친 것은 빵 두 덩이였다. 형기가 다섯 해였다.', '감방에서 맞아 죽기 싫었다고 한다.'],
@@ -93,7 +93,7 @@ export const rivalName = (r) => `${r.nick} ${r.name}`;
 
 /* ---------- 상태 ---------- */
 const freshMe = () => ({ member: false, rank: 0, pts: 0, joinedAt: null, hunt: null, clue: 0, known: false, caught: 0, killed: 0, wrong: 0, freed: 0, bribed: 0, earned: 0, rivalAt: -99, kinAt: -99, boardAt: -99, lastAt: -99, quitAt: null });
-export const fresh = () => ({ seq: 1, posts: [], rivals: [], me: freshMe(), kin: [], log: [], made: 0, done: 0 });
+export const fresh = () => ({ seq: 1, posts: [], rivals: [], me: freshMe(), kin: [], log: [], taken: [], made: 0, done: 0 });
 export const B = (g) => (g.bounty ??= fresh());
 export function blog(g, text) {
   const s = B(g);
@@ -117,7 +117,7 @@ HOOKS.newGame.push((g) => { B(g); });
 HOOKS.migrate.push((g) => {
   const s = B(g);
   s.me = { ...freshMe(), ...(s.me ?? {}) };
-  s.posts ??= []; s.rivals ??= []; s.kin ??= []; s.log ??= [];
+  s.posts ??= []; s.rivals ??= []; s.kin ??= []; s.log ??= []; s.taken ??= [];
 });
 // 대를 이으면 조합 패와 맡은 방은 남지 않는다. 원한은 선대의 일이라 거의 식고, 경쟁 사냥꾼과 방은 세상에 남는다.
 HOOKS.heir.push((g) => {
