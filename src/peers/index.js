@@ -625,7 +625,12 @@ function playerTick(g, rng) {
   // 흩어지는 날
   if (!s.done.part && age >= 15 && age <= 18 && s.setout.length >= 2) {
     const ids = s.setout.slice(0, 3);
-    const lines = ids.map((id) => findC(g, id)).filter(Boolean).map((c) => T.SET_OUT[c.path]({ n: c.name, p: placeName(c.place) }));
+    const usedPath = new Set();
+    const lines = ids.map((id) => findC(g, id)).filter(Boolean).map((c) => {
+      const x = { n: c.name, p: placeName(c.place) };
+      if (!usedPath.has(c.path)) { usedPath.add(c.path); return T.SET_OUT[c.path](x); }
+      return (T.SET_OUT_ALSO[c.path] ?? T.SET_OUT_ALSO.other)(x);
+    });
     s.setout = [];
     if (here(g) === s.home) return q('pe_parting', { ids, lines });
     s.done.part = now;

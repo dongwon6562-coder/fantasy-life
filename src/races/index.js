@@ -136,8 +136,29 @@ HOOKS.afterNpc.push((g, rng) => {
     const r = childRace(raceOf(f), raceOf(m), rng);
     if (r === 'human') continue;
     setRace(p, r, rng, { beast: raceOf(f) === 'beast' ? f.beast : m?.beast });
+    raceBabyName(g, p, r, [f, m]);
   }
 });
+// 49단계 도우미2: 마족·엘프·드워프·수인 아이가 '하넬로레'·'유디트' 같은 사람 이름을 받던 것(형제의 아이처럼 한쪽이 사람인 부부에서도).
+// 그 종족 이름으로 바꾸고, 이달 적힌 탄생 기록의 이름도 같이 고친다. 난수는 쓰지 않는다(사람 번호로).
+function raceBabyName(g, p, race0, parents) {
+  // 사는 곳: 자기 자리가 없으면 부모, 그 부모를 거슬러 본다 (다른 땅 집안의 식구는 자리가 비어 있기도 하다)
+  const homeOf = (x, d = 0) => (!x || d > 3 ? null : x.place ?? homeOf(byId(g, x.motherId), d + 1) ?? homeOf(byId(g, x.fatherId), d + 1));
+  const pl = p.place ?? parents.map((x) => homeOf(x)).find(Boolean) ?? 'ern';
+  // 반쪽 핏줄은 그 종족 땅에서 자랄 때만 그 종족 이름 (반마족은 마대륙, 하프엘프는 엘프 숲)
+  const race = race0 === 'half_demon' ? 'demon' : race0 === 'half_elf' ? 'elf' : race0;
+  if (race !== race0 && realmOf(pl) !== race) return;
+  const pool = RACE_NAMES[race]?.[p.sex] ?? RACE_NAMES[race]?.m;
+  if (!pool?.length || pool.includes(p.name)) return;
+  const old = p.name;
+  const taken = new Set(g.people.filter((x) => x.alive && x !== p && ((x.place ?? 'ern') === pl || x.lastName === p.lastName)).map((x) => x.name));
+  for (let k = 0; k < pool.length; k++) { p.name = pool[(p.id * 7 + k * 3) % pool.length]; if (!taken.has(p.name)) break; }
+  if (race === 'beast' && RACE_NAMES.beast.last?.[p.beast] && parents.every((x) => !x || raceOf(x) === 'beast')) p.lastName = RACE_NAMES.beast.last[p.beast];
+  const y = g.date.year, mo = g.date.month;
+  const fix = (h) => { if (h && h.y === y && h.m === mo && h.text.includes(old)) h.text = h.text.split(old).join(p.name); };
+  for (const x of [p, ...parents]) for (const h of (x?.history ?? []).slice(-3)) fix(h);
+  for (const n of (g.news ?? []).slice(0, 12)) if (n.text?.includes(`이름은 ${old}`) || n.text?.includes(`${old}`) && /태어났|아이가 났/.test(n.text)) n.text = n.text.split(old).join(p.name);
+}
 
 /* ---------- 다른 나라 수도의 사람들 ---------- */
 const PLACE_RACES = {

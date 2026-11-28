@@ -239,7 +239,15 @@ function letterBody(g, l, p) {
     case 'sick': return `"${greet(g, p)}. 요즘 기침이 멎지 않아. 의원은 걱정 말라는데, 얼굴은 그렇게 말하지 않더군. 혹시 모르니 쓴다. 잘 살아." ${n}의 편지는 평소보다 짧았다.`;
     case 'love': return `"${greet(g, p)}. 이런 편지를 써도 되는지 모르겠어. ${where}의 밤은 길고, 자꾸 그대 생각이 나." 종이에서 희미하게 향 냄새가 났다. ${J(n, '이/가')} 보낸 연서다.`;
     case 'wed': return `"${greet(g, p)}. 여기서 짝을 만나 살림을 차렸어.${kids ? ` 아이가 ${kids}이나 된다네.` : ''} 언젠가 한번 들러 줘." ${n}의 글씨가 웃고 있었다.`;
-    default: return `"${greet(g, p)}. ${where}에서 그럭저럭 지내. ${newsLine(g, l, n)}${kids ? ` 아이들은 잘 커.` : ''} 그쪽 소식도 알려 줘." ${n}의 편지다.`;
+    default: {
+      // 49단계 헤드 부탁: 다른 사람이 같은 달에 같은 틀로 쓰지 않게, 편지 차례(id)로 틀을 돌린다
+      const k = (l.lid ?? l.id ?? 0) % 4;
+      const kidL = kids ? [' 아이들은 잘 커.', ' 아이들이 부쩍 컸어.', ' 아이들 뒤치다꺼리에 하루가 짧아.', ' 아이들은 아프지 않고 잘 커.'][k] : '';
+      if (k === 1) return `"${greet(g, p)}. 오랜만에 붓을 든다. ${where} 살이도 이제 몸에 붙었어. ${newsLine(g, l, n)}${kidL} 답장 기다릴게." ${n}의 편지다.`;
+      if (k === 2) return `"${greet(g, p)}. 별일은 없어. ${newsLine(g, l, n)}${kidL} ${where} 사람들도 이제 내 얼굴을 알아." 짧은 편지 끝에 ${n}의 이름이 적혀 있다.`;
+      if (k === 3) return `"${greet(g, p)}. 지나가는 장사꾼 편에 몇 자 적어 보낸다. ${newsLine(g, l, n)}${kidL} 그쪽은 어때?" ${where}에서 ${J(n, '이/가')} 보낸 편지다.`;
+      return `"${greet(g, p)}. ${where}에서 그럭저럭 지내. ${newsLine(g, l, n)}${kidL} 그쪽 소식도 알려 줘." ${n}의 편지다.`;
+    }
   }
 }
 // 편지 속 그쪽 형편: 보낸 달의 철과 세상 일을 안다 (30단계 헤드: 백 년 내내 '장터 물가가 또 올랐고, 지난달엔 큰비가 왔어'였다)
@@ -495,7 +503,7 @@ HOOKS.afterMonth.push((g, rng) => {
     const dead = !p || !p.alive;
     const c = p ? corrOf(g, p) : null;
     if (c && !dead) { c.unanswered += 1; c.last = now; c.count += 1; }
-    queueScene(g, 'letters_arrive', { from: l.from, name: l.name, lk: dead && l.lk === 'love' ? 'love' : l.lk, need: l.need, dead, months: now - l.sent, toOld: !!l.toOld });
+    queueScene(g, 'letters_arrive', { from: l.from, name: l.name, lk: dead && l.lk === 'love' ? 'love' : l.lk, need: l.need, dead, months: now - l.sent, toOld: !!l.toOld, lid: l.id, sent: l.sent });
     break;
   }
   // 3) 답 없는 편지는 정을 식힌다. 먼 사람이 먼저 편지를 쓴다.
