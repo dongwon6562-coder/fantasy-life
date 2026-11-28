@@ -20,7 +20,7 @@ const END = +(process.argv[4] ?? 45);
 mkdirSync(out, { recursive: true });
 const fams = ['farmer', 'merchant', 'fallen_knight', 'capital_artisan', 'slum_orphan', 'port_folk', 'march_guard', 'sexton', 'dwarf_smith'];
 // 한 길을 붙드는 사람: 이 앞머리의 행동이 보이면 넷 중 셋은 그걸 고른다
-const PERSONAS = { worker: /^(seek_job|work)$/, farm: /^(farm_|nature_)/, cook: /^(cuisine_|inn_)/, apo: /^(apo_|herbs$)/, builder: /^builder_/, mine: /^mine_/, hunter: /^(hunter_|wilds_)/, cloth: /^cloth_/, adventurer: /^(gather_party|party_|quest$|delve$|dv_|gear$)/, merchant: /^(trade_|open_shop|shop_manage)/, harbor: /^harbor_/, brew: /^brew_/, watch: /^(work$|watch_)/, home: /^(house_|estate_|household_|housing$)/ };
+const PERSONAS = { worker: /^(seek_job|work)$/, farm: /^(farm_|nature_)/, cook: /^(cuisine_|inn_)/, apo: /^(apo_|herbs$)/, builder: /^builder_/, mine: /^mine_/, hunter: /^(hunter_|wilds_)/, cloth: /^cloth_/, adventurer: /^(gather_party|party_|quest$|delve$|dv_|gear$)/, merchant: /^(trade_|open_shop|shop_manage)/, harbor: /^harbor_/, brew: /^brew_/, watch: /^(work$|watch_)/, bounty: /^bh_/, home: /^(house_|estate_|household_|housing$)/ };
 const PK = Object.keys(PERSONAS);
 const BAD = (x) => x.crime || /^(heist|spy|revolt|herd_rustle|secret_night)/.test(x.id) || (x.id === 'travel' && !process.env.AP_TRAVEL);
 const textCount = new Map(), actShown = new Map(), actPicked = new Map(), money = [];
@@ -35,6 +35,9 @@ for (let run = 0; run < N; run++) {
     const rng = rngOf(g), age = playerAge(g);
     // AP_RICH=N: 28살에 은화 N닢을 쥐여 주고 30~60살의 큰 살림(영지·상단·공략대)을 본다
     if (process.env.AP_RICH && age === 28 && !g._apRich) { g._apRich = 1; g.player.money += +process.env.AP_RICH; }
+    // 현상금 길(bounty)은 조합 지부에 있으면 이름부터 올린다 (50단계)
+    if (per === 'bounty' && age === 18 && !g._apHall && !g.life?.travel) { g._apHall = 1; g.life.place = 'harfen'; g.life.home = 'inn'; } // 18살에 하르펜으로 옮겨 산다고 친다
+    if (per === 'bounty' && age >= 18) { const j = ACTIONS.find((a) => a.id === 'bh_join'); if (j?.available(g)) j.run(g, rngOf(g)); }
     // 경비대 길(watch)은 17살부터 자리가 나면 경비대에 들어간다 (49단계)
     if (per === 'watch' && age >= 17 && !g.life?.job && WORK.guard && !WORK.guard.req(g)) takeJob(g, 'guard');
     const acts = availableActions(g).filter((x) => !BAD(x) && !(per === 'watch' && g.life?.job?.id === 'guard' && x.id === 'seek_job'));
@@ -68,6 +71,8 @@ for (let run = 0; run < N; run++) {
         const ok = pe.choices.map((c, i) => [c, i]).filter(([c]) => { const m = /은화 (\d+)닢/.exec(c?.label ?? String(c)); return !m || +m[1] <= g.player.money * 0.5; });
         if (ok.length) pick = ok[rngOf(g).int(0, ok.length - 1)][1];
       }
+      // 흔적을 따라 길을 떠날 때는 흔적이 가리키는 고장(맨 앞)을 고른다
+      if (g.life?.scene?.kind === 'travel' && g.life.scene.to) pick = 0;
       if (adult) { let v = null; try { v = vignetteFor(g, { title: pe.title, text: pe.text }); } catch (e) { v = { plate: 'ERR ' + e.message }; } const sk = g.life?.scene?.kind ?? pe.id; const key = `${sk} | ${String(pe.title).replace(/\d+/g, '#').slice(0, 40)}`; const pk = v ? `${v.plate}${v.variant ? ':' + v.variant : ''}` : '-'; const m = plates.get(key) ?? new Map(); m.set(pk, (m.get(pk) ?? 0) + 1); plates.set(key, m); }
       const e0 = g.player.money;
       const o = resolveEvent(g, rngOf(g), pick);
