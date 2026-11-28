@@ -472,7 +472,7 @@ export function vignetteFor(g, { title = '', text = '', outcome = false } = {}) 
     const kind = id === 'life_scene' ? g.life?.scene?.kind : null;
     if (kind === 'fight' || kind === 'battle') return null;
     pick = BY_ID[id] ?? BY_SCENE[id] ?? (kind === 'crisis_turn' ? crisisPlate(title, text) : null) ?? (kind ? BY_SCENE[kind] : null) ?? null;
-    if (/^(watch|wt|pi)_/.test(kind ?? id)) pick ??= plate49(kind ?? id, `${title} ${text}`);
+    if (/^(watch|wt|pi|sx)_/.test(kind ?? id)) pick ??= plate49(kind ?? id, `${title} ${text}`);
     pick ??= plate31(kind ?? id, `${title} ${text}`) ?? plate32(kind ?? id, `${title} ${text}`) ?? plate33(kind ?? id, `${title} ${text}`) ?? plate34(kind ?? id, `${title} ${text}`) ?? plate35(kind ?? id, `${title} ${text}`) ?? plate36(kind ?? id, `${title} ${text}`) ?? plate37(kind ?? id, `${title} ${text}`) ?? plate39(kind ?? id, `${title} ${text}`) ?? plate40(kind ?? id, `${title} ${text}`) ?? plate41(kind ?? id, `${title} ${text}`) ?? plate42(kind ?? id, `${title} ${text}`) ?? plate43(kind ?? id, `${title} ${text}`) ?? plate44(kind ?? id, `${title} ${text}`) ?? plate45(kind ?? id, `${title} ${text}`) ?? plate47(kind ?? id, `${title} ${text}`) ?? plate49(kind ?? id, `${title} ${text}`);
     if (kind === 'sea_event') pick = /폭풍|풍랑/.test(title) ? 'voyage:storm' : /해적|검은 돛/.test(title) ? 'voyage:pirate' : /뱀|괴물|촉수/.test(title + text) ? 'voyage:serpent' : 'voyage';
     if (kind === 'voc_path' || kind === 'voc_event') { const sc = g.life.scene; pick = VOC_ART[sc.path ?? sc.ev] ?? JOB_ART[g.life?.job?.id] ?? null; }
