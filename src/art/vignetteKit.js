@@ -298,7 +298,14 @@ export function lying(v, x, y, len, o = {}) {
   const { ctx, t } = v, d = o.d ?? 1, r = len * 0.07;
   ctx.fillStyle = o.raw ? (o.cover ?? '#8a8474') : t(o.cover ?? '#8a8474');
   ctx.beginPath(); ctx.moveTo(x + d * r * 1.4, y); ctx.quadraticCurveTo(x + d * len * 0.4, y - r * 1.7, x + d * len * 0.86, y - r * 0.9); ctx.quadraticCurveTo(x + d * len * 0.97, y - r * 1.7, x + d * len, y); ctx.closePath(); ctx.fill();
-  if (!o.shroud) { ctx.fillStyle = o.raw ? (o.skin ?? '#c9a184') : t(o.skin ?? '#c9a184'); ctx.beginPath(); ctx.arc(x, y - r * 0.9, r, 0, TAU); ctx.fill(); ctx.fillStyle = o.raw ? (o.hair ?? '#2a1e16') : t(o.hair ?? '#2a1e16'); ctx.beginPath(); ctx.arc(x - d * r * 0.3, y - r * 1.1, r, 0, TAU); ctx.fill(); }
+  if (!o.shroud) { // 51단계: 머리털은 베개 쪽 뒤통수에만, 얼굴(감은 눈·코)은 위를 본다 (예전엔 머리털이 얼굴을 다 덮어 검은 공처럼 보였다)
+    const skin = o.raw ? (o.skin ?? '#c9a184') : t(o.skin ?? '#c9a184'), hair = o.raw ? (o.hair ?? '#2a1e16') : t(o.hair ?? '#2a1e16');
+    ctx.fillStyle = hair; ctx.beginPath(); ctx.arc(x - d * r * 0.55, y - r * 1.0, r * 0.98, 0, TAU); ctx.fill();
+    ctx.fillStyle = skin; ctx.beginPath(); ctx.ellipse(x + d * r * 0.12, y - r * 1.0, r * 0.84, r * 0.9, 0, 0, TAU); ctx.fill();
+    ctx.beginPath(); ctx.moveTo(x + d * r * 0.2, y - r * 1.85); ctx.lineTo(x + d * r * 0.05, y - r * 2.15); ctx.lineTo(x + d * r * 0.45, y - r * 1.8); ctx.fill();
+    ctx.strokeStyle = 'rgba(40,24,16,.6)'; ctx.lineWidth = Math.max(0.8, r * 0.12); ctx.beginPath(); ctx.moveTo(x + d * r * 0.5, y - r * 1.45); ctx.lineTo(x + d * r * 0.8, y - r * 1.4); ctx.stroke();
+    ctx.fillStyle = hair; ctx.beginPath(); ctx.arc(x - d * r * 0.55, y - r * 1.0, r * 0.98, d > 0 ? Math.PI * 0.55 : -Math.PI * 0.45, d > 0 ? Math.PI * 1.45 : Math.PI * 0.45); ctx.fill();
+  }
 }
 
 /* ---------- 나무와 물건 ---------- */

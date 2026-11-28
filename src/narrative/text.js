@@ -78,7 +78,12 @@ export function pickLine(game, rng, pool, extra) {
   if (!ok.length) return '';
   let recent = RECENT.get(game);
   if (!recent) RECENT.set(game, (recent = []));
-  const { e } = rng.weighted(ok, (x) => x.w * x.w * (recent.includes(x.e) ? 0.04 : 1));
+  // 51단계: 한 달 안에서는 같은 줄을 두 번 쓰지 않는다 (쉬기를 네 칸 고르면 둘에 하나꼴로 같은 줄이 나오던 것)
+  const mk = (game?.date?.year ?? 0) * 12 + (game?.date?.month ?? 0);
+  if (recent.month !== mk) { recent.month = mk; recent.thisMonth = new Set(); }
+  const fresh = ok.filter((x) => !recent.thisMonth.has(x.e));
+  const { e } = rng.weighted(fresh.length ? fresh : ok, (x) => x.w * x.w * (recent.includes(x.e) ? 0.04 : 1));
+  recent.thisMonth.add(e);
   recent.push(e);
   if (recent.length > RECENT_MAX) recent.shift();
   const t = typeof e === 'string' ? e : e.t;

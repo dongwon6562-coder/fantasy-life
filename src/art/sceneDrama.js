@@ -110,7 +110,7 @@ export function wetGround(ctx, S, lit, k) {
 export function fogBanks(ctx, S, R) {
   if (S.weather !== 'fog') return;
   const base = S.tod === 'dawn' ? '#f0d8c4' : S.tod === 'dusk' ? '#d8b0a0' : '#e2e4e0';
-  const bands = [[HZ - 6, 0.62, 64], [HZ + 30, 0.34, 46], [HZ + 92, 0.2, 40], [HZ + 156, 0.1, 36], [HZ + 216, 0.05, 30]];
+  const bands = [[HZ - 6, 0.55, 64], [HZ + 30, 0.26, 46], [HZ + 92, 0.13, 40], [HZ + 156, 0.06, 36], [HZ + 216, 0.03, 30]]; // 51단계: 마을이 묻히지 않게 앞쪽 띠를 엷게
   bands.forEach(([y, a, h], bi) => {
     const c = mk(W, h * 3), x = c.getContext('2d'), s = 7 + bi * 13;
     const g = x.createLinearGradient(0, 0, 0, h * 3);
@@ -122,7 +122,7 @@ export function fogBanks(ctx, S, R) {
     c.width = c.height = 0;
   });
   for (let i = 0; i < 16; i++) puff(ctx, R() * W, HZ + 30 + R() * 200, 140 + R() * 220, 8 + R() * 14, base, 0.09);
-  if (S.sun && S.tod !== 'night') { ctx.globalCompositeOperation = 'screen'; puff(ctx, S.sun[0], HZ + 10, 520, 150, S.glow, low(S) ? 0.42 : 0.24); ctx.globalCompositeOperation = 'source-over'; }
+  if (S.sun && S.tod !== 'night') { ctx.globalCompositeOperation = 'screen'; puff(ctx, S.sun[0], HZ + 10, 520, 150, S.glow, low(S) ? 0.3 : 0.18); ctx.globalCompositeOperation = 'source-over'; }
 }
 
 /** 앞쪽 틀: 그림 아래 양쪽 끝의 짙은 풀숲과 바위, 위에서 늘어진 가지. 빛을 등져 거의 실루엣이다. */

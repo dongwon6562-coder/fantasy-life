@@ -106,7 +106,7 @@ defineScene('heir', {
     const kids = s.heirs.map((id) => byId(g, id)).filter(Boolean);
     const own = kids.some((c) => me(g).childIds.includes(c.id));
     const who = own ? `자식은 ${kids.length}명.` : `뒤를 이을 자식이 없다. 집안 어른들이 핏줄 가운데 ${kids.length}명을 앞에 세웠다.`;
-    return `${r.name} ${r.lastName}, ${r.age}살. ${J(r.cause ?? '', '으로/로')} 숨을 거두었다.${r.summary ? ` (${r.summary})` : ''} 장례가 끝나고, 남은 것들은 누군가가 이어받아야 한다. ${who} 누가 집안을 잇는가.`;
+    return `${r.name} ${r.lastName}, ${r.age}살. ${/다\.?$/.test(r.cause ?? '') ? `${r.cause.replace(/\.$/, '')}. 그것이 마지막이었다.` : `${J(r.cause ?? '', '으로/로')} 숨을 거두었다.`}${r.summary ? ` (${r.summary})` : ''} 장례가 끝나고, 남은 것들은 누군가가 이어받아야 한다. ${who} 누가 집안을 잇는가.`;
   },
   choices: (g, s) => s.heirs.map((id) => byId(g, id)).filter((c) => c && c.alive)
     .map((c) => ({ label: `${heirWord(g, c)} ${c.name} (${ageYears(c)}살${c.job && c.job !== 'child' ? `, ${JOBS[c.job]?.name ?? ''}` : ''})`, key: c.id })),
