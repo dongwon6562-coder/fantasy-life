@@ -5,6 +5,7 @@
 import { natureInfo } from '../nature/index.js';
 import { streetLine, rumorLines, rumorInfo } from '../rumor/index.js';
 import { sceneLine, sensesLine } from '../senses/index.js';
+import { isJailed } from '../crime.js';
 import { encounterLines } from '../encounter/index.js';
 import { siblingLines } from '../siblings/index.js';
 import { ruinsLine } from '../ruins/index.js';
@@ -84,7 +85,7 @@ const pick = (kind, game) => TODAY_SOURCES[kind].flatMap((fn) => safe(() => arr(
 export function renderToday(game, parts = {}) {
   let i = 0;
   const ln = (c = '') => `class="ln${c ? ` ${c}` : ''}" style="--ln:${i++}"`;
-  const lead = pick('lead', game).slice(0, 3);
+  const lead = safe(() => isJailed(game)) ? arr(safe(() => sceneLine(game))) : pick('lead', game).slice(0, 3); // 갇혀 있으면 바깥 거리 풍경은 안 보인다
   const did = pick('did', game)[0];
   const feast = safe(() => rumorInfo(game).feast); // 이달 이 고장 축제
   const met = pick('met', game).slice(0, 3);

@@ -55,7 +55,8 @@ export function renderFamTree(game) {
   if (!fa && !mo && !sp && !kids.length) return '';
   const sexWord = (p, mw, fw) => (p.sex === 'f' ? fw : mw);
   const kidRole = (k) => sexWord(k, '아들', '딸');
-  const sibRole = (k) => ((k.ageMonths ?? 0) > (m.ageMonths ?? 0) ? sexWord(k, '형제', '누이') : sexWord(k, '아우', '누이동생'));
+  const meF = m.sex === 'f';
+  const sibRole = (k) => ((k.ageMonths ?? 0) > (m.ageMonths ?? 0) ? sexWord(k, meF ? '오빠' : '형', meF ? '언니' : '누나') : sexWord(k, '남동생', '여동생'));
 
   // 내 집: 나와 배우자, 그 아래 자식들, 자식마다 손주
   const myHouse = () => {
