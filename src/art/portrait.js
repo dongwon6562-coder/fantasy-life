@@ -287,6 +287,9 @@ function drawFace(game, p, age, stage, scars, ring, mood, detail, life, bust = f
   // 51단계: 얼굴 넓이·길이 폭을 크게 넓힌다 (폰에서 사람마다 윤곽이 먼저 달라 보이게)
   let hw = 14.6 + g.wide * 5.4 + (male ? 0.7 : -0.6) + kid * 1.2;
   let hh = 20.9 + g.long * 5.0 * (1 - kid * 0.5) + (male ? 0.7 : 0) - kid * 4.0;
+  // 51단계 둘째: 젊은 얼굴은 넓은 폭을 덜 드러낸다 (열여덟이 살집 있는 중년처럼 보였다)
+  const youth = clamp((26 - age) / 10) * (1 - kid);
+  hw -= Math.max(0, g.wide - 0.45) * 2.6 * youth;
   const settle = clamp((age - 16) / 16) * (1 - kid); // 46단계: 앳된 얼굴이 서른 즈음까지 길고 단단해진다
   hh += settle * 0.9; hw -= settle * 0.35;
   hh += old * 1.3; hw -= ancient * 0.5; // 51단계: 늙으면 얼굴이 아래로 처져 길어지고, 아주 늙으면 살이 빠져 좁아진다
@@ -311,7 +314,7 @@ function drawFace(game, p, age, stage, scars, ring, mood, detail, life, bust = f
   const gaunt = clamp(g.gaunt * 0.7 + old * 0.5 + ancient * 0.25 + life.hard * 0.6 + (M.pale ? 0.3 : 0) - kid - (male ? 0 : 0.15));
   // 51단계 둘째: 살집. 잘 먹고 덜 고된 사람은 얼굴이 넓고 턱이 두툼하다 (마른 얼굴과 한눈에 갈리게)
   const plump = clamp(((0.42 - g.gaunt) * 2.2 + (life.tier >= 3 ? 0.35 : life.tier <= 0 ? -0.4 : 0) - life.hard * 0.8) * clamp((age - 18) / 14) * (1 - kid));
-  hw += plump * 1.9; jawW += plump * 0.12; chinW += plump * 0.08; cheekW += plump * 0.03;
+  hw += plump * 1.9 * (1 - youth); jawW += plump * 0.12; chinW += plump * 0.08; cheekW += plump * 0.03;
   jawW = clamp(jawW, 0.5, 1.04); chinW = clamp(chinW, 0.14, 0.6);
   const headR = [
     [cx, top], [cx + hw * 0.58, top + hh * 0.06], [cx + hw * (0.95 + temple), top + hh * 0.4], [cx + hw * cheekW, cy + hh * 0.06],

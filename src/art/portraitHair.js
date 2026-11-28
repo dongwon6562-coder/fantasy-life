@@ -354,7 +354,7 @@ export function drawHair(style, h) {
       const c = cap({ v: 2.3, drop: hh * 0.02 });
       out.front = capDraw(c, strands(c, { ox: 0, back: true })) + (h.peak > 0.45 ? fringe('sweep', c) : fringe('curtain', c)) + (h.peak > 0.8 ? fringe('strand', c) : '');
       {
-        const x0 = cx + part * hw * 0.62, y0 = cy + hh * 0.86;
+        const x0 = cx + part * (hw * 0.92 + 1.6), y0 = cy + hh * 0.78; // 51단계 둘째: 얼굴이 넓어지며 꼬리가 턱 밑으로 와 염소수염처럼 보였다. 귀 뒤에서 어깨 옆으로
         const R1 = [[x0 + part * 2.2, y0], [x0 + part * 5.4, y0 + 7], [x0 + part * 4.6, y0 + 16], [x0 + part * 1.4, y0 + 26]];
         const R2 = [[x0 - part * 1.6, y0 + 25], [x0 + part * 0.6, y0 + 15], [x0 + part * 1.2, y0 + 7], [x0 - part * 0.6, y0 + 1]];
         out.mid = `<path d="${spline(R1)} L${f(R2[0][0])} ${f(R2[0][1])} ${spline(R2, false, false)}Z" fill="${fillG}" ${line}/>${detail ? `<path d="M${f(x0 + part * 2.4)} ${f(y0 + 4)} q${f(part * 2)} 9 ${f(-part * 1.6)} 20" fill="none" stroke="${dark}" stroke-width="0.4" opacity="0.6"/>` : ''}<path d="M${f(x0 - part * 0.4)} ${f(y0 + 2)} l${f(part * 3)} 0.8" stroke="#8a6d38" stroke-width="1.2" stroke-linecap="round"/>`;
