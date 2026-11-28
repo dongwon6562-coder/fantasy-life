@@ -356,6 +356,9 @@ export const PLATES = {
       ctx.lineWidth = 2; for (let i = 1; i < 6; i++) { const k = i / 6, x = bx - bw / 2 + bw * k, top = by - bh - 54 * (1 - Math.abs(k - 0.5) * 2); if (R() < 0.8) { ctx.beginPath(); ctx.moveTo(x, by - bh); ctx.lineTo(x + (R() - 0.5) * 6, top + R() * 10); ctx.stroke(); } }
       for (const [x, y, w, h] of [[-62, -54, 14, 17], [50, -54, 14, 17], [-17, -46, 34, 46]]) { ctx.fillStyle = vgrad(ctx, by + y, by + y + h, [[0, '#f0a848'], [1, '#b8440f']]); ctx.fillRect(bx + x, by + y, w, h); glow(v, bx + x + w / 2, by + y + h / 2, w * 1.3, '#ff8a30', 0.3); }
       ctx.fillStyle = '#150f0c'; ctx.fillRect(bx - 1.5, by - 46, 3, 46);
+      // 51단계: 불길이 지붕 위와 창 위로 앞에서 보이게 (예전엔 집 뒤에만 있어 안 타는 집처럼 보였다)
+      blaze(v, bx - 20, by - bh - 6, bw * 0.55, 66); blaze(v, bx + 46, by - bh + 4, 50, 44); blaze(v, bx - 55, by - 58, 18, 26); blaze(v, bx + 57, by - 58, 18, 22);
+      glow(v, bx, by - bh - 30, 150, '#ffa040', 0.35);
       pool(v, bx, by + 26, 300, 30, '#ff8a3a', 0.3);
       // 물동이를 나르는 사람들
       for (const [x, h, f] of [[176, 104, 1], [240, 96, 1], [566, 98, -1]]) { person(v, x, 230, h, { f, raw: true, cloth: '#1e1814', hair: '#14100e', arm: 'fwd', female: x === 240, rim: 'rgba(255,150,70,.75)', rimDir: f }); rect(ctx, x + f * h * 0.27 - 4, 230 - h * 0.56, 9, 9, '#14100e'); }
@@ -477,7 +480,7 @@ export const PLATES = {
       finish(v, { noLeaves: true }); return;
     }
     // 등불 줄
-    for (const [x0, x1] of [[60, 300], [340, 590]]) { ctx.strokeStyle = t('#2a2018'); ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(x0, 96); ctx.quadraticCurveTo((x0 + x1) / 2, 128, x1, 96); ctx.stroke(); rect(ctx, x0 - 2, 96, 4, 76, t('#2a2018')); rect(ctx, x1 - 2, 96, 4, 76, t('#2a2018')); for (let i = 1; i < 7; i++) { const k = i / 7, x = x0 + (x1 - x0) * k, y = 96 + Math.sin(k * Math.PI) * 16 + 4; ctx.fillStyle = ['#e8a040', '#d86a3a', '#e8c860'][i % 3]; ctx.beginPath(); ctx.ellipse(x, y, 3, 4, 0, 0, TAU); ctx.fill(); if (lit(v)) glow(v, x, y, 16, '#ffb060', 0.4); } }
+    for (const [x0, x1] of [[40, 236], [404, 600]]) { /* 51단계: 기둥이 모닥불 바로 뒤에 서면 화형대처럼 보여 옆으로 비킴 */ ctx.strokeStyle = t('#2a2018'); ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(x0, 96); ctx.quadraticCurveTo((x0 + x1) / 2, 128, x1, 96); ctx.stroke(); rect(ctx, x0 - 2, 96, 4, 76, t('#2a2018')); rect(ctx, x1 - 2, 96, 4, 76, t('#2a2018')); for (let i = 1; i < 7; i++) { const k = i / 7, x = x0 + (x1 - x0) * k, y = 96 + Math.sin(k * Math.PI) * 16 + 4; ctx.fillStyle = ['#e8a040', '#d86a3a', '#e8c860'][i % 3]; ctx.beginPath(); ctx.ellipse(x, y, 3, 4, 0, 0, TAU); ctx.fill(); if (lit(v)) glow(v, x, y, 16, '#ffb060', 0.4); } }
     if (v.variant === 'troupe') {
       // 수레 무대
       rect(ctx, cx - 90, cy - 62, 180, 46, t('#5a3a34')); rect(ctx, cx - 96, cy - 18, 192, 8, t('#3a2c20')); ctx.fillStyle = t('#8a2f2a'); ctx.beginPath(); ctx.moveTo(cx - 96, cy - 62); ctx.quadraticCurveTo(cx, cy - 96, cx + 96, cy - 62); ctx.fill();
@@ -488,7 +491,7 @@ export const PLATES = {
     } else {
       // 모닥불과 둥글게 도는 춤
       ctx.save(); zoom(v, cx, 236, 1.3);
-      for (let i = 0; i < 7; i++) { const a = Math.PI + (i / 6) * Math.PI, x = cx + Math.cos(a) * 120, y = cy - 12 + Math.sin(a) * 14; person(v, x, y, 56, { f: i < 3 ? 1 : i === 3 ? 0 : -1, cloth: ['#7a3a34', '#4a5240', '#8a7444', '#3e4658', '#5a3a34'][i % 5], hair: ['#2a1e16', '#6e4a28', '#9a7a48'][i % 3], female: i % 2 === 0, arm: 'out', rim: 'rgba(255,170,90,.7)', rimDir: i < 3 ? 1 : -1 }); }
+      for (let i = 0; i < 7; i++) { if (i === 3) continue; /* 불 바로 뒤에 선 사람은 불에 타는 것처럼 보인다 (51단계) */ const a = Math.PI + (i / 6) * Math.PI, x = cx + Math.cos(a) * 120, y = cy - 12 + Math.sin(a) * 14; person(v, x, y, 56, { f: i < 3 ? 1 : i === 3 ? 0 : -1, cloth: ['#7a3a34', '#4a5240', '#8a7444', '#3e4658', '#5a3a34'][i % 5], hair: ['#2a1e16', '#6e4a28', '#9a7a48'][i % 3], female: i % 2 === 0, arm: 'out', rim: 'rgba(255,170,90,.7)', rimDir: i < 3 ? 1 : -1 }); }
       ctx.fillStyle = '#1c1410'; for (let i = 0; i < 5; i++) { ctx.save(); ctx.translate(cx, cy); ctx.rotate(-0.9 + i * 0.45); ctx.fillRect(-2, -22, 4, 24); ctx.restore(); }
       blaze(v, cx, cy - 2, 40, 70); flame(v, cx, cy, 11); pool(v, cx, cy + 8, 240, 30, '#ff9a48', lit(v) ? 0.4 : 0.2); if (lit(v)) glow(v, cx, cy - 30, 240, '#ff8a3a', 0.3);
       for (const [x, y, h, f, fem] of [[cx - 136, cy + 26, 70, 1, false], [cx - 84, cy + 34, 66, 1, true], [cx + 92, cy + 34, 68, -1, false], [cx + 140, cy + 26, 66, -1, true]]) person(v, x, y, h, { f: 0, raw: true, cloth: fem ? '#2a2024' : '#221c18', hair: '#16110e', female: fem, cloak: !fem, rim: 'rgba(255,160,80,.65)', rimDir: f });

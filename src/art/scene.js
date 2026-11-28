@@ -14,6 +14,7 @@ import { invented } from '../era/state.js';
 import { TECH, eraOf, eraKey, eraBack, eraFront, ironBridge, ironcart, rails, train, station, crane, shipyard, steamship, airship, headframe } from './sceneEra.js';
 import { STYLE, house, tower, wallRun, windmill, church, cathedral, keep, castle, citadel, mageTowers, endlessTower, wizardTower, elfGreatTree, ropeBridge, dwarfFacade, yurt, herd, ruinArch, bastion, manor, fortress, ruins, ruinPalace, lighthouse, ship, docks, elfSpire, tent, totem, blackSpire, stiltHut, dwarfGate, worldTree } from './sceneTown.js';
 import { gradeScene } from './sceneGrade.js';
+import { nearStage } from './sceneNear.js';
 
 /** 그 달의 때와 날씨 (같은 달이면 늘 같음) */
 export function conditions(year, month) {
@@ -124,6 +125,7 @@ function draw(year, month, famine, plague, place, calamity, era) {
   if (cal) seasonAir(ctx, cal, e);
   gradeScene(ctx, S, { month, lit: e.lit, blight: !!P.blight, dry: !!P.dry }); // 46단계: 대비·계절 색·하늘 빛·밤 불빛
   paintFinish(ctx, W, H, S, { hz: HZ / H });
+  nearStage(ctx, S, P, D, layout, rng(D.seed * 13 + 7), wr); // 51단계: 폰에 보이는 가운데에 가까운 나무와 둔덕 (먼 곳 안개 뒤에 그린다)
   grain(ctx);
   land.width = land.height = 0;
   const url = canvasUrl(cv, 'image/jpeg', 0.88);
@@ -338,7 +340,7 @@ const LAYOUTS = {
     const fg = (x) => 396 - fbm1(x / 200 + q, 31, 3) * 30 + sbump(x, 640, 300) * 16;
     foreground(L, fg, P, S, R, { month });
     road(L, e, 0, gx, Math.max(gy, fg(gx) - 6));
-    if (farm) fence(L, fg, 380, 680);
+    if (farm && q % 3) { const f0 = 300 + (q % 5) * 70; fence(L, fg, f0, f0 + 150 + (q % 4) * 50); }
     eraRoad(L, e, fg, gx, Math.max(gy, fg(gx) - 6), 0);
     frame(L, e, fg);
   },
