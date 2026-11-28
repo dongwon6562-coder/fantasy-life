@@ -40,6 +40,9 @@ import { ritesLine } from '../rites/index.js';
 import { watchLine } from '../watch/index.js';
 import { piratesLine } from '../pirates/index.js';
 import { sectLine } from '../sect/index.js';
+import { witchLine } from '../witch/index.js';
+import { councilLine } from '../council/index.js';
+import { bountyLine } from '../bounty/index.js';
 import { landsLine } from '../lands/index.js';
 import { crownsLines } from '../crowns/index.js';
 import { peersLines } from '../peers/index.js';
@@ -61,7 +64,7 @@ const txt = (x) => (typeof x === 'string' ? x : x.text);
 // 다른 갈래가 붙는 자리: lead(풍경, 앞의 두 줄), did(지난달 머리 한 줄), met(마주친 사람들), heard(들려온 소문)
 // 함수는 game을 받아 글 한 줄, 줄들, {text, cls} 가운데 하나를 돌려준다.
 export const TODAY_SOURCES = {
-  lead: [sceneLine, starsLine, cloisterLine, occLine, migrateLine, outlawsLine, demonsLine, cityLine, laterLine, harborLine, mountLine, clothLine, builderLine, carrierLine, creditLine, undertakerLine, surveyLine, magejobLine, artificeLine, swordLine, demongodLine, delveLine, landsLine, hunterLine, ritesLine, watchLine, piratesLine, sectLine, streetLine, (g) => natureInfo(g)?.sky], // 몸으로 느끼는 지금 (src/senses), 수도원과 은둔 (src/cloister), 점령지 (src/occupied), 산적 (src/outlaws), 해협 너머 마족 (src/demons), 포구 (src/harbor), 하늘 짐승 (src/mount), 옷감과 옷차림 (src/cloth), 짓는 일 (src/builder), 길 위의 일 (src/carrier), 빚과 돈놀이 (src/credit), 사냥 (src/hunter), 공장 거리와 빈 마을 (src/cityday), 새 기술과 세력 (src/later_era), 거리 풍경 (src/rumor), 없으면 하늘과 땅. 앞의 셋까지
+  lead: [sceneLine, starsLine, cloisterLine, occLine, migrateLine, outlawsLine, demonsLine, cityLine, laterLine, harborLine, mountLine, clothLine, builderLine, carrierLine, creditLine, undertakerLine, surveyLine, magejobLine, artificeLine, swordLine, demongodLine, delveLine, landsLine, hunterLine, ritesLine, watchLine, piratesLine, sectLine, witchLine, councilLine, bountyLine, streetLine, (g) => natureInfo(g)?.sky], // 몸으로 느끼는 지금 (src/senses), 수도원과 은둔 (src/cloister), 점령지 (src/occupied), 산적 (src/outlaws), 해협 너머 마족 (src/demons), 포구 (src/harbor), 하늘 짐승 (src/mount), 옷감과 옷차림 (src/cloth), 짓는 일 (src/builder), 길 위의 일 (src/carrier), 빚과 돈놀이 (src/credit), 사냥 (src/hunter), 공장 거리와 빈 마을 (src/cityday), 새 기술과 세력 (src/later_era), 거리 풍경 (src/rumor), 없으면 하늘과 땅. 앞의 셋까지
   did: [sensesLine], // 지난달을 몸으로 느낀 한두 문장 (src/senses): '지난달 한 일' 머리에
   met: [
     (g) => encounterLines(g).map((x) => ({ text: x.text, cls: x.kind ? `ek-${String(x.kind).replace(/[^\w-]/g, '')}` : '' })), // 먼저 다가온 사람들 (src/encounter)
